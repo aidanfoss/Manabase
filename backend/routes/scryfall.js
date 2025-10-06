@@ -8,9 +8,7 @@ router.get("/card/:name", async (req, res) => {
     const { name } = req.params;
     const cacheKey = `card-${name.toLowerCase()}`;
 
-    if (!isExpired(cacheKey)) {
-        return res.json(getCache(cacheKey).data);
-    }
+    if (!isExpired(cacheKey)) return res.json(getCache(cacheKey).data);
 
     try {
         const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`);
@@ -18,19 +16,17 @@ router.get("/card/:name", async (req, res) => {
         setCache(cacheKey, data);
         res.json(data);
     } catch (err) {
-        console.error(err);
+        console.error("Scryfall error:", err);
         res.status(500).json({ error: "Failed to fetch card data." });
     }
 });
 
-// Search for cards
+// Search cards
 router.get("/search", async (req, res) => {
     const { q } = req.query;
     const cacheKey = `search-${q}`;
 
-    if (!isExpired(cacheKey)) {
-        return res.json(getCache(cacheKey).data);
-    }
+    if (!isExpired(cacheKey)) return res.json(getCache(cacheKey).data);
 
     try {
         const response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}`);
@@ -38,7 +34,7 @@ router.get("/search", async (req, res) => {
         setCache(cacheKey, data);
         res.json(data);
     } catch (err) {
-        console.error(err);
+        console.error("Scryfall search error:", err);
         res.status(500).json({ error: "Failed to fetch search data." });
     }
 });

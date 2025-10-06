@@ -1,0 +1,39 @@
+
+:root {
+  --bg: #0e0f12;
+  --panel: #16171c;
+  --text: #e0e4f2;
+  --muted: #a0a5b5;
+  --accent: #4c94ff;
+}
+
+body { margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--text); }
+.app { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+.aside { background: var(--panel); padding: 16px; overflow-y: auto; border-right: 1px solid #222; }
+.aside h2 { font-size: 20px; margin-top: 0; }
+.section { margin-bottom: 20px; }
+.section h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.taglist { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { border-radius: 10px; padding: 6px 10px; background: #1b1d24; border: 1px solid #2c2f3b; color: var(--text); font-size: 12px; cursor: pointer; }
+.tag.active { background: #13254a; border-color: var(--accent); }
+.color-buttons { display: flex; gap: 6px; margin-bottom: 10px; }
+.color-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #333; font-weight: bold; color: #fff; cursor: pointer; }
+.color-btn.active { box-shadow: 0 0 8px var(--accent); }
+.color-W { background: #fdfde2; color: #000; }
+.color-U { background: #8ec5ff; }
+.color-B { background: #3a3a3a; }
+.color-R { background: #e35c5c; }
+.color-G { background: #4baa58; }
+.main { padding: 20px; overflow-y: auto; }
+.section-title { font-size: 16px; margin: 16px 0 8px; border-bottom: 1px solid #2a2c36; padding-bottom: 4px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 12px; }
+.card { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #222; background: #101115; }
+.card img { width: 100%; aspect-ratio: 63.5 / 88.9; object-fit: cover; display: block; }
+.title { padding: 6px 10px 12px; font-weight: 600; font-size: 14px; }
+.price-tag { position: absolute; right: 8px; bottom: 8px; font-size: 11px; background: #142038; color: #cfe1ff; border: 1px solid #233a66; border-radius: 8px; padding: 5px 8px; cursor: pointer; }
+.note-dot { position: absolute; left: 8px; top: 8px; width: 18px; height: 18px; border-radius: 6px; background: #1d1e22; display: grid; place-items: center; cursor: pointer; font-size: 12px; }
+.tooltip, .price-hover { display: none; position: absolute; z-index: 10; background: #0f1116; border: 1px solid #2a2c36; border-radius: 8px; padding: 10px; font-size: 12px; color: var(--text); }
+.note-dot:hover + .tooltip { display: block; left: 8px; top: 30px; width: 240px; }
+.price-tag:hover + .price-hover { display: block; right: 8px; bottom: 40px; width: 240px; }
+.price-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #222; padding: 3px 0; }
+.price-row:last-child { border: none; }

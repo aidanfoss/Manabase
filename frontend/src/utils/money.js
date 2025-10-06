@@ -1,0 +1,1 @@
+export function fmtUSD(x){if(!x)return'—';return `$${Number(x).toFixed(2)}`;}

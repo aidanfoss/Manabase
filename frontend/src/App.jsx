@@ -1,97 +1,146 @@
-import React, { useState, useEffect } from "react";
-import ColorSelector from "./components/ColorSelector";
-import CardDisplay from "./components/CardDisplay";
-import ControlPanel from "./components/ControlPanel";
+import React, { useEffect, useMemo, useState } from 'react'
+import { api } from './api/client'
+import Card from './components/Card'
+import './styles.css'
 
 export default function App() {
-    const [selectedColors, setSelectedColors] = useState(["G"]);
-    const [activeMetas, setActiveMetas] = useState(["fog_meta"]);
-    const [activeCycles, setActiveCycles] = useState([]);
-    const [metaData, setMetaData] = useState([]);
-    const [landCycles, setLandCycles] = useState([]);
+    const [metas, setMetas] = useState([])
+    const [landcycles, setLandcycles] = useState([])
+    const [selected, setSelected] = useState({
+        metas: new Set(),
+        landcycles: new Set(),
+        colors: new Set()
+    })
+    const [cards, setCards] = useState({ staples: [], sideboard: [], lands: [] })
 
-    // Load metas and land cycles from backend
+    // fetch initial data
     useEffect(() => {
-        fetch("http://localhost:8080/api/metas")
-            .then((r) => r.json())
-            .then((names) =>
-                setMetaData(
-                    names.map((n) => ({
-                        name: n,
-                        label:
-                            n === "fog_meta"
-                                ? "Fog Meta"
-                                : n === "voltron_meta"
-                                    ? "Voltron Meta"
-                                    : n,
-                    }))
-                )
-            );
+        ; (async () => {
+            const [m, l] = await Promise.all([
+                api.getMetas(),
+                api.getLandcycles()
+            ])
+            setMetas(m || [])
+            setLandcycles(l || [])
+        })()
+    }, [])
 
-        fetch("http://localhost:8080/api/landcycles")
-            .then((r) => r.json())
-            .then(setLandCycles);
-    }, []);
+    // toggle functions
+    function toggleMeta(name) {
+        setSelected(prev => {
+            const next = new Set(prev.metas)
+            next.has(name) ? next.delete(name) : next.add(name)
+            return { ...prev, metas: next }
+        })
+    }
 
-    const toggleColor = (color) =>
-        setSelectedColors((prev) =>
-            prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
-        );
+    function toggleCycle(name) {
+        setSelected(prev => {
+            const next = new Set(prev.landcycles)
+            next.has(name) ? next.delete(name) : next.add(name)
+            return { ...prev, landcycles: next }
+        })
+    }
 
-    const toggleMeta = (name) =>
-        setActiveMetas((prev) =>
-            prev.includes(name)
-                ? prev.filter((m) => m !== name)
-                : [...prev, name]
-        );
+    function toggleColor(c) {
+        setSelected(prev => {
+            const next = new Set(prev.colors)
+            next.has(c) ? next.delete(c) : next.add(c)
+            return { ...prev, colors: next }
+        })
+    }
 
-    const toggleCycle = (name) =>
-        setActiveCycles((prev) =>
-            prev.includes(name)
-                ? prev.filter((c) => c !== name)
-                : [...prev, name]
-        );
+    // rebuild combined lists when selection changes
+    useEffect(() => {
+        const chosenMetas = metas.filter(m => selected.metas.size === 0 || selected.metas.has(m.name))
+        const staples = chosenMetas.flatMap(m => m.staples || [])
+        const sideboard = chosenMetas.flatMap(m => m.sideboard || [])
+        const lands = landcycles.filter(lc => selected.landcycles.size === 0 || selected.landcycles.has(lc.name))
+        setCards({ staples, sideboard, lands })
+    }, [metas, landcycles, selected.metas, selected.landcycles])
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100">
-            <h1 className="text-3xl text-center py-4 font-bold">
-                Manabase & Meta Tool
-            </h1>
+        <div className='app'>
+            <aside className='aside'>
+                <h2>Manabase Builder</h2>
+                <p className='helper'>
+                    Select colors, metas, and land cycles to populate cards. Prices shown are the lowest printing (foil or nonfoil).
+                </p>
 
-            <ColorSelector selectedColors={selectedColors} toggleColor={toggleColor} />
+                {/* Color buttons */}
+                <div className='section'>
+                    <h3>Colors</h3>
+                    <div className='color-buttons'>
+                        {['W', 'U', 'B', 'R', 'G'].map(c => (
+                            <button
+                                key={c}
+                                onClick={() => toggleColor(c)}
+                                className={`color-btn color-${c}${selected.colors.has(c) ? ' active' : ''}`}
+                            >
+                                {c}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-            <ControlPanel
-                metas={metaData}
-                activeMetas={activeMetas}
-                toggleMeta={toggleMeta}
-                landCycles={landCycles}
-                activeCycles={activeCycles}
-                toggleCycle={toggleCycle}
-            />
+                {/* Metas */}
+                <div className='section'>
+                    <h3>Metas</h3>
+                    <div className='taglist'>
+                        {metas.map(m => (
+                            <button
+                                key={m.name}
+                                onClick={() => toggleMeta(m.name)}
+                                className={`tag${selected.metas.has(m.name) ? ' active' : ''}`}
+                            >
+                                {m.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-            {/* ==== LANDS SECTION ==== */}
-            <CardDisplay
-                selectedColors={selectedColors}
-                activeCycles={activeCycles}
-                activeMetas={activeMetas}
-                sectionName="Lands"
-            />
+                {/* Land Cycles */}
+                <div className='section'>
+                    <h3>Land Cycles</h3>
+                    <div className='taglist'>
+                        {landcycles.map(lc => (
+                            <button
+                                key={lc.name}
+                                onClick={() => toggleCycle(lc.name)}
+                                className={`tag${selected.landcycles.has(lc.name) ? ' active' : ''}`}
+                            >
+                                {lc.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </aside>
 
-            {/* ==== STAPLES SECTION ==== */}
-            <CardDisplay
-                selectedColors={selectedColors}
-                activeCycles={activeCycles}
-                activeMetas={activeMetas}
-                sectionName="Staples"
-            />
+            <main className='main'>
+                <div className='section-title'>Staples</div>
+                <div className='grid'>
+                    {cards.staples.map((n, i) => {
+                        const card = typeof n === 'string' ? { name: n } : n
+                        return <Card key={i} item={card} />
+                    })}
+                </div>
 
-            {/* ==== SIDEBOARD SECTION ==== */}
-            <CardDisplay
-                selectedColors={selectedColors}
-                activeCycles={activeCycles}
-                activeMetas={activeMetas}
-                sectionName="Sideboard"
-            />
+                <div className='section-title'>Sideboard</div>
+                <div className='grid'>
+                    {cards.sideboard.map((n, i) => {
+                        const card = typeof n === 'string' ? { name: n } : n
+                        return <Card key={i} item={card} />
+                    })}
+                </div>
+
+                <div className='section-title'>Lands</div>
+                <div className='grid'>
+                    {cards.lands.map((n, i) => {
+                        const card = typeof n === 'string' ? { name: n } : n
+                        return <Card key={i} item={card} />
+                    })}
+                </div>
+            </main>
         </div>
-    );
+    )
 }
