@@ -1,0 +1,16 @@
+﻿{
+  "name": "Painlands",
+  "description": "Tap for colorless or one of two colors and deal 1 damage to you.",
+  "cards": [
+    "Adarkar Wastes",
+    "Underground River",
+    "Sulfurous Springs",
+    "Karplusan Forest",
+    "Brushland",
+    "Caves of Koilos",
+    "Llanowar Wastes",
+    "Yavimaya Coast",
+    "Shivan Reef",
+    "Battlefield Forge"
+  ]
+}

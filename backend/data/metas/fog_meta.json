@@ -1,5 +1,19 @@
 {
   "name": "Fog Meta",
-  "description": "Combat-heavy meta defense.",
-  "cards": ["Fog","Darkness","Constant Mists"]
+  "description": "Helps stall combat-heavy metas with fogs and sustain.",
+  "staples": [
+    "Fog",
+    "Darkness",
+    "Spore Frog",
+    "Tangle",
+    "Moment's Peace",
+    "Arachnogenesis",
+    "Frenzied Baloth"
+  ],
+  "sideboard": [
+    {
+      "name": "Constant Mists",
+      "note": "This card is very powerful, and can stall out games for an incredible amount of time - Play with caution"
+    }
+  ]
 }

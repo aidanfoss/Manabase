@@ -1,0 +1,11 @@
+{
+  "name": "Snarl Lands",
+  "description": "Enter untapped if you reveal a matching basic land from your hand.",
+  "cards": [
+    "Frostboil Snarl",
+    "Necroblossom Snarl",
+    "Furycalm Snarl",
+    "Vineglimmer Snarl",
+    "Shineshadow Snarl"
+  ]
+}

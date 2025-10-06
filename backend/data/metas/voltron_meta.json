@@ -1,0 +1,21 @@
+﻿{
+  "name": "Voltron Meta",
+  "description": "Helps counter or support Voltron-heavy tables.",
+  "sideboard": [
+    "Darksteel Plate",
+    "Swiftfoot Boots",
+    "Lightning Greaves",
+    "Ghostly Prison",
+    "Propaganda"
+  ],
+  "staples": [
+    {
+      "name": "Maze of Ith",
+      "note": "Excellent against single tall attackers like commanders."
+    },
+    {
+      "name": "Kor Haven",
+      "note": "Defensive tool similar to Maze of Ith, slower but versatile."
+    }
+  ]
+}

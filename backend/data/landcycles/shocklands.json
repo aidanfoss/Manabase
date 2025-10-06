@@ -1,0 +1,16 @@
+﻿{
+  "name": "Shocklands",
+  "description": "Enter tapped unless you pay 2 life. Fetchable duals from Ravnica sets.",
+  "cards": [
+    "Hallowed Fountain",
+    "Watery Grave",
+    "Blood Crypt",
+    "Stomping Ground",
+    "Temple Garden",
+    "Godless Shrine",
+    "Overgrown Tomb",
+    "Breeding Pool",
+    "Steam Vents",
+    "Sacred Foundry"
+  ]
+}

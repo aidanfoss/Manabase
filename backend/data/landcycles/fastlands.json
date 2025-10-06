@@ -1,0 +1,16 @@
+﻿{
+  "name": "Fastlands",
+  "description": "Enter tapped unless you control two or fewer other lands.",
+  "cards": [
+    "Seachrome Coast",
+    "Darkslick Shores",
+    "Blackcleave Cliffs",
+    "Copperline Gorge",
+    "Razorverge Thicket",
+    "Concealed Courtyard",
+    "Blooming Marsh",
+    "Botanical Sanctum",
+    "Spirebluff Canal",
+    "Inspiring Vantage"
+  ]
+}

@@ -1,0 +1,16 @@
+﻿{
+  "name": "Scrylands",
+  "description": "Enter tapped, you Scry 1 on ETB.",
+  "cards": [
+    "Temple of Enlightenment",
+    "Temple of Deceit",
+    "Temple of Malice",
+    "Temple of Abandon",
+    "Temple of Plenty",
+    "Temple of Silence",
+    "Temple of Malady",
+    "Temple of Mystery",
+    "Temple of Epiphany",
+    "Temple of Triumph"
+  ]
+}

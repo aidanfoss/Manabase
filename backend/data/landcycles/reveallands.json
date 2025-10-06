@@ -1,0 +1,11 @@
+{
+  "name": "Reveal Lands",
+  "description": "Enter untapped if you reveal a matching basic land type from your hand.",
+  "cards": [
+    "Port Town",
+    "Choked Estuary",
+    "Foreboding Ruins",
+    "Game Trail",
+    "Fortified Village"
+  ]
+}

@@ -1,0 +1,16 @@
+﻿{
+  "name": "Checklands",
+  "description": "Enter untapped if you control a basic land of the right type.",
+  "cards": [
+    "Glacial Fortress",
+    "Drowned Catacomb",
+    "Dragonskull Summit",
+    "Rootbound Crag",
+    "Sunpetal Grove",
+    "Isolated Chapel",
+    "Woodland Cemetery",
+    "Hinterland Harbor",
+    "Sulfur Falls",
+    "Clifftop Retreat"
+  ]
+}

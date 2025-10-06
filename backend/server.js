@@ -1,30 +1,18 @@
 ﻿import express from "express";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
+import scryfallRoutes from "./routes/scryfall.js";
+import metasRoutes from "./routes/metas.js";
+import landcycleRoutes from "./routes/landcycles.js";
+import sideboardRoutes from "./routes/sideboard.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Routes
+app.use("/api/scryfall", scryfallRoutes);
+app.use("/api/metas", metasRoutes);
+app.use("/api/landcycles", landcycleRoutes);
+app.use("/api/sideboard", sideboardRoutes);
 
-// Serve metas
-app.get("/api/metas", (req, res) => {
-    const metaDir = path.join(__dirname, "data/metas");
-    const metas = fs.readdirSync(metaDir)
-        .filter(f => f.endsWith(".json"))
-        .map(f => f.replace(".json", ""));
-    res.json(metas);
-});
-
-app.get("/api/metas/:name", (req, res) => {
-    const file = path.join(__dirname, `data/metas/${req.params.name}.json`);
-    if (!fs.existsSync(file)) return res.status(404).send("Meta not found");
-    res.sendFile(file);
-});
-
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(8080, () => console.log("✅ Server running on port 8080"));

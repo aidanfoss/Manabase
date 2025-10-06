@@ -1,0 +1,16 @@
+﻿{
+  "name": "Fetchlands",
+  "description": "Can be sacrificed to fetch one of two basic land types.",
+  "cards": [
+    "Flooded Strand",
+    "Polluted Delta",
+    "Bloodstained Mire",
+    "Wooded Foothills",
+    "Windswept Heath",
+    "Marsh Flats",
+    "Verdant Catacombs",
+    "Misty Rainforest",
+    "Scalding Tarn",
+    "Arid Mesa"
+  ]
+}

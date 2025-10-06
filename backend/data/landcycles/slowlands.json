@@ -1,0 +1,16 @@
+{
+  "name": "Slow Lands",
+  "description": "Enter untapped if you control two or more other lands.",
+  "cards": [
+    "Deserted Beach",
+    "Shipwreck Marsh",
+    "Haunted Ridge",
+    "Rockfall Vale",
+    "Overgrown Farmland",
+    "Shattered Sanctum",
+    "Deathcap Glade",
+    "Dreamroot Cascade",
+    "Stormcarved Coast",
+    "Sundown Pass"
+  ]
+}

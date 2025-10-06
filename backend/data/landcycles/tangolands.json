@@ -1,0 +1,11 @@
+{
+  "name": "Tango Lands",
+  "description": "Enter untapped if you control two or more basic lands. Fetchable duals.",
+  "cards": [
+    "Canopy Vista",
+    "Cinder Glade",
+    "Prairie Stream",
+    "Smoldering Marsh",
+    "Sunken Hollow"
+  ]
+}
