@@ -138,7 +138,7 @@ app.use("/api/cards", cardsRouter);
 // ---------------------------------
 // 🧱 Static Frontend Serving (React build)
 // ---------------------------------
-const frontendPath = path.join(__dirname, "../frontend/dist");
+const frontendPath = path.join(__dirname, "frontend/dist");
 
 // Serve static assets (JS, CSS, etc.)
 app.use(express.static(frontendPath));
