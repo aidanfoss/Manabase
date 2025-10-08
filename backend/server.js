@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Manabase Backend Server
  * ---------------------------------
  * Handles all cached card, price, and art API requests for the frontend.
@@ -22,7 +22,9 @@ import cardsRouter from "./routes/cards.js";
 import { readJsonSafe } from "./utils/safeJson.js";
 import { fetchCardData } from "./services/scryfall.js";
 
-
+// ---------------------------------
+// Core Setup
+// ---------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -43,18 +45,18 @@ app.use((req, _res, next) => {
 });
 
 // ---------------------------------
-// Providers (async-friendly)
-// ---------------------------------
-const metasProvider = async () => metas;
-const colorsProvider = async () => colors;
-
-// ---------------------------------
 // Utility: Determine if card is fetchable
 // ---------------------------------
 function isFetchable(card) {
     const basics = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
     return basics.some(type => card.type_line?.includes(type));
 }
+
+// ---------------------------------
+// Providers (async-friendly)
+// ---------------------------------
+const metasProvider = async () => metas;
+const colorsProvider = async () => colors;
 
 // ---------------------------------
 // API Routes
@@ -130,20 +132,26 @@ app.get("/api/landcycles", async (_req, res) => {
     }
 });
 
-
-
-// ✅ Cards route (will internally mark fetchable too)
+// ✅ Cards route (handles fetchable detection internally)
 app.use("/api/cards", cardsRouter);
 
 // ---------------------------------
-// Static Serving (for production builds)
+// 🧱 Static Frontend Serving (React build)
 // ---------------------------------
-const frontendDir = path.resolve(__dirname, "../frontend/dist");
-app.use(express.static(frontendDir));
+const frontendPath = path.resolve(__dirname, "../frontend/dist");
 
-// Fallback for React Router (Express 5-safe)
-app.get(/^(?!\/api).*/, (req, res) => {
-    res.sendFile(path.join(frontendDir, "index.html"));
+// Serve all static assets (JS, CSS, etc.)
+app.use(express.static(frontendPath));
+
+// ✅ Fallback: Send React app for all non-API routes
+app.get("*", (req, res) => {
+    // Only serve frontend if it exists
+    const indexFile = path.join(frontendPath, "index.html");
+    if (fs.existsSync(indexFile)) {
+        res.sendFile(indexFile);
+    } else {
+        res.status(404).send("Frontend build not found.");
+    }
 });
 
 // ---------------------------------
@@ -157,4 +165,5 @@ app.listen(PORT, () => {
     console.log(`   → /api/colors`);
     console.log(`   → /api/landcycles`);
     console.log(`   → /api/cards`);
+    console.log(`🌐 Serving frontend from: ${frontendPath}`);
 });
