@@ -138,21 +138,31 @@ app.use("/api/cards", cardsRouter);
 // ---------------------------------
 // 🧱 Static Frontend Serving (React build)
 // ---------------------------------
-const frontendPath = path.resolve(__dirname, "../frontend/dist");
+import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs";
 
-// Serve all static assets (JS, CSS, etc.)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ✅ Correct absolute path inside container
+const frontendPath = path.join(__dirname, "frontend/dist");
+
+// Serve static assets (JS, CSS, etc.)
 app.use(express.static(frontendPath));
 
-// ✅ Fallback: Send React app for all non-API routes
+// ✅ Fallback route for SPA (React)
 app.get("*", (req, res) => {
-    // Only serve frontend if it exists
-    const indexFile = path.join(frontendPath, "index.html");
-    if (fs.existsSync(indexFile)) {
-        res.sendFile(indexFile);
-    } else {
-        res.status(404).send("Frontend build not found.");
-    }
+  const indexFile = path.join(frontendPath, "index.html");
+  console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
+  if (fs.existsSync(indexFile)) {
+    res.sendFile(indexFile);
+  } else {
+    console.error("❌ Frontend build not found at", indexFile);
+    res.status(404).send("Frontend build not found.");
+  }
 });
+
 
 // ---------------------------------
 // Start Server
