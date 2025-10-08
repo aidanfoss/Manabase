@@ -375,3 +375,75 @@ h2 {
         background: rgba(59, 130, 246, 0.85);
         color: white;
     }
+
+.tier-group {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+    .tier-group.premium {
+        background: rgba(0,255,0,0.05);
+    }
+
+    .tier-group.playable {
+        background: rgba(255,255,0,0.05);
+    }
+
+    .tier-group.budget {
+        background: rgba(255,0,0,0.05);
+    }
+
+.tier-label {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.tier-group.premium {
+    background: rgba(0,255,0,0.05);
+}
+
+.tier-group.playable {
+    background: rgba(255,255,0,0.05);
+}
+
+.tier-group.budget {
+    background: rgba(255,0,0,0.05);
+}
+
+.tier-group.terrible {
+    background: rgba(60,60,60,0.3);
+}
+
+.tier-label {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.tier-group.terrible .tier-label {
+    color: #ff6666;
+    font-weight: 700;
+}
+
+/* Fetchable cycles — soft green highlight */
+.tag.fetchable {
+    border: 1px solid rgba(0, 200, 100, 0.6);
+    box-shadow: 0 0 4px rgba(0, 255, 150, 0.2);
+    transition: all 0.15s ease-in-out;
+}
+
+    /* Slightly brighter when hovered */
+    .tag.fetchable:hover {
+        box-shadow: 0 0 6px rgba(0, 255, 150, 0.4);
+        background: rgba(0, 255, 100, 0.08);
+    }
+
+    /* Keep the active selection color overriding fetchable border if selected */
+    .tag.fetchable.active {
+        border-color: rgba(0, 255, 150, 0.9);
+        background: rgba(0, 255, 100, 0.15);
+    }
