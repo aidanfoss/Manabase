@@ -1,0 +1,100 @@
+{
+  "name": "Darkness",
+  "oracle_id": "932708ae-9d5c-4561-aa8b-0d2222d37fdc",
+  "type_line": "Instant",
+  "color_identity": [
+    "B"
+  ],
+  "fetchable": false,
+  "set": "tsb",
+  "collector_number": "40",
+  "image": "https://cards.scryfall.io/normal/front/5/8/584834fb-b7b6-40eb-9fec-8df17172ce5f.jpg?1562776481",
+  "scryfall_uri": "https://scryfall.com/card/tsb/40/darkness?utm_source=api",
+  "uri": "https://scryfall.com/card/tsb/40/darkness?utm_source=api",
+  "url": "https://scryfall.com/card/tsb/40/darkness?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/584834fb-b7b6-40eb-9fec-8df17172ce5f/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F14575%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=14076&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/26005?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 23.13,
+    "lowest": 9.03,
+    "usd": "23.13",
+    "usd_foil": "79.00"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A932708ae-9d5c-4561-aa8b-0d2222d37fdc&unique=prints",
+  "prints": [
+    {
+      "set": "spg",
+      "set_name": "Special Guests",
+      "collector_number": "124",
+      "prices": {
+        "usd": "9.03",
+        "usd_foil": "9.68",
+        "usd_etched": null,
+        "eur": "5.34",
+        "eur_foil": "7.72",
+        "tix": null
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "197★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "16.86",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "197",
+      "prices": {
+        "usd": "13.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "9.39",
+        "eur_foil": null,
+        "tix": "1.86"
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "tsb",
+      "set_name": "Time Spiral Timeshifted",
+      "collector_number": "40",
+      "prices": {
+        "usd": "23.13",
+        "usd_foil": "79.00",
+        "usd_etched": null,
+        "eur": "12.63",
+        "eur_foil": "29.45",
+        "tix": "1.91"
+      },
+      "released_at": "2006-10-06"
+    },
+    {
+      "set": "leg",
+      "set_name": "Legends",
+      "collector_number": "94",
+      "prices": {
+        "usd": "17.02",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "13.64",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-06-01"
+    }
+  ]
+}

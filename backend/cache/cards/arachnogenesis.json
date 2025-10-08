@@ -1,0 +1,142 @@
+{
+  "name": "Arachnogenesis",
+  "oracle_id": "b655bee5-52d3-467e-b16c-cfc2edf2b1a1",
+  "type_line": "Instant",
+  "color_identity": [
+    "G"
+  ],
+  "fetchable": false,
+  "set": "dsc",
+  "collector_number": "169",
+  "image": "https://cards.scryfall.io/normal/front/f/5/f5f18431-64c0-4ae5-bdc1-1e953313f086.jpg?1726284975",
+  "scryfall_uri": "https://scryfall.com/card/dsc/169/arachnogenesis?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/169/arachnogenesis?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/169/arachnogenesis?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/f5f18431-64c0-4ae5-bdc1-1e953313f086/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F579005%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=788830&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/130961?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 2.46,
+    "lowest": 2.46,
+    "usd": "2.46",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ab655bee5-52d3-467e-b16c-cfc2edf2b1a1&unique=prints",
+  "prints": [
+    {
+      "set": "mar",
+      "set_name": "Marvel Universe",
+      "collector_number": "31",
+      "prices": {
+        "usd": "10.69",
+        "usd_foil": "25.71",
+        "usd_etched": null,
+        "eur": "3.34",
+        "eur_foil": "10.07",
+        "tix": null
+      },
+      "released_at": "2025-09-26"
+    },
+    {
+      "set": "omb",
+      "set_name": "Through the Omenpaths Bonus Sheet",
+      "collector_number": "31",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-09-23"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "169",
+      "prices": {
+        "usd": "2.46",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "2.53",
+        "eur_foil": null,
+        "tix": "0.43"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "647",
+      "prices": {
+        "usd": "5.17",
+        "usd_foil": "5.15",
+        "usd_etched": null,
+        "eur": "3.84",
+        "eur_foil": "4.27",
+        "tix": "0.30"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "553",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": "7.51",
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.32"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "272",
+      "prices": {
+        "usd": "3.85",
+        "usd_foil": "3.16",
+        "usd_etched": null,
+        "eur": "2.22",
+        "eur_foil": "3.39",
+        "tix": "0.14"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "pz1",
+      "set_name": "Legendary Cube Prize Pack",
+      "collector_number": "70",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.26"
+      },
+      "released_at": "2015-11-18"
+    },
+    {
+      "set": "c15",
+      "set_name": "Commander 2015",
+      "collector_number": "32",
+      "prices": {
+        "usd": "2.59",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "2.82",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2015-11-13"
+    }
+  ]
+}

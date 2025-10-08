@@ -1,0 +1,436 @@
+{
+  "name": "Fog",
+  "oracle_id": "27e9db49-7af7-4bef-ad4c-bf5dfb92030d",
+  "type_line": "Instant",
+  "color_identity": [
+    "G"
+  ],
+  "fetchable": false,
+  "set": "ema",
+  "collector_number": "167",
+  "image": "https://cards.scryfall.io/normal/front/b/b/bbc3152e-7b3b-4ac6-8b33-abfebde216aa.jpg?1709444479",
+  "scryfall_uri": "https://scryfall.com/card/ema/167/fog?utm_source=api",
+  "uri": "https://scryfall.com/card/ema/167/fog?utm_source=api",
+  "url": "https://scryfall.com/card/ema/167/fog?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/bbc3152e-7b3b-4ac6-8b33-abfebde216aa/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F118683%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=290439&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/60713?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.44,
+    "lowest": 0.18,
+    "usd": "0.44",
+    "usd_foil": "0.82"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A27e9db49-7af7-4bef-ad4c-bf5dfb92030d&unique=prints",
+  "prints": [
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "346",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "30a",
+      "set_name": "30th Anniversary Edition",
+      "collector_number": "486",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-11-28"
+    },
+    {
+      "set": "30a",
+      "set_name": "30th Anniversary Edition",
+      "collector_number": "189",
+      "prices": {
+        "usd": "1.50",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-11-28"
+    },
+    {
+      "set": "j21",
+      "set_name": "Jumpstart: Historic Horizons",
+      "collector_number": "789",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-08-26"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "EMA-167",
+      "prices": {
+        "usd": "0.86",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-11-07"
+    },
+    {
+      "set": "ema",
+      "set_name": "Eternal Masters",
+      "collector_number": "167",
+      "prices": {
+        "usd": "0.44",
+        "usd_foil": "0.82",
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": "0.43",
+        "tix": "0.04"
+      },
+      "released_at": "2016-06-10"
+    },
+    {
+      "set": "m14",
+      "set_name": "Magic 2014",
+      "collector_number": "171",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": "0.98",
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": "0.88",
+        "tix": "0.03"
+      },
+      "released_at": "2013-07-19"
+    },
+    {
+      "set": "m13",
+      "set_name": "Magic 2013",
+      "collector_number": "172",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": "0.76",
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": "0.88",
+        "tix": "0.03"
+      },
+      "released_at": "2012-07-13"
+    },
+    {
+      "set": "m12",
+      "set_name": "Magic 2012",
+      "collector_number": "173",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": "2.06",
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": "0.98",
+        "tix": "0.03"
+      },
+      "released_at": "2011-07-15"
+    },
+    {
+      "set": "me4",
+      "set_name": "Masters Edition IV",
+      "collector_number": "153",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2011-01-10"
+    },
+    {
+      "set": "m11",
+      "set_name": "Magic 2011",
+      "collector_number": "173",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": "2.13",
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": "0.78",
+        "tix": "0.03"
+      },
+      "released_at": "2010-07-16"
+    },
+    {
+      "set": "arc",
+      "set_name": "Archenemy",
+      "collector_number": "56",
+      "prices": {
+        "usd": "0.92",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.28",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2010-06-18"
+    },
+    {
+      "set": "m10",
+      "set_name": "Magic 2010",
+      "collector_number": "182",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": "1.14",
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": "0.78",
+        "tix": "0.05"
+      },
+      "released_at": "2009-07-17"
+    },
+    {
+      "set": "7ed",
+      "set_name": "Seventh Edition",
+      "collector_number": "245★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "26.63",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2001-04-11"
+    },
+    {
+      "set": "7ed",
+      "set_name": "Seventh Edition",
+      "collector_number": "245",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2001-04-11"
+    },
+    {
+      "set": "btd",
+      "set_name": "Beatdown Box Set",
+      "collector_number": "55",
+      "prices": {
+        "usd": "0.56",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.28",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2000-10-01"
+    },
+    {
+      "set": "6ed",
+      "set_name": "Classic Sixth Edition",
+      "collector_number": "230",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.32",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1999-04-21"
+    },
+    {
+      "set": "5ed",
+      "set_name": "Fifth Edition",
+      "collector_number": "293",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1997-03-24"
+    },
+    {
+      "set": "mir",
+      "set_name": "Mirage",
+      "collector_number": "216",
+      "prices": {
+        "usd": "0.32",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "1996-10-08"
+    },
+    {
+      "set": "4bb",
+      "set_name": "Fourth Edition Foreign Black Border",
+      "collector_number": "244",
+      "prices": {
+        "usd": "1.99",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.53",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1995-04-01"
+    },
+    {
+      "set": "4ed",
+      "set_name": "Fourth Edition",
+      "collector_number": "244",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1995-04-01"
+    },
+    {
+      "set": "sum",
+      "set_name": "Summer Magic / Edgar",
+      "collector_number": "195",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "279.13",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-06-21"
+    },
+    {
+      "set": "fbb",
+      "set_name": "Foreign Black Border",
+      "collector_number": "195",
+      "prices": {
+        "usd": "3.69",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.38",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-04-11"
+    },
+    {
+      "set": "3ed",
+      "set_name": "Revised Edition",
+      "collector_number": "195",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.28",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-04-11"
+    },
+    {
+      "set": "cei",
+      "set_name": "Intl. Collectors' Edition",
+      "collector_number": "194",
+      "prices": {
+        "usd": "2.34",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.60",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-12-10"
+    },
+    {
+      "set": "ced",
+      "set_name": "Collectors' Edition",
+      "collector_number": "194",
+      "prices": {
+        "usd": "4.65",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-12-10"
+    },
+    {
+      "set": "2ed",
+      "set_name": "Unlimited Edition",
+      "collector_number": "194",
+      "prices": {
+        "usd": "1.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.99",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-12-01"
+    },
+    {
+      "set": "leb",
+      "set_name": "Limited Edition Beta",
+      "collector_number": "194",
+      "prices": {
+        "usd": "16.81",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "7.49",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-10-04"
+    },
+    {
+      "set": "lea",
+      "set_name": "Limited Edition Alpha",
+      "collector_number": "193",
+      "prices": {
+        "usd": "63.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "28.30",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-08-05"
+    }
+  ]
+}

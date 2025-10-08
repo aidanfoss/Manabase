@@ -1,0 +1,241 @@
+{
+  "name": "Savannah",
+  "oracle_id": "703243f0-8cb3-420f-958f-5fd4bde30293",
+  "type_line": "Land — Forest Plains",
+  "color_identity": [
+    "G",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "vma",
+  "collector_number": "311",
+  "image": "https://cards.scryfall.io/normal/front/b/0/b0d161fc-4a2a-4f1d-82b4-a746552552df.jpg?1562930574",
+  "scryfall_uri": "https://scryfall.com/card/vma/311/savannah?utm_source=api",
+  "uri": "https://scryfall.com/card/vma/311/savannah?utm_source=api",
+  "url": "https://scryfall.com/card/vma/311/savannah?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/b0d161fc-4a2a-4f1d-82b4-a746552552df/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fmagic%2Fproduct%3FproductLineName%3Dmagic%26q%3DSavannah%26view%3Dgrid",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products/Search?referrer=scryfall&searchString=Savannah&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/53085?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": null,
+    "lowest": 160.33,
+    "usd": null,
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A703243f0-8cb3-420f-958f-5fd4bde30293&unique=prints",
+  "prints": [
+    {
+      "set": "30a",
+      "set_name": "30th Anniversary Edition",
+      "collector_number": "573",
+      "prices": {
+        "usd": "250.55",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-11-28"
+    },
+    {
+      "set": "30a",
+      "set_name": "30th Anniversary Edition",
+      "collector_number": "276",
+      "prices": {
+        "usd": "185.30",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-11-28"
+    },
+    {
+      "set": "olgc",
+      "set_name": "Legacy Championship",
+      "collector_number": "2017NA",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-05-04"
+    },
+    {
+      "set": "vma",
+      "set_name": "Vintage Masters",
+      "collector_number": "311",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "4.29"
+      },
+      "released_at": "2014-06-16"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "43614",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "5.84"
+      },
+      "released_at": "2013-01-11"
+    },
+    {
+      "set": "me4",
+      "set_name": "Masters Edition IV",
+      "collector_number": "250",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "5.07"
+      },
+      "released_at": "2011-01-10"
+    },
+    {
+      "set": "me2",
+      "set_name": "Masters Edition II",
+      "collector_number": "235",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "5.46"
+      },
+      "released_at": "2008-09-22"
+    },
+    {
+      "set": "sum",
+      "set_name": "Summer Magic / Edgar",
+      "collector_number": "285",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "4900.00",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-06-21"
+    },
+    {
+      "set": "fbb",
+      "set_name": "Foreign Black Border",
+      "collector_number": "285",
+      "prices": {
+        "usd": "440.00",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "381.13",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-04-11"
+    },
+    {
+      "set": "3ed",
+      "set_name": "Revised Edition",
+      "collector_number": "285",
+      "prices": {
+        "usd": "338.62",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "191.49",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1994-04-11"
+    },
+    {
+      "set": "cei",
+      "set_name": "Intl. Collectors' Edition",
+      "collector_number": "281",
+      "prices": {
+        "usd": "160.33",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "132.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-12-10"
+    },
+    {
+      "set": "ced",
+      "set_name": "Collectors' Edition",
+      "collector_number": "281",
+      "prices": {
+        "usd": "182.00",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "140.63",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-12-10"
+    },
+    {
+      "set": "2ed",
+      "set_name": "Unlimited Edition",
+      "collector_number": "281",
+      "prices": {
+        "usd": "445.00",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "495.51",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-12-01"
+    },
+    {
+      "set": "leb",
+      "set_name": "Limited Edition Beta",
+      "collector_number": "281",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1826.71",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-10-04"
+    },
+    {
+      "set": "lea",
+      "set_name": "Limited Edition Alpha",
+      "collector_number": "280",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "3083.46",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1993-08-05"
+    }
+  ]
+}

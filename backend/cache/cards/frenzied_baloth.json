@@ -1,0 +1,86 @@
+{
+  "name": "Frenzied Baloth",
+  "oracle_id": "6a4ef075-9254-4d36-9572-622833fae54e",
+  "type_line": "Creature — Beast",
+  "color_identity": [
+    "G"
+  ],
+  "fetchable": false,
+  "set": "eoe",
+  "collector_number": "183",
+  "image": "https://cards.scryfall.io/normal/front/c/7/c72d85e9-a0bc-4f73-8d73-c58843577f4e.jpg?1752947300",
+  "scryfall_uri": "https://scryfall.com/card/eoe/183/frenzied-baloth?utm_source=api",
+  "uri": "https://scryfall.com/card/eoe/183/frenzied-baloth?utm_source=api",
+  "url": "https://scryfall.com/card/eoe/183/frenzied-baloth?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/c72d85e9-a0bc-4f73-8d73-c58843577f4e/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F641790%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=833862&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142979?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 2.85,
+    "lowest": 2.85,
+    "usd": "2.85",
+    "usd_foil": "3.13"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6a4ef075-9254-4d36-9572-622833fae54e&unique=prints",
+  "prints": [
+    {
+      "set": "peoe",
+      "set_name": "Edge of Eternities Promos",
+      "collector_number": "183s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.43",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "peoe",
+      "set_name": "Edge of Eternities Promos",
+      "collector_number": "183p",
+      "prices": {
+        "usd": "5.22",
+        "usd_foil": "6.99",
+        "usd_etched": null,
+        "eur": "2.16",
+        "eur_foil": "2.25",
+        "tix": null
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eoe",
+      "set_name": "Edge of Eternities",
+      "collector_number": "342",
+      "prices": {
+        "usd": "3.71",
+        "usd_foil": "4.86",
+        "usd_etched": null,
+        "eur": "4.43",
+        "eur_foil": "6.64",
+        "tix": "0.41"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eoe",
+      "set_name": "Edge of Eternities",
+      "collector_number": "183",
+      "prices": {
+        "usd": "2.85",
+        "usd_foil": "3.13",
+        "usd_etched": null,
+        "eur": "2.65",
+        "eur_foil": "3.25",
+        "tix": "0.14"
+      },
+      "released_at": "2025-08-01"
+    }
+  ]
+}
