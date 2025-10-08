@@ -282,4 +282,12 @@ export default function App() {
       .map((c) => {
         const setCode = (c.set || c.prints?.[0]?.set || "").toUpperCase();
         const collector = c.collector_number || c.prints?.[0]?.collector_number || "";
-        if (setCode && collector) return `1 ${c.name} (${setCode}) ${collect
+        if (setCode && collector) return `1 ${c.name} (${setCode}) ${collector}`;
+        if (setCode) return `1 ${c.name} (${setCode})`;
+        return `1 ${c.name}`;
+      })
+      .join("\n");
+    navigator.clipboard.writeText(text);
+    alert(`📋 Copied ${name} list to clipboard!`);
+  }
+}
