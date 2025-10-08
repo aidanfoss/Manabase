@@ -1,4 +1,4 @@
-const BASE=(import.meta.env.VITE_API_BASE?.replace(/\/$/,'')||'http://localhost:8080')
+const BASE=(import.meta.env.VITE_API_BASE?.replace(/\/$/,'')||'http://manabase.quantumaidan.co.za')
 export const api={
   async json(path){
     const r=await fetch(`${BASE}${path}`,{headers:{'Accept':'application/json'}})
