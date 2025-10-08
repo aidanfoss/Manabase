@@ -1,0 +1,45 @@
+{
+  "name": "Strangled Cemetery",
+  "oracle_id": "3a5b3405-a1e3-4aad-ab4e-1b8db2d1f3a8",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "dsk",
+  "collector_number": "268",
+  "image": "https://cards.scryfall.io/normal/front/c/1/c1ce9250-bdbe-4c77-9243-6db9ffffe69b.jpg?1726286874",
+  "scryfall_uri": "https://scryfall.com/card/dsk/268/strangled-cemetery?utm_source=api",
+  "uri": "https://scryfall.com/card/dsk/268/strangled-cemetery?utm_source=api",
+  "url": "https://scryfall.com/card/dsk/268/strangled-cemetery?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/c1ce9250-bdbe-4c77-9243-6db9ffffe69b/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F575113%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=786625&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/130667?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.08,
+    "lowest": 0.08,
+    "usd": "0.08",
+    "usd_foil": "0.23"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A3a5b3405-a1e3-4aad-ab4e-1b8db2d1f3a8&unique=prints",
+  "prints": [
+    {
+      "set": "dsk",
+      "set_name": "Duskmourn: House of Horror",
+      "collector_number": "268",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.23",
+        "usd_etched": null,
+        "eur": "0.11",
+        "eur_foil": "0.12",
+        "tix": "0.03"
+      },
+      "released_at": "2024-09-27"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "Geothermal Bog",
+  "oracle_id": "e3b67368-1dd6-419b-a95d-7131b1dba23f",
+  "type_line": "Land — Swamp Mountain",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": true,
+  "set": "dsc",
+  "collector_number": "278",
+  "image": "https://cards.scryfall.io/normal/front/6/d/6da04570-5d3c-4e9f-a9c1-20589a4bcc24.jpg?1726285420",
+  "scryfall_uri": "https://scryfall.com/card/dsc/278/geothermal-bog?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/278/geothermal-bog?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/278/geothermal-bog?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/6da04570-5d3c-4e9f-a9c1-20589a4bcc24/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F579313%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=789017&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/131181?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.16,
+    "lowest": 0.14,
+    "usd": "0.16",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ae3b67368-1dd6-419b-a95d-7131b1dba23f&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "399",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "278",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.28",
+        "eur_foil": null,
+        "tix": "0.12"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "dmu",
+      "set_name": "Dominaria United",
+      "collector_number": "247",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": "0.37",
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": "0.36",
+        "tix": "0.03"
+      },
+      "released_at": "2022-09-09"
+    }
+  ]
+}

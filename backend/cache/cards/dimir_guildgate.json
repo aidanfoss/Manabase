@@ -1,0 +1,227 @@
+{
+  "name": "Dimir Guildgate",
+  "oracle_id": "52d14717-0cbc-4d7e-b546-54ea91580338",
+  "type_line": "Land — Gate",
+  "color_identity": [
+    "B",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "fdn",
+  "collector_number": "688",
+  "image": "https://cards.scryfall.io/normal/front/f/9/f9b8a159-5e58-4432-8ecd-62f39afa96da.jpg?1730491202",
+  "scryfall_uri": "https://scryfall.com/card/fdn/688/dimir-guildgate?utm_source=api",
+  "uri": "https://scryfall.com/card/fdn/688/dimir-guildgate?utm_source=api",
+  "url": "https://scryfall.com/card/fdn/688/dimir-guildgate?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/f9b8a159-5e58-4432-8ecd-62f39afa96da/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F591094%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=796135&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/134712?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.18,
+    "lowest": 0.07,
+    "usd": "0.18",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A52d14717-0cbc-4d7e-b546-54ea91580338&unique=prints",
+  "prints": [
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "260",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "GRN-245",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-02"
+    },
+    {
+      "set": "fdn",
+      "set_name": "Foundations",
+      "collector_number": "688",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.20",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-11-15"
+    },
+    {
+      "set": "clu",
+      "set_name": "Ravnica: Clue Edition",
+      "collector_number": "234",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": null,
+        "tix": "0.01"
+      },
+      "released_at": "2024-02-23"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "400",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": "0.34",
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": "0.50",
+        "tix": "0.04"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "276",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": "0.16",
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": "0.15",
+        "tix": "0.04"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "znc",
+      "set_name": "Zendikar Rising Commander",
+      "collector_number": "127",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "246",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.51",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.36",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "245",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": "0.21",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.48",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "c18",
+      "set_name": "Commander 2018",
+      "collector_number": "243",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-08-10"
+    },
+    {
+      "set": "mm3",
+      "set_name": "Modern Masters 2017",
+      "collector_number": "234",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": "0.29",
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": "0.29",
+        "tix": "0.04"
+      },
+      "released_at": "2017-03-17"
+    },
+    {
+      "set": "c13",
+      "set_name": "Commander 2013",
+      "collector_number": "284",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2013-11-01"
+    },
+    {
+      "set": "dgm",
+      "set_name": "Dragon's Maze",
+      "collector_number": "148",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": "0.46",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.47",
+        "tix": "0.03"
+      },
+      "released_at": "2013-05-03"
+    },
+    {
+      "set": "gtc",
+      "set_name": "Gatecrash",
+      "collector_number": "241",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": "0.95",
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": "0.70",
+        "tix": "0.03"
+      },
+      "released_at": "2013-02-01"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "name": "Sunbaked Canyon",
+  "oracle_id": "f97fd068-b83a-4621-bf8c-cc96e880ce90",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "mh1",
+  "collector_number": "247",
+  "image": "https://cards.scryfall.io/normal/front/c/3/c36820fa-ee86-4206-9a0d-737a67cf5208.jpg?1562202603",
+  "scryfall_uri": "https://scryfall.com/card/mh1/247/sunbaked-canyon?utm_source=api",
+  "uri": "https://scryfall.com/card/mh1/247/sunbaked-canyon?utm_source=api",
+  "url": "https://scryfall.com/card/mh1/247/sunbaked-canyon?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/c36820fa-ee86-4206-9a0d-737a67cf5208/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F190784%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=374508&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/72866?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 2.51,
+    "lowest": 2.41,
+    "usd": "2.51",
+    "usd_foil": "8.95"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Af97fd068-b83a-4621-bf8c-cc96e880ce90&unique=prints",
+  "prints": [
+    {
+      "set": "acr",
+      "set_name": "Assassin's Creed",
+      "collector_number": "111",
+      "prices": {
+        "usd": "5.38",
+        "usd_foil": "6.50",
+        "usd_etched": null,
+        "eur": "8.29",
+        "eur_foil": "9.09",
+        "tix": "10.99"
+      },
+      "released_at": "2024-07-05"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1110",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.52",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "900",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.27",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "519",
+      "prices": {
+        "usd": "2.84",
+        "usd_foil": "3.31",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "309",
+      "prices": {
+        "usd": "2.41",
+        "usd_foil": "3.25",
+        "usd_etched": null,
+        "eur": "3.62",
+        "eur_foil": "4.43",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "ha7",
+      "set_name": "Historic Anthology 7",
+      "collector_number": "22",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-07-18"
+    },
+    {
+      "set": "mh1",
+      "set_name": "Modern Horizons",
+      "collector_number": "247",
+      "prices": {
+        "usd": "2.51",
+        "usd_foil": "8.95",
+        "usd_etched": null,
+        "eur": "3.72",
+        "eur_foil": "8.26",
+        "tix": "0.75"
+      },
+      "released_at": "2019-06-14"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "Quandrix Campus",
+  "oracle_id": "172f86b6-9580-4eb2-b7dc-2a44277d978b",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "dsc",
+  "collector_number": "294",
+  "image": "https://cards.scryfall.io/normal/front/f/5/f5e038d0-788d-4ed1-b2b3-bc2748febf05.jpg?1726285478",
+  "scryfall_uri": "https://scryfall.com/card/dsc/294/quandrix-campus?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/294/quandrix-campus?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/294/quandrix-campus?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/f5e038d0-788d-4ed1-b2b3-bc2748febf05/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F577875%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=789037&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/131213?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.09,
+    "lowest": 0.08,
+    "usd": "0.09",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A172f86b6-9580-4eb2-b7dc-2a44277d978b&unique=prints",
+  "prints": [
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "294",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.25",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "366",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": "0.01"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "stx",
+      "set_name": "Strixhaven: School of Mages",
+      "collector_number": "271",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.17",
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": "0.25",
+        "tix": "0.03"
+      },
+      "released_at": "2021-04-23"
+    }
+  ]
+}

@@ -2,6 +2,7 @@
   "name": "Slow Lands",
   "description": "Enter untapped if you control two or more other lands.",
   "tags": "conditional, good untap, good",
+  "tier": "playable",
   "cards": [
     "Deserted Beach",
     "Shipwreck Marsh",

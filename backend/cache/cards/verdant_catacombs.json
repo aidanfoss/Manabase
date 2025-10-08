@@ -1,0 +1,196 @@
+{
+  "name": "Verdant Catacombs",
+  "oracle_id": "67d60b24-d429-4ded-90d9-06e49f28c396",
+  "type_line": "Land",
+  "color_identity": [],
+  "fetchable": false,
+  "set": "mh2",
+  "collector_number": "260",
+  "image": "https://cards.scryfall.io/normal/front/9/4/94c229ea-90da-4aa0-bfda-b162fb3b5b8b.jpg?1738703665",
+  "scryfall_uri": "https://scryfall.com/card/mh2/260/verdant-catacombs?utm_source=api",
+  "uri": "https://scryfall.com/card/mh2/260/verdant-catacombs?utm_source=api",
+  "url": "https://scryfall.com/card/mh2/260/verdant-catacombs?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/94c229ea-90da-4aa0-bfda-b162fb3b5b8b/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F238611%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=564646&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/90901?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 22.35,
+    "lowest": 21.16,
+    "usd": "22.35",
+    "usd_foil": "24.58"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A67d60b24-d429-4ded-90d9-06e49f28c396&unique=prints",
+  "prints": [
+    {
+      "set": "spg",
+      "set_name": "Special Guests",
+      "collector_number": "118",
+      "prices": {
+        "usd": null,
+        "usd_foil": "163.14",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "168.62",
+        "tix": null
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "spg",
+      "set_name": "Special Guests",
+      "collector_number": "113",
+      "prices": {
+        "usd": "30.45",
+        "usd_foil": "36.03",
+        "usd_etched": null,
+        "eur": "25.11",
+        "eur_foil": "34.15",
+        "tix": null
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "91403",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.10"
+      },
+      "released_at": "2021-09-21"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "479",
+      "prices": {
+        "usd": "23.17",
+        "usd_foil": "27.22",
+        "usd_etched": null,
+        "eur": "20.77",
+        "eur_foil": "29.30",
+        "tix": null
+      },
+      "released_at": "2021-06-18"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "440",
+      "prices": {
+        "usd": "25.58",
+        "usd_foil": "27.24",
+        "usd_etched": "21.71",
+        "eur": "26.04",
+        "eur_foil": "37.75",
+        "tix": "1.15"
+      },
+      "released_at": "2021-06-18"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "260",
+      "prices": {
+        "usd": "22.35",
+        "usd_foil": "24.58",
+        "usd_etched": null,
+        "eur": "18.13",
+        "eur_foil": "21.28",
+        "tix": "1.21"
+      },
+      "released_at": "2021-06-18"
+    },
+    {
+      "set": "pmh2",
+      "set_name": "Modern Horizons 2 Promos",
+      "collector_number": "260s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "23.67",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "22.43",
+        "tix": null
+      },
+      "released_at": "2021-05-06"
+    },
+    {
+      "set": "zne",
+      "set_name": "Zendikar Rising Expeditions",
+      "collector_number": "8",
+      "prices": {
+        "usd": "29.96",
+        "usd_foil": "48.16",
+        "usd_etched": null,
+        "eur": "27.93",
+        "eur_foil": "51.81",
+        "tix": "4.72"
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "slu",
+      "set_name": "Secret Lair: Ultimate Edition",
+      "collector_number": "3",
+      "prices": {
+        "usd": "25.67",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "22.27",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-06-12"
+    },
+    {
+      "set": "mm3",
+      "set_name": "Modern Masters 2017",
+      "collector_number": "249",
+      "prices": {
+        "usd": "21.16",
+        "usd_foil": "23.50",
+        "usd_etched": null,
+        "eur": "16.97",
+        "eur_foil": "20.53",
+        "tix": "1.46"
+      },
+      "released_at": "2017-03-17"
+    },
+    {
+      "set": "exp",
+      "set_name": "Zendikar Expeditions",
+      "collector_number": "23",
+      "prices": {
+        "usd": null,
+        "usd_foil": "114.84",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "74.77",
+        "tix": "1.85"
+      },
+      "released_at": "2015-10-02"
+    },
+    {
+      "set": "zen",
+      "set_name": "Zendikar",
+      "collector_number": "229",
+      "prices": {
+        "usd": "21.97",
+        "usd_foil": "53.82",
+        "usd_etched": null,
+        "eur": "18.73",
+        "eur_foil": "31.09",
+        "tix": "1.29"
+      },
+      "released_at": "2009-10-02"
+    }
+  ]
+}

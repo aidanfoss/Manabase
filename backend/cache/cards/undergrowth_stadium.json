@@ -1,0 +1,115 @@
+{
+  "name": "Undergrowth Stadium",
+  "oracle_id": "7c69f718-acc8-4851-8e5d-0cbaaa86192c",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "cmm",
+  "collector_number": "435",
+  "image": "https://cards.scryfall.io/normal/front/a/e/ae16c7da-912c-4d66-b1e7-17480cd3af99.jpg?1690000048",
+  "scryfall_uri": "https://scryfall.com/card/cmm/435/undergrowth-stadium?utm_source=api",
+  "uri": "https://scryfall.com/card/cmm/435/undergrowth-stadium?utm_source=api",
+  "url": "https://scryfall.com/card/cmm/435/undergrowth-stadium?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/ae16c7da-912c-4d66-b1e7-17480cd3af99/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F505830%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=723455&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/115099?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 8.49,
+    "lowest": 8.49,
+    "usd": "8.49",
+    "usd_foil": "10.26"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A7c69f718-acc8-4851-8e5d-0cbaaa86192c&unique=prints",
+  "prints": [
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "666",
+      "prices": {
+        "usd": "10.04",
+        "usd_foil": "11.32",
+        "usd_etched": null,
+        "eur": "10.66",
+        "eur_foil": "11.37",
+        "tix": "8.66"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "620",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": "16.47",
+        "eur": null,
+        "eur_foil": null,
+        "tix": "7.12"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "435",
+      "prices": {
+        "usd": "8.49",
+        "usd_foil": "10.26",
+        "usd_etched": null,
+        "eur": "9.28",
+        "eur_foil": "11.44",
+        "tix": "8.91"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "85950",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "7.11"
+      },
+      "released_at": "2020-12-15"
+    },
+    {
+      "set": "cmr",
+      "set_name": "Commander Legends",
+      "collector_number": "714",
+      "prices": {
+        "usd": "13.84",
+        "usd_foil": "17.07",
+        "usd_etched": null,
+        "eur": "12.97",
+        "eur_foil": "20.81",
+        "tix": null
+      },
+      "released_at": "2020-11-20"
+    },
+    {
+      "set": "cmr",
+      "set_name": "Commander Legends",
+      "collector_number": "359",
+      "prices": {
+        "usd": "8.50",
+        "usd_foil": "9.43",
+        "usd_etched": null,
+        "eur": "10.10",
+        "eur_foil": "10.20",
+        "tix": "7.19"
+      },
+      "released_at": "2020-11-20"
+    }
+  ]
+}

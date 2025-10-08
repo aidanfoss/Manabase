@@ -1,0 +1,45 @@
+{
+  "name": "Witherbloom Campus",
+  "oracle_id": "6cd58a88-6434-4c55-bf93-a739b5ed9bc1",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "stx",
+  "collector_number": "275",
+  "image": "https://cards.scryfall.io/normal/front/7/3/7346fb2e-754e-47de-b33d-eb089b357ee4.jpg?1624741149",
+  "scryfall_uri": "https://scryfall.com/card/stx/275/witherbloom-campus?utm_source=api",
+  "uri": "https://scryfall.com/card/stx/275/witherbloom-campus?utm_source=api",
+  "url": "https://scryfall.com/card/stx/275/witherbloom-campus?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/7346fb2e-754e-47de-b33d-eb089b357ee4/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F235960%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=558064&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/89057?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.12,
+    "lowest": 0.12,
+    "usd": "0.12",
+    "usd_foil": "0.23"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6cd58a88-6434-4c55-bf93-a739b5ed9bc1&unique=prints",
+  "prints": [
+    {
+      "set": "stx",
+      "set_name": "Strixhaven: School of Mages",
+      "collector_number": "275",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.23",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.13",
+        "tix": "0.03"
+      },
+      "released_at": "2021-04-23"
+    }
+  ]
+}

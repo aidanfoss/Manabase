@@ -1,0 +1,196 @@
+{
+  "name": "Marsh Flats",
+  "oracle_id": "dab520d0-20b4-4273-ba6b-eb07f85ea433",
+  "type_line": "Land",
+  "color_identity": [],
+  "fetchable": false,
+  "set": "mh2",
+  "collector_number": "248",
+  "image": "https://cards.scryfall.io/normal/front/9/d/9db3ba6d-eb7f-4f5b-9a3b-c6239c3baa42.jpg?1738703598",
+  "scryfall_uri": "https://scryfall.com/card/mh2/248/marsh-flats?utm_source=api",
+  "uri": "https://scryfall.com/card/mh2/248/marsh-flats?utm_source=api",
+  "url": "https://scryfall.com/card/mh2/248/marsh-flats?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/9db3ba6d-eb7f-4f5b-9a3b-c6239c3baa42/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F238608%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=564642&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/90877?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 22.65,
+    "lowest": 22.65,
+    "usd": "22.65",
+    "usd_foil": "25.70"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Adab520d0-20b4-4273-ba6b-eb07f85ea433&unique=prints",
+  "prints": [
+    {
+      "set": "spg",
+      "set_name": "Special Guests",
+      "collector_number": "115",
+      "prices": {
+        "usd": null,
+        "usd_foil": "176.25",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "153.81",
+        "tix": null
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "spg",
+      "set_name": "Special Guests",
+      "collector_number": "110",
+      "prices": {
+        "usd": "32.75",
+        "usd_foil": "41.29",
+        "usd_etched": null,
+        "eur": "29.20",
+        "eur_foil": "36.12",
+        "tix": null
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "91397",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.60"
+      },
+      "released_at": "2021-09-21"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "476",
+      "prices": {
+        "usd": "24.38",
+        "usd_foil": "28.89",
+        "usd_etched": null,
+        "eur": "23.73",
+        "eur_foil": "32.55",
+        "tix": null
+      },
+      "released_at": "2021-06-18"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "437",
+      "prices": {
+        "usd": "28.13",
+        "usd_foil": "28.06",
+        "usd_etched": "24.93",
+        "eur": "28.01",
+        "eur_foil": "35.50",
+        "tix": "1.30"
+      },
+      "released_at": "2021-06-18"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "248",
+      "prices": {
+        "usd": "22.65",
+        "usd_foil": "25.70",
+        "usd_etched": null,
+        "eur": "20.01",
+        "eur_foil": "22.25",
+        "tix": "1.25"
+      },
+      "released_at": "2021-06-18"
+    },
+    {
+      "set": "pmh2",
+      "set_name": "Modern Horizons 2 Promos",
+      "collector_number": "248s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "29.33",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "23.91",
+        "tix": null
+      },
+      "released_at": "2021-05-06"
+    },
+    {
+      "set": "zne",
+      "set_name": "Zendikar Rising Expeditions",
+      "collector_number": "6",
+      "prices": {
+        "usd": "31.29",
+        "usd_foil": "46.50",
+        "usd_etched": null,
+        "eur": "27.32",
+        "eur_foil": "54.65",
+        "tix": "5.85"
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "slu",
+      "set_name": "Secret Lair: Ultimate Edition",
+      "collector_number": "1",
+      "prices": {
+        "usd": "33.07",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "24.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-06-12"
+    },
+    {
+      "set": "mm3",
+      "set_name": "Modern Masters 2017",
+      "collector_number": "239",
+      "prices": {
+        "usd": "22.75",
+        "usd_foil": "28.10",
+        "usd_etched": null,
+        "eur": "20.69",
+        "eur_foil": "24.07",
+        "tix": "1.34"
+      },
+      "released_at": "2017-03-17"
+    },
+    {
+      "set": "exp",
+      "set_name": "Zendikar Expeditions",
+      "collector_number": "21",
+      "prices": {
+        "usd": null,
+        "usd_foil": "142.12",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "71.65",
+        "tix": "1.77"
+      },
+      "released_at": "2015-10-02"
+    },
+    {
+      "set": "zen",
+      "set_name": "Zendikar",
+      "collector_number": "219",
+      "prices": {
+        "usd": "23.86",
+        "usd_foil": "52.13",
+        "usd_etched": null,
+        "eur": "21.02",
+        "eur_foil": "25.03",
+        "tix": "1.24"
+      },
+      "released_at": "2009-10-02"
+    }
+  ]
+}

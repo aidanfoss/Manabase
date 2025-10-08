@@ -1,0 +1,115 @@
+{
+  "name": "Branchloft Pathway // Boulderloft Pathway",
+  "oracle_id": "7c304547-a4b1-46c9-baed-16d2bfbe16eb",
+  "type_line": "Land // Land",
+  "color_identity": [
+    "G",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "znr",
+  "collector_number": "258",
+  "image": "https://cards.scryfall.io/normal/front/0/5/0511e232-2a72-40f5-a400-4f7ebc442d17.jpg?1669839380",
+  "scryfall_uri": "https://scryfall.com/card/znr/258/branchloft-pathway-boulderloft-pathway?utm_source=api",
+  "uri": "https://scryfall.com/card/znr/258/branchloft-pathway-boulderloft-pathway?utm_source=api",
+  "url": "https://scryfall.com/card/znr/258/branchloft-pathway-boulderloft-pathway?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/0511e232-2a72-40f5-a400-4f7ebc442d17/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F221843%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=494774&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/83511?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 2.56,
+    "lowest": 2.43,
+    "usd": "2.56",
+    "usd_foil": "2.76"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A7c304547-a4b1-46c9-baed-16d2bfbe16eb&unique=prints",
+  "prints": [
+    {
+      "set": "slu",
+      "set_name": "Secret Lair: Ultimate Edition",
+      "collector_number": "13",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.06",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "5.09",
+        "tix": null
+      },
+      "released_at": "2021-03-05"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "83852",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.71"
+      },
+      "released_at": "2020-10-30"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "ZNR-258",
+      "prices": {
+        "usd": "2.77",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-26"
+    },
+    {
+      "set": "pznr",
+      "set_name": "Zendikar Rising Promos",
+      "collector_number": "258s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.72",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "3.67",
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "znr",
+      "set_name": "Zendikar Rising",
+      "collector_number": "284",
+      "prices": {
+        "usd": "2.43",
+        "usd_foil": "3.43",
+        "usd_etched": null,
+        "eur": "3.87",
+        "eur_foil": "5.23",
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "znr",
+      "set_name": "Zendikar Rising",
+      "collector_number": "258",
+      "prices": {
+        "usd": "2.56",
+        "usd_foil": "2.76",
+        "usd_etched": null,
+        "eur": "2.96",
+        "eur_foil": "3.25",
+        "tix": "0.06"
+      },
+      "released_at": "2020-09-25"
+    }
+  ]
+}

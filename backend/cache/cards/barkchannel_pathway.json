@@ -1,0 +1,115 @@
+{
+  "name": "Barkchannel Pathway // Tidechannel Pathway",
+  "oracle_id": "59d22de5-e310-44d7-89cf-ef3529e40cef",
+  "type_line": "Land // Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "khm",
+  "collector_number": "251",
+  "image": "https://cards.scryfall.io/normal/front/b/6/b6de14ae-0132-4261-af00-630bf15918cd.jpg?1669839374",
+  "scryfall_uri": "https://scryfall.com/card/khm/251/barkchannel-pathway-tidechannel-pathway?utm_source=api",
+  "uri": "https://scryfall.com/card/khm/251/barkchannel-pathway-tidechannel-pathway?utm_source=api",
+  "url": "https://scryfall.com/card/khm/251/barkchannel-pathway-tidechannel-pathway?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/b6de14ae-0132-4261-af00-630bf15918cd/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F229210%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=527470&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/87845?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 3.79,
+    "lowest": 3.12,
+    "usd": "3.79",
+    "usd_foil": "3.87"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A59d22de5-e310-44d7-89cf-ef3529e40cef&unique=prints",
+  "prints": [
+    {
+      "set": "slu",
+      "set_name": "Secret Lair: Ultimate Edition",
+      "collector_number": "11",
+      "prices": {
+        "usd": null,
+        "usd_foil": "7.32",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "6.65",
+        "tix": null
+      },
+      "released_at": "2021-03-05"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "88404",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.49"
+      },
+      "released_at": "2021-02-28"
+    },
+    {
+      "set": "pkhm",
+      "set_name": "Kaldheim Promos",
+      "collector_number": "251s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "7.08",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "5.04",
+        "tix": null
+      },
+      "released_at": "2021-02-05"
+    },
+    {
+      "set": "khm",
+      "set_name": "Kaldheim",
+      "collector_number": "290",
+      "prices": {
+        "usd": "3.12",
+        "usd_foil": "4.91",
+        "usd_etched": null,
+        "eur": "4.84",
+        "eur_foil": "6.08",
+        "tix": null
+      },
+      "released_at": "2021-02-05"
+    },
+    {
+      "set": "khm",
+      "set_name": "Kaldheim",
+      "collector_number": "251",
+      "prices": {
+        "usd": "3.79",
+        "usd_foil": "3.87",
+        "usd_etched": null,
+        "eur": "4.58",
+        "eur_foil": "4.81",
+        "tix": "0.03"
+      },
+      "released_at": "2021-02-05"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "KHM-251",
+      "prices": {
+        "usd": "3.75",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-26"
+    }
+  ]
+}

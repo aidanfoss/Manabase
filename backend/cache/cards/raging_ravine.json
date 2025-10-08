@@ -1,0 +1,185 @@
+{
+  "name": "Raging Ravine",
+  "oracle_id": "8d38194e-b607-4ff4-9c19-0e8636d463bf",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "clb",
+  "collector_number": "910",
+  "image": "https://cards.scryfall.io/normal/front/a/1/a1c981c0-3e40-4339-a4c8-ad96c7fb68d2.jpg?1674143039",
+  "scryfall_uri": "https://scryfall.com/card/clb/910/raging-ravine?utm_source=api",
+  "uri": "https://scryfall.com/card/clb/910/raging-ravine?utm_source=api",
+  "url": "https://scryfall.com/card/clb/910/raging-ravine?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/a1c981c0-3e40-4339-a4c8-ad96c7fb68d2/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F273786%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=662104&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/101370?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.13,
+    "lowest": 0.11,
+    "usd": "0.13",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A8d38194e-b607-4ff4-9c19-0e8636d463bf&unique=prints",
+  "prints": [
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "170",
+      "prices": {
+        "usd": null,
+        "usd_foil": "12.61",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "10.69",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "125",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.34",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "6.98",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "80",
+      "prices": {
+        "usd": "1.41",
+        "usd_foil": "2.21",
+        "usd_etched": null,
+        "eur": "1.35",
+        "eur_foil": "3.37",
+        "tix": "0.20"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "35",
+      "prices": {
+        "usd": "0.43",
+        "usd_foil": "0.76",
+        "usd_etched": null,
+        "eur": "0.35",
+        "eur_foil": "0.97",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "324",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": "0.13"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "367",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": "0.99",
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "910",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "nec",
+      "set_name": "Neon Dynasty Commander",
+      "collector_number": "176",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-02-18"
+    },
+    {
+      "set": "puma",
+      "set_name": "Ultimate Box Topper",
+      "collector_number": "U38",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.65",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "3.24",
+        "tix": "0.30"
+      },
+      "released_at": "2018-12-07"
+    },
+    {
+      "set": "uma",
+      "set_name": "Ultimate Masters",
+      "collector_number": "249",
+      "prices": {
+        "usd": "0.32",
+        "usd_foil": "0.82",
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": "1.15",
+        "tix": "0.02"
+      },
+      "released_at": "2018-12-07"
+    },
+    {
+      "set": "wwk",
+      "set_name": "Worldwake",
+      "collector_number": "141",
+      "prices": {
+        "usd": "0.62",
+        "usd_foil": "4.47",
+        "usd_etched": null,
+        "eur": "0.34",
+        "eur_foil": "2.86",
+        "tix": "0.02"
+      },
+      "released_at": "2010-02-05"
+    }
+  ]
+}

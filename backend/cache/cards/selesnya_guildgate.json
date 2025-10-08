@@ -1,0 +1,241 @@
+{
+  "name": "Selesnya Guildgate",
+  "oracle_id": "75b235d3-595a-4859-be45-9559d8445db5",
+  "type_line": "Land — Gate",
+  "color_identity": [
+    "G",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "fdn",
+  "collector_number": "694",
+  "image": "https://cards.scryfall.io/normal/front/6/7/6718d4e7-768e-473f-8064-a68422e977f6.jpg?1730491227",
+  "scryfall_uri": "https://scryfall.com/card/fdn/694/selesnya-guildgate?utm_source=api",
+  "uri": "https://scryfall.com/card/fdn/694/selesnya-guildgate?utm_source=api",
+  "url": "https://scryfall.com/card/fdn/694/selesnya-guildgate?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/6718d4e7-768e-473f-8064-a68422e977f6/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F591103%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=796141&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/134724?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.14,
+    "lowest": 0.06,
+    "usd": "0.14",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A75b235d3-595a-4859-be45-9559d8445db5&unique=prints",
+  "prints": [
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "274",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "GRN-255",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-02"
+    },
+    {
+      "set": "fdn",
+      "set_name": "Foundations",
+      "collector_number": "694",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.20",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-11-15"
+    },
+    {
+      "set": "clu",
+      "set_name": "Ravnica: Clue Edition",
+      "collector_number": "245",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": "0.01"
+      },
+      "released_at": "2024-02-23"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "410",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.32",
+        "usd_etched": null,
+        "eur": "0.25",
+        "eur_foil": "0.48",
+        "tix": "0.04"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "286",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.20",
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": "0.13",
+        "tix": "0.04"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "znc",
+      "set_name": "Zendikar Rising Commander",
+      "collector_number": "139",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "256",
+      "prices": {
+        "usd": "0.06",
+        "usd_foil": "0.39",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.50",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "255",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.51",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.52",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "c17",
+      "set_name": "Commander 2017",
+      "collector_number": "279",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-08-25"
+    },
+    {
+      "set": "cma",
+      "set_name": "Commander Anthology",
+      "collector_number": "272",
+      "prices": {
+        "usd": "0.30",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.20",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-06-09"
+    },
+    {
+      "set": "mm3",
+      "set_name": "Modern Masters 2017",
+      "collector_number": "246",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": "0.37",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.28",
+        "tix": "0.03"
+      },
+      "released_at": "2017-03-17"
+    },
+    {
+      "set": "c13",
+      "set_name": "Commander 2013",
+      "collector_number": "321",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2013-11-01"
+    },
+    {
+      "set": "dgm",
+      "set_name": "Dragon's Maze",
+      "collector_number": "155",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.48",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.51",
+        "tix": "0.03"
+      },
+      "released_at": "2013-05-03"
+    },
+    {
+      "set": "rtr",
+      "set_name": "Return to Ravnica",
+      "collector_number": "246",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": "0.62",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.61",
+        "tix": "0.03"
+      },
+      "released_at": "2012-10-05"
+    }
+  ]
+}

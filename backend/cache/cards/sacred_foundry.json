@@ -1,0 +1,297 @@
+{
+  "name": "Sacred Foundry",
+  "oracle_id": "45181cb8-2090-4471-ba90-e5a8f04d525f",
+  "type_line": "Land — Mountain Plains",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "eoe",
+  "collector_number": "256",
+  "image": "https://cards.scryfall.io/normal/front/8/b/8b4e2642-3c87-4708-b9b4-2e7f7359ac7d.jpg?1752947600",
+  "scryfall_uri": "https://scryfall.com/card/eoe/256/sacred-foundry?utm_source=api",
+  "uri": "https://scryfall.com/card/eoe/256/sacred-foundry?utm_source=api",
+  "url": "https://scryfall.com/card/eoe/256/sacred-foundry?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/8b4e2642-3c87-4708-b9b4-2e7f7359ac7d/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F638912%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=830494&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/143125?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 7.55,
+    "lowest": 7.19,
+    "usd": "7.55",
+    "usd_foil": "7.64"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A45181cb8-2090-4471-ba90-e5a8f04d525f&unique=prints",
+  "prints": [
+    {
+      "set": "peoe",
+      "set_name": "Edge of Eternities Promos",
+      "collector_number": "256s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "10.73",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "peoe",
+      "set_name": "Edge of Eternities Promos",
+      "collector_number": "256p",
+      "prices": {
+        "usd": "7.19",
+        "usd_foil": "8.76",
+        "usd_etched": null,
+        "eur": "7.71",
+        "eur_foil": "8.10",
+        "tix": null
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eoe",
+      "set_name": "Edge of Eternities",
+      "collector_number": "377",
+      "prices": {
+        "usd": null,
+        "usd_foil": "23.15",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "18.69",
+        "tix": "0.17"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eoe",
+      "set_name": "Edge of Eternities",
+      "collector_number": "282",
+      "prices": {
+        "usd": "8.87",
+        "usd_foil": "10.91",
+        "usd_etched": null,
+        "eur": "8.33",
+        "eur_foil": "10.68",
+        "tix": "0.09"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eoe",
+      "set_name": "Edge of Eternities",
+      "collector_number": "256",
+      "prices": {
+        "usd": "7.55",
+        "usd_foil": "7.64",
+        "usd_etched": null,
+        "eur": "8.32",
+        "eur_foil": "9.05",
+        "tix": "0.03"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "clu",
+      "set_name": "Ravnica: Clue Edition",
+      "collector_number": "279",
+      "prices": {
+        "usd": null,
+        "usd_foil": "29.84",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "23.01",
+        "tix": "10.17"
+      },
+      "released_at": "2024-02-23"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "409z",
+      "prices": {
+        "usd": null,
+        "usd_foil": "975.00",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "409",
+      "prices": {
+        "usd": "20.68",
+        "usd_foil": "31.03",
+        "usd_etched": null,
+        "eur": "21.19",
+        "eur_foil": "41.54",
+        "tix": "16.10"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "297",
+      "prices": {
+        "usd": "17.75",
+        "usd_foil": "30.65",
+        "usd_etched": null,
+        "eur": "25.50",
+        "eur_foil": "33.41",
+        "tix": "2.50"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "285",
+      "prices": {
+        "usd": "13.48",
+        "usd_foil": "18.36",
+        "usd_etched": null,
+        "eur": "12.91",
+        "eur_foil": "16.85",
+        "tix": "3.89"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "unf",
+      "set_name": "Unfinity",
+      "collector_number": "536",
+      "prices": {
+        "usd": null,
+        "usd_foil": "131.31",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "107.44",
+        "tix": null
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "unf",
+      "set_name": "Unfinity",
+      "collector_number": "285",
+      "prices": {
+        "usd": "29.28",
+        "usd_foil": "34.53",
+        "usd_etched": null,
+        "eur": "28.64",
+        "eur_foil": "35.44",
+        "tix": "19.15"
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "sld",
+      "set_name": "Secret Lair Drop",
+      "collector_number": "131",
+      "prices": {
+        "usd": "17.85",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "18.63",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-04-26"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "72309",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "3.44"
+      },
+      "released_at": "2019-04-28"
+    },
+    {
+      "set": "pgrn",
+      "set_name": "Guilds of Ravnica Promos",
+      "collector_number": "254p",
+      "prices": {
+        "usd": "19.27",
+        "usd_foil": "20.85",
+        "usd_etched": null,
+        "eur": "13.81",
+        "eur_foil": "17.09",
+        "tix": null
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "254",
+      "prices": {
+        "usd": "7.59",
+        "usd_foil": "18.86",
+        "usd_etched": null,
+        "eur": "7.79",
+        "eur_foil": "15.97",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "exp",
+      "set_name": "Zendikar Expeditions",
+      "collector_number": "14",
+      "prices": {
+        "usd": null,
+        "usd_foil": "74.27",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "54.45",
+        "tix": "2.52"
+      },
+      "released_at": "2015-10-02"
+    },
+    {
+      "set": "gtc",
+      "set_name": "Gatecrash",
+      "collector_number": "245",
+      "prices": {
+        "usd": "7.28",
+        "usd_foil": "23.06",
+        "usd_etched": null,
+        "eur": "8.90",
+        "eur_foil": "17.86",
+        "tix": "0.06"
+      },
+      "released_at": "2013-02-01"
+    },
+    {
+      "set": "rav",
+      "set_name": "Ravnica: City of Guilds",
+      "collector_number": "280",
+      "prices": {
+        "usd": "22.31",
+        "usd_foil": "100.00",
+        "usd_etched": null,
+        "eur": "13.67",
+        "eur_foil": "36.42",
+        "tix": "0.06"
+      },
+      "released_at": "2005-10-07"
+    }
+  ]
+}

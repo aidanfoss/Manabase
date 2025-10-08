@@ -1,0 +1,115 @@
+{
+  "name": "Clearwater Pathway // Murkwater Pathway",
+  "oracle_id": "144119bc-7fd1-45c5-9e29-f742e7c255ac",
+  "type_line": "Land // Land",
+  "color_identity": [
+    "B",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "znr",
+  "collector_number": "260",
+  "image": "https://cards.scryfall.io/normal/front/b/4/b4b99ebb-0d54-4fe5-a495-979aaa564aa8.jpg?1669839436",
+  "scryfall_uri": "https://scryfall.com/card/znr/260/clearwater-pathway-murkwater-pathway?utm_source=api",
+  "uri": "https://scryfall.com/card/znr/260/clearwater-pathway-murkwater-pathway?utm_source=api",
+  "url": "https://scryfall.com/card/znr/260/clearwater-pathway-murkwater-pathway?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/b4b99ebb-0d54-4fe5-a495-979aaa564aa8/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F221830%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=494764&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/83519?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 4.65,
+    "lowest": 3.86,
+    "usd": "4.65",
+    "usd_foil": "4.37"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A144119bc-7fd1-45c5-9e29-f742e7c255ac&unique=prints",
+  "prints": [
+    {
+      "set": "slu",
+      "set_name": "Secret Lair: Ultimate Edition",
+      "collector_number": "15",
+      "prices": {
+        "usd": null,
+        "usd_foil": "8.86",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "8.50",
+        "tix": null
+      },
+      "released_at": "2021-03-05"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "83858",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.92"
+      },
+      "released_at": "2020-10-30"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "ZNR-260",
+      "prices": {
+        "usd": "4.07",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-26"
+    },
+    {
+      "set": "pznr",
+      "set_name": "Zendikar Rising Promos",
+      "collector_number": "260s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.35",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "6.07",
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "znr",
+      "set_name": "Zendikar Rising",
+      "collector_number": "286",
+      "prices": {
+        "usd": "3.86",
+        "usd_foil": "5.37",
+        "usd_etched": null,
+        "eur": "5.23",
+        "eur_foil": "7.68",
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "znr",
+      "set_name": "Zendikar Rising",
+      "collector_number": "260",
+      "prices": {
+        "usd": "4.65",
+        "usd_foil": "4.37",
+        "usd_etched": null,
+        "eur": "4.97",
+        "eur_foil": "6.24",
+        "tix": "0.18"
+      },
+      "released_at": "2020-09-25"
+    }
+  ]
+}

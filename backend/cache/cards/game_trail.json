@@ -1,0 +1,311 @@
+{
+  "name": "Game Trail",
+  "oracle_id": "00de57d2-7cb6-4337-9bc6-f6711e4dfabf",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "mkc",
+  "collector_number": "264",
+  "image": "https://cards.scryfall.io/normal/front/2/a/2a84a604-7b05-4716-bcd8-40d2acdb76e8.jpg?1706241163",
+  "scryfall_uri": "https://scryfall.com/card/mkc/264/game-trail?utm_source=api",
+  "uri": "https://scryfall.com/card/mkc/264/game-trail?utm_source=api",
+  "url": "https://scryfall.com/card/mkc/264/game-trail?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/2a84a604-7b05-4716-bcd8-40d2acdb76e8/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F535869%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=753483&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/122676?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.15,
+    "lowest": 0.14,
+    "usd": "0.15",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A00de57d2-7cb6-4337-9bc6-f6711e4dfabf&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "398",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "306",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "264",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "NCC-405",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-01-25"
+    },
+    {
+      "set": "lcc",
+      "set_name": "The Lost Caverns of Ixalan Commander",
+      "collector_number": "334",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": null,
+        "tix": "0.26"
+      },
+      "released_at": "2023-11-17"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1091",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.18",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "875",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.72",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "500",
+      "prices": {
+        "usd": "0.87",
+        "usd_foil": "0.80",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "284",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": "0.77",
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": "0.34",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "405",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": null,
+        "tix": "0.35"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "sir",
+      "set_name": "Shadows over Innistrad Remastered",
+      "collector_number": "269",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-03-21"
+    },
+    {
+      "set": "scd",
+      "set_name": "Starter Commander Decks",
+      "collector_number": "302",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": null,
+        "tix": "0.39"
+      },
+      "released_at": "2022-12-02"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "282★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.76",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "282",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "894",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "ncc",
+      "set_name": "New Capenna Commander",
+      "collector_number": "405",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "nec",
+      "set_name": "Neon Dynasty Commander",
+      "collector_number": "169",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-02-18"
+    },
+    {
+      "set": "afc",
+      "set_name": "Forgotten Realms Commander",
+      "collector_number": "240",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-07-23"
+    },
+    {
+      "set": "psoi",
+      "set_name": "Shadows over Innistrad Promos",
+      "collector_number": "276s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.51",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "2.16",
+        "tix": null
+      },
+      "released_at": "2016-04-08"
+    },
+    {
+      "set": "soi",
+      "set_name": "Shadows over Innistrad",
+      "collector_number": "276",
+      "prices": {
+        "usd": "0.34",
+        "usd_foil": "1.29",
+        "usd_etched": null,
+        "eur": "0.41",
+        "eur_foil": "1.74",
+        "tix": "0.02"
+      },
+      "released_at": "2016-04-08"
+    }
+  ]
+}

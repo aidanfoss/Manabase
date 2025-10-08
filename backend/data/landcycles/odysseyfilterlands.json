@@ -1,0 +1,20 @@
+{
+  "id": "odysseyfilterlands",
+  "name": "Odyssey Filter Lands",
+  "tier": "premium",
+  "untapQuality": "always",
+  "description": "Enter untapped and filter mana for two colors using 1 generic. These are premium fixing lands with solid color flexibility and no ETB cost.",
+  "tags": "premium, filter, untapped, two-color, odyssey",
+  "cards": [
+    "Skycloud Expanse",
+    "Darkwater Catacombs",
+    "Shadowblood Ridge",
+    "Mossfire Valley",
+    "Sungrass Prairie",
+    "Desolate Mire",
+    "Viridescent Bog",
+    "Overflowing Basin",
+    "Ferrous Lake",
+    "Sunscorched Divide"
+  ]
+}

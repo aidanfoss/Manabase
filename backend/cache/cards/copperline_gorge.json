@@ -1,0 +1,129 @@
+{
+  "name": "Copperline Gorge",
+  "oracle_id": "a05f641c-15c9-43dc-ae0d-1ea372fd33d5",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "one",
+  "collector_number": "249",
+  "image": "https://cards.scryfall.io/normal/front/7/8/78b0f36b-7d8c-4e77-adc2-a4dad93a81d5.jpg?1675957264",
+  "scryfall_uri": "https://scryfall.com/card/one/249/copperline-gorge?utm_source=api",
+  "uri": "https://scryfall.com/card/one/249/copperline-gorge?utm_source=api",
+  "url": "https://scryfall.com/card/one/249/copperline-gorge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/78b0f36b-7d8c-4e77-adc2-a4dad93a81d5/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F478309%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=692399&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/106713?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.64,
+    "lowest": 0.45,
+    "usd": "0.64",
+    "usd_foil": "0.96"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Aa05f641c-15c9-43dc-ae0d-1ea372fd33d5&unique=prints",
+  "prints": [
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "301",
+      "prices": {
+        "usd": "0.45",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.65",
+        "eur_foil": null,
+        "tix": "0.22"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "pone",
+      "set_name": "Phyrexia: All Will Be One Promos",
+      "collector_number": "249s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.30",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-02-10"
+    },
+    {
+      "set": "pone",
+      "set_name": "Phyrexia: All Will Be One Promos",
+      "collector_number": "249p",
+      "prices": {
+        "usd": "3.01",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "2.37",
+        "eur_foil": "3.09",
+        "tix": null
+      },
+      "released_at": "2023-02-10"
+    },
+    {
+      "set": "one",
+      "set_name": "Phyrexia: All Will Be One",
+      "collector_number": "371",
+      "prices": {
+        "usd": "0.90",
+        "usd_foil": "2.15",
+        "usd_etched": null,
+        "eur": "1.43",
+        "eur_foil": "3.28",
+        "tix": "0.02"
+      },
+      "released_at": "2023-02-10"
+    },
+    {
+      "set": "one",
+      "set_name": "Phyrexia: All Will Be One",
+      "collector_number": "249",
+      "prices": {
+        "usd": "0.64",
+        "usd_foil": "0.96",
+        "usd_etched": null,
+        "eur": "1.49",
+        "eur_foil": "1.96",
+        "tix": "0.02"
+      },
+      "released_at": "2023-02-10"
+    },
+    {
+      "set": "zne",
+      "set_name": "Zendikar Rising Expeditions",
+      "collector_number": "14",
+      "prices": {
+        "usd": "3.87",
+        "usd_foil": "5.92",
+        "usd_etched": null,
+        "eur": "4.27",
+        "eur_foil": "6.96",
+        "tix": "2.15"
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "som",
+      "set_name": "Scars of Mirrodin",
+      "collector_number": "225",
+      "prices": {
+        "usd": "1.98",
+        "usd_foil": "8.99",
+        "usd_etched": null,
+        "eur": "1.95",
+        "eur_foil": "5.82",
+        "tix": "0.02"
+      },
+      "released_at": "2010-10-01"
+    }
+  ]
+}

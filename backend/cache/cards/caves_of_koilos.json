@@ -1,0 +1,311 @@
+{
+  "name": "Caves of Koilos",
+  "oracle_id": "33de01e9-ce5a-42d4-afcb-343cd54a6d80",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "tdc",
+  "collector_number": "348",
+  "image": "https://cards.scryfall.io/normal/front/9/2/92bef577-f055-4d54-9a75-e9d4a125001c.jpg?1743207480",
+  "scryfall_uri": "https://scryfall.com/card/tdc/348/caves-of-koilos?utm_source=api",
+  "uri": "https://scryfall.com/card/tdc/348/caves-of-koilos?utm_source=api",
+  "url": "https://scryfall.com/card/tdc/348/caves-of-koilos?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/92bef577-f055-4d54-9a75-e9d4a125001c/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624313%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=818917&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/138637?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.73,
+    "lowest": 0.53,
+    "usd": "0.73",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A33de01e9-ce5a-42d4-afcb-343cd54a6d80&unique=prints",
+  "prints": [
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "348",
+      "prices": {
+        "usd": "0.73",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.75",
+        "eur_foil": null,
+        "tix": "0.09"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "drc",
+      "set_name": "Aetherdrift Commander",
+      "collector_number": "148",
+      "prices": {
+        "usd": "0.85",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.04",
+        "eur_foil": null,
+        "tix": "0.18"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "268",
+      "prices": {
+        "usd": "0.76",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.82",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "328",
+      "prices": {
+        "usd": "0.73",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.94",
+        "eur_foil": "3.74",
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "277",
+      "prices": {
+        "usd": "0.81",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.91",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "103482",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.85"
+      },
+      "released_at": "2022-12-12"
+    },
+    {
+      "set": "pdmu",
+      "set_name": "Dominaria United Promos",
+      "collector_number": "244s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.21",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "1.55",
+        "tix": null
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "pdmu",
+      "set_name": "Dominaria United Promos",
+      "collector_number": "244p",
+      "prices": {
+        "usd": "0.88",
+        "usd_foil": "1.36",
+        "usd_etched": null,
+        "eur": "0.63",
+        "eur_foil": "1.03",
+        "tix": null
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "dmu",
+      "set_name": "Dominaria United",
+      "collector_number": "378",
+      "prices": {
+        "usd": "1.82",
+        "usd_foil": "3.91",
+        "usd_etched": null,
+        "eur": "2.15",
+        "eur_foil": "4.08",
+        "tix": null
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "dmu",
+      "set_name": "Dominaria United",
+      "collector_number": "244",
+      "prices": {
+        "usd": "0.77",
+        "usd_foil": "0.88",
+        "usd_etched": null,
+        "eur": "0.77",
+        "eur_foil": "1.23",
+        "tix": "0.02"
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "c21",
+      "set_name": "Commander 2021",
+      "collector_number": "283",
+      "prices": {
+        "usd": "0.79",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.92",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "c20",
+      "set_name": "Commander 2020",
+      "collector_number": "262",
+      "prices": {
+        "usd": "0.83",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.93",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-04-17"
+    },
+    {
+      "set": "c16",
+      "set_name": "Commander 2016",
+      "collector_number": "285",
+      "prices": {
+        "usd": "0.95",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.90",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2016-11-11"
+    },
+    {
+      "set": "ori",
+      "set_name": "Magic Origins",
+      "collector_number": "245",
+      "prices": {
+        "usd": "0.53",
+        "usd_foil": "1.85",
+        "usd_etched": null,
+        "eur": "0.68",
+        "eur_foil": "2.08",
+        "tix": "0.02"
+      },
+      "released_at": "2015-07-17"
+    },
+    {
+      "set": "m15",
+      "set_name": "Magic 2015",
+      "collector_number": "241",
+      "prices": {
+        "usd": "0.84",
+        "usd_foil": "1.39",
+        "usd_etched": null,
+        "eur": "0.87",
+        "eur_foil": "2.08",
+        "tix": "0.02"
+      },
+      "released_at": "2014-07-18"
+    },
+    {
+      "set": "md1",
+      "set_name": "Modern Event Deck 2014",
+      "collector_number": "14",
+      "prices": {
+        "usd": "0.97",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.77",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2014-05-30"
+    },
+    {
+      "set": "10e",
+      "set_name": "Tenth Edition",
+      "collector_number": "350",
+      "prices": {
+        "usd": "1.54",
+        "usd_foil": "18.00",
+        "usd_etched": null,
+        "eur": "1.16",
+        "eur_foil": "4.74",
+        "tix": "0.02"
+      },
+      "released_at": "2007-07-13"
+    },
+    {
+      "set": "9ed",
+      "set_name": "Ninth Edition",
+      "collector_number": "320★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "16.00",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2005-07-29"
+    },
+    {
+      "set": "9ed",
+      "set_name": "Ninth Edition",
+      "collector_number": "320",
+      "prices": {
+        "usd": "3.04",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.21",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2005-07-29"
+    },
+    {
+      "set": "apc",
+      "set_name": "Apocalypse",
+      "collector_number": "140",
+      "prices": {
+        "usd": "12.45",
+        "usd_foil": "96.43",
+        "usd_etched": null,
+        "eur": "12.01",
+        "eur_foil": "89.31",
+        "tix": "1.59"
+      },
+      "released_at": "2001-06-04"
+    }
+  ]
+}

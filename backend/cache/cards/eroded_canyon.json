@@ -1,0 +1,45 @@
+{
+  "name": "Eroded Canyon",
+  "oracle_id": "852c6520-d148-4923-a312-05a9af821f24",
+  "type_line": "Land — Desert",
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "otj",
+  "collector_number": "256",
+  "image": "https://cards.scryfall.io/normal/front/5/c/5c9d080f-28d7-41d6-a4e0-5b3e3a5ed770.jpg?1712356324",
+  "scryfall_uri": "https://scryfall.com/card/otj/256/eroded-canyon?utm_source=api",
+  "uri": "https://scryfall.com/card/otj/256/eroded-canyon?utm_source=api",
+  "url": "https://scryfall.com/card/otj/256/eroded-canyon?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/5c9d080f-28d7-41d6-a4e0-5b3e3a5ed770/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F544233%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=763603&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/124423?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.12,
+    "lowest": 0.12,
+    "usd": "0.12",
+    "usd_foil": "0.27"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A852c6520-d148-4923-a312-05a9af821f24&unique=prints",
+  "prints": [
+    {
+      "set": "otj",
+      "set_name": "Outlaws of Thunder Junction",
+      "collector_number": "256",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.27",
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": "0.44",
+        "tix": "0.03"
+      },
+      "released_at": "2024-04-19"
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "name": "Needle Spires",
+  "oracle_id": "e7bb8160-0a4b-4e46-b196-7a19fb388d8e",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "mkc",
+  "collector_number": "278",
+  "image": "https://cards.scryfall.io/normal/front/4/a/4a58a287-e4ca-4c6b-8096-142660cee299.jpg?1706241204",
+  "scryfall_uri": "https://scryfall.com/card/mkc/278/needle-spires?utm_source=api",
+  "uri": "https://scryfall.com/card/mkc/278/needle-spires?utm_source=api",
+  "url": "https://scryfall.com/card/mkc/278/needle-spires?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/4a58a287-e4ca-4c6b-8096-142660cee299/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F535616%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=753458&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/122704?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.12,
+    "lowest": 0.12,
+    "usd": "0.12",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ae7bb8160-0a4b-4e46-b196-7a19fb388d8e&unique=prints",
+  "prints": [
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "165",
+      "prices": {
+        "usd": null,
+        "usd_foil": "14.04",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "7.89",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "120",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.19",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "8.81",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "75",
+      "prices": {
+        "usd": "0.76",
+        "usd_foil": "2.90",
+        "usd_etched": null,
+        "eur": "1.27",
+        "eur_foil": "2.65",
+        "tix": "0.20"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "30",
+      "prices": {
+        "usd": "0.47",
+        "usd_foil": "0.89",
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": "0.80",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "270",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "278",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "znc",
+      "set_name": "Zendikar Rising Commander",
+      "collector_number": "137",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "pogw",
+      "set_name": "Oath of the Gatewatch Promos",
+      "collector_number": "175s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.49",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "0.91",
+        "tix": null
+      },
+      "released_at": "2016-01-22"
+    },
+    {
+      "set": "ogw",
+      "set_name": "Oath of the Gatewatch",
+      "collector_number": "175",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": "0.81",
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": "0.92",
+        "tix": "0.02"
+      },
+      "released_at": "2016-01-22"
+    }
+  ]
+}

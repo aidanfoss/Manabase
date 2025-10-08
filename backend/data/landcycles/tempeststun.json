@@ -1,0 +1,15 @@
+{
+  "id": "tempeststun",
+  "name": "Tempest Slow Untap Lands",
+  "tier": "premium",
+  "untapQuality": "always",
+  "description": "These lands enter untapped but do not untap during your next untap step when used for colored mana. Technically untapped, but practically terrible.",
+  "tags": "terrible, premium, slow untap, tempest lands, untapped but punished",
+  "cards": [
+    "Cinder Marsh",
+    "Mogg Hollows",
+    "Rootwater Depths",
+    "Thalakos Lowlands",
+    "Vec Townships"
+  ]
+}

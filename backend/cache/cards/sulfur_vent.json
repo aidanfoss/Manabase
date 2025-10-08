@@ -1,0 +1,46 @@
+{
+  "name": "Sulfur Vent",
+  "oracle_id": "bc2906cd-9e0c-4aa8-b656-fb1045d810ac",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "inv",
+  "collector_number": "328",
+  "image": "https://cards.scryfall.io/normal/front/2/2/22c66ed6-55fb-4c65-aac4-26d9cc3053b8.jpg?1562901960",
+  "scryfall_uri": "https://scryfall.com/card/inv/328/sulfur-vent?utm_source=api",
+  "uri": "https://scryfall.com/card/inv/328/sulfur-vent?utm_source=api",
+  "url": "https://scryfall.com/card/inv/328/sulfur-vent?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/22c66ed6-55fb-4c65-aac4-26d9cc3053b8/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F7683%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=3675&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/14811?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.18,
+    "lowest": 0.18,
+    "usd": "0.18",
+    "usd_foil": "4.07"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Abc2906cd-9e0c-4aa8-b656-fb1045d810ac&unique=prints",
+  "prints": [
+    {
+      "set": "inv",
+      "set_name": "Invasion",
+      "collector_number": "328",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": "4.07",
+        "usd_etched": null,
+        "eur": "0.28",
+        "eur_foil": "3.65",
+        "tix": "0.16"
+      },
+      "released_at": "2000-10-02"
+    }
+  ]
+}

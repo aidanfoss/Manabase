@@ -1,0 +1,115 @@
+{
+  "name": "Rustvale Bridge",
+  "oracle_id": "a3faf70d-c034-4692-9e92-1922029e3852",
+  "type_line": "Artifact Land",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "eoc",
+  "collector_number": "175",
+  "image": "https://cards.scryfall.io/normal/front/d/a/da54e458-1d4f-45f0-a225-99eb9c4049fb.jpg?1752945469",
+  "scryfall_uri": "https://scryfall.com/card/eoc/175/rustvale-bridge?utm_source=api",
+  "uri": "https://scryfall.com/card/eoc/175/rustvale-bridge?utm_source=api",
+  "url": "https://scryfall.com/card/eoc/175/rustvale-bridge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/da54e458-1d4f-45f0-a225-99eb9c4049fb/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F642861%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=834310&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142487?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.2,
+    "lowest": 0.16,
+    "usd": "0.20",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Aa3faf70d-c034-4692-9e92-1922029e3852&unique=prints",
+  "prints": [
+    {
+      "set": "eoc",
+      "set_name": "Edge of Eternities Commander",
+      "collector_number": "175",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "MH2-253",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "813",
+      "prices": {
+        "usd": null,
+        "usd_foil": "8.23",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "285",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": "3.06",
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": "1.38",
+        "tix": "0.39"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "ha6",
+      "set_name": "Historic Anthology 6",
+      "collector_number": "16",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-07-28"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "253",
+      "prices": {
+        "usd": "0.26",
+        "usd_foil": "0.46",
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": "0.72",
+        "tix": "0.03"
+      },
+      "released_at": "2021-06-18"
+    }
+  ]
+}

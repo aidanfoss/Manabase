@@ -1,0 +1,16 @@
+{
+  "name": "Triomes",
+  "description": "Three-color lands that enter tapped, can be fetched, and cycle.",
+  "cards": [
+    "Indatha Triome",
+    "Raugrin Triome",
+    "Ketria Triome",
+    "Savai Triome",
+    "Zagoth Triome",
+    "Jetmir's Garden",
+    "Raffine's Tower",
+    "Spara's Headquarters",
+    "Xander's Lounge",
+    "Ziatora's Proving Ground"
+  ]
+}

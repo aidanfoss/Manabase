@@ -1,0 +1,185 @@
+{
+  "name": "Overflowing Basin",
+  "oracle_id": "5ac8e01c-b0a7-4855-a122-1cd26b07c4a5",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "dsc",
+  "collector_number": "293",
+  "image": "https://cards.scryfall.io/normal/front/f/5/f561957b-b072-4788-91cb-6794e3e61651.jpg?1726285471",
+  "scryfall_uri": "https://scryfall.com/card/dsc/293/overflowing-basin?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/293/overflowing-basin?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/293/overflowing-basin?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/f561957b-b072-4788-91cb-6794e3e61651/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F577876%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=789036&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/131211?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.2,
+    "lowest": 0.14,
+    "usd": "0.20",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A5ac8e01c-b0a7-4855-a122-1cd26b07c4a5&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "410",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "M3C-362",
+      "prices": {
+        "usd": "0.26",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-05-12"
+    },
+    {
+      "set": "drc",
+      "set_name": "Aetherdrift Commander",
+      "collector_number": "165",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.09"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "293",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": null,
+        "tix": "0.23"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "321",
+      "prices": {
+        "usd": "0.19",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.31",
+        "eur_foil": null,
+        "tix": "0.25"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "362",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": "0.56",
+        "tix": "0.14"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "308",
+      "prices": {
+        "usd": "0.32",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": "0.32"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "972",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.26",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "680",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.47",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "444",
+      "prices": {
+        "usd": "0.98",
+        "usd_foil": "0.94",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.25"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "152",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": "0.69",
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": "0.66",
+        "tix": "0.20"
+      },
+      "released_at": "2024-03-08"
+    }
+  ]
+}

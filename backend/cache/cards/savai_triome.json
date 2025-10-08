@@ -1,0 +1,102 @@
+{
+  "name": "Savai Triome",
+  "oracle_id": "00625242-9348-4ef4-b975-f2ac82fee21d",
+  "type_line": "Land — Mountain Plains Swamp",
+  "color_identity": [
+    "B",
+    "R",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "iko",
+  "collector_number": "253",
+  "image": "https://cards.scryfall.io/normal/front/7/4/748e6a61-9c1f-4225-9f04-e54002f63ac3.jpg?1591228681",
+  "scryfall_uri": "https://scryfall.com/card/iko/253/savai-triome?utm_source=api",
+  "uri": "https://scryfall.com/card/iko/253/savai-triome?utm_source=api",
+  "url": "https://scryfall.com/card/iko/253/savai-triome?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/748e6a61-9c1f-4225-9f04-e54002f63ac3/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F212693%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=455018&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/80515?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 18.72,
+    "lowest": 18.72,
+    "usd": "18.72",
+    "usd_foil": "19.77"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A00625242-9348-4ef4-b975-f2ac82fee21d&unique=prints",
+  "prints": [
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "80949",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.16"
+      },
+      "released_at": "2020-04-30"
+    },
+    {
+      "set": "piko",
+      "set_name": "Ikoria: Lair of Behemoths Promos",
+      "collector_number": "253s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "25.52",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "16.34",
+        "tix": null
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "piko",
+      "set_name": "Ikoria: Lair of Behemoths Promos",
+      "collector_number": "253p",
+      "prices": {
+        "usd": "24.59",
+        "usd_foil": "21.93",
+        "usd_etched": null,
+        "eur": "11.04",
+        "eur_foil": "15.56",
+        "tix": null
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "iko",
+      "set_name": "Ikoria: Lair of Behemoths",
+      "collector_number": "312",
+      "prices": {
+        "usd": "19.73",
+        "usd_foil": "47.31",
+        "usd_etched": null,
+        "eur": "19.35",
+        "eur_foil": "28.69",
+        "tix": null
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "iko",
+      "set_name": "Ikoria: Lair of Behemoths",
+      "collector_number": "253",
+      "prices": {
+        "usd": "18.72",
+        "usd_foil": "19.77",
+        "usd_etched": null,
+        "eur": "16.36",
+        "eur_foil": "14.96",
+        "tix": "0.14"
+      },
+      "released_at": "2020-04-24"
+    }
+  ]
+}

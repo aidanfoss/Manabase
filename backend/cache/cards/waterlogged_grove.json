@@ -1,0 +1,129 @@
+{
+  "name": "Waterlogged Grove",
+  "oracle_id": "70fa2eba-565e-4fed-adc9-7f5d9fcbf1fa",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "mh1",
+  "collector_number": "249",
+  "image": "https://cards.scryfall.io/normal/front/0/a/0ab6bfbd-d2e1-4c4c-9f91-6f69c5b8e3bb.jpg?1562202616",
+  "scryfall_uri": "https://scryfall.com/card/mh1/249/waterlogged-grove?utm_source=api",
+  "uri": "https://scryfall.com/card/mh1/249/waterlogged-grove?utm_source=api",
+  "url": "https://scryfall.com/card/mh1/249/waterlogged-grove?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/0ab6bfbd-d2e1-4c4c-9f91-6f69c5b8e3bb/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F190793%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=374517&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/72870?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 1.01,
+    "lowest": 0.36,
+    "usd": "1.01",
+    "usd_foil": "5.47"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A70fa2eba-565e-4fed-adc9-7f5d9fcbf1fa&unique=prints",
+  "prints": [
+    {
+      "set": "acr",
+      "set_name": "Assassin's Creed",
+      "collector_number": "116",
+      "prices": {
+        "usd": "3.91",
+        "usd_foil": "6.40",
+        "usd_etched": null,
+        "eur": "5.95",
+        "eur_foil": "6.57",
+        "tix": "4.62"
+      },
+      "released_at": "2024-07-05"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1125",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.69",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "922",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.95",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "534",
+      "prices": {
+        "usd": "1.02",
+        "usd_foil": "1.25",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "331",
+      "prices": {
+        "usd": "0.36",
+        "usd_foil": "1.60",
+        "usd_etched": null,
+        "eur": "0.40",
+        "eur_foil": "1.27",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "ha7",
+      "set_name": "Historic Anthology 7",
+      "collector_number": "25",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-07-18"
+    },
+    {
+      "set": "mh1",
+      "set_name": "Modern Horizons",
+      "collector_number": "249",
+      "prices": {
+        "usd": "1.01",
+        "usd_foil": "5.47",
+        "usd_etched": null,
+        "eur": "1.79",
+        "eur_foil": "5.89",
+        "tix": "0.22"
+      },
+      "released_at": "2019-06-14"
+    }
+  ]
+}

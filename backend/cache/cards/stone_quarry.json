@@ -1,0 +1,185 @@
+{
+  "name": "Stone Quarry",
+  "oracle_id": "90bccf66-58ec-445d-ac96-c6013054a1b4",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "cmr",
+  "collector_number": "495",
+  "image": "https://cards.scryfall.io/normal/front/a/a/aa3575e1-7d2c-4777-b469-16f7483bb8e7.jpg?1608918111",
+  "scryfall_uri": "https://scryfall.com/card/cmr/495/stone-quarry?utm_source=api",
+  "uri": "https://scryfall.com/card/cmr/495/stone-quarry?utm_source=api",
+  "url": "https://scryfall.com/card/cmr/495/stone-quarry?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/aa3575e1-7d2c-4777-b469-16f7483bb8e7/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F227302%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=514964&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/85798?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.09,
+    "lowest": 0.07,
+    "usd": "0.09",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A90bccf66-58ec-445d-ac96-c6013054a1b4&unique=prints",
+  "prints": [
+    {
+      "set": "acr",
+      "set_name": "Assassin's Creed",
+      "collector_number": "300",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-07-05"
+    },
+    {
+      "set": "sir",
+      "set_name": "Shadows over Innistrad Remastered",
+      "collector_number": "274",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-03-21"
+    },
+    {
+      "set": "cmr",
+      "set_name": "Commander Legends",
+      "collector_number": "495",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.03",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2020-11-20"
+    },
+    {
+      "set": "c19",
+      "set_name": "Commander 2019",
+      "collector_number": "276",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-08-23"
+    },
+    {
+      "set": "m19",
+      "set_name": "Core Set 2019",
+      "collector_number": "256",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": "0.40",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.20",
+        "tix": "0.03"
+      },
+      "released_at": "2018-07-13"
+    },
+    {
+      "set": "rix",
+      "set_name": "Rivals of Ixalan",
+      "collector_number": "190",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.45",
+        "usd_etched": null,
+        "eur": "0.04",
+        "eur_foil": "0.29",
+        "tix": "0.03"
+      },
+      "released_at": "2018-01-19"
+    },
+    {
+      "set": "xln",
+      "set_name": "Ixalan",
+      "collector_number": "289",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2017-09-29"
+    },
+    {
+      "set": "c17",
+      "set_name": "Commander 2017",
+      "collector_number": "282",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-08-25"
+    },
+    {
+      "set": "akh",
+      "set_name": "Amonkhet",
+      "collector_number": "274",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": null,
+        "tix": "0.51"
+      },
+      "released_at": "2017-04-28"
+    },
+    {
+      "set": "kld",
+      "set_name": "Kaladesh",
+      "collector_number": "269",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.10"
+      },
+      "released_at": "2016-09-30"
+    },
+    {
+      "set": "soi",
+      "set_name": "Shadows over Innistrad",
+      "collector_number": "279",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.43",
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": "0.42",
+        "tix": "0.04"
+      },
+      "released_at": "2016-04-08"
+    }
+  ]
+}

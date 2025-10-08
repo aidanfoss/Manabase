@@ -1,0 +1,339 @@
+{
+  "name": "Battlefield Forge",
+  "oracle_id": "6b75b94e-83b7-457e-ac41-7ca90b5a59aa",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "eoc",
+  "collector_number": "58",
+  "image": "https://cards.scryfall.io/normal/front/6/e/6ef04c87-8d34-49af-8b79-72e460daf71c.jpg?1752944487",
+  "scryfall_uri": "https://scryfall.com/card/eoc/58/battlefield-forge?utm_source=api",
+  "uri": "https://scryfall.com/card/eoc/58/battlefield-forge?utm_source=api",
+  "url": "https://scryfall.com/card/eoc/58/battlefield-forge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/6ef04c87-8d34-49af-8b79-72e460daf71c/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F642845%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=834294&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142253?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.25,
+    "lowest": 0.17,
+    "usd": "0.25",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6b75b94e-83b7-457e-ac41-7ca90b5a59aa&unique=prints",
+  "prints": [
+    {
+      "set": "eoc",
+      "set_name": "Edge of Eternities Commander",
+      "collector_number": "58",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.51",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "375",
+      "prices": {
+        "usd": "0.30",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.40",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "340",
+      "prices": {
+        "usd": "0.27",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.40",
+        "eur_foil": null,
+        "tix": "0.12"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "293",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.56",
+        "eur_foil": null,
+        "tix": "0.17"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "321",
+      "prices": {
+        "usd": "0.26",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.55",
+        "eur_foil": "1.95",
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "271",
+      "prices": {
+        "usd": "0.39",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.68",
+        "eur_foil": null,
+        "tix": "0.11"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "ltc",
+      "set_name": "Tales of Middle-earth Commander",
+      "collector_number": "296",
+      "prices": {
+        "usd": "0.44",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.76",
+        "eur_foil": null,
+        "tix": "0.11"
+      },
+      "released_at": "2023-06-23"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "105882",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.66"
+      },
+      "released_at": "2023-02-20"
+    },
+    {
+      "set": "pbro",
+      "set_name": "The Brothers' War Promos",
+      "collector_number": "257s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.65",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-11-18"
+    },
+    {
+      "set": "pbro",
+      "set_name": "The Brothers' War Promos",
+      "collector_number": "257p",
+      "prices": {
+        "usd": "1.23",
+        "usd_foil": "2.17",
+        "usd_etched": null,
+        "eur": "1.59",
+        "eur_foil": "1.61",
+        "tix": null
+      },
+      "released_at": "2022-11-18"
+    },
+    {
+      "set": "bro",
+      "set_name": "The Brothers' War",
+      "collector_number": "297",
+      "prices": {
+        "usd": "1.46",
+        "usd_foil": "5.56",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-11-18"
+    },
+    {
+      "set": "bro",
+      "set_name": "The Brothers' War",
+      "collector_number": "257",
+      "prices": {
+        "usd": "0.55",
+        "usd_foil": "1.01",
+        "usd_etched": null,
+        "eur": "0.88",
+        "eur_foil": "1.21",
+        "tix": "0.02"
+      },
+      "released_at": "2022-11-18"
+    },
+    {
+      "set": "dmc",
+      "set_name": "Dominaria United Commander",
+      "collector_number": "198",
+      "prices": {
+        "usd": "0.67",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.87",
+        "eur_foil": null,
+        "tix": "1.44"
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "sld",
+      "set_name": "Secret Lair Drop",
+      "collector_number": "669",
+      "prices": {
+        "usd": null,
+        "usd_foil": "7.60",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "5.85",
+        "tix": null
+      },
+      "released_at": "2021-11-20"
+    },
+    {
+      "set": "c21",
+      "set_name": "Commander 2021",
+      "collector_number": "278",
+      "prices": {
+        "usd": "0.35",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.72",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "c20",
+      "set_name": "Commander 2020",
+      "collector_number": "257",
+      "prices": {
+        "usd": "0.54",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.70",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-04-17"
+    },
+    {
+      "set": "ori",
+      "set_name": "Magic Origins",
+      "collector_number": "244",
+      "prices": {
+        "usd": "0.45",
+        "usd_foil": "2.55",
+        "usd_etched": null,
+        "eur": "0.85",
+        "eur_foil": "1.79",
+        "tix": "0.02"
+      },
+      "released_at": "2015-07-17"
+    },
+    {
+      "set": "m15",
+      "set_name": "Magic 2015",
+      "collector_number": "240",
+      "prices": {
+        "usd": "0.77",
+        "usd_foil": "2.74",
+        "usd_etched": null,
+        "eur": "0.84",
+        "eur_foil": "2.61",
+        "tix": "0.02"
+      },
+      "released_at": "2014-07-18"
+    },
+    {
+      "set": "10e",
+      "set_name": "Tenth Edition",
+      "collector_number": "348",
+      "prices": {
+        "usd": "3.32",
+        "usd_foil": "11.58",
+        "usd_etched": null,
+        "eur": "1.48",
+        "eur_foil": "9.14",
+        "tix": "0.02"
+      },
+      "released_at": "2007-07-13"
+    },
+    {
+      "set": "9ed",
+      "set_name": "Ninth Edition",
+      "collector_number": "318★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "20.99",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2005-07-29"
+    },
+    {
+      "set": "9ed",
+      "set_name": "Ninth Edition",
+      "collector_number": "318",
+      "prices": {
+        "usd": "4.63",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.38",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2005-07-29"
+    },
+    {
+      "set": "apc",
+      "set_name": "Apocalypse",
+      "collector_number": "139",
+      "prices": {
+        "usd": "7.94",
+        "usd_foil": "64.76",
+        "usd_etched": null,
+        "eur": "5.35",
+        "eur_foil": "57.36",
+        "tix": "1.66"
+      },
+      "released_at": "2001-06-04"
+    }
+  ]
+}

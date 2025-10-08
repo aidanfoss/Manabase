@@ -2,15 +2,16 @@
   "name": "Reveal Lands",
   "description": "Enter untapped if you reveal a matching basic land type from your hand.",
   "tags": "conditional, good untap, good",
+  "tier": "playable",
   "cards": [
     "Port Town",
     "Choked Estuary",
-    "Forboding Ruins",
+    "Foreboding Ruins",
     "Game Trail",
     "Fortified Village",
     "Shineshadow Snarl",
     "Necroblossom Snarl",
-    "Vinesglimmer Snarl",
+    "Vineglimmer Snarl",
     "Frostboil Snarl",
     "Furycalm Snarl"
   ]

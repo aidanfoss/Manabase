@@ -1,0 +1,269 @@
+{
+  "name": "Woodland Cemetery",
+  "oracle_id": "c9fe1383-1331-4a58-a45a-3320250221a9",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "tdc",
+  "collector_number": "412",
+  "image": "https://cards.scryfall.io/normal/front/4/9/49fd1af7-b53c-4347-a912-7493aa6e55c3.jpg?1743207813",
+  "scryfall_uri": "https://scryfall.com/card/tdc/412/woodland-cemetery?utm_source=api",
+  "uri": "https://scryfall.com/card/tdc/412/woodland-cemetery?utm_source=api",
+  "url": "https://scryfall.com/card/tdc/412/woodland-cemetery?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/49fd1af7-b53c-4347-a912-7493aa6e55c3/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624486%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=818969&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/138765?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.65,
+    "lowest": 0.55,
+    "usd": "0.65",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ac9fe1383-1331-4a58-a45a-3320250221a9&unique=prints",
+  "prints": [
+    {
+      "set": "yeoe",
+      "set_name": "Alchemy: Edge of Eternities",
+      "collector_number": "40",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-08-19"
+    },
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "412",
+      "prices": {
+        "usd": "0.65",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.86",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "326",
+      "prices": {
+        "usd": "0.62",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.06",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "354",
+      "prices": {
+        "usd": "0.55",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.06",
+        "eur_foil": null,
+        "tix": "0.21"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "341",
+      "prices": {
+        "usd": "0.68",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.03",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "1056",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.75",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "844",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.95",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "528",
+      "prices": {
+        "usd": "3.68",
+        "usd_foil": "3.13",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.23"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "316",
+      "prices": {
+        "usd": "0.72",
+        "usd_foil": "6.15",
+        "usd_etched": null,
+        "eur": "1.15",
+        "eur_foil": "2.37",
+        "tix": "0.07"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "sld",
+      "set_name": "Secret Lair Drop",
+      "collector_number": "738",
+      "prices": {
+        "usd": "9.67",
+        "usd_foil": "13.94",
+        "usd_etched": null,
+        "eur": "6.85",
+        "eur_foil": "7.94",
+        "tix": null
+      },
+      "released_at": "2023-10-02"
+    },
+    {
+      "set": "ltc",
+      "set_name": "Tales of Middle-earth Commander",
+      "collector_number": "346",
+      "prices": {
+        "usd": "0.73",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.25",
+        "eur_foil": null,
+        "tix": "0.33"
+      },
+      "released_at": "2023-06-23"
+    },
+    {
+      "set": "dmr",
+      "set_name": "Dominaria Remastered",
+      "collector_number": "401",
+      "prices": {
+        "usd": "1.03",
+        "usd_foil": "1.92",
+        "usd_etched": null,
+        "eur": "2.10",
+        "eur_foil": "3.36",
+        "tix": "0.24"
+      },
+      "released_at": "2023-01-13"
+    },
+    {
+      "set": "dmr",
+      "set_name": "Dominaria Remastered",
+      "collector_number": "261",
+      "prices": {
+        "usd": "1.21",
+        "usd_foil": "2.01",
+        "usd_etched": null,
+        "eur": "1.15",
+        "eur_foil": "2.42",
+        "tix": "0.07"
+      },
+      "released_at": "2023-01-13"
+    },
+    {
+      "set": "pdom",
+      "set_name": "Dominaria Promos",
+      "collector_number": "248s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.57",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "1.87",
+        "tix": null
+      },
+      "released_at": "2018-04-27"
+    },
+    {
+      "set": "pdom",
+      "set_name": "Dominaria Promos",
+      "collector_number": "248p",
+      "prices": {
+        "usd": "3.02",
+        "usd_foil": "3.56",
+        "usd_etched": null,
+        "eur": "3.69",
+        "eur_foil": "6.05",
+        "tix": null
+      },
+      "released_at": "2018-04-27"
+    },
+    {
+      "set": "dom",
+      "set_name": "Dominaria",
+      "collector_number": "248",
+      "prices": {
+        "usd": "0.70",
+        "usd_foil": "2.17",
+        "usd_etched": null,
+        "eur": "0.97",
+        "eur_foil": "2.29",
+        "tix": "0.02"
+      },
+      "released_at": "2018-04-27"
+    },
+    {
+      "set": "isd",
+      "set_name": "Innistrad",
+      "collector_number": "249",
+      "prices": {
+        "usd": "1.07",
+        "usd_foil": "4.37",
+        "usd_etched": null,
+        "eur": "1.10",
+        "eur_foil": "5.19",
+        "tix": "0.02"
+      },
+      "released_at": "2011-09-30"
+    }
+  ]
+}

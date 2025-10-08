@@ -1,0 +1,87 @@
+{
+  "name": "Lush Portico",
+  "oracle_id": "d51831b1-7394-456e-a1de-6787a59f5932",
+  "type_line": "Land — Forest Plains",
+  "color_identity": [
+    "G",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "mkm",
+  "collector_number": "263",
+  "image": "https://cards.scryfall.io/normal/front/c/1/c17816e8-28b1-4295-a637-efb0e5c18873.jpg?1759236528",
+  "scryfall_uri": "https://scryfall.com/card/mkm/263/lush-portico?utm_source=api",
+  "uri": "https://scryfall.com/card/mkm/263/lush-portico?utm_source=api",
+  "url": "https://scryfall.com/card/mkm/263/lush-portico?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/c17816e8-28b1-4295-a637-efb0e5c18873/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F532881%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=750891&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/122018?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 6.46,
+    "lowest": 6.46,
+    "usd": "6.46",
+    "usd_foil": "7.41"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ad51831b1-7394-456e-a1de-6787a59f5932&unique=prints",
+  "prints": [
+    {
+      "set": "pmkm",
+      "set_name": "Murders at Karlov Manor Promos",
+      "collector_number": "263s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "10.06",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "pmkm",
+      "set_name": "Murders at Karlov Manor Promos",
+      "collector_number": "263p",
+      "prices": {
+        "usd": "10.56",
+        "usd_foil": "9.91",
+        "usd_etched": null,
+        "eur": "6.47",
+        "eur_foil": "7.60",
+        "tix": null
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "mkm",
+      "set_name": "Murders at Karlov Manor",
+      "collector_number": "327",
+      "prices": {
+        "usd": "9.00",
+        "usd_foil": "17.15",
+        "usd_etched": null,
+        "eur": "9.26",
+        "eur_foil": "15.37",
+        "tix": "0.61"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "mkm",
+      "set_name": "Murders at Karlov Manor",
+      "collector_number": "263",
+      "prices": {
+        "usd": "6.46",
+        "usd_foil": "7.41",
+        "usd_etched": null,
+        "eur": "6.88",
+        "eur_foil": "7.92",
+        "tix": "0.89"
+      },
+      "released_at": "2024-02-09"
+    }
+  ]
+}

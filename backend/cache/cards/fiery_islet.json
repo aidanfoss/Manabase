@@ -1,0 +1,129 @@
+{
+  "name": "Fiery Islet",
+  "oracle_id": "026f4a4b-eedd-44e1-9d37-ca4fb8d6db98",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "mh1",
+  "collector_number": "238",
+  "image": "https://cards.scryfall.io/normal/front/a/3/a3aab13c-9d9d-4507-ae5d-da979990ae1b.jpg?1562202552",
+  "scryfall_uri": "https://scryfall.com/card/mh1/238/fiery-islet?utm_source=api",
+  "uri": "https://scryfall.com/card/mh1/238/fiery-islet?utm_source=api",
+  "url": "https://scryfall.com/card/mh1/238/fiery-islet?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/a3aab13c-9d9d-4507-ae5d-da979990ae1b/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F190806%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=374514&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/72848?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 1.83,
+    "lowest": 0.64,
+    "usd": "1.83",
+    "usd_foil": "6.44"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A026f4a4b-eedd-44e1-9d37-ca4fb8d6db98&unique=prints",
+  "prints": [
+    {
+      "set": "acr",
+      "set_name": "Assassin's Creed",
+      "collector_number": "112",
+      "prices": {
+        "usd": "6.57",
+        "usd_foil": "7.52",
+        "usd_etched": null,
+        "eur": "6.44",
+        "eur_foil": "6.55",
+        "tix": "8.79"
+      },
+      "released_at": "2024-07-05"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1086",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.38",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "869",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.39",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "495",
+      "prices": {
+        "usd": "2.06",
+        "usd_foil": "1.96",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "278",
+      "prices": {
+        "usd": "0.64",
+        "usd_foil": "3.84",
+        "usd_etched": null,
+        "eur": "0.51",
+        "eur_foil": "1.76",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "ha7",
+      "set_name": "Historic Anthology 7",
+      "collector_number": "21",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-07-18"
+    },
+    {
+      "set": "mh1",
+      "set_name": "Modern Horizons",
+      "collector_number": "238",
+      "prices": {
+        "usd": "1.83",
+        "usd_foil": "6.44",
+        "usd_etched": null,
+        "eur": "1.85",
+        "eur_foil": "7.20",
+        "tix": "1.38"
+      },
+      "released_at": "2019-06-14"
+    }
+  ]
+}

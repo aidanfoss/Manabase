@@ -1,0 +1,143 @@
+{
+  "name": "Shattered Sanctum",
+  "oracle_id": "c854ecb0-cc60-4c48-a9aa-7f2348a7a8c6",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "tdc",
+  "collector_number": "391",
+  "image": "https://cards.scryfall.io/normal/front/2/c/2c531254-1b12-44d8-a942-e767d516364e.jpg?1743207725",
+  "scryfall_uri": "https://scryfall.com/card/tdc/391/shattered-sanctum?utm_source=api",
+  "uri": "https://scryfall.com/card/tdc/391/shattered-sanctum?utm_source=api",
+  "url": "https://scryfall.com/card/tdc/391/shattered-sanctum?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/2c531254-1b12-44d8-a942-e767d516364e/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624319%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=818951&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/138723?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 4.97,
+    "lowest": 4.81,
+    "usd": "4.97",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ac854ecb0-cc60-4c48-a9aa-7f2348a7a8c6&unique=prints",
+  "prints": [
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "391",
+      "prices": {
+        "usd": "4.97",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "4.21",
+        "eur_foil": null,
+        "tix": "0.39"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "inr",
+      "set_name": "Innistrad Remastered",
+      "collector_number": "283",
+      "prices": {
+        "usd": "5.48",
+        "usd_foil": "6.19",
+        "usd_etched": null,
+        "eur": "5.54",
+        "eur_foil": "5.77",
+        "tix": null
+      },
+      "released_at": "2025-01-24"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "95453",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.59"
+      },
+      "released_at": "2022-02-21"
+    },
+    {
+      "set": "dbl",
+      "set_name": "Innistrad: Double Feature",
+      "collector_number": "531",
+      "prices": {
+        "usd": "7.57",
+        "usd_foil": "30.79",
+        "usd_etched": null,
+        "eur": "7.97",
+        "eur_foil": "18.21",
+        "tix": "0.54"
+      },
+      "released_at": "2022-01-28"
+    },
+    {
+      "set": "pvow",
+      "set_name": "Innistrad: Crimson Vow Promos",
+      "collector_number": "264s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "10.84",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "12.97",
+        "tix": null
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "pvow",
+      "set_name": "Innistrad: Crimson Vow Promos",
+      "collector_number": "264p",
+      "prices": {
+        "usd": "5.21",
+        "usd_foil": "13.85",
+        "usd_etched": null,
+        "eur": "4.59",
+        "eur_foil": "12.96",
+        "tix": null
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "vow",
+      "set_name": "Innistrad: Crimson Vow",
+      "collector_number": "283",
+      "prices": {
+        "usd": "7.66",
+        "usd_foil": "11.58",
+        "usd_etched": null,
+        "eur": "8.93",
+        "eur_foil": "13.52",
+        "tix": null
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "vow",
+      "set_name": "Innistrad: Crimson Vow",
+      "collector_number": "264",
+      "prices": {
+        "usd": "5.24",
+        "usd_foil": "4.81",
+        "usd_etched": null,
+        "eur": "5.24",
+        "eur_foil": "5.74",
+        "tix": "0.19"
+      },
+      "released_at": "2021-11-19"
+    }
+  ]
+}

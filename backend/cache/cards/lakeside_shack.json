@@ -1,0 +1,45 @@
+{
+  "name": "Lakeside Shack",
+  "oracle_id": "c56cd2ec-5907-4282-9162-d93b7dfd63b5",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "dsk",
+  "collector_number": "262",
+  "image": "https://cards.scryfall.io/normal/front/a/9/a9367acd-393a-4966-ba60-af2ecd4e7596.jpg?1726286852",
+  "scryfall_uri": "https://scryfall.com/card/dsk/262/lakeside-shack?utm_source=api",
+  "uri": "https://scryfall.com/card/dsk/262/lakeside-shack?utm_source=api",
+  "url": "https://scryfall.com/card/dsk/262/lakeside-shack?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/a9367acd-393a-4966-ba60-af2ecd4e7596/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F575115%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=786619&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/130655?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.1,
+    "lowest": 0.1,
+    "usd": "0.10",
+    "usd_foil": "0.12"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ac56cd2ec-5907-4282-9162-d93b7dfd63b5&unique=prints",
+  "prints": [
+    {
+      "set": "dsk",
+      "set_name": "Duskmourn: House of Horror",
+      "collector_number": "262",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": "0.12",
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": "0.14",
+        "tix": "0.03"
+      },
+      "released_at": "2024-09-27"
+    }
+  ]
+}

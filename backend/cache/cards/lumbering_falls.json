@@ -1,0 +1,171 @@
+{
+  "name": "Lumbering Falls",
+  "oracle_id": "c2878f4e-3044-4d60-8ec1-b325edfca397",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "afc",
+  "collector_number": "247",
+  "image": "https://cards.scryfall.io/normal/front/f/7/f7e9db98-3a2d-46d8-a07f-99d66a4d9f2f.jpg?1631589871",
+  "scryfall_uri": "https://scryfall.com/card/afc/247/lumbering-falls?utm_source=api",
+  "uri": "https://scryfall.com/card/afc/247/lumbering-falls?utm_source=api",
+  "url": "https://scryfall.com/card/afc/247/lumbering-falls?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/f7e9db98-3a2d-46d8-a07f-99d66a4d9f2f/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F243996%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=572422&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards?affiliate_id=scryfall&data%5Bsearch%5D=Lumbering+Falls&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.12,
+    "lowest": 0.12,
+    "usd": "0.12",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ac2878f4e-3044-4d60-8ec1-b325edfca397&unique=prints",
+  "prints": [
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "159",
+      "prices": {
+        "usd": null,
+        "usd_foil": "8.15",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "11.28",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "114",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.79",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "4.90",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "69",
+      "prices": {
+        "usd": "1.28",
+        "usd_foil": "2.41",
+        "usd_etched": null,
+        "eur": "1.47",
+        "eur_foil": "2.80",
+        "tix": "0.20"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "24",
+      "prices": {
+        "usd": "0.39",
+        "usd_foil": "0.90",
+        "usd_etched": null,
+        "eur": "0.33",
+        "eur_foil": "0.79",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "268",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "355",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": "0.70",
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "afc",
+      "set_name": "Forgotten Realms Commander",
+      "collector_number": "247",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-07-23"
+    },
+    {
+      "set": "c21",
+      "set_name": "Commander 2021",
+      "collector_number": "299",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.25",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "pbfz",
+      "set_name": "Battle for Zendikar Promos",
+      "collector_number": "239s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.86",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "1.71",
+        "tix": null
+      },
+      "released_at": "2015-10-02"
+    },
+    {
+      "set": "bfz",
+      "set_name": "Battle for Zendikar",
+      "collector_number": "239",
+      "prices": {
+        "usd": "0.28",
+        "usd_foil": "0.53",
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": "0.66",
+        "tix": "0.02"
+      },
+      "released_at": "2015-10-02"
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+{
+  "name": "Vineglimmer Snarl",
+  "oracle_id": "33f52df8-4b44-4422-8b0a-37fead9c894b",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "dsc",
+  "collector_number": "323",
+  "image": "https://cards.scryfall.io/normal/front/7/2/72151f2e-3980-466e-9741-6f7de8d898e7.jpg?1726285582",
+  "scryfall_uri": "https://scryfall.com/card/dsc/323/vineglimmer-snarl?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/323/vineglimmer-snarl?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/323/vineglimmer-snarl?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/72151f2e-3980-466e-9741-6f7de8d898e7/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F577868%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=789087&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/131271?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.16,
+    "lowest": 0.09,
+    "usd": "0.16",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A33f52df8-4b44-4422-8b0a-37fead9c894b&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "440",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "drc",
+      "set_name": "Aetherdrift Commander",
+      "collector_number": "183",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.08"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "323",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "405",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": "0.84",
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "lcc",
+      "set_name": "The Lost Caverns of Ixalan Commander",
+      "collector_number": "368",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": "0.09"
+      },
+      "released_at": "2023-11-17"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1123",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.81",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "920",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.70",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "532",
+      "prices": {
+        "usd": "0.54",
+        "usd_foil": "0.71",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "329",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.39",
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": "0.34",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "ltc",
+      "set_name": "Tales of Middle-earth Commander",
+      "collector_number": "343",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.36"
+      },
+      "released_at": "2023-06-23"
+    },
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "444",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.31",
+        "eur_foil": null,
+        "tix": "0.05"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "90352",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2021-05-01"
+    },
+    {
+      "set": "pstx",
+      "set_name": "Strixhaven: School of Mages Promos",
+      "collector_number": "274s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.60",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "0.96",
+        "tix": null
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "pstx",
+      "set_name": "Strixhaven: School of Mages Promos",
+      "collector_number": "274p",
+      "prices": {
+        "usd": "1.07",
+        "usd_foil": "1.61",
+        "usd_etched": null,
+        "eur": "3.14",
+        "eur_foil": "0.90",
+        "tix": null
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "stx",
+      "set_name": "Strixhaven: School of Mages",
+      "collector_number": "365",
+      "prices": {
+        "usd": "0.93",
+        "usd_foil": "1.45",
+        "usd_etched": null,
+        "eur": "1.03",
+        "eur_foil": "1.28",
+        "tix": null
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "stx",
+      "set_name": "Strixhaven: School of Mages",
+      "collector_number": "274",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": "0.34",
+        "usd_etched": null,
+        "eur": "0.36",
+        "eur_foil": "1.06",
+        "tix": "0.02"
+      },
+      "released_at": "2021-04-23"
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "name": "Bloodfell Caves",
+  "oracle_id": "64e29bfc-9313-4e8c-808c-bc27f6b018a6",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "tdm",
+  "collector_number": "250",
+  "image": "https://cards.scryfall.io/normal/front/1/d/1dde3c68-6f29-4c00-b668-c25ac9e3e13b.jpg?1743204990",
+  "scryfall_uri": "https://scryfall.com/card/tdm/250/bloodfell-caves?utm_source=api",
+  "uri": "https://scryfall.com/card/tdm/250/bloodfell-caves?utm_source=api",
+  "url": "https://scryfall.com/card/tdm/250/bloodfell-caves?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/1dde3c68-6f29-4c00-b668-c25ac9e3e13b/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F623948%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=817885&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/139469?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.06,
+    "lowest": 0.06,
+    "usd": "0.06",
+    "usd_foil": "0.08"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A64e29bfc-9313-4e8c-808c-bc27f6b018a6&unique=prints",
+  "prints": [
+    {
+      "set": "tdm",
+      "set_name": "Tarkir: Dragonstorm",
+      "collector_number": "250",
+      "prices": {
+        "usd": "0.06",
+        "usd_foil": "0.08",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.31",
+        "tix": "0.03"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "dft",
+      "set_name": "Aetherdrift",
+      "collector_number": "251",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": "0.13",
+        "usd_etched": null,
+        "eur": "0.04",
+        "eur_foil": "0.07",
+        "tix": "0.03"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "fdn",
+      "set_name": "Foundations",
+      "collector_number": "259",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.08",
+        "usd_etched": null,
+        "eur": "0.04",
+        "eur_foil": "0.05",
+        "tix": "0.03"
+      },
+      "released_at": "2024-11-15"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "264",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "mom",
+      "set_name": "March of the Machine",
+      "collector_number": "267",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.12",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.21",
+        "tix": "0.03"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "scd",
+      "set_name": "Starter Commander Decks",
+      "collector_number": "290",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2022-12-02"
+    },
+    {
+      "set": "neo",
+      "set_name": "Kamigawa: Neon Dynasty",
+      "collector_number": "264",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.17",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.15",
+        "tix": "0.03"
+      },
+      "released_at": "2022-02-18"
+    },
+    {
+      "set": "m21",
+      "set_name": "Core Set 2021",
+      "collector_number": "243",
+      "prices": {
+        "usd": "0.06",
+        "usd_foil": "0.31",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.05",
+        "tix": "0.03"
+      },
+      "released_at": "2020-07-03"
+    },
+    {
+      "set": "iko",
+      "set_name": "Ikoria: Lair of Behemoths",
+      "collector_number": "243",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.16",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.24",
+        "tix": "0.03"
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "c19",
+      "set_name": "Commander 2019",
+      "collector_number": "230",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-08-23"
+    },
+    {
+      "set": "m20",
+      "set_name": "Core Set 2020",
+      "collector_number": "242",
+      "prices": {
+        "usd": "0.06",
+        "usd_foil": "0.25",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.13",
+        "tix": "0.03"
+      },
+      "released_at": "2019-07-12"
+    },
+    {
+      "set": "c17",
+      "set_name": "Commander 2017",
+      "collector_number": "236",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-08-25"
+    },
+    {
+      "set": "ema",
+      "set_name": "Eternal Masters",
+      "collector_number": "236",
+      "prices": {
+        "usd": "0.06",
+        "usd_foil": "0.28",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.22",
+        "tix": "0.04"
+      },
+      "released_at": "2016-06-10"
+    },
+    {
+      "set": "frf",
+      "set_name": "Fate Reforged",
+      "collector_number": "165",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.30",
+        "usd_etched": null,
+        "eur": "0.05",
+        "eur_foil": "1.56",
+        "tix": "0.03"
+      },
+      "released_at": "2015-01-23"
+    },
+    {
+      "set": "ktk",
+      "set_name": "Khans of Tarkir",
+      "collector_number": "229",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": "0.30",
+        "usd_etched": null,
+        "eur": "0.05",
+        "eur_foil": "0.27",
+        "tix": "0.03"
+      },
+      "released_at": "2014-09-26"
+    }
+  ]
+}

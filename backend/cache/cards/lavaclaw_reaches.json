@@ -1,0 +1,185 @@
+{
+  "name": "Lavaclaw Reaches",
+  "oracle_id": "340de307-982a-4b26-9dc0-99113dc766cd",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "uma",
+  "collector_number": "245",
+  "image": "https://cards.scryfall.io/normal/front/4/0/409fcd0c-8449-4623-8bf0-cd7ca0937a4a.jpg?1547518687",
+  "scryfall_uri": "https://scryfall.com/card/uma/245/lavaclaw-reaches?utm_source=api",
+  "uri": "https://scryfall.com/card/uma/245/lavaclaw-reaches?utm_source=api",
+  "url": "https://scryfall.com/card/uma/245/lavaclaw-reaches?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/409fcd0c-8449-4623-8bf0-cd7ca0937a4a/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F179516%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=366225&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/70067?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.3,
+    "lowest": 0.11,
+    "usd": "0.30",
+    "usd_foil": "0.57"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A340de307-982a-4b26-9dc0-99113dc766cd&unique=prints",
+  "prints": [
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "157",
+      "prices": {
+        "usd": null,
+        "usd_foil": "15.24",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "10.17",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "112",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.67",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "4.30",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "67",
+      "prices": {
+        "usd": "1.44",
+        "usd_foil": "2.58",
+        "usd_etched": null,
+        "eur": "1.50",
+        "eur_foil": "2.84",
+        "tix": "0.20"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "22",
+      "prices": {
+        "usd": "0.41",
+        "usd_foil": "1.03",
+        "usd_etched": null,
+        "eur": "0.29",
+        "eur_foil": "0.94",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1096",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.46",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "880",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.30",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "505",
+      "prices": {
+        "usd": "0.29",
+        "usd_foil": "0.32",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "289",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": "0.35",
+        "usd_etched": null,
+        "eur": "0.20",
+        "eur_foil": "0.32",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "puma",
+      "set_name": "Ultimate Box Topper",
+      "collector_number": "U37",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.02",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "3.71",
+        "tix": "0.68"
+      },
+      "released_at": "2018-12-07"
+    },
+    {
+      "set": "uma",
+      "set_name": "Ultimate Masters",
+      "collector_number": "245",
+      "prices": {
+        "usd": "0.30",
+        "usd_foil": "0.57",
+        "usd_etched": null,
+        "eur": "0.34",
+        "eur_foil": "1.07",
+        "tix": "0.02"
+      },
+      "released_at": "2018-12-07"
+    },
+    {
+      "set": "wwk",
+      "set_name": "Worldwake",
+      "collector_number": "139",
+      "prices": {
+        "usd": "0.46",
+        "usd_foil": "0.60",
+        "usd_etched": null,
+        "eur": "0.50",
+        "eur_foil": "1.72",
+        "tix": "0.02"
+      },
+      "released_at": "2010-02-05"
+    }
+  ]
+}

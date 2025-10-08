@@ -1,0 +1,87 @@
+{
+  "name": "Blazemire Verge",
+  "oracle_id": "977c2f33-b622-4172-9efb-7f523becd32b",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "dsk",
+  "collector_number": "256",
+  "image": "https://cards.scryfall.io/normal/front/d/1/d151c8e2-d715-470d-868a-f45191db9fa0.jpg?1726286828",
+  "scryfall_uri": "https://scryfall.com/card/dsk/256/blazemire-verge?utm_source=api",
+  "uri": "https://scryfall.com/card/dsk/256/blazemire-verge?utm_source=api",
+  "url": "https://scryfall.com/card/dsk/256/blazemire-verge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/d151c8e2-d715-470d-868a-f45191db9fa0/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F576512%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=786880&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/130643?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 6.98,
+    "lowest": 6.98,
+    "usd": "6.98",
+    "usd_foil": "7.73"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A977c2f33-b622-4172-9efb-7f523becd32b&unique=prints",
+  "prints": [
+    {
+      "set": "pdsk",
+      "set_name": "Duskmourn: House of Horror Promos",
+      "collector_number": "256s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "10.32",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "pdsk",
+      "set_name": "Duskmourn: House of Horror Promos",
+      "collector_number": "256p",
+      "prices": {
+        "usd": "7.74",
+        "usd_foil": "7.26",
+        "usd_etched": null,
+        "eur": "5.66",
+        "eur_foil": "6.28",
+        "tix": null
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "dsk",
+      "set_name": "Duskmourn: House of Horror",
+      "collector_number": "329",
+      "prices": {
+        "usd": "8.99",
+        "usd_foil": "15.88",
+        "usd_etched": null,
+        "eur": "7.48",
+        "eur_foil": "13.23",
+        "tix": "0.28"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "dsk",
+      "set_name": "Duskmourn: House of Horror",
+      "collector_number": "256",
+      "prices": {
+        "usd": "6.98",
+        "usd_foil": "7.73",
+        "usd_etched": null,
+        "eur": "6.55",
+        "eur_foil": "6.77",
+        "tix": "0.30"
+      },
+      "released_at": "2024-09-27"
+    }
+  ]
+}

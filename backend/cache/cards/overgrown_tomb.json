@@ -1,0 +1,255 @@
+{
+  "name": "Overgrown Tomb",
+  "oracle_id": "975ec9a3-6f20-4177-8211-82526e092538",
+  "type_line": "Land — Swamp Forest",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": true,
+  "set": "ecl",
+  "collector_number": "266",
+  "image": "https://cards.scryfall.io/normal/front/4/5/45b92924-baa1-4c9b-9932-9a5eda8f3446.jpg?1759144847",
+  "scryfall_uri": "https://scryfall.com/card/ecl/266/overgrown-tomb?utm_source=api",
+  "uri": "https://scryfall.com/card/ecl/266/overgrown-tomb?utm_source=api",
+  "url": "https://scryfall.com/card/ecl/266/overgrown-tomb?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/45b92924-baa1-4c9b-9932-9a5eda8f3446/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F656709%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products/Search?referrer=scryfall&searchString=Overgrown+Tomb&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards?affiliate_id=scryfall&data%5Bsearch%5D=Overgrown+Tomb&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": null,
+    "lowest": 11.62,
+    "usd": null,
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A975ec9a3-6f20-4177-8211-82526e092538&unique=prints",
+  "prints": [
+    {
+      "set": "ecl",
+      "set_name": "Lorwyn Eclipsed",
+      "collector_number": "350",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2026-01-23"
+    },
+    {
+      "set": "ecl",
+      "set_name": "Lorwyn Eclipsed",
+      "collector_number": "266",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2026-01-23"
+    },
+    {
+      "set": "clu",
+      "set_name": "Ravnica: Clue Edition",
+      "collector_number": "278",
+      "prices": {
+        "usd": null,
+        "usd_foil": "24.54",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "18.93",
+        "tix": "6.23"
+      },
+      "released_at": "2024-02-23"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "407z",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "407",
+      "prices": {
+        "usd": "16.38",
+        "usd_foil": "32.89",
+        "usd_etched": null,
+        "eur": "16.39",
+        "eur_foil": "44.88",
+        "tix": "10.69"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "296",
+      "prices": {
+        "usd": "23.75",
+        "usd_foil": "29.64",
+        "usd_etched": null,
+        "eur": "20.67",
+        "eur_foil": "24.55",
+        "tix": "3.05"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "283",
+      "prices": {
+        "usd": "18.98",
+        "usd_foil": "15.62",
+        "usd_etched": null,
+        "eur": "11.68",
+        "eur_foil": "14.26",
+        "tix": "2.57"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "unf",
+      "set_name": "Unfinity",
+      "collector_number": "535",
+      "prices": {
+        "usd": null,
+        "usd_foil": "103.48",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "89.89",
+        "tix": null
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "unf",
+      "set_name": "Unfinity",
+      "collector_number": "284",
+      "prices": {
+        "usd": "22.18",
+        "usd_foil": "25.46",
+        "usd_etched": null,
+        "eur": "20.04",
+        "eur_foil": "23.88",
+        "tix": "11.00"
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "sld",
+      "set_name": "Secret Lair Drop",
+      "collector_number": "130",
+      "prices": {
+        "usd": "13.92",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "14.93",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-04-26"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "72315",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.72"
+      },
+      "released_at": "2019-04-28"
+    },
+    {
+      "set": "pgrn",
+      "set_name": "Guilds of Ravnica Promos",
+      "collector_number": "253p",
+      "prices": {
+        "usd": "12.84",
+        "usd_foil": "13.09",
+        "usd_etched": null,
+        "eur": "10.71",
+        "eur_foil": "11.47",
+        "tix": null
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "253",
+      "prices": {
+        "usd": "11.95",
+        "usd_foil": "13.81",
+        "usd_etched": null,
+        "eur": "10.74",
+        "eur_foil": "13.68",
+        "tix": "0.12"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "exp",
+      "set_name": "Zendikar Expeditions",
+      "collector_number": "13",
+      "prices": {
+        "usd": null,
+        "usd_foil": "67.84",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "42.30",
+        "tix": "1.29"
+      },
+      "released_at": "2015-10-02"
+    },
+    {
+      "set": "rtr",
+      "set_name": "Return to Ravnica",
+      "collector_number": "243",
+      "prices": {
+        "usd": "11.62",
+        "usd_foil": "15.89",
+        "usd_etched": null,
+        "eur": "10.16",
+        "eur_foil": "15.58",
+        "tix": "0.12"
+      },
+      "released_at": "2012-10-05"
+    },
+    {
+      "set": "rav",
+      "set_name": "Ravnica: City of Guilds",
+      "collector_number": "279",
+      "prices": {
+        "usd": "14.62",
+        "usd_foil": "94.16",
+        "usd_etched": null,
+        "eur": "10.68",
+        "eur_foil": "46.07",
+        "tix": "0.13"
+      },
+      "released_at": "2005-10-07"
+    }
+  ]
+}

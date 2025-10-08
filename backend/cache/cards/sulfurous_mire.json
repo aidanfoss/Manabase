@@ -1,0 +1,45 @@
+{
+  "name": "Sulfurous Mire",
+  "oracle_id": "77cf536e-246e-4c18-8e04-c904fcad3f40",
+  "type_line": "Snow Land — Swamp Mountain",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": true,
+  "set": "khm",
+  "collector_number": "270",
+  "image": "https://cards.scryfall.io/normal/front/3/5/35ebe245-ebb5-493c-b9c1-56fbfda9bd66.jpg?1631053148",
+  "scryfall_uri": "https://scryfall.com/card/khm/270/sulfurous-mire?utm_source=api",
+  "uri": "https://scryfall.com/card/khm/270/sulfurous-mire?utm_source=api",
+  "url": "https://scryfall.com/card/khm/270/sulfurous-mire?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/35ebe245-ebb5-493c-b9c1-56fbfda9bd66/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F230114%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=529447&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/87891?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.25,
+    "lowest": 0.25,
+    "usd": "0.25",
+    "usd_foil": "0.39"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A77cf536e-246e-4c18-8e04-c904fcad3f40&unique=prints",
+  "prints": [
+    {
+      "set": "khm",
+      "set_name": "Kaldheim",
+      "collector_number": "270",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": "0.39",
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": "0.46",
+        "tix": "0.03"
+      },
+      "released_at": "2021-02-05"
+    }
+  ]
+}

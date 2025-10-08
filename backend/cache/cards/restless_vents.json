@@ -1,0 +1,87 @@
+{
+  "name": "Restless Vents",
+  "oracle_id": "696e7ddb-bdc7-40ee-bc5c-59e98f4a7401",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "lci",
+  "collector_number": "284",
+  "image": "https://cards.scryfall.io/normal/front/e/6/e628e89b-bee9-408d-bb05-1784fda6b8a1.jpg?1699044708",
+  "scryfall_uri": "https://scryfall.com/card/lci/284/restless-vents?utm_source=api",
+  "uri": "https://scryfall.com/card/lci/284/restless-vents?utm_source=api",
+  "url": "https://scryfall.com/card/lci/284/restless-vents?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/e628e89b-bee9-408d-bb05-1784fda6b8a1/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F525163%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=743042&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/118416?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.31,
+    "lowest": 0.31,
+    "usd": "0.31",
+    "usd_foil": "0.31"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A696e7ddb-bdc7-40ee-bc5c-59e98f4a7401&unique=prints",
+  "prints": [
+    {
+      "set": "plci",
+      "set_name": "The Lost Caverns of Ixalan Promos",
+      "collector_number": "284s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.98",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-11-17"
+    },
+    {
+      "set": "plci",
+      "set_name": "The Lost Caverns of Ixalan Promos",
+      "collector_number": "284p",
+      "prices": {
+        "usd": "0.45",
+        "usd_foil": "1.09",
+        "usd_etched": null,
+        "eur": "0.79",
+        "eur_foil": "0.69",
+        "tix": null
+      },
+      "released_at": "2023-11-17"
+    },
+    {
+      "set": "lci",
+      "set_name": "The Lost Caverns of Ixalan",
+      "collector_number": "351",
+      "prices": {
+        "usd": "0.34",
+        "usd_foil": "0.53",
+        "usd_etched": null,
+        "eur": "0.50",
+        "eur_foil": "1.01",
+        "tix": "0.02"
+      },
+      "released_at": "2023-11-17"
+    },
+    {
+      "set": "lci",
+      "set_name": "The Lost Caverns of Ixalan",
+      "collector_number": "284",
+      "prices": {
+        "usd": "0.31",
+        "usd_foil": "0.31",
+        "usd_etched": null,
+        "eur": "0.38",
+        "eur_foil": "0.50",
+        "tix": "0.03"
+      },
+      "released_at": "2023-11-17"
+    }
+  ]
+}

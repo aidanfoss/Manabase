@@ -1,0 +1,45 @@
+{
+  "name": "Insomnia, Crown City",
+  "oracle_id": "b7140f72-91b6-4be4-8d71-c019e64c2351",
+  "type_line": "Land — Town",
+  "color_identity": [
+    "B",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "fin",
+  "collector_number": "282",
+  "image": "https://cards.scryfall.io/normal/front/0/7/07fca511-a65c-4779-82c0-9215b0dcd068.jpg?1748706835",
+  "scryfall_uri": "https://scryfall.com/card/fin/282/insomnia-crown-city?utm_source=api",
+  "uri": "https://scryfall.com/card/fin/282/insomnia-crown-city?utm_source=api",
+  "url": "https://scryfall.com/card/fin/282/insomnia-crown-city?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/07fca511-a65c-4779-82c0-9215b0dcd068/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F633204%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=826904&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/141533?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.11,
+    "lowest": 0.11,
+    "usd": "0.11",
+    "usd_foil": "0.14"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ab7140f72-91b6-4be4-8d71-c019e64c2351&unique=prints",
+  "prints": [
+    {
+      "set": "fin",
+      "set_name": "Final Fantasy",
+      "collector_number": "282",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": "0.14",
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": "0.17",
+        "tix": "0.03"
+      },
+      "released_at": "2025-06-13"
+    }
+  ]
+}

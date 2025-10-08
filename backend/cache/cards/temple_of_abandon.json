@@ -1,0 +1,395 @@
+{
+  "name": "Temple of Abandon",
+  "oracle_id": "3baa8e38-ef93-435d-b63e-f781d5bfcc68",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "tdc",
+  "collector_number": "400",
+  "image": "https://cards.scryfall.io/normal/front/d/2/d2ce0759-6b24-41a6-8a24-16cf44dfc162.jpg?1743207768",
+  "scryfall_uri": "https://scryfall.com/card/tdc/400/temple-of-abandon?utm_source=api",
+  "uri": "https://scryfall.com/card/tdc/400/temple-of-abandon?utm_source=api",
+  "url": "https://scryfall.com/card/tdc/400/temple-of-abandon?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/d2ce0759-6b24-41a6-8a24-16cf44dfc162/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624982%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=819339&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/138741?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.2,
+    "lowest": 0.12,
+    "usd": "0.20",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A3baa8e38-ef93-435d-b63e-f781d5bfcc68&unique=prints",
+  "prints": [
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "400",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "fdn",
+      "set_name": "Foundations",
+      "collector_number": "696",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-11-15"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "338",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": "0.05"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "385",
+      "prices": {
+        "usd": "0.19",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "1044",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.37",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "830",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.94",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "516",
+      "prices": {
+        "usd": "0.77",
+        "usd_foil": "0.65",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.22"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "302",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.39",
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": "0.34",
+        "tix": "0.07"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "301",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": null,
+        "tix": "0.05"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1114",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.48",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "904",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.44",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "523",
+      "prices": {
+        "usd": "0.33",
+        "usd_foil": "0.31",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "313",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": "0.44",
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": "0.42",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "430",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.26"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "scd",
+      "set_name": "Starter Commander Decks",
+      "collector_number": "323",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": null,
+        "tix": "0.52"
+      },
+      "released_at": "2022-12-02"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "297★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.47",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "297",
+      "prices": {
+        "usd": "0.26",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "921",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "nec",
+      "set_name": "Neon Dynasty Commander",
+      "collector_number": "179",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-02-18"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "79877",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.44"
+      },
+      "released_at": "2020-02-07"
+    },
+    {
+      "set": "pthb",
+      "set_name": "Theros Beyond Death Promos",
+      "collector_number": "244s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.12",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "0.67",
+        "tix": null
+      },
+      "released_at": "2020-01-24"
+    },
+    {
+      "set": "pthb",
+      "set_name": "Theros Beyond Death Promos",
+      "collector_number": "244p",
+      "prices": {
+        "usd": "0.32",
+        "usd_foil": "1.00",
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": "1.01",
+        "tix": null
+      },
+      "released_at": "2020-01-24"
+    },
+    {
+      "set": "thb",
+      "set_name": "Theros Beyond Death",
+      "collector_number": "347★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.53",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "3.05",
+        "tix": null
+      },
+      "released_at": "2020-01-24"
+    },
+    {
+      "set": "thb",
+      "set_name": "Theros Beyond Death",
+      "collector_number": "347",
+      "prices": {
+        "usd": "1.73",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.74",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-01-24"
+    },
+    {
+      "set": "thb",
+      "set_name": "Theros Beyond Death",
+      "collector_number": "244",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": "0.35",
+        "usd_etched": null,
+        "eur": "0.31",
+        "eur_foil": "0.41",
+        "tix": "0.02"
+      },
+      "released_at": "2020-01-24"
+    },
+    {
+      "set": "ths",
+      "set_name": "Theros",
+      "collector_number": "224",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": "1.04",
+        "usd_etched": null,
+        "eur": "0.33",
+        "eur_foil": "0.74",
+        "tix": "0.02"
+      },
+      "released_at": "2013-09-27"
+    }
+  ]
+}

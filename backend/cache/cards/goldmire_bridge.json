@@ -1,0 +1,87 @@
+{
+  "name": "Goldmire Bridge",
+  "oracle_id": "c9b7ea9c-3bcb-4538-aa25-cdb82a52037e",
+  "type_line": "Artifact Land",
+  "color_identity": [
+    "B",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "moc",
+  "collector_number": "407",
+  "image": "https://cards.scryfall.io/normal/front/3/2/3235954d-a1b1-4822-b177-1691347d1e58.jpg?1682210483",
+  "scryfall_uri": "https://scryfall.com/card/moc/407/goldmire-bridge?utm_source=api",
+  "uri": "https://scryfall.com/card/moc/407/goldmire-bridge?utm_source=api",
+  "url": "https://scryfall.com/card/moc/407/goldmire-bridge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/3235954d-a1b1-4822-b177-1691347d1e58/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F491361%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=705953&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/111282?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.35,
+    "lowest": 0.24,
+    "usd": "0.35",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ac9b7ea9c-3bcb-4538-aa25-cdb82a52037e&unique=prints",
+  "prints": [
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "407",
+      "prices": {
+        "usd": "0.35",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.33",
+        "eur_foil": null,
+        "tix": "1.16"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "brc",
+      "set_name": "The Brothers' War Commander",
+      "collector_number": "186",
+      "prices": {
+        "usd": "0.45",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.11",
+        "eur_foil": null,
+        "tix": "1.90"
+      },
+      "released_at": "2022-11-18"
+    },
+    {
+      "set": "ha6",
+      "set_name": "Historic Anthology 6",
+      "collector_number": "13",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-07-28"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "247",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": "0.52",
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": "0.38",
+        "tix": "0.03"
+      },
+      "released_at": "2021-06-18"
+    }
+  ]
+}

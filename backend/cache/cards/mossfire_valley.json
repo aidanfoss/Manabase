@@ -1,0 +1,269 @@
+{
+  "name": "Mossfire Valley",
+  "oracle_id": "23bbd091-f6ff-4514-97aa-42c08164b4eb",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "tdc",
+  "collector_number": "378",
+  "image": "https://cards.scryfall.io/normal/front/2/9/29208018-8079-44bc-b33b-21cda4709bf2.jpg?1743207653",
+  "scryfall_uri": "https://scryfall.com/card/tdc/378/mossfire-valley?utm_source=api",
+  "uri": "https://scryfall.com/card/tdc/378/mossfire-valley?utm_source=api",
+  "url": "https://scryfall.com/card/tdc/378/mossfire-valley?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/29208018-8079-44bc-b33b-21cda4709bf2/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624977%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=819334&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/138697?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.18,
+    "lowest": 0.14,
+    "usd": "0.18",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A23bbd091-f6ff-4514-97aa-42c08164b4eb&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "407",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "MKC-274",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-05-12"
+    },
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "378",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.20",
+        "eur_foil": null,
+        "tix": "0.52"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "316",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": "0.30"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "357",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.19"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "1029",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.25",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "801",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.99",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "501",
+      "prices": {
+        "usd": "0.51",
+        "usd_foil": "0.89",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.32"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "273",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": "1.61",
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": "0.63",
+        "tix": "0.33"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "274",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": null,
+        "tix": "0.46"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "414",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": "0.57"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "901",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "ncc",
+      "set_name": "New Capenna Commander",
+      "collector_number": "414",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "nec",
+      "set_name": "Neon Dynasty Commander",
+      "collector_number": "171",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-02-18"
+    },
+    {
+      "set": "afc",
+      "set_name": "Forgotten Realms Commander",
+      "collector_number": "250",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-07-23"
+    },
+    {
+      "set": "c20",
+      "set_name": "Commander 2020",
+      "collector_number": "290",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.25",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-04-17"
+    },
+    {
+      "set": "ody",
+      "set_name": "Odyssey",
+      "collector_number": "321",
+      "prices": {
+        "usd": "2.31",
+        "usd_foil": "29.96",
+        "usd_etched": null,
+        "eur": "2.64",
+        "eur_foil": "21.32",
+        "tix": "1.29"
+      },
+      "released_at": "2001-10-01"
+    }
+  ]
+}

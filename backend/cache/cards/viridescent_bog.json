@@ -1,0 +1,157 @@
+{
+  "name": "Viridescent Bog",
+  "oracle_id": "6bd6d259-1af7-4dff-a79c-48a616d2a36e",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "eoc",
+  "collector_number": "190",
+  "image": "https://cards.scryfall.io/normal/front/9/6/96fccdf1-9c68-46cd-ba90-668f677bbc44.jpg?1752945577",
+  "scryfall_uri": "https://scryfall.com/card/eoc/190/viridescent-bog?utm_source=api",
+  "uri": "https://scryfall.com/card/eoc/190/viridescent-bog?utm_source=api",
+  "url": "https://scryfall.com/card/eoc/190/viridescent-bog?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/96fccdf1-9c68-46cd-ba90-668f677bbc44/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F642073%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=834149&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142517?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.24,
+    "lowest": 0.18,
+    "usd": "0.24",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6bd6d259-1af7-4dff-a79c-48a616d2a36e&unique=prints",
+  "prints": [
+    {
+      "set": "eoc",
+      "set_name": "Edge of Eternities Commander",
+      "collector_number": "190",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": null,
+        "tix": "0.12"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "324",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.30",
+        "eur_foil": null,
+        "tix": "0.23"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "352",
+      "prices": {
+        "usd": "0.19",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.25",
+        "eur_foil": null,
+        "tix": "0.27"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "406",
+      "prices": {
+        "usd": "0.26",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": "0.82",
+        "tix": "0.07"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "340",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": null,
+        "tix": "0.30"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "974",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.07",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "682",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.95",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "446",
+      "prices": {
+        "usd": "0.68",
+        "usd_foil": "0.86",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.14"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "154",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": "1.13",
+        "usd_etched": null,
+        "eur": "0.28",
+        "eur_foil": "0.88",
+        "tix": "0.03"
+      },
+      "released_at": "2024-03-08"
+    }
+  ]
+}

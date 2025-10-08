@@ -1,0 +1,101 @@
+{
+  "name": "Spire Garden",
+  "oracle_id": "45fe016e-1a09-410c-bbe3-4663ba06c5b7",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "clb",
+  "collector_number": "361",
+  "image": "https://cards.scryfall.io/normal/front/7/2/72aed540-7833-4442-90a9-aa5468014c65.jpg?1674138245",
+  "scryfall_uri": "https://scryfall.com/card/clb/361/spire-garden?utm_source=api",
+  "uri": "https://scryfall.com/card/clb/361/spire-garden?utm_source=api",
+  "url": "https://scryfall.com/card/clb/361/spire-garden?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/72aed540-7833-4442-90a9-aa5468014c65/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F267054%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=650841&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards?affiliate_id=scryfall&data%5Bsearch%5D=Spire+Garden&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 13.35,
+    "lowest": 12.23,
+    "usd": "13.35",
+    "usd_foil": "12.94"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A45fe016e-1a09-410c-bbe3-4663ba06c5b7&unique=prints",
+  "prints": [
+    {
+      "set": "pclb",
+      "set_name": "Battle for Baldur's Gate Promos",
+      "collector_number": "361s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "12.97",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "13.14",
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "606",
+      "prices": {
+        "usd": "12.76",
+        "usd_foil": "14.26",
+        "usd_etched": null,
+        "eur": "13.33",
+        "eur_foil": "13.47",
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "361",
+      "prices": {
+        "usd": "13.35",
+        "usd_foil": "12.94",
+        "usd_etched": null,
+        "eur": "11.78",
+        "eur_foil": "13.92",
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "zne",
+      "set_name": "Zendikar Rising Expeditions",
+      "collector_number": "19",
+      "prices": {
+        "usd": "15.76",
+        "usd_foil": "19.63",
+        "usd_etched": null,
+        "eur": "13.68",
+        "eur_foil": "18.24",
+        "tix": "5.02"
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "bbd",
+      "set_name": "Battlebond",
+      "collector_number": "85",
+      "prices": {
+        "usd": "12.23",
+        "usd_foil": "18.37",
+        "usd_etched": null,
+        "eur": "12.55",
+        "eur_foil": "14.47",
+        "tix": "1.45"
+      },
+      "released_at": "2018-06-08"
+    }
+  ]
+}

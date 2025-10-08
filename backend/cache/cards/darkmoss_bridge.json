@@ -1,0 +1,73 @@
+{
+  "name": "Darkmoss Bridge",
+  "oracle_id": "2065cada-4078-41c4-9e06-2460d2a2e8ee",
+  "type_line": "Artifact Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "dsc",
+  "collector_number": "269",
+  "image": "https://cards.scryfall.io/normal/front/3/c/3ca3ef68-ea62-4098-bd43-4597ff0647d4.jpg?1726285387",
+  "scryfall_uri": "https://scryfall.com/card/dsc/269/darkmoss-bridge?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/269/darkmoss-bridge?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/269/darkmoss-bridge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/3ca3ef68-ea62-4098-bd43-4597ff0647d4/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F579148%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=789007&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/131163?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.24,
+    "lowest": 0.15,
+    "usd": "0.24",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A2065cada-4078-41c4-9e06-2460d2a2e8ee&unique=prints",
+  "prints": [
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "269",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": "0.15"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "ha6",
+      "set_name": "Historic Anthology 6",
+      "collector_number": "11",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-07-28"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "245",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": "0.31",
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": "0.25",
+        "tix": "0.03"
+      },
+      "released_at": "2021-06-18"
+    }
+  ]
+}

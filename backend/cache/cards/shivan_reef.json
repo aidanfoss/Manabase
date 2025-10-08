@@ -1,0 +1,353 @@
+{
+  "name": "Shivan Reef",
+  "oracle_id": "0fe16212-66c3-4e45-a641-7391e9b2e304",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "eoc",
+  "collector_number": "179",
+  "image": "https://cards.scryfall.io/normal/front/7/2/72bba14a-c813-49c8-bf73-f41e1bdc1099.jpg?1752945498",
+  "scryfall_uri": "https://scryfall.com/card/eoc/179/shivan-reef?utm_source=api",
+  "uri": "https://scryfall.com/card/eoc/179/shivan-reef?utm_source=api",
+  "url": "https://scryfall.com/card/eoc/179/shivan-reef?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/72bba14a-c813-49c8-bf73-f41e1bdc1099/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F642864%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=834313&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142495?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.31,
+    "lowest": 0.28,
+    "usd": "0.31",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A0fe16212-66c3-4e45-a641-7391e9b2e304&unique=prints",
+  "prints": [
+    {
+      "set": "eoc",
+      "set_name": "Edge of Eternities Commander",
+      "collector_number": "179",
+      "prices": {
+        "usd": "0.31",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.56",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "393",
+      "prices": {
+        "usd": "0.36",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.39",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "drc",
+      "set_name": "Aetherdrift Commander",
+      "collector_number": "170",
+      "prices": {
+        "usd": "0.36",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.70",
+        "eur_foil": null,
+        "tix": "0.12"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "331",
+      "prices": {
+        "usd": "0.28",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.69",
+        "eur_foil": null,
+        "tix": "0.22"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "375",
+      "prices": {
+        "usd": "0.39",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.56",
+        "eur_foil": "2.20",
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "320",
+      "prices": {
+        "usd": "0.50",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.78",
+        "eur_foil": null,
+        "tix": "0.05"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "103484",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "2.32"
+      },
+      "released_at": "2022-12-12"
+    },
+    {
+      "set": "pdmu",
+      "set_name": "Dominaria United Promos",
+      "collector_number": "255s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.39",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "2.67",
+        "tix": null
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "pdmu",
+      "set_name": "Dominaria United Promos",
+      "collector_number": "255p",
+      "prices": {
+        "usd": "0.89",
+        "usd_foil": "2.46",
+        "usd_etched": null,
+        "eur": "0.81",
+        "eur_foil": "1.31",
+        "tix": null
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "dmu",
+      "set_name": "Dominaria United",
+      "collector_number": "380",
+      "prices": {
+        "usd": "1.54",
+        "usd_foil": "5.46",
+        "usd_etched": null,
+        "eur": "2.02",
+        "eur_foil": "3.85",
+        "tix": null
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "dmu",
+      "set_name": "Dominaria United",
+      "collector_number": "255",
+      "prices": {
+        "usd": "0.44",
+        "usd_foil": "0.77",
+        "usd_etched": null,
+        "eur": "0.63",
+        "eur_foil": "1.54",
+        "tix": "0.02"
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "c21",
+      "set_name": "Commander 2021",
+      "collector_number": "316",
+      "prices": {
+        "usd": "0.59",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.77",
+        "eur_foil": null,
+        "tix": "0.14"
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "C21-316",
+      "prices": {
+        "usd": "1.97",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-26"
+    },
+    {
+      "set": "c20",
+      "set_name": "Commander 2020",
+      "collector_number": "310",
+      "prices": {
+        "usd": "0.54",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.92",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-04-17"
+    },
+    {
+      "set": "ddu",
+      "set_name": "Duel Decks: Elves vs. Inventors",
+      "collector_number": "70",
+      "prices": {
+        "usd": "0.43",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.77",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-04-06"
+    },
+    {
+      "set": "ori",
+      "set_name": "Magic Origins",
+      "collector_number": "251",
+      "prices": {
+        "usd": "0.75",
+        "usd_foil": "1.46",
+        "usd_etched": null,
+        "eur": "0.74",
+        "eur_foil": "2.15",
+        "tix": "0.02"
+      },
+      "released_at": "2015-07-17"
+    },
+    {
+      "set": "m15",
+      "set_name": "Magic 2015",
+      "collector_number": "246",
+      "prices": {
+        "usd": "0.57",
+        "usd_foil": "1.68",
+        "usd_etched": null,
+        "eur": "0.80",
+        "eur_foil": "2.23",
+        "tix": "0.03"
+      },
+      "released_at": "2014-07-18"
+    },
+    {
+      "set": "10e",
+      "set_name": "Tenth Edition",
+      "collector_number": "357",
+      "prices": {
+        "usd": "3.50",
+        "usd_foil": "11.73",
+        "usd_etched": null,
+        "eur": "1.22",
+        "eur_foil": "9.42",
+        "tix": "0.02"
+      },
+      "released_at": "2007-07-13"
+    },
+    {
+      "set": "9ed",
+      "set_name": "Ninth Edition",
+      "collector_number": "324★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "13.45",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2005-07-29"
+    },
+    {
+      "set": "9ed",
+      "set_name": "Ninth Edition",
+      "collector_number": "324",
+      "prices": {
+        "usd": "3.44",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.55",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2005-07-29"
+    },
+    {
+      "set": "wc02",
+      "set_name": "World Championship Decks 2002",
+      "collector_number": "shh142",
+      "prices": {
+        "usd": "5.02",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "3.26",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2002-12-01"
+    },
+    {
+      "set": "wc01",
+      "set_name": "World Championship Decks 2001",
+      "collector_number": "ar142",
+      "prices": {
+        "usd": "5.66",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "3.02",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2001-08-08"
+    },
+    {
+      "set": "apc",
+      "set_name": "Apocalypse",
+      "collector_number": "142",
+      "prices": {
+        "usd": "13.75",
+        "usd_foil": "97.99",
+        "usd_etched": null,
+        "eur": "7.84",
+        "eur_foil": "83.13",
+        "tix": "3.52"
+      },
+      "released_at": "2001-06-04"
+    }
+  ]
+}

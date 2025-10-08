@@ -1,0 +1,185 @@
+{
+  "name": "Haunted Ridge",
+  "oracle_id": "e2a37967-4212-4553-9f77-bcb613405807",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "inr",
+  "collector_number": "280",
+  "image": "https://cards.scryfall.io/normal/front/3/2/32f1e668-89b8-4f82-afc1-6c3efb1fef3b.jpg?1736468677",
+  "scryfall_uri": "https://scryfall.com/card/inr/280/haunted-ridge?utm_source=api",
+  "uri": "https://scryfall.com/card/inr/280/haunted-ridge?utm_source=api",
+  "url": "https://scryfall.com/card/inr/280/haunted-ridge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/32f1e668-89b8-4f82-afc1-6c3efb1fef3b/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F609858%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=805882&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/136000?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 5.05,
+    "lowest": 4.39,
+    "usd": "5.05",
+    "usd_foil": "4.72"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ae2a37967-4212-4553-9f77-bcb613405807&unique=prints",
+  "prints": [
+    {
+      "set": "inr",
+      "set_name": "Innistrad Remastered",
+      "collector_number": "280",
+      "prices": {
+        "usd": "5.05",
+        "usd_foil": "4.72",
+        "usd_etched": null,
+        "eur": "4.30",
+        "eur_foil": "4.99",
+        "tix": null
+      },
+      "released_at": "2025-01-24"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1093",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.98",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "877",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.11",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "502",
+      "prices": {
+        "usd": "4.84",
+        "usd_foil": "5.13",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "286",
+      "prices": {
+        "usd": "4.39",
+        "usd_foil": "5.38",
+        "usd_etched": null,
+        "eur": "4.56",
+        "eur_foil": "4.24",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "dbl",
+      "set_name": "Innistrad: Double Feature",
+      "collector_number": "263",
+      "prices": {
+        "usd": "6.33",
+        "usd_foil": "19.71",
+        "usd_etched": null,
+        "eur": "5.40",
+        "eur_foil": "11.85",
+        "tix": "0.90"
+      },
+      "released_at": "2022-01-28"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "94094",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.76"
+      },
+      "released_at": "2021-12-27"
+    },
+    {
+      "set": "pmid",
+      "set_name": "Innistrad: Midnight Hunt Promos",
+      "collector_number": "263s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "5.55",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "4.70",
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "pmid",
+      "set_name": "Innistrad: Midnight Hunt Promos",
+      "collector_number": "263p",
+      "prices": {
+        "usd": "4.80",
+        "usd_foil": "6.56",
+        "usd_etched": null,
+        "eur": "4.05",
+        "eur_foil": "5.28",
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "mid",
+      "set_name": "Innistrad: Midnight Hunt",
+      "collector_number": "282",
+      "prices": {
+        "usd": "6.34",
+        "usd_foil": "8.60",
+        "usd_etched": null,
+        "eur": "6.12",
+        "eur_foil": "8.70",
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "mid",
+      "set_name": "Innistrad: Midnight Hunt",
+      "collector_number": "263",
+      "prices": {
+        "usd": "4.60",
+        "usd_foil": "4.46",
+        "usd_etched": null,
+        "eur": "4.79",
+        "eur_foil": "6.03",
+        "tix": "0.12"
+      },
+      "released_at": "2021-09-24"
+    }
+  ]
+}

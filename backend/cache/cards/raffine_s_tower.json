@@ -1,0 +1,116 @@
+{
+  "name": "Raffine's Tower",
+  "oracle_id": "6e9ef5ef-6aed-4d3e-a59b-9e3dc8740b1b",
+  "type_line": "Land — Plains Island Swamp",
+  "color_identity": [
+    "B",
+    "U",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "snc",
+  "collector_number": "254",
+  "image": "https://cards.scryfall.io/normal/front/a/2/a2c56479-4bee-4edb-80d7-4af010b7c793.jpg?1664414518",
+  "scryfall_uri": "https://scryfall.com/card/snc/254/raffines-tower?utm_source=api",
+  "uri": "https://scryfall.com/card/snc/254/raffines-tower?utm_source=api",
+  "url": "https://scryfall.com/card/snc/254/raffines-tower?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/a2c56479-4bee-4edb-80d7-4af010b7c793/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F265349%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=611270&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/98727?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 11.32,
+    "lowest": 10.82,
+    "usd": "11.32",
+    "usd_foil": "12.10"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6e9ef5ef-6aed-4d3e-a59b-9e3dc8740b1b&unique=prints",
+  "prints": [
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "99695",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "2.76"
+      },
+      "released_at": "2022-08-01"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "353",
+      "prices": {
+        "usd": "10.82",
+        "usd_foil": "13.03",
+        "usd_etched": null,
+        "eur": "10.93",
+        "eur_foil": "13.11",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "292",
+      "prices": {
+        "usd": "20.51",
+        "usd_foil": "47.71",
+        "usd_etched": null,
+        "eur": "17.97",
+        "eur_foil": "33.55",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "254",
+      "prices": {
+        "usd": "11.32",
+        "usd_foil": "12.10",
+        "usd_etched": null,
+        "eur": "10.84",
+        "eur_foil": "12.84",
+        "tix": "0.30"
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "psnc",
+      "set_name": "Streets of New Capenna Promos",
+      "collector_number": "254s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "17.49",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "11.56",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "psnc",
+      "set_name": "Streets of New Capenna Promos",
+      "collector_number": "254p",
+      "prices": {
+        "usd": "11.91",
+        "usd_foil": "12.94",
+        "usd_etched": null,
+        "eur": "11.08",
+        "eur_foil": "11.43",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "Peculiar Lighthouse",
+  "oracle_id": "d55f7e20-11c6-44e2-8a21-dca67d3dbc68",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "dsk",
+  "collector_number": "265",
+  "image": "https://cards.scryfall.io/normal/front/3/a/3a6e40c0-e70e-4353-a920-9851cfac71dd.jpg?1726286864",
+  "scryfall_uri": "https://scryfall.com/card/dsk/265/peculiar-lighthouse?utm_source=api",
+  "uri": "https://scryfall.com/card/dsk/265/peculiar-lighthouse?utm_source=api",
+  "url": "https://scryfall.com/card/dsk/265/peculiar-lighthouse?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/3a6e40c0-e70e-4353-a920-9851cfac71dd/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F575110%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=786622&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/130661?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.09,
+    "lowest": 0.09,
+    "usd": "0.09",
+    "usd_foil": "0.12"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ad55f7e20-11c6-44e2-8a21-dca67d3dbc68&unique=prints",
+  "prints": [
+    {
+      "set": "dsk",
+      "set_name": "Duskmourn: House of Horror",
+      "collector_number": "265",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.12",
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": "0.02",
+        "tix": "0.03"
+      },
+      "released_at": "2024-09-27"
+    }
+  ]
+}

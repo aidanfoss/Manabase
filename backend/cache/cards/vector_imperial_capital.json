@@ -1,0 +1,45 @@
+{
+  "name": "Vector, Imperial Capital",
+  "oracle_id": "8dcba63c-4701-4dc9-81f5-ca8e8933a3ba",
+  "type_line": "Land — Town",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "fin",
+  "collector_number": "291",
+  "image": "https://cards.scryfall.io/normal/front/1/0/10e5648e-4884-41e3-95f8-c76f6bca01e2.jpg?1748706868",
+  "scryfall_uri": "https://scryfall.com/card/fin/291/vector-imperial-capital?utm_source=api",
+  "uri": "https://scryfall.com/card/fin/291/vector-imperial-capital?utm_source=api",
+  "url": "https://scryfall.com/card/fin/291/vector-imperial-capital?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/10e5648e-4884-41e3-95f8-c76f6bca01e2/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F633207%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=826908&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/141559?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.07,
+    "lowest": 0.07,
+    "usd": "0.07",
+    "usd_foil": "0.15"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A8dcba63c-4701-4dc9-81f5-ca8e8933a3ba&unique=prints",
+  "prints": [
+    {
+      "set": "fin",
+      "set_name": "Final Fantasy",
+      "collector_number": "291",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": "0.15",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.13",
+        "tix": "0.03"
+      },
+      "released_at": "2025-06-13"
+    }
+  ]
+}

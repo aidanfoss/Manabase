@@ -1,0 +1,59 @@
+{
+  "name": "Racers' Ring",
+  "oracle_id": "7e2eb4d5-22a3-43c1-8cf3-e85723da1b61",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "snc",
+  "collector_number": "253",
+  "image": "https://cards.scryfall.io/normal/front/2/a/2a11bdb2-a269-4038-85f3-69fbd02982e9.jpg?1664414498",
+  "scryfall_uri": "https://scryfall.com/card/snc/253/racers-ring?utm_source=api",
+  "uri": "https://scryfall.com/card/snc/253/racers-ring?utm_source=api",
+  "url": "https://scryfall.com/card/snc/253/racers-ring?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/2a11bdb2-a269-4038-85f3-69fbd02982e9/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F268320%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=651379&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/98725?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.05,
+    "lowest": 0.05,
+    "usd": "0.05",
+    "usd_foil": "0.21"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A7e2eb4d5-22a3-43c1-8cf3-e85723da1b61&unique=prints",
+  "prints": [
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "352",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.16",
+        "usd_etched": null,
+        "eur": "0.02",
+        "eur_foil": "0.15",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "253",
+      "prices": {
+        "usd": "0.05",
+        "usd_foil": "0.21",
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": "0.15",
+        "tix": "0.03"
+      },
+      "released_at": "2022-04-29"
+    }
+  ]
+}

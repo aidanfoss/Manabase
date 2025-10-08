@@ -1,0 +1,241 @@
+{
+  "name": "Izzet Guildgate",
+  "oracle_id": "bf75a3d1-f184-4b48-a913-21caee1db084",
+  "type_line": "Land — Gate",
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "fdn",
+  "collector_number": "691",
+  "image": "https://cards.scryfall.io/normal/front/d/b/db9e6fc9-813d-4a71-8a68-8e0f83fa945d.jpg?1736305754",
+  "scryfall_uri": "https://scryfall.com/card/fdn/691/izzet-guildgate?utm_source=api",
+  "uri": "https://scryfall.com/card/fdn/691/izzet-guildgate?utm_source=api",
+  "url": "https://scryfall.com/card/fdn/691/izzet-guildgate?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/db9e6fc9-813d-4a71-8a68-8e0f83fa945d/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F591098%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=796138&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/134718?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.18,
+    "lowest": 0.07,
+    "usd": "0.18",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Abf75a3d1-f184-4b48-a913-21caee1db084&unique=prints",
+  "prints": [
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "267",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "GRN-251",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-02"
+    },
+    {
+      "set": "fdn",
+      "set_name": "Foundations",
+      "collector_number": "691",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-11-15"
+    },
+    {
+      "set": "clu",
+      "set_name": "Ravnica: Clue Edition",
+      "collector_number": "240",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.08",
+        "eur_foil": null,
+        "tix": "0.01"
+      },
+      "released_at": "2024-02-23"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "405",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": "0.32",
+        "usd_etched": null,
+        "eur": "0.24",
+        "eur_foil": "0.43",
+        "tix": "0.04"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "rvr",
+      "set_name": "Ravnica Remastered",
+      "collector_number": "281",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.20",
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": "0.22",
+        "tix": "0.04"
+      },
+      "released_at": "2024-01-12"
+    },
+    {
+      "set": "c19",
+      "set_name": "Commander 2019",
+      "collector_number": "253",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-08-23"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "252",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": "0.43",
+        "usd_etched": null,
+        "eur": "0.04",
+        "eur_foil": "0.39",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "grn",
+      "set_name": "Guilds of Ravnica",
+      "collector_number": "251",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.48",
+        "usd_etched": null,
+        "eur": "0.05",
+        "eur_foil": "0.64",
+        "tix": "0.03"
+      },
+      "released_at": "2018-10-05"
+    },
+    {
+      "set": "c18",
+      "set_name": "Commander 2018",
+      "collector_number": "257",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-08-10"
+    },
+    {
+      "set": "mm3",
+      "set_name": "Modern Masters 2017",
+      "collector_number": "237",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": "0.26",
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": "0.25",
+        "tix": "0.03"
+      },
+      "released_at": "2017-03-17"
+    },
+    {
+      "set": "c15",
+      "set_name": "Commander 2015",
+      "collector_number": "291",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2015-11-13"
+    },
+    {
+      "set": "c13",
+      "set_name": "Commander 2013",
+      "collector_number": "297",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2013-11-01"
+    },
+    {
+      "set": "dgm",
+      "set_name": "Dragon's Maze",
+      "collector_number": "151",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.61",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.52",
+        "tix": "0.03"
+      },
+      "released_at": "2013-05-03"
+    },
+    {
+      "set": "rtr",
+      "set_name": "Return to Ravnica",
+      "collector_number": "242",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": "0.69",
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": "0.76",
+        "tix": "0.03"
+      },
+      "released_at": "2012-10-05"
+    }
+  ]
+}

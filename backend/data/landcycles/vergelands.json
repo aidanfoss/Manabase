@@ -2,6 +2,7 @@
   "name": "Verge Lands",
   "description": "Filter mana into color pairs. Excellent fixing for multicolor decks.",
   "tags": "unconditional, untapped, good",
+  "tier": "premium",
   "cards": [
     "Floodfarm Verge",
     "Gloomlake Verge",

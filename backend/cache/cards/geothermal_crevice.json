@@ -1,0 +1,46 @@
+{
+  "name": "Geothermal Crevice",
+  "oracle_id": "83f9d84a-a011-4fa9-a3a4-51eb39159c54",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "inv",
+  "collector_number": "323",
+  "image": "https://cards.scryfall.io/normal/front/e/7/e744b593-13fe-4967-b492-ac02f5815e57.jpg?1562941417",
+  "scryfall_uri": "https://scryfall.com/card/inv/323/geothermal-crevice?utm_source=api",
+  "uri": "https://scryfall.com/card/inv/323/geothermal-crevice?utm_source=api",
+  "url": "https://scryfall.com/card/inv/323/geothermal-crevice?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/e744b593-13fe-4967-b492-ac02f5815e57/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F7507%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=3503&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/14985?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.23,
+    "lowest": 0.23,
+    "usd": "0.23",
+    "usd_foil": "4.75"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A83f9d84a-a011-4fa9-a3a4-51eb39159c54&unique=prints",
+  "prints": [
+    {
+      "set": "inv",
+      "set_name": "Invasion",
+      "collector_number": "323",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": "4.75",
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": "4.24",
+        "tix": "0.34"
+      },
+      "released_at": "2000-10-02"
+    }
+  ]
+}

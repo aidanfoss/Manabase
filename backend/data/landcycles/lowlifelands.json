@@ -1,0 +1,20 @@
+{
+  "id": "lowlifelands",
+  "name": "Low Life Lands",
+  "tier": "playable",
+  "untapQuality": "conditional",
+  "description": "Enter untapped if you have 13 or less life. These reward life-loss decks but enter tapped in most early turns.",
+  "tags": "conditional untap, playable, life threshold, duskmourn lands",
+  "cards": [
+    "Abandoned Campground",
+    "Bleeding Woods",
+    "Etched Cornfield",
+    "Lakeside Shack",
+    "Murky Sewer",
+    "Neglected Manor",
+    "Peculiar Lighthouse",
+    "Raucous Carnival",
+    "Razortrap Gorge",
+    "Strangled Cemetery"
+  ]
+}

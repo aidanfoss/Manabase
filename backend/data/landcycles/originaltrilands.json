@@ -1,0 +1,15 @@
+{
+  "id": "originaltrilands",
+  "name": "Original Triple Lands",
+  "tier": "terrible",
+  "untapQuality": "alwaysTapped",
+  "description": "The first tri-color lands from Homelands. Produce three allied colors but are extremely slow and inefficient by modern standards. Enter untapped but require mana to produce colored sources.",
+  "tags": "homelands, tri-color, slow, historic, budget, triple lands",
+  "cards": [
+    "Aysen Abbey",
+    "Wizards' School",
+    "Castle Sengir",
+    "Koskun Keep",
+    "An-Havva Township"
+  ]
+}

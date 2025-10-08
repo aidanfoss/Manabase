@@ -1,0 +1,130 @@
+{
+  "name": "Jetmir's Garden",
+  "oracle_id": "f5896356-5744-4f7e-a4e5-1cc36dde5958",
+  "type_line": "Land — Mountain Forest Plains",
+  "color_identity": [
+    "G",
+    "R",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "snc",
+  "collector_number": "250",
+  "image": "https://cards.scryfall.io/normal/front/2/6/26d40e03-6de4-4373-9fbf-04c1dd79e995.jpg?1664414440",
+  "scryfall_uri": "https://scryfall.com/card/snc/250/jetmirs-garden?utm_source=api",
+  "uri": "https://scryfall.com/card/snc/250/jetmirs-garden?utm_source=api",
+  "url": "https://scryfall.com/card/snc/250/jetmirs-garden?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/26d40e03-6de4-4373-9fbf-04c1dd79e995/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F265346%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=611269&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/98719?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 14.41,
+    "lowest": 13.23,
+    "usd": "14.41",
+    "usd_foil": "14.02"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Af5896356-5744-4f7e-a4e5-1cc36dde5958&unique=prints",
+  "prints": [
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "SNC-250",
+      "prices": {
+        "usd": "14.77",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-01-25"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "99691",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "4.28"
+      },
+      "released_at": "2022-08-01"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "351",
+      "prices": {
+        "usd": "13.23",
+        "usd_foil": "14.66",
+        "usd_etched": null,
+        "eur": "12.57",
+        "eur_foil": "14.18",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "291",
+      "prices": {
+        "usd": "20.87",
+        "usd_foil": "38.67",
+        "usd_etched": null,
+        "eur": "18.81",
+        "eur_foil": "33.94",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "250",
+      "prices": {
+        "usd": "14.41",
+        "usd_foil": "14.02",
+        "usd_etched": null,
+        "eur": "11.83",
+        "eur_foil": "13.42",
+        "tix": "0.35"
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "psnc",
+      "set_name": "Streets of New Capenna Promos",
+      "collector_number": "250s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "15.24",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "13.22",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "psnc",
+      "set_name": "Streets of New Capenna Promos",
+      "collector_number": "250p",
+      "prices": {
+        "usd": "14.10",
+        "usd_foil": "13.79",
+        "usd_etched": null,
+        "eur": "11.56",
+        "eur_foil": "12.42",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    }
+  ]
+}

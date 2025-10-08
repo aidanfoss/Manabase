@@ -1,0 +1,45 @@
+{
+  "name": "Gongaga, Reactor Town",
+  "oracle_id": "ac4e1818-4873-4143-9b99-46f205d006d9",
+  "type_line": "Land — Town",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "fin",
+  "collector_number": "280",
+  "image": "https://cards.scryfall.io/normal/front/7/b/7beccfa6-3e4b-4460-954e-870cb39e462d.jpg?1748706828",
+  "scryfall_uri": "https://scryfall.com/card/fin/280/gongaga-reactor-town?utm_source=api",
+  "uri": "https://scryfall.com/card/fin/280/gongaga-reactor-town?utm_source=api",
+  "url": "https://scryfall.com/card/fin/280/gongaga-reactor-town?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/7beccfa6-3e4b-4460-954e-870cb39e462d/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F633202%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=826902&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/141529?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.08,
+    "lowest": 0.08,
+    "usd": "0.08",
+    "usd_foil": "0.14"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Aac4e1818-4873-4143-9b99-46f205d006d9&unique=prints",
+  "prints": [
+    {
+      "set": "fin",
+      "set_name": "Final Fantasy",
+      "collector_number": "280",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.14",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.15",
+        "tix": "0.03"
+      },
+      "released_at": "2025-06-13"
+    }
+  ]
+}

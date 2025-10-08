@@ -1,0 +1,20 @@
+{
+  "id": "typelesstrilands",
+  "name": "Tri-Color Taplands",
+  "tier": "budget",
+  "untapQuality": "alwaysTapped",
+  "description": "Enter tapped and produce three colors of mana. Introduced in Shards of Alara for shard colors and completed in Khans of Tarkir for wedge colors. Great fixing in slower formats but too slow for competitive play.",
+  "tags": "tri-color, shard, wedge, tapland, alara, khans, budget, slow",
+  "cards": [
+    "Seaside Citadel",
+    "Arcane Sanctum",
+    "Crumbling Necropolis",
+    "Savage Lands",
+    "Jungle Shrine",
+    "Nomad Outpost",
+    "Sandsteppe Citadel",
+    "Opulent Palace",
+    "Frontier Bivouac",
+    "Mystic Monastery"
+  ]
+}

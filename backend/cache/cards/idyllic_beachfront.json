@@ -1,0 +1,59 @@
+{
+  "name": "Idyllic Beachfront",
+  "oracle_id": "0aea7e5d-40d7-46c7-a8a6-479cb8061e49",
+  "type_line": "Land — Plains Island",
+  "color_identity": [
+    "U",
+    "W"
+  ],
+  "fetchable": true,
+  "set": "dmu",
+  "collector_number": "249",
+  "image": "https://cards.scryfall.io/normal/front/c/5/c50ec22c-decb-419f-ae52-78ea1706eb11.jpg?1740486476",
+  "scryfall_uri": "https://scryfall.com/card/dmu/249/idyllic-beachfront?utm_source=api",
+  "uri": "https://scryfall.com/card/dmu/249/idyllic-beachfront?utm_source=api",
+  "url": "https://scryfall.com/card/dmu/249/idyllic-beachfront?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/c50ec22c-decb-419f-ae52-78ea1706eb11/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F283633%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=672706&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/102974?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.14,
+    "lowest": 0.14,
+    "usd": "0.14",
+    "usd_foil": "0.32"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A0aea7e5d-40d7-46c7-a8a6-479cb8061e49&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "404",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "dmu",
+      "set_name": "Dominaria United",
+      "collector_number": "249",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": "0.32",
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": "0.33",
+        "tix": "0.03"
+      },
+      "released_at": "2022-09-09"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "Cinder Marsh",
+  "oracle_id": "6f8cc374-e76c-4bfa-bf20-28dea0bfefbe",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "tpr",
+  "collector_number": "236",
+  "image": "https://cards.scryfall.io/normal/front/8/c/8c6dc9af-ea7e-41f8-8c1e-22c588312053.jpg?1562430773",
+  "scryfall_uri": "https://scryfall.com/card/tpr/236/cinder-marsh?utm_source=api",
+  "uri": "https://scryfall.com/card/tpr/236/cinder-marsh?utm_source=api",
+  "url": "https://scryfall.com/card/tpr/236/cinder-marsh?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/8c6dc9af-ea7e-41f8-8c1e-22c588312053/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fmagic%2Fproduct%3FproductLineName%3Dmagic%26q%3DCinder%2BMarsh%26view%3Dgrid",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products/Search?referrer=scryfall&searchString=Cinder+Marsh&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/56710?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": null,
+    "lowest": 0.24,
+    "usd": null,
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6f8cc374-e76c-4bfa-bf20-28dea0bfefbe&unique=prints",
+  "prints": [
+    {
+      "set": "tpr",
+      "set_name": "Tempest Remastered",
+      "collector_number": "236",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.09"
+      },
+      "released_at": "2015-05-06"
+    },
+    {
+      "set": "brb",
+      "set_name": "Battle Royale Box Set",
+      "collector_number": "13",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.54",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "1999-11-12"
+    },
+    {
+      "set": "tmp",
+      "set_name": "Tempest",
+      "collector_number": "317",
+      "prices": {
+        "usd": "0.32",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.46",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "1997-10-14"
+    }
+  ]
+}

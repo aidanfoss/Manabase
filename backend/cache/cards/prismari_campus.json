@@ -1,0 +1,59 @@
+{
+  "name": "Prismari Campus",
+  "oracle_id": "3a3a1b35-ae4d-49d5-ae09-5a1693ad53ce",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "clb",
+  "collector_number": "909",
+  "image": "https://cards.scryfall.io/normal/front/b/f/bf90c219-508f-49af-a7f9-540021d49d8c.jpg?1674143032",
+  "scryfall_uri": "https://scryfall.com/card/clb/909/prismari-campus?utm_source=api",
+  "uri": "https://scryfall.com/card/clb/909/prismari-campus?utm_source=api",
+  "url": "https://scryfall.com/card/clb/909/prismari-campus?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/bf90c219-508f-49af-a7f9-540021d49d8c/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F273569%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=662103&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards?affiliate_id=scryfall&data%5Bsearch%5D=Prismari+Campus&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.24,
+    "lowest": 0.13,
+    "usd": "0.24",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A3a3a1b35-ae4d-49d5-ae09-5a1693ad53ce&unique=prints",
+  "prints": [
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "909",
+      "prices": {
+        "usd": "0.24",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "stx",
+      "set_name": "Strixhaven: School of Mages",
+      "collector_number": "270",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": "0.19",
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": "0.16",
+        "tix": "0.03"
+      },
+      "released_at": "2021-04-23"
+    }
+  ]
+}

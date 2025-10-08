@@ -1,0 +1,15 @@
+{
+  "id": "trisaclands",
+  "name": "Tri-Color Sac Lands",
+  "tier": "terrible",
+  "untapQuality": "alwaysTapped",
+  "description": "Enter tapped and can be sacrificed to produce three colors of mana. A flexible but slow Invasion-era cycle that fixes mana once before being lost.",
+  "tags": "invasion, tri-color, sacrifice, budget, slow, tapped",
+  "cards": [
+    "Irrigation Ditch",
+    "Ancient Spring",
+    "Sulfur Vent",
+    "Geothermal Crevice",
+    "Tinder Farm"
+  ]
+}

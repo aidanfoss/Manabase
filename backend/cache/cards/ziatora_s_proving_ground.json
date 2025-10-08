@@ -1,0 +1,116 @@
+{
+  "name": "Ziatora's Proving Ground",
+  "oracle_id": "f7e7b78c-c769-4720-8585-1874773eb342",
+  "type_line": "Land — Swamp Mountain Forest",
+  "color_identity": [
+    "B",
+    "G",
+    "R"
+  ],
+  "fetchable": true,
+  "set": "snc",
+  "collector_number": "261",
+  "image": "https://cards.scryfall.io/normal/front/7/5/75fdce80-e338-4a50-bdc6-786511feaeef.jpg?1664414670",
+  "scryfall_uri": "https://scryfall.com/card/snc/261/ziatoras-proving-ground?utm_source=api",
+  "uri": "https://scryfall.com/card/snc/261/ziatoras-proving-ground?utm_source=api",
+  "url": "https://scryfall.com/card/snc/261/ziatoras-proving-ground?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/75fdce80-e338-4a50-bdc6-786511feaeef/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F265351%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=611273&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/98741?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 7.64,
+    "lowest": 7.32,
+    "usd": "7.64",
+    "usd_foil": "7.68"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Af7e7b78c-c769-4720-8585-1874773eb342&unique=prints",
+  "prints": [
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "99699",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "4.28"
+      },
+      "released_at": "2022-08-01"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "359",
+      "prices": {
+        "usd": "7.32",
+        "usd_foil": "7.90",
+        "usd_etched": null,
+        "eur": "9.22",
+        "eur_foil": "9.81",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "295",
+      "prices": {
+        "usd": "13.91",
+        "usd_foil": "25.27",
+        "usd_etched": null,
+        "eur": "12.96",
+        "eur_foil": "24.38",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "snc",
+      "set_name": "Streets of New Capenna",
+      "collector_number": "261",
+      "prices": {
+        "usd": "7.64",
+        "usd_foil": "7.68",
+        "usd_etched": null,
+        "eur": "7.91",
+        "eur_foil": "9.08",
+        "tix": "0.16"
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "psnc",
+      "set_name": "Streets of New Capenna Promos",
+      "collector_number": "261s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "8.94",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "9.71",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "psnc",
+      "set_name": "Streets of New Capenna Promos",
+      "collector_number": "261p",
+      "prices": {
+        "usd": "8.10",
+        "usd_foil": "7.75",
+        "usd_etched": null,
+        "eur": "8.19",
+        "eur_foil": "8.75",
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    }
+  ]
+}

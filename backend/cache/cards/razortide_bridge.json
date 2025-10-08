@@ -1,0 +1,115 @@
+{
+  "name": "Razortide Bridge",
+  "oracle_id": "6cb37ac1-dd11-4a8c-bca5-ef44d828059f",
+  "type_line": "Artifact Land",
+  "color_identity": [
+    "U",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "eoc",
+  "collector_number": "171",
+  "image": "https://cards.scryfall.io/normal/front/0/b/0bbd24cd-48f7-40d7-9741-f30108f04b84.jpg?1752945410",
+  "scryfall_uri": "https://scryfall.com/card/eoc/171/razortide-bridge?utm_source=api",
+  "uri": "https://scryfall.com/card/eoc/171/razortide-bridge?utm_source=api",
+  "url": "https://scryfall.com/card/eoc/171/razortide-bridge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/0bbd24cd-48f7-40d7-9741-f30108f04b84/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F642859%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=834308&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142479?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.2,
+    "lowest": 0.19,
+    "usd": "0.20",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6cb37ac1-dd11-4a8c-bca5-ef44d828059f&unique=prints",
+  "prints": [
+    {
+      "set": "eoc",
+      "set_name": "Edge of Eternities Commander",
+      "collector_number": "171",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "809",
+      "prices": {
+        "usd": null,
+        "usd_foil": "14.44",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "281",
+      "prices": {
+        "usd": "0.19",
+        "usd_foil": "7.90",
+        "usd_etched": null,
+        "eur": "0.32",
+        "eur_foil": "1.49",
+        "tix": "0.35"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "brc",
+      "set_name": "The Brothers' War Commander",
+      "collector_number": "195",
+      "prices": {
+        "usd": "2.34",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.53",
+        "eur_foil": null,
+        "tix": "3.70"
+      },
+      "released_at": "2022-11-18"
+    },
+    {
+      "set": "ha6",
+      "set_name": "Historic Anthology 6",
+      "collector_number": "15",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-07-28"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "252",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": "0.40",
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": "0.57",
+        "tix": "0.03"
+      },
+      "released_at": "2021-06-18"
+    }
+  ]
+}

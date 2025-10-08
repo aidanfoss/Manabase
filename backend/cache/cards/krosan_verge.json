@@ -1,0 +1,350 @@
+{
+  "name": "Krosan Verge",
+  "oracle_id": "d9a10971-f32b-4978-952d-fed0a5bc9e36",
+  "type_line": "Land",
+  "color_identity": [],
+  "fetchable": false,
+  "set": "otc",
+  "collector_number": "304",
+  "image": "https://cards.scryfall.io/normal/front/1/9/19fc5bec-f877-430c-8e83-e6c5fe97f3c4.jpg?1712355058",
+  "scryfall_uri": "https://scryfall.com/card/otc/304/krosan-verge?utm_source=api",
+  "uri": "https://scryfall.com/card/otc/304/krosan-verge?utm_source=api",
+  "url": "https://scryfall.com/card/otc/304/krosan-verge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/19fc5bec-f877-430c-8e83-e6c5fe97f3c4/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F545059%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=764735&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/125071?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.18,
+    "lowest": 0.12,
+    "usd": "0.18",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Ad9a10971-f32b-4978-952d-fed0a5bc9e36&unique=prints",
+  "prints": [
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "304",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "271",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "ZNC-134",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-01-25"
+    },
+    {
+      "set": "woc",
+      "set_name": "Wilds of Eldraine Commander",
+      "collector_number": "163",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.21"
+      },
+      "released_at": "2023-09-08"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "1008",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "412",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.12"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "onc",
+      "set_name": "Phyrexia: All Will Be One Commander",
+      "collector_number": "158",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.31"
+      },
+      "released_at": "2023-02-10"
+    },
+    {
+      "set": "dmc",
+      "set_name": "Dominaria United Commander",
+      "collector_number": "216",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.11",
+        "eur_foil": null,
+        "tix": "0.16"
+      },
+      "released_at": "2022-09-09"
+    },
+    {
+      "set": "mic",
+      "set_name": "Midnight Hunt Commander",
+      "collector_number": "175",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "83670",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.55"
+      },
+      "released_at": "2020-10-30"
+    },
+    {
+      "set": "znc",
+      "set_name": "Zendikar Rising Commander",
+      "collector_number": "134",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "c20",
+      "set_name": "Commander 2020",
+      "collector_number": "285",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-04-17"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "C18-263",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-11-07"
+    },
+    {
+      "set": "c19",
+      "set_name": "Commander 2019",
+      "collector_number": "257",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-08-23"
+    },
+    {
+      "set": "c18",
+      "set_name": "Commander 2018",
+      "collector_number": "263",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-08-10"
+    },
+    {
+      "set": "c17",
+      "set_name": "Commander 2017",
+      "collector_number": "260",
+      "prices": {
+        "usd": "0.25",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-08-25"
+    },
+    {
+      "set": "pca",
+      "set_name": "Planechase Anthology",
+      "collector_number": "123",
+      "prices": {
+        "usd": "0.38",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2016-11-25"
+    },
+    {
+      "set": "c16",
+      "set_name": "Commander 2016",
+      "collector_number": "306",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.31",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2016-11-11"
+    },
+    {
+      "set": "pz1",
+      "set_name": "Legendary Cube Prize Pack",
+      "collector_number": "144",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2015-11-18"
+    },
+    {
+      "set": "pc2",
+      "set_name": "Planechase 2012",
+      "collector_number": "123",
+      "prices": {
+        "usd": "0.55",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.31",
+        "eur_foil": null,
+        "tix": "0.87"
+      },
+      "released_at": "2012-06-01"
+    },
+    {
+      "set": "arc",
+      "set_name": "Archenemy",
+      "collector_number": "128",
+      "prices": {
+        "usd": "0.26",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.66",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2010-06-18"
+    },
+    {
+      "set": "wc03",
+      "set_name": "World Championship Decks 2003",
+      "collector_number": "dz141",
+      "prices": {
+        "usd": "0.45",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2003-08-06"
+    },
+    {
+      "set": "jud",
+      "set_name": "Judgment",
+      "collector_number": "141",
+      "prices": {
+        "usd": "0.55",
+        "usd_foil": "41.49",
+        "usd_etched": null,
+        "eur": "0.51",
+        "eur_foil": "17.56",
+        "tix": "0.04"
+      },
+      "released_at": "2002-05-27"
+    }
+  ]
+}

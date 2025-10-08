@@ -3,41 +3,12 @@ import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { readJsonSafe } from "../utils/safeJson.js";
-import { getCardWithDetails } from "../services/scryfall.js";
+import { fetchCardData as getCardWithDetails } from "../services/scryfall.js";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ============================================================
-// Helper to load all JSONs recursively (metas, landcycles, colors)
-// ============================================================
-async function loadJsonFiles(dirPath) {
-    try {
-        const files = await fs.readdir(dirPath, { withFileTypes: true });
-        const all = [];
-        for (const f of files) {
-            const fullPath = path.join(dirPath, f.name);
-            if (f.isDirectory()) {
-                const inner = await loadJsonFiles(fullPath);
-                all.push(...inner);
-            } else if (f.name.endsWith(".json")) {
-                const data = await readJsonSafe(fullPath);
-                if (Array.isArray(data)) all.push(...data);
-                else if (data?.cards && Array.isArray(data.cards))
-                    all.push(...data.cards);
-            }
-        }
-        return all;
-    } catch (err) {
-        console.error(`❌ Failed to load ${dirPath}:`, err.message);
-        return [];
-    }
-}
-
-// ============================================================
-// Main route
-// ============================================================
 router.get("/", async (req, res) => {
     console.log("==========================================");
     console.log(`🧠 /api/cards request →`, req.query);
@@ -55,8 +26,9 @@ router.get("/", async (req, res) => {
         console.log(`🌍 Landcycles: ${landcycles.join(", ")}`);
 
         const allCards = [];
+        const cardToCycles = {}; // name -> [cycleIds]  <-- NEW
 
-        // 1️⃣ Load metas
+        // 1) metas
         for (const meta of metas) {
             const metaFile = path.resolve(
                 __dirname,
@@ -74,12 +46,13 @@ router.get("/", async (req, res) => {
             }
         }
 
-        // 2️⃣ Load land cycles
+        // 2) landcycles
+        const cycleFetchables = {}; // id -> boolean
+
         for (const cycle of landcycles) {
             const normalized = cycle.toLowerCase().replace(/[\s_]+/g, "");
             let cycleFile = path.resolve(__dirname, `../data/landcycles/${normalized}.json`);
 
-            // fallback with underscores
             try {
                 await fs.access(cycleFile);
             } catch {
@@ -97,16 +70,29 @@ router.get("/", async (req, res) => {
 
             console.log(`📂 Loading landcycle file: ${cycleFile}`);
             const cycleData = await readJsonSafe(cycleFile);
+            let names = [];
+
             if (Array.isArray(cycleData)) {
                 console.log(`   ➕ ${cycleData.length} lands`);
+                names = cycleData.map((c) => (typeof c === "string" ? c : c.name));
                 allCards.push(...cycleData);
             } else if (cycleData?.cards) {
                 console.log(`   ➕ ${cycleData.cards.length} lands`);
+                names = cycleData.cards.map((c) => (typeof c === "string" ? c : c.name));
                 allCards.push(...cycleData.cards);
             }
+
+            for (const n of names) {
+                const k = (typeof n === "string" ? n : n?.name) || "";
+                if (!k) continue;
+                cardToCycles[k] = cardToCycles[k] || [];
+                cardToCycles[k].push(cycle); // map this card to this cycle id as requested
+            }
+
+            cycleFetchables[cycle] = false; // init
         }
 
-        // 3️⃣ Load color staples
+        // 3) color staples
         const colorDir = path.resolve(__dirname, "../data/colors");
         const colorFiles = await fs.readdir(colorDir).catch(() => []);
         for (const f of colorFiles) {
@@ -124,23 +110,32 @@ router.get("/", async (req, res) => {
 
         console.log(`📦 Total combined cards before deduping: ${allCards.length}`);
 
-        // --- Deduplicate ---
-        const uniqueNames = [...new Set(allCards.map(c => (typeof c === "string" ? c : c.name)))];
+        // Dedup
+        const uniqueNames = [...new Set(allCards.map((c) => (typeof c === "string" ? c : c.name)))];
         console.log(`🧩 Unique cards: ${uniqueNames.length}`);
 
-        // --- Fetch Scryfall details ---
+        // Fetch details
         const detailedCards = [];
         for (const name of uniqueNames) {
             try {
                 console.log(`🌍 Fetching details for "${name}"`);
                 const details = await getCardWithDetails(name);
+                if (!details) continue;
+
                 detailedCards.push({
                     ...details,
                     note:
-                        typeof allCards.find(c => c.name === name)?.note === "string"
-                            ? allCards.find(c => c.name === name)?.note
-                            : null
+                        typeof allCards.find((c) => c.name === name)?.note === "string"
+                            ? allCards.find((c) => c.name === name)?.note
+                            : null,
                 });
+
+                // mark fetchable per-cycle correctly  <-- FIX
+                if (details.fetchable && cardToCycles[name]) {
+                    for (const cid of cardToCycles[name]) {
+                        cycleFetchables[cid] = true;
+                    }
+                }
             } catch (err) {
                 console.error(`⚠️ Failed to fetch "${name}":`, err.message);
             }
@@ -148,7 +143,7 @@ router.get("/", async (req, res) => {
 
         console.log(`✅ Detailed cards fetched: ${detailedCards.length}`);
 
-        // --- Separate lands vs nonlands ---
+        // Split lands / nonlands
         const lands = [];
         const nonlands = [];
         for (const card of detailedCards) {
@@ -157,21 +152,16 @@ router.get("/", async (req, res) => {
             else nonlands.push(card);
         }
 
-        // --- Color identity filtering ---
+        // Color identity filter (now safe; details.color_identity is present)
         function passesColorFilter(card) {
             const identity = card.color_identity || [];
             const typeLine = card.type_line?.toLowerCase() || "";
 
-            // Lands with no color identity allowed everywhere
             if (typeLine.includes("land") && identity.length === 0) return true;
-
-            // Colorless artifacts allowed
             if (identity.length === 0 || identity.includes("C")) {
                 return colors.includes("C") || colors.length === 5;
             }
-
-            // All colors must be subset of deck colors
-            return identity.every(c => colors.includes(c));
+            return identity.every((c) => colors.includes(c));
         }
 
         const filteredLands = lands.filter(passesColorFilter);
@@ -179,9 +169,16 @@ router.get("/", async (req, res) => {
 
         console.log(`🎯 Filtered → lands:${filteredLands.length} nonlands:${filteredNonlands.length}`);
 
+        // Optional summary (frontend can merge into its landcycles list)
+        const fetchableSummary = Object.entries(cycleFetchables).map(([id, value]) => ({
+            id,
+            fetchable: value,
+        }));
+
         res.json({
             lands: filteredLands,
-            nonlands: filteredNonlands
+            nonlands: filteredNonlands,
+            fetchableSummary,
         });
     } catch (err) {
         console.error("❌ Error in /api/cards:", err);

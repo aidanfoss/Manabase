@@ -1,0 +1,73 @@
+{
+  "name": "Tanglepool Bridge",
+  "oracle_id": "29cd8a7c-108a-43d1-af63-f603a27c24f2",
+  "type_line": "Artifact Land",
+  "color_identity": [
+    "G",
+    "U"
+  ],
+  "fetchable": false,
+  "set": "mh2",
+  "collector_number": "257",
+  "image": "https://cards.scryfall.io/normal/front/5/7/57d2b895-8921-4615-a674-fb85eed5ea3f.jpg?1626099890",
+  "scryfall_uri": "https://scryfall.com/card/mh2/257/tanglepool-bridge?utm_source=api",
+  "uri": "https://scryfall.com/card/mh2/257/tanglepool-bridge?utm_source=api",
+  "url": "https://scryfall.com/card/mh2/257/tanglepool-bridge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/57d2b895-8921-4615-a674-fb85eed5ea3f/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F239720%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=566289&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/90895?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.12,
+    "lowest": 0.1,
+    "usd": "0.12",
+    "usd_foil": "0.25"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A29cd8a7c-108a-43d1-af63-f603a27c24f2&unique=prints",
+  "prints": [
+    {
+      "set": "drc",
+      "set_name": "Aetherdrift Commander",
+      "collector_number": "175",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "ha6",
+      "set_name": "Historic Anthology 6",
+      "collector_number": "19",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-07-28"
+    },
+    {
+      "set": "mh2",
+      "set_name": "Modern Horizons 2",
+      "collector_number": "257",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": "0.25",
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": "0.18",
+        "tix": "0.03"
+      },
+      "released_at": "2021-06-18"
+    }
+  ]
+}

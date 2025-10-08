@@ -1,0 +1,129 @@
+{
+  "name": "Deathcap Glade",
+  "oracle_id": "f6d24565-5b32-4eff-b2e0-6e2c25516ff0",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "inr",
+  "collector_number": "275",
+  "image": "https://cards.scryfall.io/normal/front/2/f/2f20e738-bab6-4000-afca-9fc9e4261c34.jpg?1736468663",
+  "scryfall_uri": "https://scryfall.com/card/inr/275/deathcap-glade?utm_source=api",
+  "uri": "https://scryfall.com/card/inr/275/deathcap-glade?utm_source=api",
+  "url": "https://scryfall.com/card/inr/275/deathcap-glade?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/2f20e738-bab6-4000-afca-9fc9e4261c34/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F609809%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=805877&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/135988?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 6.28,
+    "lowest": 5.39,
+    "usd": "6.28",
+    "usd_foil": "6.36"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Af6d24565-5b32-4eff-b2e0-6e2c25516ff0&unique=prints",
+  "prints": [
+    {
+      "set": "inr",
+      "set_name": "Innistrad Remastered",
+      "collector_number": "275",
+      "prices": {
+        "usd": "6.28",
+        "usd_foil": "6.36",
+        "usd_etched": null,
+        "eur": "5.74",
+        "eur_foil": "5.26",
+        "tix": null
+      },
+      "released_at": "2025-01-24"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "95457",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.45"
+      },
+      "released_at": "2022-02-21"
+    },
+    {
+      "set": "dbl",
+      "set_name": "Innistrad: Double Feature",
+      "collector_number": "528",
+      "prices": {
+        "usd": "6.66",
+        "usd_foil": "33.59",
+        "usd_etched": null,
+        "eur": "7.35",
+        "eur_foil": "17.34",
+        "tix": "0.47"
+      },
+      "released_at": "2022-01-28"
+    },
+    {
+      "set": "pvow",
+      "set_name": "Innistrad: Crimson Vow Promos",
+      "collector_number": "261s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "7.26",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "7.39",
+        "tix": null
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "pvow",
+      "set_name": "Innistrad: Crimson Vow Promos",
+      "collector_number": "261p",
+      "prices": {
+        "usd": "7.85",
+        "usd_foil": "8.26",
+        "usd_etched": null,
+        "eur": "8.03",
+        "eur_foil": "11.23",
+        "tix": null
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "vow",
+      "set_name": "Innistrad: Crimson Vow",
+      "collector_number": "281",
+      "prices": {
+        "usd": "6.99",
+        "usd_foil": "9.09",
+        "usd_etched": null,
+        "eur": "8.42",
+        "eur_foil": "10.40",
+        "tix": null
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "vow",
+      "set_name": "Innistrad: Crimson Vow",
+      "collector_number": "261",
+      "prices": {
+        "usd": "6.90",
+        "usd_foil": "5.39",
+        "usd_etched": null,
+        "eur": "6.36",
+        "eur_foil": "6.38",
+        "tix": "0.12"
+      },
+      "released_at": "2021-11-19"
+    }
+  ]
+}

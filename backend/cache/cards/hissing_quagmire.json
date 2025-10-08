@@ -1,0 +1,129 @@
+{
+  "name": "Hissing Quagmire",
+  "oracle_id": "7fff5224-c002-4a32-86fe-9a4b18d78b50",
+  "type_line": "Land",
+  "color_identity": [
+    "B",
+    "G"
+  ],
+  "fetchable": false,
+  "set": "ogw",
+  "collector_number": "171",
+  "image": "https://cards.scryfall.io/normal/front/6/e/6ef11b54-205a-48e9-92d0-5d416be869ef.jpg?1562917171",
+  "scryfall_uri": "https://scryfall.com/card/ogw/171/hissing-quagmire?utm_source=api",
+  "uri": "https://scryfall.com/card/ogw/171/hissing-quagmire?utm_source=api",
+  "url": "https://scryfall.com/card/ogw/171/hissing-quagmire?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/6ef11b54-205a-48e9-92d0-5d416be869ef/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F110815%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=287232&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/59255?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.61,
+    "lowest": 0.56,
+    "usd": "0.61",
+    "usd_foil": "2.20"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A7fff5224-c002-4a32-86fe-9a4b18d78b50&unique=prints",
+  "prints": [
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "154",
+      "prices": {
+        "usd": null,
+        "usd_foil": "12.75",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "8.86",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "109",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.34",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "6.73",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "64",
+      "prices": {
+        "usd": "0.86",
+        "usd_foil": "1.77",
+        "usd_etched": null,
+        "eur": "1.38",
+        "eur_foil": "2.63",
+        "tix": "0.20"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "eos",
+      "set_name": "Edge of Eternities: Stellar Sights",
+      "collector_number": "19",
+      "prices": {
+        "usd": "0.62",
+        "usd_foil": "0.56",
+        "usd_etched": null,
+        "eur": "0.39",
+        "eur_foil": "1.04",
+        "tix": "0.02"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "pio",
+      "set_name": "Pioneer Masters",
+      "collector_number": "266",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-10"
+    },
+    {
+      "set": "pogw",
+      "set_name": "Oath of the Gatewatch Promos",
+      "collector_number": "171s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.95",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "1.89",
+        "tix": null
+      },
+      "released_at": "2016-01-22"
+    },
+    {
+      "set": "ogw",
+      "set_name": "Oath of the Gatewatch",
+      "collector_number": "171",
+      "prices": {
+        "usd": "0.61",
+        "usd_foil": "2.20",
+        "usd_etched": null,
+        "eur": "0.60",
+        "eur_foil": "1.56",
+        "tix": "0.02"
+      },
+      "released_at": "2016-01-22"
+    }
+  ]
+}

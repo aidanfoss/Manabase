@@ -1,0 +1,196 @@
+{
+  "name": "Wooded Foothills",
+  "oracle_id": "6587a463-a108-4854-b6d1-944e89b8c8a4",
+  "type_line": "Land",
+  "color_identity": [],
+  "fetchable": false,
+  "set": "mh3",
+  "collector_number": "236",
+  "image": "https://cards.scryfall.io/normal/front/4/e/4e11ea8a-f895-438d-a3b7-f070238e4161.jpg?1717013111",
+  "scryfall_uri": "https://scryfall.com/card/mh3/236/wooded-foothills?utm_source=api",
+  "uri": "https://scryfall.com/card/mh3/236/wooded-foothills?utm_source=api",
+  "url": "https://scryfall.com/card/mh3/236/wooded-foothills?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/4e11ea8a-f895-438d-a3b7-f070238e4161/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F541277%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=759790&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/126491?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 15.19,
+    "lowest": 13.32,
+    "usd": "15.19",
+    "usd_foil": "16.20"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6587a463-a108-4854-b6d1-944e89b8c8a4&unique=prints",
+  "prints": [
+    {
+      "set": "pmh3",
+      "set_name": "Modern Horizons 3 Promos",
+      "collector_number": "236s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "17.34",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "mh3",
+      "set_name": "Modern Horizons 3",
+      "collector_number": "467",
+      "prices": {
+        "usd": "15.11",
+        "usd_foil": "20.74",
+        "usd_etched": null,
+        "eur": "13.90",
+        "eur_foil": "15.79",
+        "tix": "1.34"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "mh3",
+      "set_name": "Modern Horizons 3",
+      "collector_number": "441",
+      "prices": {
+        "usd": "18.14",
+        "usd_foil": "47.09",
+        "usd_etched": null,
+        "eur": "22.28",
+        "eur_foil": "55.82",
+        "tix": "1.90"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "mh3",
+      "set_name": "Modern Horizons 3",
+      "collector_number": "361",
+      "prices": {
+        "usd": "26.86",
+        "usd_foil": "48.07",
+        "usd_etched": null,
+        "eur": "18.36",
+        "eur_foil": "27.11",
+        "tix": "1.19"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "mh3",
+      "set_name": "Modern Horizons 3",
+      "collector_number": "236",
+      "prices": {
+        "usd": "15.19",
+        "usd_foil": "16.20",
+        "usd_etched": null,
+        "eur": "12.22",
+        "eur_foil": "14.02",
+        "tix": "1.32"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "zne",
+      "set_name": "Zendikar Rising Expeditions",
+      "collector_number": "4",
+      "prices": {
+        "usd": "26.90",
+        "usd_foil": "42.33",
+        "usd_etched": null,
+        "eur": "23.85",
+        "eur_foil": "54.30",
+        "tix": "6.49"
+      },
+      "released_at": "2020-09-25"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "72890",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.40"
+      },
+      "released_at": "2019-06-30"
+    },
+    {
+      "set": "exp",
+      "set_name": "Zendikar Expeditions",
+      "collector_number": "19",
+      "prices": {
+        "usd": null,
+        "usd_foil": "103.65",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "80.49",
+        "tix": "2.12"
+      },
+      "released_at": "2015-10-02"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "43584",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2014-10-17"
+    },
+    {
+      "set": "ktk",
+      "set_name": "Khans of Tarkir",
+      "collector_number": "249",
+      "prices": {
+        "usd": "13.32",
+        "usd_foil": "17.91",
+        "usd_etched": null,
+        "eur": "12.08",
+        "eur_foil": "15.20",
+        "tix": "1.30"
+      },
+      "released_at": "2014-09-26"
+    },
+    {
+      "set": "g09",
+      "set_name": "Judge Gift Cards 2009",
+      "collector_number": "10",
+      "prices": {
+        "usd": null,
+        "usd_foil": "124.47",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "108.94",
+        "tix": null
+      },
+      "released_at": "2009-01-01"
+    },
+    {
+      "set": "ons",
+      "set_name": "Onslaught",
+      "collector_number": "330",
+      "prices": {
+        "usd": "61.49",
+        "usd_foil": "632.21",
+        "usd_etched": null,
+        "eur": "51.24",
+        "eur_foil": "462.65",
+        "tix": "4.50"
+      },
+      "released_at": "2002-10-07"
+    }
+  ]
+}

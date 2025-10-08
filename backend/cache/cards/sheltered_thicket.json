@@ -1,0 +1,311 @@
+{
+  "name": "Sheltered Thicket",
+  "oracle_id": "db8d8643-3d0b-4f20-bf53-f4cd26a0e8df",
+  "type_line": "Land — Mountain Forest",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": true,
+  "set": "eoc",
+  "collector_number": "178",
+  "image": "https://cards.scryfall.io/normal/front/a/f/af373c1c-aeb8-48d9-9cea-dfd6d6c2ee87.jpg?1752945490",
+  "scryfall_uri": "https://scryfall.com/card/eoc/178/sheltered-thicket?utm_source=api",
+  "uri": "https://scryfall.com/card/eoc/178/sheltered-thicket?utm_source=api",
+  "url": "https://scryfall.com/card/eoc/178/sheltered-thicket?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/af373c1c-aeb8-48d9-9cea-dfd6d6c2ee87/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F642069%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=834145&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142493?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.14,
+    "lowest": 0.09,
+    "usd": "0.14",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Adb8d8643-3d0b-4f20-bf53-f4cd26a0e8df&unique=prints",
+  "prints": [
+    {
+      "set": "eoc",
+      "set_name": "Edge of Eternities Commander",
+      "collector_number": "178",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2025-08-01"
+    },
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "392",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "drc",
+      "set_name": "Aetherdrift Commander",
+      "collector_number": "169",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "blc",
+      "set_name": "Bloomburrow Commander",
+      "collector_number": "330",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2024-08-02"
+    },
+    {
+      "set": "m3c",
+      "set_name": "Modern Horizons 3 Commander",
+      "collector_number": "374",
+      "prices": {
+        "usd": "0.10",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-06-14"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "319",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": "0.03"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "1036",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.37",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "817",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.82",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "508",
+      "prices": {
+        "usd": "0.38",
+        "usd_foil": "0.43",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.23"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "289",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": "0.26",
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": "0.39",
+        "tix": "0.12"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "291",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1105",
+      "prices": {
+        "usd": null,
+        "usd_foil": "0.89",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "895",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.10",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "514",
+      "prices": {
+        "usd": "0.37",
+        "usd_foil": "0.38",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "304",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": "0.48",
+        "usd_etched": null,
+        "eur": "0.30",
+        "eur_foil": "0.39",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "1032",
+      "prices": {
+        "usd": "0.23",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.31",
+        "eur_foil": null,
+        "tix": "0.14"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "AKH-248",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-26"
+    },
+    {
+      "set": "akr",
+      "set_name": "Amonkhet Remastered",
+      "collector_number": "330",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-08-13"
+    },
+    {
+      "set": "pakh",
+      "set_name": "Amonkhet Promos",
+      "collector_number": "248s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "2.80",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "1.94",
+        "tix": null
+      },
+      "released_at": "2017-04-28"
+    },
+    {
+      "set": "akh",
+      "set_name": "Amonkhet",
+      "collector_number": "248",
+      "prices": {
+        "usd": "0.29",
+        "usd_foil": "0.84",
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": "1.60",
+        "tix": "0.02"
+      },
+      "released_at": "2017-04-28"
+    }
+  ]
+}

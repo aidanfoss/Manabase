@@ -1,0 +1,116 @@
+{
+  "name": "Ketria Triome",
+  "oracle_id": "6bae00e8-06cf-4ac4-a1cc-757e454109fe",
+  "type_line": "Land — Forest Island Mountain",
+  "color_identity": [
+    "G",
+    "R",
+    "U"
+  ],
+  "fetchable": true,
+  "set": "iko",
+  "collector_number": "250",
+  "image": "https://cards.scryfall.io/normal/front/a/2/a249b1f4-2b22-4b67-a207-e0c4ae95d2e1.jpg?1601241399",
+  "scryfall_uri": "https://scryfall.com/card/iko/250/ketria-triome?utm_source=api",
+  "uri": "https://scryfall.com/card/iko/250/ketria-triome?utm_source=api",
+  "url": "https://scryfall.com/card/iko/250/ketria-triome?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/a249b1f4-2b22-4b67-a207-e0c4ae95d2e1/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F212697%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=454998&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/80509?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 14.17,
+    "lowest": 14.17,
+    "usd": "14.17",
+    "usd_foil": "15.92"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A6bae00e8-06cf-4ac4-a1cc-757e454109fe&unique=prints",
+  "prints": [
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "IKO-250",
+      "prices": {
+        "usd": "15.82",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "80951",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "1.72"
+      },
+      "released_at": "2020-04-30"
+    },
+    {
+      "set": "piko",
+      "set_name": "Ikoria: Lair of Behemoths Promos",
+      "collector_number": "250s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "21.56",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "13.47",
+        "tix": null
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "piko",
+      "set_name": "Ikoria: Lair of Behemoths Promos",
+      "collector_number": "250p",
+      "prices": {
+        "usd": "17.83",
+        "usd_foil": "16.12",
+        "usd_etched": null,
+        "eur": "12.51",
+        "eur_foil": "12.79",
+        "tix": null
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "iko",
+      "set_name": "Ikoria: Lair of Behemoths",
+      "collector_number": "310",
+      "prices": {
+        "usd": "14.76",
+        "usd_foil": "38.97",
+        "usd_etched": null,
+        "eur": "14.05",
+        "eur_foil": "33.21",
+        "tix": null
+      },
+      "released_at": "2020-04-24"
+    },
+    {
+      "set": "iko",
+      "set_name": "Ikoria: Lair of Behemoths",
+      "collector_number": "250",
+      "prices": {
+        "usd": "14.17",
+        "usd_foil": "15.92",
+        "usd_etched": null,
+        "eur": "12.24",
+        "eur_foil": "12.93",
+        "tix": "0.21"
+      },
+      "released_at": "2020-04-24"
+    }
+  ]
+}

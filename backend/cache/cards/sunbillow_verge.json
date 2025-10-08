@@ -1,0 +1,101 @@
+{
+  "name": "Sunbillow Verge",
+  "oracle_id": "a202276b-1f1b-4277-95ee-26877a204f5e",
+  "type_line": "Land",
+  "color_identity": [
+    "R",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "dft",
+  "collector_number": "264",
+  "image": "https://cards.scryfall.io/normal/front/9/4/94ed132f-b818-4dbf-9b4a-e5acb067e0a4.jpg?1738356948",
+  "scryfall_uri": "https://scryfall.com/card/dft/264/sunbillow-verge?utm_source=api",
+  "uri": "https://scryfall.com/card/dft/264/sunbillow-verge?utm_source=api",
+  "url": "https://scryfall.com/card/dft/264/sunbillow-verge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/94ed132f-b818-4dbf-9b4a-e5acb067e0a4/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F614424%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=807233&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/136651?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 6.77,
+    "lowest": 6.77,
+    "usd": "6.77",
+    "usd_foil": "8.02"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Aa202276b-1f1b-4277-95ee-26877a204f5e&unique=prints",
+  "prints": [
+    {
+      "set": "pdft",
+      "set_name": "Aetherdrift Promos",
+      "collector_number": "264s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "9.08",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "pdft",
+      "set_name": "Aetherdrift Promos",
+      "collector_number": "264p",
+      "prices": {
+        "usd": "8.91",
+        "usd_foil": "7.63",
+        "usd_etched": null,
+        "eur": "5.93",
+        "eur_foil": "5.98",
+        "tix": null
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "dft",
+      "set_name": "Aetherdrift",
+      "collector_number": "504",
+      "prices": {
+        "usd": null,
+        "usd_foil": "17.68",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "8.15",
+        "tix": "0.43"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "dft",
+      "set_name": "Aetherdrift",
+      "collector_number": "373",
+      "prices": {
+        "usd": "8.52",
+        "usd_foil": "10.39",
+        "usd_etched": null,
+        "eur": "7.83",
+        "eur_foil": "9.08",
+        "tix": "0.19"
+      },
+      "released_at": "2025-02-14"
+    },
+    {
+      "set": "dft",
+      "set_name": "Aetherdrift",
+      "collector_number": "264",
+      "prices": {
+        "usd": "6.77",
+        "usd_foil": "8.02",
+        "usd_etched": null,
+        "eur": "6.78",
+        "eur_foil": "7.60",
+        "tix": "0.17"
+      },
+      "released_at": "2025-02-14"
+    }
+  ]
+}

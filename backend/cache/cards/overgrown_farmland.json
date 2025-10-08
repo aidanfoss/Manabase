@@ -1,0 +1,213 @@
+{
+  "name": "Overgrown Farmland",
+  "oracle_id": "709d2f10-1585-48c3-9058-ddd5f62f0452",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "tdc",
+  "collector_number": "381",
+  "image": "https://cards.scryfall.io/normal/front/6/4/644fb0ed-f434-4cc4-b7e9-a60db5ece2b7.jpg?1743207666",
+  "scryfall_uri": "https://scryfall.com/card/tdc/381/overgrown-farmland?utm_source=api",
+  "uri": "https://scryfall.com/card/tdc/381/overgrown-farmland?utm_source=api",
+  "url": "https://scryfall.com/card/tdc/381/overgrown-farmland?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/644fb0ed-f434-4cc4-b7e9-a60db5ece2b7/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624601%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=818943&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/138703?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 1.96,
+    "lowest": 1.96,
+    "usd": "1.96",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A709d2f10-1585-48c3-9058-ddd5f62f0452&unique=prints",
+  "prints": [
+    {
+      "set": "tdc",
+      "set_name": "Tarkir: Dragonstorm Commander",
+      "collector_number": "381",
+      "prices": {
+        "usd": "1.96",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.93",
+        "eur_foil": null,
+        "tix": "0.35"
+      },
+      "released_at": "2025-04-11"
+    },
+    {
+      "set": "inr",
+      "set_name": "Innistrad Remastered",
+      "collector_number": "281",
+      "prices": {
+        "usd": "2.69",
+        "usd_foil": "2.88",
+        "usd_etched": null,
+        "eur": "2.45",
+        "eur_foil": "2.91",
+        "tix": null
+      },
+      "released_at": "2025-01-24"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "MID-265",
+      "prices": {
+        "usd": "2.06",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-12-02"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "1097",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.20",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "883",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.89",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "506",
+      "prices": {
+        "usd": "3.03",
+        "usd_foil": "3.35",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "292",
+      "prices": {
+        "usd": "1.97",
+        "usd_foil": "3.72",
+        "usd_etched": null,
+        "eur": "2.08",
+        "eur_foil": "3.06",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "dbl",
+      "set_name": "Innistrad: Double Feature",
+      "collector_number": "265",
+      "prices": {
+        "usd": "3.84",
+        "usd_foil": "14.25",
+        "usd_etched": null,
+        "eur": "3.99",
+        "eur_foil": "5.18",
+        "tix": "0.20"
+      },
+      "released_at": "2022-01-28"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "94098",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.70"
+      },
+      "released_at": "2021-12-27"
+    },
+    {
+      "set": "pmid",
+      "set_name": "Innistrad: Midnight Hunt Promos",
+      "collector_number": "265s",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.62",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": "4.12",
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "pmid",
+      "set_name": "Innistrad: Midnight Hunt Promos",
+      "collector_number": "265p",
+      "prices": {
+        "usd": "2.68",
+        "usd_foil": "3.96",
+        "usd_etched": null,
+        "eur": "2.88",
+        "eur_foil": "3.00",
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "mid",
+      "set_name": "Innistrad: Midnight Hunt",
+      "collector_number": "283",
+      "prices": {
+        "usd": "3.35",
+        "usd_foil": "5.61",
+        "usd_etched": null,
+        "eur": "3.45",
+        "eur_foil": "5.87",
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "mid",
+      "set_name": "Innistrad: Midnight Hunt",
+      "collector_number": "265",
+      "prices": {
+        "usd": "2.02",
+        "usd_foil": "2.36",
+        "usd_etched": null,
+        "eur": "2.31",
+        "eur_foil": "2.90",
+        "tix": "0.06"
+      },
+      "released_at": "2021-09-24"
+    }
+  ]
+}

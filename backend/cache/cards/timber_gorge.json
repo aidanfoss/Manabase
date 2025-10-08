@@ -1,0 +1,129 @@
+{
+  "name": "Timber Gorge",
+  "oracle_id": "00b34fab-5a80-4a4d-b6cf-72479197677a",
+  "type_line": "Land",
+  "color_identity": [
+    "G",
+    "R"
+  ],
+  "fetchable": false,
+  "set": "m19",
+  "collector_number": "258",
+  "image": "https://cards.scryfall.io/normal/front/0/7/07076412-18fe-4e15-bdb5-17111b4a66db.jpg?1562300278",
+  "scryfall_uri": "https://scryfall.com/card/m19/258/timber-gorge?utm_source=api",
+  "uri": "https://scryfall.com/card/m19/258/timber-gorge?utm_source=api",
+  "url": "https://scryfall.com/card/m19/258/timber-gorge?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/07076412-18fe-4e15-bdb5-17111b4a66db/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F168779%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=360245&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/68679?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.08,
+    "lowest": 0.04,
+    "usd": "0.08",
+    "usd_foil": "0.41"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A00b34fab-5a80-4a4d-b6cf-72479197677a&unique=prints",
+  "prints": [
+    {
+      "set": "scd",
+      "set_name": "Starter Commander Decks",
+      "collector_number": "328",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.22"
+      },
+      "released_at": "2022-12-02"
+    },
+    {
+      "set": "pz2",
+      "set_name": "Treasure Chest",
+      "collector_number": "70797",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.15"
+      },
+      "released_at": "2018-12-06"
+    },
+    {
+      "set": "m19",
+      "set_name": "Core Set 2019",
+      "collector_number": "258",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": "0.41",
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": "0.22",
+        "tix": "0.03"
+      },
+      "released_at": "2018-07-13"
+    },
+    {
+      "set": "gs1",
+      "set_name": "Global Series Jiang Yanggu & Mu Yanling",
+      "collector_number": "38",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.07",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-06-22"
+    },
+    {
+      "set": "dom",
+      "set_name": "Dominaria",
+      "collector_number": "279",
+      "prices": {
+        "usd": "0.04",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": "0.54"
+      },
+      "released_at": "2018-04-27"
+    },
+    {
+      "set": "akh",
+      "set_name": "Amonkhet",
+      "collector_number": "285",
+      "prices": {
+        "usd": "0.07",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.10",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-04-28"
+    },
+    {
+      "set": "ogw",
+      "set_name": "Oath of the Gatewatch",
+      "collector_number": "179",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": "0.36",
+        "usd_etched": null,
+        "eur": "0.06",
+        "eur_foil": "0.20",
+        "tix": "0.03"
+      },
+      "released_at": "2016-01-22"
+    }
+  ]
+}

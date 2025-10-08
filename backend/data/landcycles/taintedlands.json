@@ -1,0 +1,14 @@
+{
+  "id": "tainted_lands",
+  "name": "Tainted Lands",
+  "tier": "premium",
+  "untapQuality": "conditional",
+  "description": "Enter untapped and tap for colorless, but can only produce colored mana if you control a Swamp. These lands are efficient in black-heavy decks but unreliable outside them.",
+  "tags": "conditional, swamp dependency, playable, mono-black synergy",
+  "cards": [
+    "Tainted Isle",
+    "Tainted Peak",
+    "Tainted Field",
+    "Tainted Wood"
+  ]
+}

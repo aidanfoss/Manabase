@@ -2,6 +2,7 @@
   "name": "Check Lands",
   "description": "Dual lands that can enter untapped if you already control a land with a matching basic type, offering strong synergy with typed lands like shocks or basics.",
   "tags": "good, untapped, conditional",
+  "tier": "playable",
   "cards": [
     "Glacial Fortress",
     "Drowned Catacomb",
