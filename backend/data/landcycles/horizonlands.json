@@ -1,0 +1,13 @@
+{
+  "name": "Horizon Lands",
+  "description": "Lands that tap for two colors, can be sacrificed to draw a card at the cost of 1 life, offering strong tempo and late-game card advantage.",
+  "tags": "good, untapped, draw, pain",
+  "cards": [
+    "Horizon Canopy",
+    "Silent Clearing",
+    "Nurturing Peatland",
+    "Waterlogged Grove",
+    "Fiery Islet",
+    "Sunbaked Canyon"
+  ]
+}

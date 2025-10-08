@@ -1,0 +1,19 @@
+{
+  "id": "artifactlands",
+  "name": "Artifact Lands",
+  "description": "Indestructible dual-color artifact lands that enter tapped. Excellent synergy with artifact-based decks.",
+  "tags": "artifact, dual, enters_tapped, tapped, indestructible",
+  "cards": [
+    "Razortide Bridge",
+    "Mistvault Bridge",
+    "Drossforge Bridge",
+    "Slagwoods Bridge",
+    "Thornglint Bridge",
+    "Goldmire Bridge",
+    "Darkmoss Bridge",
+    "Tanglepool Bridge",
+    "Silverbluff Bridge",
+    "Rustvale Bridge"
+  ]
+}
+

@@ -1,0 +1,11 @@
+{
+  "name": "Orzhov (White-Black)",
+  "description": "Orzhov staples: efficient removal, recursion, and lifegain synergy.",
+  "staples": [
+    "Vindicate",
+    "Anguished Unmaking",
+    "Debt to the Deathless",
+    "Mortify",
+    "Utter End"
+  ]
+}

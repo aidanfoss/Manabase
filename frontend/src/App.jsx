@@ -1,81 +1,163 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { api } from './api/client'
-import Card from './components/Card'
-import './styles.css'
+import React, { useEffect, useMemo, useState } from "react";
+import { api } from "./api/client";
+import Card from "./components/Card";
+import "./styles.css";
+import { encodeSelection, decodeSelection } from "./utils/hashState";
 
 export default function App() {
-    const [metas, setMetas] = useState([])
-    const [landcycles, setLandcycles] = useState([])
+    const [metas, setMetas] = useState([]);
+    const [landcycles, setLandcycles] = useState([]);
+    const [data, setData] = useState({ staples: [], sideboard: [], lands: [] });
+    const [status, setStatus] = useState("idle");
+    const [error, setError] = useState(null);
+
     const [selected, setSelected] = useState({
         metas: new Set(),
         landcycles: new Set(),
-        colors: new Set()
-    })
-    const [cards, setCards] = useState({ staples: [], sideboard: [], lands: [] })
+        colors: new Set(),
+    });
 
-    // fetch initial data
+    // --- restore hash on load ---
     useEffect(() => {
-        ; (async () => {
-            const [m, l] = await Promise.all([
-                api.getMetas(),
-                api.getLandcycles()
-            ])
-            setMetas(m || [])
-            setLandcycles(l || [])
-        })()
-    }, [])
+        if (window.location.hash.length > 1) {
+            const decoded = decodeSelection(window.location.hash.substring(1));
+            if (decoded && decoded.version >= 1) {
+                setSelected({
+                    metas: new Set(decoded.metas || []),
+                    landcycles: new Set(decoded.landcycles || []),
+                    colors: new Set(decoded.colors || []),
+                });
+            }
+        }
+    }, []);
 
-    // toggle functions
-    function toggleMeta(name) {
-        setSelected(prev => {
-            const next = new Set(prev.metas)
-            next.has(name) ? next.delete(name) : next.add(name)
-            return { ...prev, metas: next }
-        })
-    }
-
-    function toggleCycle(name) {
-        setSelected(prev => {
-            const next = new Set(prev.landcycles)
-            next.has(name) ? next.delete(name) : next.add(name)
-            return { ...prev, landcycles: next }
-        })
-    }
-
-    function toggleColor(c) {
-        setSelected(prev => {
-            const next = new Set(prev.colors)
-            next.has(c) ? next.delete(c) : next.add(c)
-            return { ...prev, colors: next }
-        })
-    }
-
-    // rebuild combined lists when selection changes
+    // --- load metas and landcycles ---
     useEffect(() => {
-        const chosenMetas = metas.filter(m => selected.metas.size === 0 || selected.metas.has(m.name))
-        const staples = chosenMetas.flatMap(m => m.staples || [])
-        const sideboard = chosenMetas.flatMap(m => m.sideboard || [])
-        const lands = landcycles.filter(lc => selected.landcycles.size === 0 || selected.landcycles.has(lc.name))
-        setCards({ staples, sideboard, lands })
-    }, [metas, landcycles, selected.metas, selected.landcycles])
+        (async () => {
+            try {
+                const [m, l] = await Promise.all([api.getMetas(), api.getLandcycles()]);
+                setMetas(m || []);
+                setLandcycles(l || []);
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+    }, []);
+
+    // --- toggle handler ---
+    function toggle(setName, value) {
+        setSelected((prev) => {
+            const ns = new Set(prev[setName]);
+            ns.has(value) ? ns.delete(value) : ns.add(value);
+            return { ...prev, [setName]: ns };
+        });
+    }
+
+    // --- query builder ---
+    const query = useMemo(() => {
+        const colorsArr = [...selected.colors];
+        const effectiveColors = colorsArr.length === 0 ? ["colorless"] : colorsArr;
+        return {
+            metas: [...selected.metas],
+            landcycles: [...selected.landcycles],
+            colors: effectiveColors,
+        };
+    }, [selected]);
+
+    // --- fetch data ---
+    useEffect(() => {
+        setStatus("loading");
+        setError(null);
+
+        api
+            .getCards(query)
+            .then((payload) => {
+                // New structure: lands + nonlands
+                let parsed = { lands: [], nonlands: [] };
+
+                if (Array.isArray(payload)) {
+                    // Legacy flat payload
+                    parsed.lands = payload;
+                } else if (payload && typeof payload === "object") {
+                    parsed = {
+                        lands: payload.lands || [],
+                        nonlands: payload.nonlands || []
+                    };
+                }
+
+                setData(parsed);
+                setStatus("done");
+
+                const selection = {
+                    version: 1,
+                    metas: [...selected.metas],
+                    landcycles: [...selected.landcycles],
+                    colors: [...selected.colors],
+                };
+                const hash = encodeSelection(selection);
+                window.history.replaceState(null, "", `#${hash}`);
+            })
+            .catch((e) => {
+                setError(e.message || String(e));
+                setStatus("error");
+            });
+    }, [query.metas.join("|"), query.landcycles.join("|"), query.colors.join("|")]);
+
+    // --- export section ---
+    function exportSection(name, cards) {
+        if (!cards || cards.length === 0) return;
+        const lines = cards.map((c) => {
+            const setCode = (c.set || c.prints?.[0]?.set || "???").toUpperCase();
+            const collector =
+                c.collector_number || c.prints?.[0]?.collector_number || "";
+            return `1 ${c.name} (${setCode}) ${collector}`;
+        });
+        const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${name}.txt`;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // --- copy section to clipboard ---
+    function copySection(name, cards) {
+        if (!cards || cards.length === 0) return;
+        const text = cards
+            .map((c) => {
+                const setCode = (c.set || c.prints?.[0]?.set || "???").toUpperCase();
+                const collector =
+                    c.collector_number || c.prints?.[0]?.collector_number || "";
+                return `1 ${c.name} (${setCode}) ${collector}`;
+            })
+            .join("\n");
+        navigator.clipboard.writeText(text);
+        alert(`📋 Copied ${name} list to clipboard!`);
+    }
 
     return (
-        <div className='app'>
-            <aside className='aside'>
+        <div className="app">
+            {/* === Sidebar === */}
+            <aside className="aside">
                 <h2>Manabase Builder</h2>
-                <p className='helper'>
-                    Select colors, metas, and land cycles to populate cards. Prices shown are the lowest printing (foil or nonfoil).
+                <p className="helper">
+                    Select colors, metas, and land cycles to populate cards. Prices shown
+                    are the lowest printing (foil or nonfoil).
                 </p>
 
-                {/* Color buttons */}
-                <div className='section'>
+                <div className="section">
                     <h3>Colors</h3>
-                    <div className='color-buttons'>
-                        {['W', 'U', 'B', 'R', 'G'].map(c => (
+                    <div className="color-buttons">
+                        {["W", "U", "B", "R", "G"].map((c) => (
                             <button
                                 key={c}
-                                onClick={() => toggleColor(c)}
-                                className={`color-btn color-${c}${selected.colors.has(c) ? ' active' : ''}`}
+                                onClick={() => toggle("colors", c)}
+                                className={
+                                    "color-btn color-" +
+                                    c +
+                                    (selected.colors.has(c) ? " active" : "")
+                                }
                             >
                                 {c}
                             </button>
@@ -83,15 +165,16 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Metas */}
-                <div className='section'>
+                <div className="section">
                     <h3>Metas</h3>
-                    <div className='taglist'>
-                        {metas.map(m => (
+                    <div className="taglist">
+                        {metas.map((m) => (
                             <button
                                 key={m.name}
-                                onClick={() => toggleMeta(m.name)}
-                                className={`tag${selected.metas.has(m.name) ? ' active' : ''}`}
+                                onClick={() => toggle("metas", m.name)}
+                                className={
+                                    "tag" + (selected.metas.has(m.name) ? " active" : "")
+                                }
                             >
                                 {m.name}
                             </button>
@@ -99,48 +182,84 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Land Cycles */}
-                <div className='section'>
-                    <h3>Land Cycles</h3>
-                    <div className='taglist'>
-                        {landcycles.map(lc => (
-                            <button
-                                key={lc.name}
-                                onClick={() => toggleCycle(lc.name)}
-                                className={`tag${selected.landcycles.has(lc.name) ? ' active' : ''}`}
-                            >
-                                {lc.name}
-                            </button>
-                        ))}
-                    </div>
+                <div className="section">
+                  <h3>Land Cycles</h3>
+                  <div className="taglist">
+                    {landcycles.map(lc => (
+                      <button
+                        key={lc.id}
+                        onClick={() => toggle("landcycles", lc.id)}
+                        className={
+                          "tag" + (selected.landcycles.has(lc.id) ? " active" : "")
+                        }
+                      >
+                        {lc.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+
+                <div className="section">
+                    <h3>Share</h3>
+                    <button
+                        className="tag active"
+                        onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            alert("🔗 Link copied to clipboard!");
+                        }}
+                    >
+                        Copy Share Link
+                    </button>
                 </div>
             </aside>
 
-            <main className='main'>
-                <div className='section-title'>Staples</div>
-                <div className='grid'>
-                    {cards.staples.map((n, i) => {
-                        const card = typeof n === 'string' ? { name: n } : n
-                        return <Card key={i} item={card} />
-                    })}
-                </div>
+            {/* === Main content === */}
+            <main className="main">
+                {status === "loading" && <div className="status">Loading cards…</div>}
+                {status === "error" && <div className="status error">Error: {error}</div>}
 
-                <div className='section-title'>Sideboard</div>
-                <div className='grid'>
-                    {cards.sideboard.map((n, i) => {
-                        const card = typeof n === 'string' ? { name: n } : n
-                        return <Card key={i} item={card} />
-                    })}
-                </div>
+                {/* Always show "Lands" when using flat results */}
+                {["lands", "nonlands"].map((section) => {
+                  const cards = data[section] || [];
+                  if (cards.length === 0) return null;
 
-                <div className='section-title'>Lands</div>
-                <div className='grid'>
-                    {cards.lands.map((n, i) => {
-                        const card = typeof n === 'string' ? { name: n } : n
-                        return <Card key={i} item={card} />
-                    })}
-                </div>
+                  const title =
+                    section === "lands"
+                      ? "Lands"
+                      : "Non-Lands";
+
+                  return (
+                    <div key={section}>
+                      <div className="section-title-row">
+                        <div className="section-title">{title}</div>
+                        {cards.length > 0 && (
+                          <div className="export-controls">
+                            <button
+                              className="export-btn"
+                              onClick={() => exportSection(title, cards)}
+                            >
+                              Export
+                            </button>
+                            <button
+                              className="copy-btn small"
+                              onClick={() => copySection(title, cards)}
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid">
+                        {cards.map((it, i) => (
+                          <Card key={i} item={it} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
             </main>
         </div>
-    )
+    );
 }

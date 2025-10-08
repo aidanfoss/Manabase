@@ -1,0 +1,12 @@
+{
+  "name": "Sac Draw Lands",
+  "description": "Strange lands that enter tapped and let you sacrifice them for a large cost to draw 1 card. War Room is better.",
+  "tags": "bad, tapped, utility",
+  "cards": [
+    "Skybridge Towers",
+    "Waterfront District",
+    "Tramway Station",
+    "Racers' Ring",
+    "Botanical Plaza"
+  ]
+}

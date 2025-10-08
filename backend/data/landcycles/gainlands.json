@@ -1,0 +1,17 @@
+﻿{
+  "name": "Gain Lands",
+  "description": "Gains you 1 life on ETB. Enters Tapped",
+  "tags": "unconditionally tapped, bad, tapped",
+  "cards": [
+    "Tranquil Cove",
+    "Dismal Backwater",
+    "Bloodfell Caves",
+    "Rugged Highlands",
+    "Blossoming Sands",
+    "Scoured Barrens",
+    "Jungle Hollow",
+    "Thornwood Falls",
+    "Swiftwater Cliffs",
+    "Wind-Scarred Crag"
+  ]
+}

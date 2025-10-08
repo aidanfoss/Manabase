@@ -1,0 +1,12 @@
+{
+  "name": "Bi-Cycle Lands",
+  "description": "Dual lands from Amonkhet that enter tapped but have both basic land types and can be cycled away for two mana when drawn late.",
+  "tags": "good, tapped, cycling, fetchable",
+  "cards": [
+    "Irrigated Farmland",
+    "Fetid Pools",
+    "Canyon Slough",
+    "Sheltered Thicket",
+    "Scattered Groves"
+  ]
+}

@@ -1,39 +1,377 @@
-
-:root {
-  --bg: #0e0f12;
-  --panel: #16171c;
-  --text: #e0e4f2;
-  --muted: #a0a5b5;
-  --accent: #4c94ff;
+/* === Base === */
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background-color: #0f1117;
+    color: #f8fafc;
 }
 
-body { margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--text); }
-.app { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
-.aside { background: var(--panel); padding: 16px; overflow-y: auto; border-right: 1px solid #222; }
-.aside h2 { font-size: 20px; margin-top: 0; }
-.section { margin-bottom: 20px; }
-.section h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-.taglist { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { border-radius: 10px; padding: 6px 10px; background: #1b1d24; border: 1px solid #2c2f3b; color: var(--text); font-size: 12px; cursor: pointer; }
-.tag.active { background: #13254a; border-color: var(--accent); }
-.color-buttons { display: flex; gap: 6px; margin-bottom: 10px; }
-.color-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #333; font-weight: bold; color: #fff; cursor: pointer; }
-.color-btn.active { box-shadow: 0 0 8px var(--accent); }
-.color-W { background: #fdfde2; color: #000; }
-.color-U { background: #8ec5ff; }
-.color-B { background: #3a3a3a; }
-.color-R { background: #e35c5c; }
-.color-G { background: #4baa58; }
-.main { padding: 20px; overflow-y: auto; }
-.section-title { font-size: 16px; margin: 16px 0 8px; border-bottom: 1px solid #2a2c36; padding-bottom: 4px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 12px; }
-.card { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #222; background: #101115; }
-.card img { width: 100%; aspect-ratio: 63.5 / 88.9; object-fit: cover; display: block; }
-.title { padding: 6px 10px 12px; font-weight: 600; font-size: 14px; }
-.price-tag { position: absolute; right: 8px; bottom: 8px; font-size: 11px; background: #142038; color: #cfe1ff; border: 1px solid #233a66; border-radius: 8px; padding: 5px 8px; cursor: pointer; }
-.note-dot { position: absolute; left: 8px; top: 8px; width: 18px; height: 18px; border-radius: 6px; background: #1d1e22; display: grid; place-items: center; cursor: pointer; font-size: 12px; }
-.tooltip, .price-hover { display: none; position: absolute; z-index: 10; background: #0f1116; border: 1px solid #2a2c36; border-radius: 8px; padding: 10px; font-size: 12px; color: var(--text); }
-.note-dot:hover + .tooltip { display: block; left: 8px; top: 30px; width: 240px; }
-.price-tag:hover + .price-hover { display: block; right: 8px; bottom: 40px; width: 240px; }
-.price-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #222; padding: 3px 0; }
-.price-row:last-child { border: none; }
+.app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.aside {
+    background-color: #111827;
+    padding: 1.25rem;
+    width: 260px;
+    overflow-y: auto;
+    border-right: 1px solid #1f2937;
+}
+
+.main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+/* === Sidebar === */
+h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.helper {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+}
+
+.section {
+    margin-bottom: 1.5rem;
+}
+
+.taglist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag {
+    border: 1px solid #374151;
+    background-color: #1f2937;
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #e5e7eb;
+    transition: all 0.2s;
+}
+
+    .tag:hover {
+        background-color: #374151;
+    }
+
+    .tag.active {
+        background-color: #2563eb;
+        border-color: #2563eb;
+        color: #fff;
+    }
+
+/* === Color buttons === */
+.color-buttons {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.color-btn {
+    border: 1px solid #374151;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+    .color-btn.active {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px #2563eb;
+    }
+
+.color-W {
+    background: #fff;
+    color: #000;
+}
+
+.color-U {
+    background: #60a5fa;
+    color: #000;
+}
+
+.color-B {
+    background: #374151;
+    color: #fff;
+}
+
+.color-R {
+    background: #ef4444;
+    color: #fff;
+}
+
+.color-G {
+    background: #10b981;
+    color: #fff;
+}
+
+/* === Cards === */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.card {
+    position: relative;
+    background-color: #111827;
+    border-radius: 0.6rem;
+    overflow: hidden;
+    border: 1px solid #1f2937;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
+    }
+
+    .card img {
+        width: 100%;
+        display: block;
+    }
+
+.no-image {
+    text-align: center;
+    padding: 3rem 0;
+    color: #9ca3af;
+}
+
+.card-title {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.price-tag {
+    background: #1e3a8a;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.3rem;
+    border: none;
+    cursor: pointer;
+}
+
+/* === Note ribbon overlay (top portion only) === */
+.card-image {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+.card-note-banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 22%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.4rem;
+    border-top-left-radius: 0.6rem;
+    border-top-right-radius: 0.6rem;
+    background: linear-gradient( to bottom, rgba(55, 65, 81, 0.9) 0%, rgba(55, 65, 81, 0.65) 90%, transparent 100% );
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.card:hover .card-note-banner {
+    opacity: 1;
+}
+
+.card-note-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #f9fafb;
+    text-align: center;
+    line-height: 1.1rem;
+    width: 95%;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* === Popups (printings) === */
+.popup {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    background-color: #1f2937;
+    color: #f3f4f6;
+    border: 1px solid #374151;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    width: 240px;
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 30;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+}
+
+.popup-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #93c5fd;
+    margin-bottom: 0.4rem;
+}
+
+.popup-body {
+    font-size: 0.75rem;
+    line-height: 1.2rem;
+}
+
+.print-row {
+    border-bottom: 1px solid #374151;
+    padding-bottom: 0.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.copy-btn {
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    background: #2563eb;
+    border: none;
+    color: white;
+    border-radius: 0.3rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+    .copy-btn:hover {
+        background: #3b82f6;
+    }
+
+/* === Section Titles === */
+.section-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #e5e7eb;
+}
+
+/* --- Section header row --- */
+.section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 1.5rem 0 0.5rem;
+}
+
+/* unified control area for export + copy */
+.export-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+/* unified button look */
+.export-btn,
+.copy-btn.small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 14px;
+    line-height: 1;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.06s ease;
+}
+
+.export-btn {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+    .export-btn:hover {
+        background: #2563eb;
+    }
+
+.copy-btn.small {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+    .copy-btn.small:hover {
+        background: #475569;
+    }
+
+    /* optional: tiny press animation */
+    .export-btn:active,
+    .copy-btn.small:active {
+        transform: translateY(1px);
+    }
+
+/* === Status === */
+.status {
+    text-align: center;
+    color: #9ca3af;
+    margin-top: 2rem;
+}
+
+    .status.error {
+        color: #f87171;
+    }
+
+/* --- MDFC handling --- */
+.mdfc .card-image {
+    position: relative;
+}
+
+.card-face {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+    .card-face.back {
+        transform: scaleX(-1);
+    }
+
+/* --- swap button --- */
+.swap-face-btn {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(31, 41, 55, 0.85);
+    border: 1px solid #374151;
+    color: #f3f4f6;
+    font-size: 0.8rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    padding: 0.25rem 0.35rem;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s ease;
+    z-index: 25;
+}
+
+    .swap-face-btn:hover {
+        background: rgba(59, 130, 246, 0.85);
+        color: white;
+    }

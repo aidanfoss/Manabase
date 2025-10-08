@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\backend\\data",
+    "\\backend\\data\\landcycles",
+    "\\frontend",
+    "\\frontend\\src",
+    "\\frontend\\src\\components"
+  ],
+  "SelectedNode": "\\frontend\\src\\components\\CardGrid.jsx",
+  "PreviewInSolutionExplorer": false
+}

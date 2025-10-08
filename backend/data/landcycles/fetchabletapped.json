@@ -1,0 +1,18 @@
+{
+  "id": "fetchabletapped",
+  "name": "Fetch Lands",
+  "description": "Enters tapped, but is fetchable. Surveils and Cycles are better. Good budget option.",
+  "tags": "fetchable, bad, tapped",
+  "cards": [
+    "Idyllic Beachfront",
+    "Contaminated Aquifer",
+    "Geothermal Bog",
+    "Wooded Ridgeline",
+    "Radiant Grove",
+    "Sunlit Marsh",
+    "Haunted Mire",
+    "Tangled Islet",
+    "Molten Tributary",
+    "Sacred Peaks"
+  ]
+}

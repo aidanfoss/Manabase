@@ -1,0 +1,17 @@
+{
+  "name": "Guildgates",
+  "description": "Classic Ravnica dual lands that enter tapped and have the Gate subtype, enabling synergy with cards like Gatebreaker Ram and Circuitous Route.",
+  "tags": "bad, tapped, gates",
+  "cards": [
+    "Azorius Guildgate",
+    "Dimir Guildgate",
+    "Rakdos Guildgate",
+    "Gruul Guildgate",
+    "Selesnya Guildgate",
+    "Orzhov Guildgate",
+    "Golgari Guildgate",
+    "Simic Guildgate",
+    "Izzet Guildgate",
+    "Boros Guildgate"
+  ]
+}

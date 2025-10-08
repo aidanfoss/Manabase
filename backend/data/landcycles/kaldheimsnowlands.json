@@ -1,0 +1,17 @@
+{
+  "name": "Kaldheim Snow Lands",
+  "description": "Snow dual lands that enter tapped and count as both basic land types for snow synergy and fetchability.",
+  "tags": "bad, tapped, fetchable",
+  "cards": [
+    "Glacial Floodplain",
+    "Ice Tunnel",
+    "Sulfurous Mire",
+    "Highland Forest",
+    "Arctic Treeline",
+    "Snowfield Sinkhole",
+    "Woodland Chasm",
+    "Rimewood Falls",
+    "Volatile Fjord",
+    "Alpine Meadow"
+  ]
+}

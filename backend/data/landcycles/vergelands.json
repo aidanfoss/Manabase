@@ -1,0 +1,17 @@
+{
+  "name": "Verge Lands",
+  "description": "Filter mana into color pairs. Excellent fixing for multicolor decks.",
+  "tags": "unconditional, untapped, good",
+  "cards": [
+    "Floodfarm Verge",
+    "Gloomlake Verge",
+    "Blazemire Verge",
+    "Thornspire Verge",
+    "Hushwood Verge",
+    "Bleachbone Verge",
+    "Wastewood Verge",
+    "Willowrush Verge",
+    "Riverpyre Verge",
+    "Sunbillow Verge"
+  ]
+}

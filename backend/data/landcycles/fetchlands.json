@@ -1,6 +1,7 @@
 ﻿{
   "name": "Fetchlands",
   "description": "Can be sacrificed to fetch one of two basic land types.",
+  "tags": "best, untapped, fetch, flexible",
   "cards": [
     "Flooded Strand",
     "Polluted Delta",

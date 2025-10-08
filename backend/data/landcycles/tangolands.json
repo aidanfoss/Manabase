@@ -1,11 +1,12 @@
 {
   "name": "Tango Lands",
-  "description": "Enter untapped if you control two or more basic lands. Fetchable duals.",
+  "description": "Battle for Zendikar dual lands that can enter untapped if you control two or more basic lands, and count as both basic land types for fetch land synergy.",
+  "tags": "good, conditional, fetchable, friendly",
   "cards": [
-    "Canopy Vista",
-    "Cinder Glade",
     "Prairie Stream",
+    "Sunken Hollow",
     "Smoldering Marsh",
-    "Sunken Hollow"
+    "Cinder Glade",
+    "Canopy Vista"
   ]
 }

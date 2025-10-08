@@ -1,0 +1,17 @@
+{
+  "name": "Ping Lands",
+  "description": "Lands that deal 1 damage to an opponent when entering. Enter Tapped. Some funny synergies with etb effects",
+  "tags": "unconditionally tapped, bad, tapped",
+  "cards": [
+    "Lonely Arroyo",
+    "Soured Springs",
+    "Jagged Barrens",
+    "Bristling Backwoods",
+    "Creosote Heath",
+    "Forlorn Flats",
+    "Festering Gulch",
+    "Lush Oasis",
+    "Eroded Canyon",
+    "Abraded Bluffs"
+  ]
+}

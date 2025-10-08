@@ -1,6 +1,7 @@
 ﻿{
-  "name": "Scrylands",
+  "name": "Scry Lands",
   "description": "Enter tapped, you Scry 1 on ETB.",
+  "tags": "unconditionally tapped, bad, tapped",
   "cards": [
     "Temple of Enlightenment",
     "Temple of Deceit",

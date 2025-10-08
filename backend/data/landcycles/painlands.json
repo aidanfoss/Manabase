@@ -1,6 +1,7 @@
 ﻿{
   "name": "Painlands",
   "description": "Tap for colorless or one of two colors and deal 1 damage to you.",
+  "tags": "unconditional untap, good untap, good",
   "cards": [
     "Adarkar Wastes",
     "Underground River",

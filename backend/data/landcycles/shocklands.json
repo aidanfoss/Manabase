@@ -1,6 +1,7 @@
 ﻿{
   "name": "Shocklands",
   "description": "Enter tapped unless you pay 2 life. Fetchable duals from Ravnica sets.",
+  "tags": "unconditional, good untap, good",
   "cards": [
     "Hallowed Fountain",
     "Watery Grave",

@@ -1,0 +1,18 @@
+﻿{
+  "id": "trueduals",
+  "name": "True Duals",
+  "description": "The original ten dual lands from Alpha/Beta/Unlimited/Revised. Enter untapped, have both basic land types, and are extremely expensive.",
+  "tags": "dual, premium, untapped, original",
+  "cards": [
+    "Tundra",
+    "Underground Sea",
+    "Badlands",
+    "Taiga",
+    "Savannah",
+    "Scrubland",
+    "Bayou",
+    "Tropical Island",
+    "Volcanic Island",
+    "Plateau"
+  ]
+}

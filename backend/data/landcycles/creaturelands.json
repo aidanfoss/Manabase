@@ -1,0 +1,17 @@
+{
+  "name": "Creature Lands",
+  "description": "Lands that can be turned into creatures temporarily. I would argue these are better than they seem. Still dont play them though lol",
+  "tags": "unconditionally tapped, bad, tapped",
+  "cards": [
+    "Restless Anchorage",
+    "Restless Reef",
+    "Restless Vents",
+    "Restless Ridgeline",
+    "Restless Prairie",
+    "Restless Fortress",
+    "Restless Cottage",
+    "Restless Vinestalk",
+    "Restless Spire",
+    "Restless Bivouac"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Final Fantasy Common Lands",
+  "description": "Generic tapped lands with little to no utility. Some set-based synergies",
+  "tags": "unconditionally tapped, bad, tapped",
+  "cards": [
+    { "name": "Sharlayan, Nation of Scholars" },
+    { "name": "Treno, Dark City" },
+    { "name": "Vector, Imperial Capital" },
+    { "name": "Gongaga, Reactor Town" },
+    { "name": "Windurst, Federation Center" },
+    { "name": "Insomnia, Crown City" },
+    { "name": "Gohn, Town of Ruin" },
+    { "name": "Guadosalam, Farplane Gateway" },
+    { "name": "Baron, Airship Kingdom" },
+    { "name": "Rabanastre, Royal City" }
+  ]
+}

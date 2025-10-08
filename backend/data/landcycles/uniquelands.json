@@ -1,0 +1,8 @@
+{
+  "name": "Unique Lands",
+  "description": "Lands that are unique or don't belong to a set cycle",
+  "cards": [
+    "Fortified Beachhead",
+    "Mount Doom",
+  ]
+}

@@ -1,52 +1,159 @@
-import React from 'react'
-import { fmtUSD } from '../utils/money'
+import React, { useState } from "react";
 
 export default function Card({ item }) {
-    const { name, note, price, image, prints } = item
-    return (
-        <div className='card'>
-            {/* note icon */}
-            {note && <div className='note-dot'>?</div>}
-            {note && <div className='tooltip'>{note}</div>}
+    const [showPrices, setShowPrices] = useState(false);
+    const [hovering, setHovering] = useState(false);
+    const [showBack, setShowBack] = useState(false);
 
-            {/* card art */}
-            {image ? (
-                <img src={image} alt={name} />
-            ) : (
-                <div style={{ height: '256px', display: 'grid', placeItems: 'center' }} className='muted'>
-                    No image
-                </div>
-            )}
+    if (!item) return null;
 
-            <div className='title'>{name}</div>
+    // ---- Normalize fields for backend + scryfall compatibility ----
+    const faces = item.card_faces || item.faces || [];
+    const isMDFC = Array.isArray(faces) && faces.length > 1;
 
-            {/* price tag */}
-            <div className='price-tag'>lowest {fmtUSD(price)}</div>
+    const currentFace = isMDFC ? faces[showBack ? 1 : 0] : item;
 
-            {/* show price table only when hovering over price tag */}
-            {Array.isArray(prints) && prints.length > 0 && (
-                <div className='price-hover'>
-                    <div className='price-row'>
-                        <b>Printings</b>
-                        <span>{prints.length}</span>
+    const image =
+        item.image ||
+        currentFace.image_uris?.normal ||
+        item.image_uris?.normal ||
+        null;
+
+    const name = currentFace.name || item.name;
+    const note = item.note || null;
+
+    const priceValue =
+        item.price ??
+        Number(item.prices?.usd ?? item.prices?.usd_foil ?? item.prices?.usd_etched ?? 0);
+    const lowest =
+        priceValue && !Number.isNaN(priceValue)
+            ? `lowest $${Number(priceValue).toFixed(2)}`
+            : "no price";
+
+    const scryfall = item.scryfall_uri || item.related_uris?.scryfall || null;
+
+    // ---- Print list ----
+    const printList = Array.isArray(item.prints)
+        ? item.prints
+            .filter((p) => {
+                const hasSet = p?.set_name || p?.set || "unknown";
+                const hasPrice =
+                    p?.prices?.usd || p?.prices?.usd_foil || p?.prices?.usd_etched || p?.price;
+                return hasSet && hasPrice;
+            })
+            .slice(0, 15)
+            .map((p, i) => {
+                const foil =
+                    (p.finishes && p.finishes.includes("foil")) || p?.isFoil
+                        ? "(foil)"
+                        : "(nonfoil)";
+                const price =
+                    p.price ??
+                    p.prices?.usd ??
+                    p.prices?.usd_foil ??
+                    p.prices?.usd_etched ??
+                    "â€”";
+                const setName = p.set_name || p.set || "Unknown Set";
+                return (
+                    <div key={i} className="print-row">
+                        {setName} {foil} $
+                        {Number(price).toFixed
+                            ? Number(price).toFixed(2)
+                            : price}
                     </div>
-                    {prints.slice(0, 6).map((p, i) => {
-                        const usd = p?.prices?.usd ? Number(p.prices.usd) : null
-                        const foil = p?.prices?.usd_foil ? Number(p.prices.usd_foil) : null
-                        const shown = usd != null ? usd : foil
-                        const tag = usd != null ? 'nonfoil' : foil != null ? 'foil' : '—'
-                        return (
-                            <div className='price-row' key={p.id || i}>
-                                <span>
-                                    {p.set_name || '—'} <span className='muted'>({tag})</span>
-                                </span>
-                                <span>{shown != null ? `$${shown.toFixed(2)}` : '—'}</span>
-                            </div>
-                        )
-                    })}
-                    {prints.length > 6 && <div className='muted' style={{ paddingTop: 6 }}>…more</div>}
+                );
+            })
+        : item.price
+            ? [
+                <div key="single" className="print-row">
+                    Lowest printing ${Number(item.price).toFixed(2)}
+                </div>,
+            ]
+            : [];
+
+    function copyPrintList() {
+        const text = printList
+            .map((row) => (typeof row === "string" ? row : row.props.children.join(" ")))
+            .join("\n");
+        navigator.clipboard.writeText(text);
+    }
+
+    // ---- Open card on click ----
+    function handleCardClick() {
+        if (scryfall) {
+            window.open(scryfall, "_blank", "noopener,noreferrer");
+        }
+    }
+
+    return (
+        <div
+            className={`card ${isMDFC ? "mdfc" : ""}`}
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => {
+                setHovering(false);
+                setShowPrices(false);
+            }}
+            onClick={handleCardClick}
+        >
+            <div className="card-image">
+                {image ? (
+                    <img
+                        key={showBack ? "back" : "front"}
+                        src={image}
+                        alt={name}
+                        className={`card-face ${showBack ? "back" : "front"}`}
+                    />
+                ) : (
+                    <div className="no-image">No image</div>
+                )}
+
+                {/* Note banner */}
+                {hovering && note && (
+                    <div className="card-note-banner">
+                        <div className="card-note-text">{note}</div>
+                    </div>
+                )}
+
+                {/* Flip button for MDFCs */}
+                {isMDFC && (
+                    <button
+                        className="swap-face-btn"
+                        title={`Show ${showBack ? "front" : "back"} face`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowBack(!showBack);
+                        }}
+                    >
+                        ðŸ”„
+                    </button>
+                )}
+            </div>
+
+            <div className="card-title">
+                {name}
+                {lowest && (
+                    <button
+                        className="price-tag"
+                        onMouseEnter={() => setShowPrices(true)}
+                        onMouseLeave={() => setShowPrices(false)}
+                    >
+                        {lowest}
+                    </button>
+                )}
+            </div>
+
+            {/* Popup for printings */}
+            {showPrices && (
+                <div className="popup" onClick={(e) => e.stopPropagation()}>
+                    <div className="popup-title">
+                        <strong>Printings ({printList.length})</strong>
+                    </div>
+                    <div className="popup-body">{printList}</div>
+                    <button className="copy-btn" onClick={copyPrintList}>
+                        ðŸ“„ Copy List
+                    </button>
                 </div>
             )}
         </div>
-    )
+    );
 }

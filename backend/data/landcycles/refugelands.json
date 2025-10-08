@@ -1,0 +1,17 @@
+{
+  "name": "Generic Lands",
+  "description": "Basic dual lands that always enter tapped and provide simple two-color fixing with no additional benefits or land types.",
+  "tags": "bad, tapped",
+  "cards": [
+    "Meandering River",
+    "Submerged Boneyard",
+    "Cinder Barrens",
+    "Timber Gorge",
+    "Tranquil Expanse",
+    "Forsaken Sanctuary",
+    "Foul Orchard",
+    "Woodland Stream",
+    "Highland Lake",
+    "Stone Quarry"
+  ]
+}

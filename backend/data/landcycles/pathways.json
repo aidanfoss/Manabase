@@ -1,6 +1,7 @@
 {
   "name": "Pathways",
   "description": "Modal DFC lands that can be played as one of two colors.",
+  "tags": "unconditional untap, good untap, good",
   "cards": [
     "Hengegate Pathway",
     "Barkchannel Pathway",
@@ -12,7 +13,6 @@
     "Darkbore Pathway",
     "Needleverge Pathway",
     "Riverglide Pathway",
-    "Temple of Abandon",
     "Timbercrown Pathway"
   ]
 }

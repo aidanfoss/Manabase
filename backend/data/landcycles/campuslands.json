@@ -1,0 +1,12 @@
+{
+  "name": "Strixhaven Campuses",
+  "description": "Lands that let you pay 4 to scry. These are terrible, draft fodder.",
+  "tags": "unconditionally tapped, bad, tapped, enemy",
+  "cards": [
+    "Silverquill Campus",
+    "Witherbloom Campus",
+    "Quandrix Campus",
+    "Prismari Campus",
+    "Lorehold Campus"
+  ]
+}

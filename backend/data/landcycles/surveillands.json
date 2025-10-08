@@ -1,0 +1,17 @@
+﻿{
+  "name": "Surveil Lands",
+  "description": "Enter tapped. Can be fetched and have a useful ETB effect.",
+  "tags": "fetchable, good, tapped",
+  "cards": [
+    "Meticulous Archive",
+    "Undercity Sewers",
+    "Raucous Theater",
+    "Commercial District",
+    "Lush Portico",
+    "Shadowy Backstreet",
+    "Underground Mortuary",
+    "Hedge Maze",
+    "Thundering Falls",
+    "Elegant Parlor"
+  ]
+}
