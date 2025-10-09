@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Manabase Backend Server
  * ---------------------------------
  * Handles all cached card, price, and art API requests for the frontend.
@@ -22,7 +22,9 @@ import cardsRouter from "./routes/cards.js";
 import { readJsonSafe } from "./utils/safeJson.js";
 import { fetchCardData } from "./services/scryfall.js";
 
-
+// ---------------------------------
+// Core Setup
+// ---------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -38,9 +40,17 @@ app.use(express.urlencoded({ extended: true }));
 
 // Logging middleware
 app.use((req, _res, next) => {
-    console.log(`→ ${req.method} ${req.originalUrl}`);
-    next();
+  console.log(`→ ${req.method} ${req.originalUrl}`);
+  next();
 });
+
+// ---------------------------------
+// Utility: Determine if card is fetchable
+// ---------------------------------
+function isFetchable(card) {
+  const basics = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
+  return basics.some(type => card.type_line?.includes(type));
+}
 
 // ---------------------------------
 // Providers (async-friendly)
@@ -49,20 +59,12 @@ const metasProvider = async () => metas;
 const colorsProvider = async () => colors;
 
 // ---------------------------------
-// Utility: Determine if card is fetchable
-// ---------------------------------
-function isFetchable(card) {
-    const basics = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
-    return basics.some(type => card.type_line?.includes(type));
-}
-
-// ---------------------------------
 // API Routes
 // ---------------------------------
 
 // ✅ Health check
 app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, time: new Date().toISOString() });
+  res.json({ ok: true, time: new Date().toISOString() });
 });
 
 // ✅ Simple category endpoints
@@ -75,86 +77,94 @@ app.get("/api/colors", (_req, res) => res.json(colors));
  * Returns an array of landcycle objects with tier & untapQuality metadata
  */
 app.get("/api/landcycles", async (_req, res) => {
-    try {
-        const landcyclesDir = path.join(__dirname, "data/landcycles");
-        const files = fs.readdirSync(landcyclesDir).filter(f => f.endsWith(".json"));
-        const cycles = [];
+  try {
+    const landcyclesDir = path.join(__dirname, "data/landcycles");
+    const files = fs.readdirSync(landcyclesDir).filter(f => f.endsWith(".json"));
+    const cycles = [];
 
-        for (const file of files) {
-            const fullPath = path.join(landcyclesDir, file);
-            const json = await readJsonSafe(fullPath);
+    for (const file of files) {
+      const fullPath = path.join(landcyclesDir, file);
+      const json = await readJsonSafe(fullPath);
 
-            if (json && json.name) {
-                // Safely handle both string and object cards
-                const cards = (json.cards || []).map(c =>
-                    typeof c === "string"
-                        ? { name: c, fetchable: false }
-                        : { name: c.name ?? "", fetchable: c.fetchable ?? false }
-                );
+      if (json && json.name) {
+        // Safely handle both string and object cards
+        const cards = (json.cards || []).map(c =>
+          typeof c === "string"
+            ? { name: c, fetchable: false }
+            : { name: c.name ?? "", fetchable: c.fetchable ?? false }
+        );
 
-                // 🔍 Check Scryfall data to determine if ANY card is fetchable
-                let cycleFetchable = false;
-                for (const card of cards) {
-                    const data = await fetchCardData(card.name);
-                    if (data?.fetchable) {
-                        cycleFetchable = true;
-                        break;
-                    }
-                }
-
-                cycles.push({
-                    id: json.id || path.basename(file, ".json"),
-                    name: json.name,
-                    tier: json.tier || "budget",
-                    untapQuality: json.untapQuality || "unknown",
-                    description: json.description || "",
-                    fetchable: cycleFetchable,
-                    cards,
-                });
-            }
+        // 🔍 Check Scryfall data to determine if ANY card is fetchable
+        let cycleFetchable = false;
+        for (const card of cards) {
+          const data = await fetchCardData(card.name);
+          if (data?.fetchable) {
+            cycleFetchable = true;
+            break;
+          }
         }
 
-        // Sort by tier and then alphabetically
-        const tierOrder = { premium: 0, playable: 1, budget: 2, unknown: 3 };
-        cycles.sort((a, b) => {
-            const ta = tierOrder[a.tier?.toLowerCase()] ?? 3;
-            const tb = tierOrder[b.tier?.toLowerCase()] ?? 3;
-            if (ta !== tb) return ta - tb;
-            return a.name.localeCompare(b.name);
+        cycles.push({
+          id: json.id || path.basename(file, ".json"),
+          name: json.name,
+          tier: json.tier || "budget",
+          untapQuality: json.untapQuality || "unknown",
+          description: json.description || "",
+          fetchable: cycleFetchable,
+          cards,
         });
-
-        res.json(cycles);
-    } catch (err) {
-        console.error("❌ Failed to load landcycles:", err);
-        res.status(500).json({ error: "Failed to load landcycles." });
+      }
     }
+
+    // Sort by tier and then alphabetically
+    const tierOrder = { premium: 0, playable: 1, budget: 2, unknown: 3 };
+    cycles.sort((a, b) => {
+      const ta = tierOrder[a.tier?.toLowerCase()] ?? 3;
+      const tb = tierOrder[b.tier?.toLowerCase()] ?? 3;
+      if (ta !== tb) return ta - tb;
+      return a.name.localeCompare(b.name);
+    });
+
+    res.json(cycles);
+  } catch (err) {
+    console.error("❌ Failed to load landcycles:", err);
+    res.status(500).json({ error: "Failed to load landcycles." });
+  }
 });
 
-
-
-// ✅ Cards route (will internally mark fetchable too)
+// ✅ Cards route (handles fetchable detection internally)
 app.use("/api/cards", cardsRouter);
 
 // ---------------------------------
-// Static Serving (for production builds)
+// 🧱 Static Frontend Serving (React build)
 // ---------------------------------
-const frontendDir = path.resolve(__dirname, "../frontend/dist");
-app.use(express.static(frontendDir));
+const frontendPath = path.join(__dirname, "frontend/dist");
 
-// Fallback for React Router (Express 5-safe)
-app.get(/^(?!\/api).*/, (req, res) => {
-    res.sendFile(path.join(frontendDir, "index.html"));
+// Serve static assets (JS, CSS, etc.)
+app.use(express.static(frontendPath));
+
+// ✅ Fallback route for SPA (React)
+app.get("*", (req, res) => {
+  const indexFile = path.join(frontendPath, "index.html");
+  console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
+  if (fs.existsSync(indexFile)) {
+    res.sendFile(indexFile);
+  } else {
+    console.error("❌ Frontend build not found at", indexFile);
+    res.status(404).send("Frontend build not found.");
+  }
 });
 
 // ---------------------------------
 // Start Server
 // ---------------------------------
 app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log(`📦 Routes available:`);
-    console.log(`   → /api/health`);
-    console.log(`   → /api/metas`);
-    console.log(`   → /api/colors`);
-    console.log(`   → /api/landcycles`);
-    console.log(`   → /api/cards`);
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`📦 Routes available:`);
+  console.log(`   → /api/health`);
+  console.log(`   → /api/metas`);
+  console.log(`   → /api/colors`);
+  console.log(`   → /api/landcycles`);
+  console.log(`   → /api/cards`);
+  console.log(`🌐 Serving frontend from: ${frontendPath}`);
 });

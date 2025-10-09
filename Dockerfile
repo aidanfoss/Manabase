@@ -1,15 +1,23 @@
-# ---- Build Frontend ----
-FROM node:22-alpine AS build
-WORKDIR /app
-COPY frontend ./frontend
+# --- Frontend build ---
+FROM node:20 AS frontend
 WORKDIR /app/frontend
-RUN npm install && npm run build
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-# ---- Backend Runtime ----
-FROM node:22-alpine
+# --- Backend build ---
+FROM node:20
 WORKDIR /app
-COPY backend ./backend
-COPY --from=build /app/frontend/dist ./frontend/dist
-RUN npm install express cors
-EXPOSE 8080
-CMD ["node", "backend/server.js"]
+COPY backend/package*.json ./
+RUN npm install
+COPY backend/ .
+
+# Copy built frontend into backend
+COPY --from=frontend /app/frontend/dist /app/frontend/dist
+
+ENV NODE_ENV=production
+ENV PORT=9001
+EXPOSE 9001
+
+CMD ["node", "server.js"]
