@@ -144,16 +144,18 @@ const frontendPath = path.join(__dirname, "frontend/dist");
 app.use(express.static(frontendPath));
 
 // ✅ Fallback route for SPA (React)
-app.get("*", (req, res) => {
-  const indexFile = path.join(frontendPath, "index.html");
-  console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
-  if (fs.existsSync(indexFile)) {
-    res.sendFile(indexFile);
-  } else {
-    console.error("❌ Frontend build not found at", indexFile);
-    res.status(404).send("Frontend build not found.");
-  }
+app.get(/.*/, (req, res) => {
+    const indexFile = path.join(frontendPath, "index.html");
+    console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
+
+    if (fs.existsSync(indexFile)) {
+        res.sendFile(indexFile);
+    } else {
+        console.error("❌ Frontend build not found at", indexFile);
+        res.status(404).send("Frontend build not found.");
+    }
 });
+
 
 // ---------------------------------
 // Start Server
