@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "./api/client";
-import Card from "./components/Card";
-import "./styles.css";
 import { encodeSelection, decodeSelection } from "./utils/hashState";
+import Sidebar from "./components/Sidebar";
+import MainContent from "./components/MainContent";
+import BottomBar from "./components/BottomBar";
+import "./styles.css";
 
 export default function App() {
     const [metas, setMetas] = useState([]);
@@ -108,195 +110,22 @@ export default function App() {
             });
     }, [query.metas.join("|"), query.landcycles.join("|"), query.colors.join("|")]);
 
-    // Group landcycles by tier
-    const groupedLandcycles = useMemo(() => {
-        const groups = { premium: [], playable: [], budget: [], terrible: [] };
-        for (const lc of landcycles) {
-            const tier = lc.tier?.toLowerCase() || "budget";
-            if (groups[tier]) groups[tier].push(lc);
-            else groups.budget.push(lc);
-        }
-        for (const tier in groups) {
-            groups[tier].sort((a, b) => a.name.localeCompare(b.name));
-        }
-        return groups;
-    }, [landcycles]);
-
     return (
         <div className={`app ${collapsed ? "sidebar-collapsed" : "sidebar-open"}`}>
-            {/* === Sidebar === */}
-            <aside className={`aside-slide ${collapsed ? "hidden" : "visible"}`}>
-                <h2>Manabase Builder</h2>
-                <p className="helper">
-                    Select colors, metas, and land cycles to populate cards. Prices shown are the
-                    lowest printing (foil or nonfoil).
-                </p>
-
-                {/* === Colors === */}
-                <div className="section">
-                    <h3>Colors</h3>
-                    <div className="color-buttons">
-                        {["W", "U", "B", "R", "G"].map((c) => (
-                            <button
-                                key={c}
-                                onClick={() => toggle("colors", c)}
-                                className={
-                                    "color-btn color-" + c + (selected.colors.has(c) ? " active" : "")
-                                }
-                            >
-                                {c}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* === Metas === */}
-                <div className="section">
-                    <h3>Metas</h3>
-                    <div className="taglist">
-                        {metas.map((m) => (
-                            <button
-                                key={m.name}
-                                onClick={() => toggle("metas", m.name)}
-                                className={"tag" + (selected.metas.has(m.name) ? " active" : "")}
-                            >
-                                {m.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* === Land Cycles === */}
-                <div className="section">
-                    <h3>Land Cycles</h3>
-                    {[
-                        ["premium", "🟩 Premium (Untapped)"],
-                        ["playable", "🟨 Playable (Conditional)"],
-                        ["budget", "🟥 Budget / Slow"],
-                        ["terrible", "⬛ Terrible (Actively Bad)"],
-                    ].map(([tier, label]) => (
-                        <div key={tier} className={`tier-group ${tier}`}>
-                            <div className="tier-label">{label}</div>
-                            <div className="taglist">
-                                {groupedLandcycles[tier].map((lc) => (
-                                    <button
-                                        key={lc.id ?? lc.name}
-                                        onClick={() => toggle("landcycles", lc.id ?? lc.name)}
-                                        className={[
-                                            "tag",
-                                            lc.fetchable ? "fetchable" : "",
-                                            selected.landcycles.has(lc.id ?? lc.name) ? "active" : "",
-                                        ].join(" ")}
-                                        title={
-                                            (lc.fetchable ? "Fetchable — " : "") +
-                                            (lc.description || "")
-                                        }
-                                    >
-                                        {lc.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* === Share === */}
-                <div className="section">
-                    <h3>Share</h3>
-                    <button
-                        className="tag active"
-                        onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
-                            alert("🔗 Link copied to clipboard!");
-                        }}
-                    >
-                        Copy Share Link
-                    </button>
-                </div>
-            </aside>
-
-            {/* === Floating Toggle Button === */}
-            <button
-                className={`sidebar-toggle ${collapsed ? "collapsed" : "open"}`}
-                onClick={() => setCollapsed(!collapsed)}
-                title={collapsed ? "Open menu" : "Hide menu"}
-            >
-                {collapsed ? "☰" : "×"}
-            </button>
-
-            {/* === Main Content === */}
-            <main className="main">
-                {status === "loading" && <div className="status">Loading cards…</div>}
-                {status === "error" && <div className="status error">Error: {error}</div>}
-
-                {["lands", "nonlands"].map((section) => {
-                    const cards = data[section] || [];
-                    if (!cards.length) return null;
-                    const title = section === "lands" ? "Lands" : "Non-Lands";
-                    return (
-                        <div key={section}>
-                            <div className="section-title-row">
-                                <div className="section-title">{title}</div>
-                                {cards.length > 0 && (
-                                    <div className="export-controls">
-                                        <button
-                                            className="export-btn"
-                                            onClick={() => exportSection(title, cards)}
-                                        >
-                                            Export
-                                        </button>
-                                        <button
-                                            className="copy-btn small"
-                                            onClick={() => copySection(title, cards)}
-                                        >
-                                            Copy
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="grid">
-                                {cards.map((it, i) => (
-                                    <Card key={i} item={it} />
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
-            </main>
+            <Sidebar
+                metas={metas}
+                landcycles={landcycles}
+                selected={selected}
+                toggle={toggle}
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+            />
+            <MainContent
+                data={data}
+                status={status}
+                error={error}
+            />
+            <BottomBar data={data} />
         </div>
     );
-
-    // === Export & Copy Helpers ===
-    function exportSection(name, cards) {
-        if (!cards?.length) return;
-        const lines = cards.map((c) => {
-            const setCode = (c.set || c.prints?.[0]?.set || "").toUpperCase();
-            const collector = c.collector_number || c.prints?.[0]?.collector_number || "";
-            if (setCode && collector) return `1 ${c.name} (${setCode}) ${collector}`;
-            if (setCode) return `1 ${c.name} (${setCode})`;
-            return `1 ${c.name}`;
-        });
-        const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${name}.txt`;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function copySection(name, cards) {
-        if (!cards?.length) return;
-        const text = cards
-            .map((c) => {
-                const setCode = (c.set || c.prints?.[0]?.set || "").toUpperCase();
-                const collector = c.collector_number || c.prints?.[0]?.collector_number || "";
-                if (setCode && collector) return `1 ${c.name} (${setCode}) ${collector}`;
-                if (setCode) return `1 ${c.name} (${setCode})`;
-                return `1 ${c.name}`;
-            })
-            .join("\n");
-        navigator.clipboard.writeText(text);
-        alert(`📋 Copied ${name} list to clipboard!`);
-    }
 }
