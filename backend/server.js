@@ -2,7 +2,7 @@
  * Manabase Backend Server
  * ---------------------------------
  * Handles all cached card, price, and art API requests for the frontend.
- * Includes metas, land cycles, and color staples (WUBRG support).
+ * Now includes user accounts (auth), user packages, metas, land cycles, and colors.
  */
 
 import express from "express";
@@ -17,6 +17,12 @@ import colors from "./data/colors.js";
 
 // --- Routes ---
 import cardsRouter from "./routes/cards.js";
+import authRouter from "./routes/auth.js";
+import usersRouter from "./routes/users.js";
+import packagesRouter from "./routes/packages.js";
+
+// --- DB ---
+import { initDB } from "./db/connection.js";
 
 // --- Utilities ---
 import { readJsonSafe } from "./utils/safeJson.js";
@@ -49,7 +55,7 @@ app.use((req, _res, next) => {
 // ---------------------------------
 function isFetchable(card) {
   const basics = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
-  return basics.some(type => card.type_line?.includes(type));
+  return basics.some((type) => card.type_line?.includes(type));
 }
 
 // ---------------------------------
@@ -67,6 +73,13 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, time: new Date().toISOString() });
 });
 
+// ✅ Authentication & User routes
+app.use("/api/auth", authRouter);
+app.use("/api/users", usersRouter);
+
+// ✅ User-created Packages
+app.use("/api/packages", packagesRouter);
+
 // ✅ Simple category endpoints
 app.get("/api/metas", (_req, res) => res.json(metas));
 app.get("/api/colors", (_req, res) => res.json(colors));
@@ -79,7 +92,7 @@ app.get("/api/colors", (_req, res) => res.json(colors));
 app.get("/api/landcycles", async (_req, res) => {
   try {
     const landcyclesDir = path.join(__dirname, "data/landcycles");
-    const files = fs.readdirSync(landcyclesDir).filter(f => f.endsWith(".json"));
+    const files = fs.readdirSync(landcyclesDir).filter((f) => f.endsWith(".json"));
     const cycles = [];
 
     for (const file of files) {
@@ -88,7 +101,7 @@ app.get("/api/landcycles", async (_req, res) => {
 
       if (json && json.name) {
         // Safely handle both string and object cards
-        const cards = (json.cards || []).map(c =>
+        const cards = (json.cards || []).map((c) =>
           typeof c === "string"
             ? { name: c, fetchable: false }
             : { name: c.name ?? "", fetchable: c.fetchable ?? false }
@@ -139,31 +152,33 @@ app.use("/api/cards", cardsRouter);
 // 🧱 Static Frontend Serving (React build)
 // ---------------------------------
 const frontendPath = path.join(__dirname, "frontend/dist");
-
-// Serve static assets (JS, CSS, etc.)
 app.use(express.static(frontendPath));
 
 // ✅ Fallback route for SPA (React)
 app.get(/.*/, (req, res) => {
-    const indexFile = path.join(frontendPath, "index.html");
-    console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
+  const indexFile = path.join(frontendPath, "index.html");
+  console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
 
-    if (fs.existsSync(indexFile)) {
-        res.sendFile(indexFile);
-    } else {
-        console.error("❌ Frontend build not found at", indexFile);
-        res.status(404).send("Frontend build not found.");
-    }
+  if (fs.existsSync(indexFile)) {
+    res.sendFile(indexFile);
+  } else {
+    console.error("❌ Frontend build not found at", indexFile);
+    res.status(404).send("Frontend build not found.");
+  }
 });
 
+// ---------------------------------
+// Start Server + Init Database
+// ---------------------------------
+await initDB();
 
-// ---------------------------------
-// Start Server
-// ---------------------------------
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`📦 Routes available:`);
   console.log(`   → /api/health`);
+  console.log(`   → /api/auth`);
+  console.log(`   → /api/users`);
+  console.log(`   → /api/packages`);
   console.log(`   → /api/metas`);
   console.log(`   → /api/colors`);
   console.log(`   → /api/landcycles`);
