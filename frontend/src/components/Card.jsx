@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { resolveDisplayPrice } from "../utils/pricing";
 
 export default function Card({ item }) {
     const [showPrices, setShowPrices] = useState(false);
     const [hovering, setHovering] = useState(false);
     const [showBack, setShowBack] = useState(false);
+    const displayPrice = useMemo(() => resolveDisplayPrice(item), [item]);
 
     if (!item) return null;
 
@@ -130,17 +132,27 @@ export default function Card({ item }) {
             </div>
 
             <div className="card-title">
-                {name}
-                {lowest && (
-                    <button
-                        className="price-tag"
-                        onMouseEnter={() => setShowPrices(true)}
-                        onMouseLeave={() => setShowPrices(false)}
-                    >
-                        {lowest}
-                    </button>
-                )}
+              {name}
+              {displayPrice && (
+                <button
+                  className="price-tag"
+                  onMouseEnter={() => setShowPrices(true)}
+                  onMouseLeave={() => setShowPrices(false)}
+                >
+                  ${displayPrice.amount.toFixed(2)}
+                </button>
+              )}
+              {!displayPrice && (
+                <button
+                  className="price-tag"
+                  disabled
+                  title="No price data available"
+                >
+                  N/A
+                </button>
+              )}
             </div>
+
 
             {/* Popup for printings */}
             {showPrices && (

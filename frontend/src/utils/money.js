@@ -1,1 +1,0 @@
-export const fmtUSD=x=>x==null?'—':`$${Number(x).toFixed(2)}`
