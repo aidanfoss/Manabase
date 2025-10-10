@@ -13,20 +13,27 @@ export default function PackageManager() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Load user packages
+  // 🧭 Load user packages
   useEffect(() => {
     if (!token) return;
     (async () => {
       try {
         const data = await packageAPI.list();
-        setPackages(data || []);
+        const parsed = data.map((p) => ({
+          ...p,
+          cards:
+            typeof p.cards === "string"
+              ? JSON.parse(p.cards || "[]")
+              : p.cards || [],
+        }));
+        setPackages(parsed || []);
       } catch (e) {
         console.error("Failed to load packages:", e);
       }
     })();
   }, [token]);
 
-  // --- Search Scryfall ---
+  // 🔎 Search cards from Scryfall
   async function handleSearch(e) {
     e.preventDefault();
     if (!searchTerm.trim()) return;
@@ -44,21 +51,23 @@ export default function PackageManager() {
     }
   }
 
-  // --- Add card to current draft list ---
+  // ➕ Add card
   function addCard(card) {
-    if (cards.some((c) => c.id === card.id)) return; // prevent duplicates
+    if (cards.some((c) => c.id === card.id)) return;
     setCards([...cards, card]);
   }
 
-  // --- Remove card ---
+  // ❌ Remove card
   function removeCard(id) {
     setCards(cards.filter((c) => c.id !== id));
   }
 
-  // --- Save as new package ---
+  // 💾 Save (create or update)
   async function savePackage() {
     if (!cards.length) return alert("Add at least one card first!");
-    const name = prompt("Enter a name for this package:");
+    const name =
+      activePkg?.name ||
+      prompt("Enter a name for this package:", activePkg?.name || "");
     if (!name) return;
 
     setSaving(true);
@@ -68,14 +77,35 @@ export default function PackageManager() {
         cards: cards.map((c) => ({
           id: c.id,
           name: c.name,
-          set: c.set_name,
-          image: c.image_uris?.normal || "",
+          set: c.set_name || c.set,
+          image: c.image_uris?.normal || c.image || "",
         })),
       };
-      const saved = await packageAPI.create(payload);
-      setPackages([...packages, saved]);
+
+      let saved;
+      if (activePkg) {
+        // update existing package
+        saved = await packageAPI.update(activePkg.id, payload);
+        alert(`✅ Updated package "${name}"!`);
+      } else {
+        // create new package
+        saved = await packageAPI.create(payload);
+        alert(`✅ Created package "${name}"!`);
+      }
+
+      // Refresh list
+      const refreshed = await packageAPI.list();
+      const parsed = refreshed.map((p) => ({
+        ...p,
+        cards:
+          typeof p.cards === "string"
+            ? JSON.parse(p.cards || "[]")
+            : p.cards || [],
+      }));
+      setPackages(parsed);
+      setActivePkg(null);
       setCards([]);
-      alert(`✅ Saved package "${name}"!`);
+      setSearchResults([]);
     } catch (e) {
       console.error("Save failed:", e);
       alert("Failed to save package.");
@@ -84,10 +114,37 @@ export default function PackageManager() {
     }
   }
 
-  // --- Load existing package for editing ---
+  // ✏️ Load for editing
   function loadPackage(pkg) {
+    const parsedCards =
+      typeof pkg.cards === "string" ? JSON.parse(pkg.cards || "[]") : pkg.cards || [];
     setActivePkg(pkg);
-    setCards(pkg.cards || []);
+    setCards(parsedCards);
+    setSearchResults([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // 🗑️ Delete
+  async function deletePackage(pkg) {
+    if (!window.confirm(`Delete package "${pkg.name}" permanently?`)) return;
+    try {
+      await packageAPI.delete(pkg.id);
+      setPackages((prev) => prev.filter((p) => p.id !== pkg.id));
+      if (activePkg?.id === pkg.id) {
+        setActivePkg(null);
+        setCards([]);
+      }
+      alert(`🗑️ Deleted "${pkg.name}"`);
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Failed to delete package.");
+    }
+  }
+
+  // ➕ Create new blank package
+  function newPackage() {
+    setActivePkg(null);
+    setCards([]);
     setSearchResults([]);
   }
 
@@ -95,10 +152,13 @@ export default function PackageManager() {
     <div className="package-page">
       <div className="package-topbar">
         <h1>Package Manager</h1>
-        <div className="user-info">Logged in as {user?.username || user?.email}</div>
+        <div className="user-info">
+          Logged in as {user?.username || user?.email}
+        </div>
       </div>
 
       <div className="package-section">
+        {/* Left side — search + add */}
         <div className="left-panel">
           <h2>{activePkg ? `Editing: ${activePkg.name}` : "New Package"}</h2>
 
@@ -129,8 +189,17 @@ export default function PackageManager() {
           </div>
         </div>
 
+        {/* Right side — current package */}
         <div className="right-panel">
-          <h2>Cards in this Package</h2>
+          <div className="right-header">
+            <h2>Cards in this Package</h2>
+            {activePkg && (
+              <button className="new-btn" onClick={newPackage}>
+                ➕ New
+              </button>
+            )}
+          </div>
+
           {cards.length === 0 && <p className="empty">No cards added yet.</p>}
 
           <div className="added-cards">
@@ -144,16 +213,43 @@ export default function PackageManager() {
           </div>
 
           <button className="save-btn" onClick={savePackage} disabled={saving}>
-            {saving ? "Saving..." : "💾 Save Package"}
+            {saving
+              ? "Saving..."
+              : activePkg
+              ? "💾 Update Package"
+              : "💾 Save Package"}
           </button>
 
+          {activePkg && (
+            <button
+              className="delete-btn"
+              onClick={() => deletePackage(activePkg)}
+              style={{ marginTop: "0.5rem" }}
+            >
+              🗑️ Delete Package
+            </button>
+          )}
+
+          {/* Package list */}
           {packages.length > 0 && (
             <div className="existing-packages">
               <h3>Your Packages</h3>
               {packages.map((p) => (
-                <button key={p.id} onClick={() => loadPackage(p)}>
-                  {p.name}
-                </button>
+                <div
+                  key={p.id}
+                  className={`package-entry ${
+                    activePkg?.id === p.id ? "active" : ""
+                  }`}
+                >
+                  <button onClick={() => loadPackage(p)}>{p.name}</button>
+                  <button
+                    className="small-delete"
+                    onClick={() => deletePackage(p)}
+                    title="Delete"
+                  >
+                    ✕
+                  </button>
+                </div>
               ))}
             </div>
           )}

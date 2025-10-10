@@ -2,7 +2,10 @@
  * Manabase Backend Server
  * ---------------------------------
  * Handles all cached card, price, and art API requests for the frontend.
- * Now includes user accounts (auth), user packages, metas, land cycles, and colors.
+ * Now includes user accounts (auth), user packages, land cycles, and colors.
+ * 
+ * 🔄 Metas have been fully replaced by Packages.
+ *     → /api/metas now proxies to /api/packages for backward compatibility.
  */
 
 import express from "express";
@@ -12,7 +15,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // --- Local Data Imports ---
-import metas from "./data/metas.js";
 import colors from "./data/colors.js";
 
 // --- Routes ---
@@ -51,20 +53,6 @@ app.use((req, _res, next) => {
 });
 
 // ---------------------------------
-// Utility: Determine if card is fetchable
-// ---------------------------------
-function isFetchable(card) {
-  const basics = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
-  return basics.some((type) => card.type_line?.includes(type));
-}
-
-// ---------------------------------
-// Providers (async-friendly)
-// ---------------------------------
-const metasProvider = async () => metas;
-const colorsProvider = async () => colors;
-
-// ---------------------------------
 // API Routes
 // ---------------------------------
 
@@ -77,11 +65,13 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 
-// ✅ User-created Packages
+// ✅ Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
 
-// ✅ Simple category endpoints
-app.get("/api/metas", (_req, res) => res.json(metas));
+// ✅ Backward compatibility: /api/metas now points to /api/packages
+app.use("/api/metas", packagesRouter);
+
+// ✅ Simple color endpoint
 app.get("/api/colors", (_req, res) => res.json(colors));
 
 /**
@@ -179,7 +169,7 @@ app.listen(PORT, () => {
   console.log(`   → /api/auth`);
   console.log(`   → /api/users`);
   console.log(`   → /api/packages`);
-  console.log(`   → /api/metas`);
+  console.log(`   → /api/metas (alias)`);
   console.log(`   → /api/colors`);
   console.log(`   → /api/landcycles`);
   console.log(`   → /api/cards`);

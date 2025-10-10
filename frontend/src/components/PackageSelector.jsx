@@ -1,20 +1,32 @@
+﻿// frontend/src/components/PackageSelector.jsx
 import React from "react";
 
-export default function MetaSelector({ metas, selected, toggle }) {
+export default function PackageSelector({ packages = [], selected, toggle }) {
+  if (!Array.isArray(packages) || packages.length === 0) {
     return (
-        <div className="section">
-            <h3>Metas</h3>
-            <div className="taglist">
-                {metas.map((m) => (
-                    <button
-                        key={m.name}
-                        onClick={() => toggle("metas", m.name)}
-                        className={"tag" + (selected.metas.has(m.name) ? " active" : "")}
-                    >
-                        {m.name}
-                    </button>
-                ))}
-            </div>
-        </div>
+      <section className="section">
+        <h3>Packages</h3>
+        <p className="helper">No packages loaded yet.</p>
+      </section>
     );
+  }
+
+  return (
+    <section className="section">
+      <h3>Packages</h3>
+      <div className="taglist">
+        {packages.map((pkg) => (
+          <button
+            key={pkg.id}
+            onClick={() => toggle("packages", String(pkg.id))} // ✅ send ID
+            className={
+              "tag" + (selected.packages?.has(String(pkg.id)) ? " active" : "")
+            }
+          >
+            {pkg.name}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
 }

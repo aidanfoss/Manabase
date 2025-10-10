@@ -858,3 +858,36 @@ h2 {
     .share-btn:active {
         transform: translateY(1px);
     }
+
+/* Compact profile inside the top nav */
+.nav-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.nav-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #3b82f6;
+    background: #1e293b;
+}
+
+.nav-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #f8fafc;
+}
+
+/* reuse .logout-btn but make it tighter in the navbar */
+.nav-logout {
+    font-size: 0.85rem;
+    padding: 0;
+    margin-left: 0.25rem;
+    color: #9ca3af;
+}
+
+    .nav-logout:hover {
+        color: #f87171;
+    }

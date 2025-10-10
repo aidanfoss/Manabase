@@ -32,9 +32,22 @@ function AppContent() {
 }
 
 function TopNav({ screen, setScreen }) {
+  const { user, logout } = useAuth();
+  const displayName = user?.username || user?.email || "Guest";
+  const avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
+
   return (
     <nav className="top-nav">
-      <h1 className="logo">Manabase Builder</h1>
+      {/* Left side: compact profile */}
+      <div className="nav-profile">
+        <img src={avatar} alt="Profile" className="nav-avatar" />
+        <span className="nav-name">{displayName}</span>
+        <button className="logout-btn nav-logout" onClick={logout}>
+          Log out
+        </button>
+      </div>
+
+      {/* Right side: existing nav buttons */}
       <div className="nav-buttons">
         <button
           className={screen === "main" ? "active" : ""}
@@ -54,26 +67,26 @@ function TopNav({ screen, setScreen }) {
 }
 
 function MainApp() {
-  const [metas, setMetas] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [landcycles, setLandcycles] = useState([]);
   const [data, setData] = useState({ lands: [], nonlands: [] });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
-  const [collapsed, setCollapsed] = useState(false); // start visible by default
+  const [collapsed, setCollapsed] = useState(false);
 
   const [selected, setSelected] = useState({
-    metas: new Set(),
+    packages: new Set(),
     landcycles: new Set(),
     colors: new Set(),
   });
 
-  // Restore hash from URL
+  // 🧭 Restore hash from URL (handles legacy "metas" keys)
   useEffect(() => {
     if (window.location.hash.length > 1) {
       const decoded = decodeSelection(window.location.hash.substring(1));
       if (decoded && decoded.version >= 1) {
         setSelected({
-          metas: new Set(decoded.metas || []),
+          packages: new Set(decoded.packages || decoded.metas || []),
           landcycles: new Set(decoded.landcycles || []),
           colors: new Set(decoded.colors || []),
         });
@@ -81,15 +94,18 @@ function MainApp() {
     }
   }, []);
 
-  // Load metas + landcycles
+  // 🧭 Load packages + landcycles
   useEffect(() => {
     (async () => {
       try {
-        const [m, l] = await Promise.all([api.getMetas(), api.getLandcycles()]);
-        setMetas(m || []);
+        const [p, l] = await Promise.all([
+          api.getPackages(),
+          api.getLandcycles(),
+        ]);
+        setPackages(p || []);
         setLandcycles(l || []);
       } catch (e) {
-        console.error("Failed to load metas/landcycles:", e);
+        console.error("Failed to load packages/landcycles:", e);
       }
     })();
   }, []);
@@ -106,13 +122,13 @@ function MainApp() {
     const colorsArr = [...selected.colors];
     const effectiveColors = colorsArr.length === 0 ? ["colorless"] : colorsArr;
     return {
-      metas: [...selected.metas],
+      packages: [...selected.packages],
       landcycles: [...selected.landcycles],
       colors: effectiveColors,
     };
   }, [selected]);
 
-  // Fetch cards from backend
+  // 🧭 Fetch cards from backend
   useEffect(() => {
     setStatus("loading");
     setError(null);
@@ -147,7 +163,7 @@ function MainApp() {
         // Update URL hash
         const selection = {
           version: 1,
-          metas: [...selected.metas],
+          packages: [...selected.packages],
           landcycles: [...selected.landcycles],
           colors: [...selected.colors],
         };
@@ -158,29 +174,32 @@ function MainApp() {
         setError(e.message || String(e));
         setStatus("error");
       });
-  }, [query.metas.join("|"), query.landcycles.join("|"), query.colors.join("|")]);
+  }, [
+    query.packages.join("|"),
+    query.landcycles.join("|"),
+    query.colors.join("|"),
+  ]);
 
   return (
     <div className={`app ${collapsed ? "" : "sidebar-open"}`}>
-      {/* === Sidebar Toggle Button === */}
       <button
         className={`sidebar-toggle ${collapsed ? "" : "open"}`}
         onClick={() => setCollapsed((c) => !c)}
+        title={collapsed ? "Open menu" : "Hide menu"}
+        aria-label="Toggle sidebar"
       >
         ☰
       </button>
 
-      {/* === Slide-out Sidebar === */}
-      <aside className={`aside-slide ${collapsed ? "hidden" : "visible"}`}>
-        <Sidebar
-          metas={metas}
-          landcycles={landcycles}
-          selected={selected}
-          toggle={toggle}
-        />
-      </aside>
+      <Sidebar
+        packages={packages}
+        landcycles={landcycles}
+        selected={selected}
+        toggle={toggle}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+      />
 
-      {/* === Main Content === */}
       <MainContent data={data} status={status} error={error} />
       <BottomBar data={data} />
     </div>

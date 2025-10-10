@@ -40,12 +40,14 @@ export const api = {
   },
 
   // === App data endpoints ===
-  getMetas: () => api.json("/metas"),
+  getMetas: () => api.json("/packages"), //for backwards safety
+  getPackages: () => api.json("/packages"), // was getMetas
   getLandcycles: () => api.json("/landcycles"),
 
-  getCards: ({ metas = [], landcycles = [], colors = [] }) => {
+
+  getCards: ({ packages = [], landcycles = [], colors = [] }) => {
     const q = new URLSearchParams();
-    metas.forEach((m) => q.append("metas", m));
+    packages.forEach((m) => q.append("packages", m));
     landcycles.forEach((l) => q.append("landcycles", l));
     colors.forEach((c) => q.append("colors", c));
     return api.json(`/cards?${q.toString()}`);
@@ -58,4 +60,8 @@ export const api = {
   // === Packages ===
   getPackages: () => api.json("/packages"),
   savePackage: (data) => api.post("/packages", data),
+  deletePackage: (id) =>
+    api.json(`/packages/${id}`, {
+    method: "DELETE",
+  }),
 };
