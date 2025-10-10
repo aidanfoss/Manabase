@@ -1,0 +1,48 @@
+{
+  "name": "Dragonbroods' Relic",
+  "oracle_id": "61822bbe-0407-4425-b8d7-0263a8c521ec",
+  "type_line": "Artifact",
+  "color_identity": [
+    "B",
+    "G",
+    "R",
+    "U",
+    "W"
+  ],
+  "fetchable": false,
+  "set": "tdm",
+  "collector_number": "140",
+  "image": "https://cards.scryfall.io/normal/front/3/d/3d634087-77ba-4543-aa7a-8a3774d69cd7.jpg?1743204527",
+  "scryfall_uri": "https://scryfall.com/card/tdm/140/dragonbroods-relic?utm_source=api",
+  "uri": "https://scryfall.com/card/tdm/140/dragonbroods-relic?utm_source=api",
+  "url": "https://scryfall.com/card/tdm/140/dragonbroods-relic?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/3d634087-77ba-4543-aa7a-8a3774d69cd7/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F624375%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=818176&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/139237?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.06,
+    "lowest": 0.06,
+    "usd": "0.06",
+    "usd_foil": "0.08"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A61822bbe-0407-4425-b8d7-0263a8c521ec&unique=prints",
+  "prints": [
+    {
+      "set": "tdm",
+      "set_name": "Tarkir: Dragonstorm",
+      "collector_number": "140",
+      "prices": {
+        "usd": "0.06",
+        "usd_foil": "0.08",
+        "usd_etched": null,
+        "eur": "0.04",
+        "eur_foil": "0.07",
+        "tix": "0.03"
+      },
+      "released_at": "2025-04-11"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "Cryogen Relic",
+  "oracle_id": "106e9c0d-67a2-4db7-97d9-03e1ea1b40b5",
+  "type_line": "Artifact",
+  "color_identity": [
+    "U"
+  ],
+  "fetchable": false,
+  "set": "eoe",
+  "collector_number": "52",
+  "image": "https://cards.scryfall.io/normal/front/7/b/7bfb33b6-e2bf-498f-8c58-ae21a840cf75.jpg?1752946757",
+  "scryfall_uri": "https://scryfall.com/card/eoe/52/cryogen-relic?utm_source=api",
+  "uri": "https://scryfall.com/card/eoe/52/cryogen-relic?utm_source=api",
+  "url": "https://scryfall.com/card/eoe/52/cryogen-relic?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/7bfb33b6-e2bf-498f-8c58-ae21a840cf75/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F643478%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=835354&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/142717?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.18,
+    "lowest": 0.18,
+    "usd": "0.18",
+    "usd_foil": "0.41"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A106e9c0d-67a2-4db7-97d9-03e1ea1b40b5&unique=prints",
+  "prints": [
+    {
+      "set": "eoe",
+      "set_name": "Edge of Eternities",
+      "collector_number": "52",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": "0.41",
+        "usd_etched": null,
+        "eur": "0.54",
+        "eur_foil": "1.20",
+        "tix": "0.05"
+      },
+      "released_at": "2025-08-01"
+    }
+  ]
+}

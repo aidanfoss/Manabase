@@ -1,0 +1,58 @@
+{
+  "name": "Quest for the Holy Relic",
+  "oracle_id": "0fa5803b-3604-46c7-9774-bf70e4a2b925",
+  "type_line": "Enchantment",
+  "color_identity": [
+    "W"
+  ],
+  "fetchable": false,
+  "set": "zen",
+  "collector_number": "33",
+  "image": "https://cards.scryfall.io/normal/front/0/0/00d6b8bb-ec11-4ded-a7fc-fa4ea0bb96cc.jpg?1562609297",
+  "scryfall_uri": "https://scryfall.com/card/zen/33/quest-for-the-holy-relic?utm_source=api",
+  "uri": "https://scryfall.com/card/zen/33/quest-for-the-holy-relic?utm_source=api",
+  "url": "https://scryfall.com/card/zen/33/quest-for-the-holy-relic?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/00d6b8bb-ec11-4ded-a7fc-fa4ea0bb96cc/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F33405%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=21861&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/34788?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.19,
+    "lowest": 0.19,
+    "usd": "0.19",
+    "usd_foil": "1.44"
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A0fa5803b-3604-46c7-9774-bf70e4a2b925&unique=prints",
+  "prints": [
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "ZEN-33",
+      "prices": {
+        "usd": "0.22",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-07-23"
+    },
+    {
+      "set": "zen",
+      "set_name": "Zendikar",
+      "collector_number": "33",
+      "prices": {
+        "usd": "0.19",
+        "usd_foil": "1.44",
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": "1.31",
+        "tix": "0.03"
+      },
+      "released_at": "2009-10-02"
+    }
+  ]
+}

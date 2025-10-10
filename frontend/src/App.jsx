@@ -20,34 +20,56 @@ export default function App() {
 function AppContent() {
   const { user } = useAuth();
   const [screen, setScreen] = useState("main"); // "main" or "packages"
-
-  if (!user) return <LoginForm />;
+  const [showLogin, setShowLogin] = useState(false);
 
   return (
     <>
-      <TopNav screen={screen} setScreen={setScreen} />
+      <TopNav
+        user={user}
+        screen={screen}
+        setScreen={setScreen}
+        showLogin={showLogin}
+        setShowLogin={setShowLogin}
+      />
+      {showLogin && !user && (
+        <div className="login-dropdown">
+          <LoginForm compact onSuccess={() => setShowLogin(false)} />
+        </div>
+      )}
       {screen === "main" ? <MainApp /> : <PackageManager />}
     </>
   );
 }
 
-function TopNav({ screen, setScreen }) {
-  const { user, logout } = useAuth();
+function TopNav({ user, screen, setScreen, showLogin, setShowLogin }) {
+  const { logout } = useAuth();
+
   const displayName = user?.username || user?.email || "Guest";
   const avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
 
   return (
     <nav className="top-nav">
-      {/* Left side: compact profile */}
+      {/* Left: profile or login */}
       <div className="nav-profile">
-        <img src={avatar} alt="Profile" className="nav-avatar" />
-        <span className="nav-name">{displayName}</span>
-        <button className="logout-btn nav-logout" onClick={logout}>
-          Log out
-        </button>
+        {user ? (
+          <>
+            <img src={avatar} alt="Profile" className="nav-avatar" />
+            <span className="nav-name">{displayName}</span>
+            <button className="logout-btn nav-logout" onClick={logout}>
+              Log out
+            </button>
+          </>
+        ) : (
+          <button
+            className="login-btn"
+            onClick={() => setShowLogin((v) => !v)}
+          >
+            {showLogin ? "Close Login" : "Log in / Sign up"}
+          </button>
+        )}
       </div>
 
-      {/* Right side: existing nav buttons */}
+      {/* Right: navigation buttons */}
       <div className="nav-buttons">
         <button
           className={screen === "main" ? "active" : ""}
@@ -58,6 +80,8 @@ function TopNav({ screen, setScreen }) {
         <button
           className={screen === "packages" ? "active" : ""}
           onClick={() => setScreen("packages")}
+          disabled={!user}
+          title={!user ? "Log in to manage packages" : ""}
         >
           📦 Packages
         </button>
@@ -80,7 +104,7 @@ function MainApp() {
     colors: new Set(),
   });
 
-  // 🧭 Restore hash from URL (handles legacy "metas" keys)
+  // restore hash
   useEffect(() => {
     if (window.location.hash.length > 1) {
       const decoded = decodeSelection(window.location.hash.substring(1));
@@ -94,7 +118,7 @@ function MainApp() {
     }
   }, []);
 
-  // 🧭 Load packages + landcycles
+  // load data
   useEffect(() => {
     (async () => {
       try {
@@ -128,7 +152,7 @@ function MainApp() {
     };
   }, [selected]);
 
-  // 🧭 Fetch cards from backend
+  // fetch cards
   useEffect(() => {
     setStatus("loading");
     setError(null);
@@ -136,7 +160,6 @@ function MainApp() {
     api
       .getCards(query)
       .then((payload) => {
-        // Update landcycle fetchability
         if (payload?.fetchableSummary?.length && landcycles.length) {
           setLandcycles((prev) =>
             prev.map((lc) => {
@@ -148,7 +171,6 @@ function MainApp() {
           );
         }
 
-        // Parse response
         let parsed = { lands: [], nonlands: [] };
         if (Array.isArray(payload)) parsed.lands = payload;
         else if (payload && typeof payload === "object")
@@ -160,7 +182,6 @@ function MainApp() {
         setData(parsed);
         setStatus("done");
 
-        // Update URL hash
         const selection = {
           version: 1,
           packages: [...selected.packages],

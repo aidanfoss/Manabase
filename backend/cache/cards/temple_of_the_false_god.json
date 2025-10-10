@@ -1,0 +1,588 @@
+{
+  "name": "Temple of the False God",
+  "oracle_id": "cfdd5dc6-593e-495a-8cfe-3a56b3c4c7df",
+  "type_line": "Land",
+  "color_identity": [],
+  "fetchable": false,
+  "set": "dsc",
+  "collector_number": "313",
+  "image": "https://cards.scryfall.io/normal/front/2/3/23d62c88-3a7a-4eef-8ec4-ff1243e6ce93.jpg?1726285545",
+  "scryfall_uri": "https://scryfall.com/card/dsc/313/temple-of-the-false-god?utm_source=api",
+  "uri": "https://scryfall.com/card/dsc/313/temple-of-the-false-god?utm_source=api",
+  "url": "https://scryfall.com/card/dsc/313/temple-of-the-false-god?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/23d62c88-3a7a-4eef-8ec4-ff1243e6ce93/rulings",
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F577870%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=789076&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/131251?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  },
+  "prices": {
+    "latest": 0.13,
+    "lowest": 0.08,
+    "usd": "0.13",
+    "usd_foil": null
+  },
+  "prints_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3Acfdd5dc6-593e-495a-8cfe-3a56b3c4c7df&unique=prints",
+  "prints": [
+    {
+      "set": "fic",
+      "set_name": "Final Fantasy Commander",
+      "collector_number": "438",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2025-06-13"
+    },
+    {
+      "set": "dsc",
+      "set_name": "Duskmourn: House of Horror Commander",
+      "collector_number": "313",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-09-27"
+    },
+    {
+      "set": "otc",
+      "set_name": "Outlaws of Thunder Junction Commander",
+      "collector_number": "334",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-04-19"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "839",
+      "prices": {
+        "usd": null,
+        "usd_foil": "11.34",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "pip",
+      "set_name": "Fallout",
+      "collector_number": "311",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": "2.26",
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": "0.73",
+        "tix": "0.04"
+      },
+      "released_at": "2024-03-08"
+    },
+    {
+      "set": "mkc",
+      "set_name": "Murders at Karlov Manor Commander",
+      "collector_number": "305",
+      "prices": {
+        "usd": "0.09",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2024-02-09"
+    },
+    {
+      "set": "lcc",
+      "set_name": "The Lost Caverns of Ixalan Commander",
+      "collector_number": "359",
+      "prices": {
+        "usd": "0.12",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": "0.07"
+      },
+      "released_at": "2023-11-17"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "911",
+      "prices": {
+        "usd": null,
+        "usd_foil": "3.59",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "who",
+      "set_name": "Doctor Who",
+      "collector_number": "320",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": "2.58",
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": "0.35",
+        "tix": null
+      },
+      "released_at": "2023-10-13"
+    },
+    {
+      "set": "woc",
+      "set_name": "Wilds of Eldraine Commander",
+      "collector_number": "172",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.27",
+        "eur_foil": null,
+        "tix": "0.12"
+      },
+      "released_at": "2023-09-08"
+    },
+    {
+      "set": "cmm",
+      "set_name": "Commander Masters",
+      "collector_number": "1046",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2023-08-04"
+    },
+    {
+      "set": "moc",
+      "set_name": "March of the Machine Commander",
+      "collector_number": "437",
+      "prices": {
+        "usd": "0.14",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.12",
+        "eur_foil": null,
+        "tix": "0.09"
+      },
+      "released_at": "2023-04-21"
+    },
+    {
+      "set": "onc",
+      "set_name": "Phyrexia: All Will Be One Commander",
+      "collector_number": "172",
+      "prices": {
+        "usd": "0.18",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": "0.06"
+      },
+      "released_at": "2023-02-10"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "300★",
+      "prices": {
+        "usd": null,
+        "usd_foil": "4.01",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "40k",
+      "set_name": "Warhammer 40,000 Commander",
+      "collector_number": "300",
+      "prices": {
+        "usd": "0.30",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.32",
+        "eur_foil": null,
+        "tix": "0.08"
+      },
+      "released_at": "2022-10-07"
+    },
+    {
+      "set": "p30a",
+      "set_name": "30th Anniversary Play Promos",
+      "collector_number": "11",
+      "prices": {
+        "usd": null,
+        "usd_foil": "1.00",
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-09-02"
+    },
+    {
+      "set": "clb",
+      "set_name": "Commander Legends: Battle for Baldur's Gate",
+      "collector_number": "925",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-06-10"
+    },
+    {
+      "set": "ncc",
+      "set_name": "New Capenna Commander",
+      "collector_number": "436",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2022-04-29"
+    },
+    {
+      "set": "voc",
+      "set_name": "Crimson Vow Commander",
+      "collector_number": "187",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": "0.02"
+      },
+      "released_at": "2021-11-19"
+    },
+    {
+      "set": "mic",
+      "set_name": "Midnight Hunt Commander",
+      "collector_number": "186",
+      "prices": {
+        "usd": "0.16",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2021-09-24"
+    },
+    {
+      "set": "c21",
+      "set_name": "Commander 2021",
+      "collector_number": "326",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": "0.05"
+      },
+      "released_at": "2021-04-23"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "C21-326",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-09-26"
+    },
+    {
+      "set": "c20",
+      "set_name": "Commander 2020",
+      "collector_number": "319",
+      "prices": {
+        "usd": "0.15",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.15",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2020-04-17"
+    },
+    {
+      "set": "plst",
+      "set_name": "The List",
+      "collector_number": "C18-285",
+      "prices": {
+        "usd": "0.57",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.16",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-11-07"
+    },
+    {
+      "set": "c19",
+      "set_name": "Commander 2019",
+      "collector_number": "280",
+      "prices": {
+        "usd": "0.08",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2019-08-23"
+    },
+    {
+      "set": "c18",
+      "set_name": "Commander 2018",
+      "collector_number": "285",
+      "prices": {
+        "usd": "0.17",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.23",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-08-10"
+    },
+    {
+      "set": "cm2",
+      "set_name": "Commander Anthology Volume II",
+      "collector_number": "272",
+      "prices": {
+        "usd": "0.60",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.21",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-06-08"
+    },
+    {
+      "set": "cm2",
+      "set_name": "Commander Anthology Volume II",
+      "collector_number": "271",
+      "prices": {
+        "usd": "0.30",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.26",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2018-06-08"
+    },
+    {
+      "set": "c17",
+      "set_name": "Commander 2017",
+      "collector_number": "284",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.09",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-08-25"
+    },
+    {
+      "set": "cma",
+      "set_name": "Commander Anthology",
+      "collector_number": "277",
+      "prices": {
+        "usd": "0.31",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.17",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-06-09"
+    },
+    {
+      "set": "prm",
+      "set_name": "Magic Online Promos",
+      "collector_number": "59653",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2017-05-31"
+    },
+    {
+      "set": "c16",
+      "set_name": "Commander 2016",
+      "collector_number": "331",
+      "prices": {
+        "usd": "0.13",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.18",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2016-11-11"
+    },
+    {
+      "set": "pz1",
+      "set_name": "Legendary Cube Prize Pack",
+      "collector_number": "149",
+      "prices": {
+        "usd": null,
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": null,
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2015-11-18"
+    },
+    {
+      "set": "c15",
+      "set_name": "Commander 2015",
+      "collector_number": "313",
+      "prices": {
+        "usd": "0.20",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.22",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2015-11-13"
+    },
+    {
+      "set": "ddo",
+      "set_name": "Duel Decks: Elspeth vs. Kiora",
+      "collector_number": "59",
+      "prices": {
+        "usd": "0.11",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.13",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2015-02-27"
+    },
+    {
+      "set": "c14",
+      "set_name": "Commander 2014",
+      "collector_number": "314",
+      "prices": {
+        "usd": "0.19",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.19",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2014-11-07"
+    },
+    {
+      "set": "c13",
+      "set_name": "Commander 2013",
+      "collector_number": "327",
+      "prices": {
+        "usd": "0.21",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.14",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2013-11-01"
+    },
+    {
+      "set": "cmd",
+      "set_name": "Commander 2011",
+      "collector_number": "290",
+      "prices": {
+        "usd": "0.29",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.11",
+        "eur_foil": null,
+        "tix": "0.04"
+      },
+      "released_at": "2011-06-17"
+    },
+    {
+      "set": "wc04",
+      "set_name": "World Championship Decks 2004",
+      "collector_number": "gn143",
+      "prices": {
+        "usd": "0.93",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "0.43",
+        "eur_foil": null,
+        "tix": null
+      },
+      "released_at": "2004-09-01"
+    },
+    {
+      "set": "scg",
+      "set_name": "Scourge",
+      "collector_number": "143",
+      "prices": {
+        "usd": "0.49",
+        "usd_foil": "16.18",
+        "usd_etched": null,
+        "eur": "0.53",
+        "eur_foil": "12.66",
+        "tix": "0.04"
+      },
+      "released_at": "2003-05-26"
+    }
+  ]
+}

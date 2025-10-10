@@ -193,12 +193,18 @@ router.get("/", async (req, res) => {
       const identity = card.color_identity || [];
       const typeLine = card.type_line?.toLowerCase() || "";
 
-      if (typeLine.includes("land") && identity.length === 0) return true;
-      if (identity.length === 0 || identity.includes("C")) {
-        return colors.includes("C") || colors.length === 5;
-      }
+      // --- Colorless (no identity) ---
+      if (identity.length === 0) return true;
+
+      // --- Pure colorless identity "C" ---
+      if (identity.length === 1 && identity[0] === "C") return true;
+
+      // --- Colored cards (including lands) ---
+      // Only show if ALL of their identity colors are within the selected ones
       return identity.every((c) => colors.includes(c));
     }
+
+
 
     const filteredLands = lands.filter(passesColorFilter);
     const filteredNonlands = nonlands.filter(passesColorFilter);
