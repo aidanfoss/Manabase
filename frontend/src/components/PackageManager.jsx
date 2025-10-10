@@ -1,179 +1,130 @@
-﻿import React, { useEffect, useState } from "react";
-import { packageAPI } from "../api/packages";
-import { useAuth } from "../context/AuthContext";
-import { parseCardLink } from "../utils/parseCardLink";
+﻿import React, { useEffect, useState, useMemo } from "react";
+import { api } from "../api/client";
 import "../styles/packageManager.css";
 
 export default function PackageManager() {
-  const { user, token } = useAuth();
   const [packages, setPackages] = useState([]);
-  const [activePkg, setActivePkg] = useState(null);
-  const [cards, setCards] = useState([]);
+  const [currentPackage, setCurrentPackage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const base = import.meta.env.VITE_API_URL || "/api";
+  const [packageSearch, setPackageSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [draggedCard, setDraggedCard] = useState(null);
+  const [isOverDropZone, setIsOverDropZone] = useState(false);
 
-  // Load user packages
+  // Load saved packages
   useEffect(() => {
-    if (!token) return;
-    (async () => {
-      try {
-        const data = await packageAPI.list();
-        const parsed = data.map((p) => ({
-          ...p,
-          cards:
-            typeof p.cards === "string"
-              ? JSON.parse(p.cards || "[]")
-              : p.cards || [],
-        }));
-        setPackages(parsed);
-      } catch (err) {
-        console.error("Failed to load packages:", err);
-      }
-    })();
-  }, [token]);
+    api.getPackages().then(setPackages).catch(console.error);
+  }, []);
 
-  // Search Scryfall proxy
+  // Search cards via backend proxy (Scryfall)
   async function handleSearch(e) {
     e.preventDefault();
     if (!searchTerm.trim()) return;
-    setLoading(true);
     try {
-      const res = await fetch(`${base}/scryfall?q=${encodeURIComponent(searchTerm)}`);
-      const json = await res.json();
-      setSearchResults(json.data || []);
+      const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
+      setSearchResults(Array.isArray(data.data) ? data.data : []);
     } catch (err) {
       console.error("Scryfall search failed:", err);
-    } finally {
-      setLoading(false);
     }
   }
 
-  // Card actions
-  const addCard = (card) =>
-    setCards((prev) => (prev.some((c) => c.id === card.id) ? prev : [...prev, card]));
-  const removeCard = (id) => setCards((prev) => prev.filter((c) => c.id !== id));
-
-  // Save / Save As / Delete
-  async function savePackage(isCopy = false) {
-    if (!cards.length) return alert("Add at least one card first!");
-    let name =
-      isCopy || !activePkg
-        ? prompt("Enter name for new package:", activePkg?.name || "")
-        : activePkg?.name || prompt("Enter a name for this package:");
-    if (!name) return;
-
-    setSaving(true);
-    try {
-      const payload = {
-        name,
-        cards: cards.map((c) => ({
-          id: c.id,
-          name: c.name,
-          set: c.set_name || c.set,
-          image: c.image_uris?.normal || c.image || "",
-        })),
-      };
-
-      if (isCopy || !activePkg) {
-        await packageAPI.create(payload);
-      } else {
-        await packageAPI.update(activePkg.id, payload);
-      }
-
-      const refreshed = await packageAPI.list();
-      const parsed = refreshed.map((p) => ({
-        ...p,
-        cards:
-          typeof p.cards === "string"
-            ? JSON.parse(p.cards || "[]")
-            : p.cards || [],
-      }));
-      setPackages(parsed);
-      alert("✅ Saved successfully!");
-    } catch (err) {
-      console.error("Save failed:", err);
-      alert("Save failed.");
-    } finally {
-      setSaving(false);
-    }
+  // --- Card add/remove ---
+  function handleAdd(card) {
+    if (!currentPackage) return;
+    const updated = {
+      ...currentPackage,
+      cards: [...(currentPackage.cards || []), card],
+    };
+    setCurrentPackage(updated);
   }
 
-  const deletePackage = async (pkg) => {
-    if (!pkg || !window.confirm(`Delete "${pkg.name}" permanently?`)) return;
-    try {
-      await packageAPI.delete(pkg.id);
-      setPackages((prev) => prev.filter((p) => p.id !== pkg.id));
-      setActivePkg(null);
-      setCards([]);
-    } catch (err) {
-      console.error("Delete failed:", err);
-    }
-  };
+  function handleRemove(card) {
+    if (!currentPackage) return;
+    const updated = {
+      ...currentPackage,
+      cards: (currentPackage.cards || []).filter((c) => c.id !== card.id),
+    };
+    setCurrentPackage(updated);
+  }
 
-  const loadPackage = (pkg) => {
-    const parsed =
-      typeof pkg.cards === "string" ? JSON.parse(pkg.cards || "[]") : pkg.cards || [];
-    setActivePkg(pkg);
-    setCards(parsed);
-  };
-  const newPackage = () => {
-    setActivePkg(null);
-    setCards([]);
-  };
+  // --- Package CRUD ---
+  function newPackage() {
+    setCurrentPackage({ name: "Untitled Package", cards: [] });
+  }
 
-  // Drag & drop
-  const handleDrop = async (e) => {
+  async function savePackage() {
+    if (!currentPackage) return;
+    await api.savePackage(currentPackage);
+    alert("💾 Package saved!");
+  }
+
+  async function saveAsPackage() {
+    if (!currentPackage) return;
+    const renamed = prompt("Enter new package name:", currentPackage.name);
+    if (!renamed) return;
+    await api.savePackage({ ...currentPackage, name: renamed });
+    alert("📦 Saved as new package!");
+  }
+
+  async function deletePackage() {
+    if (!currentPackage?.id) return;
+    if (!window.confirm("Delete this package?")) return;
+    await api.deletePackage(currentPackage.id);
+    alert("🗑️ Deleted package.");
+    setCurrentPackage(null);
+  }
+
+  // --- Derived filtered list for right search ---
+  const filteredCards = useMemo(() => {
+    const cards = currentPackage?.cards || [];
+    if (!packageSearch.trim()) return cards;
+    const q = packageSearch.toLowerCase();
+    return cards.filter((c) => c.name?.toLowerCase().includes(q));
+  }, [currentPackage, packageSearch]);
+
+  // --- Drag/drop handlers ---
+  function handleDragStart(card) {
+    setDraggedCard(card);
+  }
+
+  function handleDragOver(e) {
+    if (!currentPackage) return;
     e.preventDefault();
-    setDragActive(false);
-    const data = e.dataTransfer.getData("text");
-    const parsed = parseCardLink(data);
-    if (!parsed) return;
-    try {
-      if (parsed.type === "card" && parsed.name) {
-        const res = await fetch(`${base}/scryfall?q=${encodeURIComponent(parsed.name)}`);
-        const json = await res.json();
-        const card = json.data?.[0];
-        if (card) addCard(card);
-      }
-    } catch (err) {
-      console.error("Drop add failed:", err);
+    setIsOverDropZone(true);
+  }
+
+  function handleDragLeave() {
+    setIsOverDropZone(false);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    if (draggedCard && currentPackage) {
+      handleAdd(draggedCard);
     }
-  };
-  const handleDragOver = (e) => e.preventDefault();
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    setDragActive(true);
-  };
-  const handleDragLeave = () => setDragActive(false);
+    setDraggedCard(null);
+    setIsOverDropZone(false);
+  }
 
   return (
-    <div
-      className="mox-style-layout"
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-    >
-      {dragActive && <div className="drag-overlay">Drop cards here</div>}
-
-      {/* HEADER BAR */}
-      <header className="mox-header">
-        <div className="left-controls">
+    <div className="pm-page">
+      {/* Header */}
+      <header className="pm-header">
+        <div className="pm-header-left">
           <button onClick={newPackage}>New</button>
-          <button onClick={() => savePackage(false)}>💾 Save</button>
-          <button onClick={() => savePackage(true)}>📁 Save As</button>
-          {activePkg && (
-            <button className="delete" onClick={() => deletePackage(activePkg)}>
-              🗑 Delete
-            </button>
-          )}
+          <button onClick={savePackage}>Save</button>
+          <button className="saveas" onClick={saveAsPackage}>
+            Save As
+          </button>
         </div>
-        <div className="center-search">
-          <form onSubmit={handleSearch}>
+      </header>
+
+      {/* Main Layout */}
+      <main className="pm-main">
+        {/* Left: Scryfall Search */}
+        <div className="pm-column">
+          <form className="pm-search" onSubmit={handleSearch}>
             <input
               type="text"
               placeholder="Find and add cards..."
@@ -182,52 +133,93 @@ export default function PackageManager() {
             />
             <button type="submit">🔍</button>
           </form>
-        </div>
-        <div className="right-controls">
-          <span>Logged in as {user?.username || user?.email}</span>
-        </div>
-      </header>
 
-      {/* BODY GRID */}
-      <main className="mox-main">
-        {/* LEFT: Search Results */}
-        <section className="mox-panel">
-          <h3>Search Results</h3>
-          <div className="card-grid">
+          <div className="pm-grid">
             {searchResults.map((card) => (
-              <div key={card.id} className="card-tile" onClick={() => addCard(card)}>
-                <img src={card.image_uris?.small} alt={card.name} />
-                <div className="add-icon">+</div>
+              <div
+                key={card.id}
+                className="pm-card"
+                draggable
+                onDragStart={() => handleDragStart(card)}
+                title="Drag to add"
+              >
+                <img
+                  src={
+                    card.image_uris?.normal ||
+                    card.image_uris?.small ||
+                    card.image ||
+                    ""
+                  }
+                  alt={card.name}
+                />
+                <div className="pm-add">+</div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* RIGHT: Package Contents */}
-        <section className="mox-panel">
-          <h3>{activePkg ? activePkg.name : "Untitled Package"}</h3>
-          <div className="card-grid">
-            {cards.map((c) => (
-              <div key={c.id} className="card-tile">
-                <img src={c.image_uris?.small || c.image} alt={c.name} />
-                <div className="remove-icon" onClick={() => removeCard(c.id)}>
-                  ✕
-                </div>
+        {/* Right: Package Search + Filtered Cards */}
+        <div
+          className={`pm-column ${
+            !currentPackage ? "pm-column-disabled" : ""
+          } ${isOverDropZone ? "pm-drop-highlight" : ""}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {currentPackage ? (
+            <>
+              <form className="pm-search small" onSubmit={(e) => e.preventDefault()}>
+                <input
+                  type="text"
+                  placeholder="Filter cards in package..."
+                  value={packageSearch}
+                  onChange={(e) => setPackageSearch(e.target.value)}
+                />
+                <button type="button" disabled>
+                  🔍
+                </button>
+              </form>
+
+              <div className="pm-grid">
+                {filteredCards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="pm-card"
+                    onClick={() => handleRemove(card)}
+                    title="Click to remove"
+                  >
+                    <img
+                      src={
+                        card.image_uris?.normal ||
+                        card.image_uris?.small ||
+                        card.image ||
+                        ""
+                      }
+                      alt={card.name}
+                    />
+                    <div className="pm-remove">×</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            </>
+          ) : (
+            <div className="pm-disabled-msg">
+              ⚠️ Select or create a package to view its cards.
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* FOOTER */}
-      <footer className="mox-footer">
-        <h4>Your Packages</h4>
-        <div className="pkg-list">
+      {/* Footer */}
+      <footer className="pm-footer">
+        <div>Your Packages:</div>
+        <div className="pm-packages">
           {packages.map((p) => (
             <button
-              key={p.id}
-              className={`pkg-item ${activePkg?.id === p.id ? "active" : ""}`}
-              onClick={() => loadPackage(p)}
+              key={p.id || p.name}
+              className={`pkg-btn ${currentPackage?.id === p.id ? "active" : ""}`}
+              onClick={() => setCurrentPackage(p)}
             >
               {p.name}
             </button>
