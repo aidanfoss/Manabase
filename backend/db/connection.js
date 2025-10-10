@@ -1,15 +1,33 @@
-// backend/db/connection.js
+﻿// backend/db/connection.js
 import knex from "knex";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Use /data when running in production (e.g. inside container)
+const isProd = process.env.NODE_ENV === "production";
+
+// Determine correct DB path
+const dbPath = isProd
+  ? "/data/manabase.db"
+  : path.join(__dirname, "manabase.db");
+
+// Ensure folder exists (avoids "no such file or directory" on first run)
+try {
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+} catch (err) {
+  console.warn("⚠️ Could not ensure DB directory:", err.message);
+}
+
+console.log(`📦 Using database at: ${dbPath}`);
+
 export const db = knex({
   client: "sqlite3",
   connection: {
-    filename: path.join(__dirname, "manabase.db"),
+    filename: dbPath,
   },
   useNullAsDefault: true,
 });
