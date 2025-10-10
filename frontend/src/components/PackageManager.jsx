@@ -8,25 +8,66 @@ export default function PackageManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [packageSearch, setPackageSearch] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [draggedCard, setDraggedCard] = useState(null);
   const [isOverDropZone, setIsOverDropZone] = useState(false);
+  const [showLoadMenu, setShowLoadMenu] = useState(false); // new modal toggle
 
-  // Load saved packages
+  // Load saved packages list
   useEffect(() => {
     api.getPackages().then(setPackages).catch(console.error);
   }, []);
 
-  // Search cards via backend proxy (Scryfall)
+  // --- Search via backend (local or proxy) ---
   async function handleSearch(e) {
     e.preventDefault();
     if (!searchTerm.trim()) return;
     try {
       const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
-      setSearchResults(Array.isArray(data.data) ? data.data : []);
+      setSearchResults(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Scryfall search failed:", err);
+      console.error("Search failed:", err);
     }
+  }
+
+  // --- Create new package ---
+  function newPackage() {
+    const name = prompt("Enter a name for your new package:");
+    if (!name) return;
+    setCurrentPackage({ name, cards: [] });
+  }
+
+  // --- Save current package ---
+  async function savePackage() {
+    if (!currentPackage) return;
+    await api.savePackage(currentPackage);
+    alert("💾 Package saved!");
+    // refresh list after saving
+    const updatedList = await api.getPackages();
+    setPackages(updatedList);
+  }
+
+  // --- Load package ---
+  function loadPackage(pkg) {
+    setCurrentPackage(pkg);
+    setShowLoadMenu(false);
+  }
+
+  // --- Delete package ---
+  async function deletePackage(pkg) {
+    if (!window.confirm(`Delete "${pkg.name}"?`)) return;
+    await api.deletePackage(pkg.id);
+    alert("🗑️ Deleted package.");
+    // reload the list
+    const updatedList = await api.getPackages();
+    setPackages(updatedList);
+    // clear current package if it was deleted
+    if (currentPackage?.id === pkg.id) setCurrentPackage(null);
+  }
+
+  // --- Placeholder for future Share feature ---
+  // TODO: Implement share functionality (e.g., generate link, export JSON)
+  function sharePackage(pkg) {
+    alert("🚧 Share feature coming soon!");
   }
 
   // --- Card add/remove ---
@@ -48,34 +89,7 @@ export default function PackageManager() {
     setCurrentPackage(updated);
   }
 
-  // --- Package CRUD ---
-  function newPackage() {
-    setCurrentPackage({ name: "Untitled Package", cards: [] });
-  }
-
-  async function savePackage() {
-    if (!currentPackage) return;
-    await api.savePackage(currentPackage);
-    alert("💾 Package saved!");
-  }
-
-  async function saveAsPackage() {
-    if (!currentPackage) return;
-    const renamed = prompt("Enter new package name:", currentPackage.name);
-    if (!renamed) return;
-    await api.savePackage({ ...currentPackage, name: renamed });
-    alert("📦 Saved as new package!");
-  }
-
-  async function deletePackage() {
-    if (!currentPackage?.id) return;
-    if (!window.confirm("Delete this package?")) return;
-    await api.deletePackage(currentPackage.id);
-    alert("🗑️ Deleted package.");
-    setCurrentPackage(null);
-  }
-
-  // --- Derived filtered list for right search ---
+  // --- Filter cards within package ---
   const filteredCards = useMemo(() => {
     const cards = currentPackage?.cards || [];
     if (!packageSearch.trim()) return cards;
@@ -83,7 +97,7 @@ export default function PackageManager() {
     return cards.filter((c) => c.name?.toLowerCase().includes(q));
   }, [currentPackage, packageSearch]);
 
-  // --- Drag/drop handlers ---
+  // --- Drag and drop handlers ---
   function handleDragStart(card) {
     setDraggedCard(card);
   }
@@ -109,18 +123,16 @@ export default function PackageManager() {
 
   return (
     <div className="pm-page">
-      {/* Header */}
+      {/* === Header === */}
       <header className="pm-header">
         <div className="pm-header-left">
           <button onClick={newPackage}>New</button>
           <button onClick={savePackage}>Save</button>
-          <button className="saveas" onClick={saveAsPackage}>
-            Save As
-          </button>
+          <button onClick={() => setShowLoadMenu(true)}>Load</button>
         </div>
       </header>
 
-      {/* Main Layout */}
+      {/* === Main Layout === */}
       <main className="pm-main">
         {/* Left: Scryfall Search */}
         <div className="pm-column">
@@ -158,7 +170,7 @@ export default function PackageManager() {
           </div>
         </div>
 
-        {/* Right: Package Search + Filtered Cards */}
+        {/* Right: Current Package */}
         <div
           className={`pm-column ${
             !currentPackage ? "pm-column-disabled" : ""
@@ -172,7 +184,7 @@ export default function PackageManager() {
               <form className="pm-search small" onSubmit={(e) => e.preventDefault()}>
                 <input
                   type="text"
-                  placeholder="Filter cards in package..."
+                  placeholder={`Filter cards in "${currentPackage.name}"...`}
                   value={packageSearch}
                   onChange={(e) => setPackageSearch(e.target.value)}
                 />
@@ -205,27 +217,43 @@ export default function PackageManager() {
             </>
           ) : (
             <div className="pm-disabled-msg">
-              ⚠️ Select or create a package to view its cards.
+              ⚠️ Create or load a package to view its cards.
             </div>
           )}
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="pm-footer">
-        <div>Your Packages:</div>
-        <div className="pm-packages">
-          {packages.map((p) => (
-            <button
-              key={p.id || p.name}
-              className={`pkg-btn ${currentPackage?.id === p.id ? "active" : ""}`}
-              onClick={() => setCurrentPackage(p)}
-            >
-              {p.name}
+      {/* === Load Menu Modal === */}
+      {showLoadMenu && (
+        <div className="pm-modal-overlay" onClick={() => setShowLoadMenu(false)}>
+          <div className="pm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>📦 Manage Packages</h3>
+            {packages.length === 0 ? (
+              <p className="pm-disabled-msg">No saved packages yet.</p>
+            ) : (
+              <ul className="pm-package-list">
+                {packages.map((p) => (
+                  <li key={p.id || p.name}>
+                    <span className="pkg-name">{p.name}</span>
+                    <div className="pkg-actions">
+                      <button onClick={() => loadPackage(p)}>Load</button>
+                      <button onClick={() => sharePackage(p)} disabled>
+                        Share
+                      </button>
+                      <button className="delete" onClick={() => deletePackage(p)}>
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button className="pm-close" onClick={() => setShowLoadMenu(false)}>
+              Close
             </button>
-          ))}
+          </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 }
