@@ -1,260 +1,231 @@
-﻿import React, { useEffect, useState } from "react";
-import { packageAPI } from "../api/packages";
-import { useAuth } from "../context/AuthContext";
-import "./styles.css";
+﻿import React, { useEffect, useState, useMemo } from "react";
+import { api } from "../api/client";
+import "../styles/packageManager.css";
 
 export default function PackageManager() {
-  const { user, token } = useAuth();
   const [packages, setPackages] = useState([]);
-  const [activePkg, setActivePkg] = useState(null);
-  const [cards, setCards] = useState([]);
+  const [currentPackage, setCurrentPackage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [packageSearch, setPackageSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [draggedCard, setDraggedCard] = useState(null);
+  const [isOverDropZone, setIsOverDropZone] = useState(false);
 
-  // 🧭 Load user packages
+  // Load saved packages
   useEffect(() => {
-    if (!token) return;
-    (async () => {
-      try {
-        const data = await packageAPI.list();
-        const parsed = data.map((p) => ({
-          ...p,
-          cards:
-            typeof p.cards === "string"
-              ? JSON.parse(p.cards || "[]")
-              : p.cards || [],
-        }));
-        setPackages(parsed || []);
-      } catch (e) {
-        console.error("Failed to load packages:", e);
-      }
-    })();
-  }, [token]);
+    api.getPackages().then(setPackages).catch(console.error);
+  }, []);
 
-  // 🔎 Search cards from Scryfall
+  // Search cards via backend proxy (Scryfall)
   async function handleSearch(e) {
     e.preventDefault();
     if (!searchTerm.trim()) return;
-    setLoading(true);
     try {
-      const res = await fetch(
-        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchTerm)}`
-      );
-      const data = await res.json();
-      setSearchResults(data.data || []);
+      const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
+      setSearchResults(Array.isArray(data.data) ? data.data : []);
     } catch (err) {
       console.error("Scryfall search failed:", err);
-    } finally {
-      setLoading(false);
     }
   }
 
-  // ➕ Add card
-  function addCard(card) {
-    if (cards.some((c) => c.id === card.id)) return;
-    setCards([...cards, card]);
+  // --- Card add/remove ---
+  function handleAdd(card) {
+    if (!currentPackage) return;
+    const updated = {
+      ...currentPackage,
+      cards: [...(currentPackage.cards || []), card],
+    };
+    setCurrentPackage(updated);
   }
 
-  // ❌ Remove card
-  function removeCard(id) {
-    setCards(cards.filter((c) => c.id !== id));
+  function handleRemove(card) {
+    if (!currentPackage) return;
+    const updated = {
+      ...currentPackage,
+      cards: (currentPackage.cards || []).filter((c) => c.id !== card.id),
+    };
+    setCurrentPackage(updated);
   }
 
-  // 💾 Save (create or update)
-  async function savePackage() {
-    if (!cards.length) return alert("Add at least one card first!");
-    const name =
-      activePkg?.name ||
-      prompt("Enter a name for this package:", activePkg?.name || "");
-    if (!name) return;
-
-    setSaving(true);
-    try {
-      const payload = {
-        name,
-        cards: cards.map((c) => ({
-          id: c.id,
-          name: c.name,
-          set: c.set_name || c.set,
-          image: c.image_uris?.normal || c.image || "",
-        })),
-      };
-
-      let saved;
-      if (activePkg) {
-        // update existing package
-        saved = await packageAPI.update(activePkg.id, payload);
-        alert(`✅ Updated package "${name}"!`);
-      } else {
-        // create new package
-        saved = await packageAPI.create(payload);
-        alert(`✅ Created package "${name}"!`);
-      }
-
-      // Refresh list
-      const refreshed = await packageAPI.list();
-      const parsed = refreshed.map((p) => ({
-        ...p,
-        cards:
-          typeof p.cards === "string"
-            ? JSON.parse(p.cards || "[]")
-            : p.cards || [],
-      }));
-      setPackages(parsed);
-      setActivePkg(null);
-      setCards([]);
-      setSearchResults([]);
-    } catch (e) {
-      console.error("Save failed:", e);
-      alert("Failed to save package.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // ✏️ Load for editing
-  function loadPackage(pkg) {
-    const parsedCards =
-      typeof pkg.cards === "string" ? JSON.parse(pkg.cards || "[]") : pkg.cards || [];
-    setActivePkg(pkg);
-    setCards(parsedCards);
-    setSearchResults([]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  // 🗑️ Delete
-  async function deletePackage(pkg) {
-    if (!window.confirm(`Delete package "${pkg.name}" permanently?`)) return;
-    try {
-      await packageAPI.delete(pkg.id);
-      setPackages((prev) => prev.filter((p) => p.id !== pkg.id));
-      if (activePkg?.id === pkg.id) {
-        setActivePkg(null);
-        setCards([]);
-      }
-      alert(`🗑️ Deleted "${pkg.name}"`);
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Failed to delete package.");
-    }
-  }
-
-  // ➕ Create new blank package
+  // --- Package CRUD ---
   function newPackage() {
-    setActivePkg(null);
-    setCards([]);
-    setSearchResults([]);
+    setCurrentPackage({ name: "Untitled Package", cards: [] });
+  }
+
+  async function savePackage() {
+    if (!currentPackage) return;
+    await api.savePackage(currentPackage);
+    alert("💾 Package saved!");
+  }
+
+  async function saveAsPackage() {
+    if (!currentPackage) return;
+    const renamed = prompt("Enter new package name:", currentPackage.name);
+    if (!renamed) return;
+    await api.savePackage({ ...currentPackage, name: renamed });
+    alert("📦 Saved as new package!");
+  }
+
+  async function deletePackage() {
+    if (!currentPackage?.id) return;
+    if (!window.confirm("Delete this package?")) return;
+    await api.deletePackage(currentPackage.id);
+    alert("🗑️ Deleted package.");
+    setCurrentPackage(null);
+  }
+
+  // --- Derived filtered list for right search ---
+  const filteredCards = useMemo(() => {
+    const cards = currentPackage?.cards || [];
+    if (!packageSearch.trim()) return cards;
+    const q = packageSearch.toLowerCase();
+    return cards.filter((c) => c.name?.toLowerCase().includes(q));
+  }, [currentPackage, packageSearch]);
+
+  // --- Drag/drop handlers ---
+  function handleDragStart(card) {
+    setDraggedCard(card);
+  }
+
+  function handleDragOver(e) {
+    if (!currentPackage) return;
+    e.preventDefault();
+    setIsOverDropZone(true);
+  }
+
+  function handleDragLeave() {
+    setIsOverDropZone(false);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    if (draggedCard && currentPackage) {
+      handleAdd(draggedCard);
+    }
+    setDraggedCard(null);
+    setIsOverDropZone(false);
   }
 
   return (
-    <div className="package-page">
-      <div className="package-topbar">
-        <h1>Package Manager</h1>
-        <div className="user-info">
-          Logged in as {user?.username || user?.email}
+    <div className="pm-page">
+      {/* Header */}
+      <header className="pm-header">
+        <div className="pm-header-left">
+          <button onClick={newPackage}>New</button>
+          <button onClick={savePackage}>Save</button>
+          <button className="saveas" onClick={saveAsPackage}>
+            Save As
+          </button>
         </div>
-      </div>
+      </header>
 
-      <div className="package-section">
-        {/* Left side — search + add */}
-        <div className="left-panel">
-          <h2>{activePkg ? `Editing: ${activePkg.name}` : "New Package"}</h2>
-
-          <form onSubmit={handleSearch} className="search-bar">
+      {/* Main Layout */}
+      <main className="pm-main">
+        {/* Left: Scryfall Search */}
+        <div className="pm-column">
+          <form className="pm-search" onSubmit={handleSearch}>
             <input
               type="text"
-              placeholder="Search cards..."
+              placeholder="Find and add cards..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button type="submit" disabled={loading}>
-              {loading ? "Searching..." : "Search"}
-            </button>
+            <button type="submit">🔍</button>
           </form>
 
-          <div className="search-results">
+          <div className="pm-grid">
             {searchResults.map((card) => (
               <div
                 key={card.id}
-                className="search-card"
-                onClick={() => addCard(card)}
-                title="Click to add"
+                className="pm-card"
+                draggable
+                onDragStart={() => handleDragStart(card)}
+                title="Drag to add"
               >
-                <img src={card.image_uris?.small} alt={card.name} />
-                <div className="card-name">{card.name}</div>
+                <img
+                  src={
+                    card.image_uris?.normal ||
+                    card.image_uris?.small ||
+                    card.image ||
+                    ""
+                  }
+                  alt={card.name}
+                />
+                <div className="pm-add">+</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right side — current package */}
-        <div className="right-panel">
-          <div className="right-header">
-            <h2>Cards in this Package</h2>
-            {activePkg && (
-              <button className="new-btn" onClick={newPackage}>
-                ➕ New
-              </button>
-            )}
-          </div>
+        {/* Right: Package Search + Filtered Cards */}
+        <div
+          className={`pm-column ${
+            !currentPackage ? "pm-column-disabled" : ""
+          } ${isOverDropZone ? "pm-drop-highlight" : ""}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {currentPackage ? (
+            <>
+              <form className="pm-search small" onSubmit={(e) => e.preventDefault()}>
+                <input
+                  type="text"
+                  placeholder="Filter cards in package..."
+                  value={packageSearch}
+                  onChange={(e) => setPackageSearch(e.target.value)}
+                />
+                <button type="button" disabled>
+                  🔍
+                </button>
+              </form>
 
-          {cards.length === 0 && <p className="empty">No cards added yet.</p>}
-
-          <div className="added-cards">
-            {cards.map((c) => (
-              <div key={c.id} className="added-card">
-                <img src={c.image_uris?.small || c.image} alt={c.name} />
-                <div className="card-title">{c.name}</div>
-                <button onClick={() => removeCard(c.id)}>✕</button>
-              </div>
-            ))}
-          </div>
-
-          <button className="save-btn" onClick={savePackage} disabled={saving}>
-            {saving
-              ? "Saving..."
-              : activePkg
-              ? "💾 Update Package"
-              : "💾 Save Package"}
-          </button>
-
-          {activePkg && (
-            <button
-              className="delete-btn"
-              onClick={() => deletePackage(activePkg)}
-              style={{ marginTop: "0.5rem" }}
-            >
-              🗑️ Delete Package
-            </button>
-          )}
-
-          {/* Package list */}
-          {packages.length > 0 && (
-            <div className="existing-packages">
-              <h3>Your Packages</h3>
-              {packages.map((p) => (
-                <div
-                  key={p.id}
-                  className={`package-entry ${
-                    activePkg?.id === p.id ? "active" : ""
-                  }`}
-                >
-                  <button onClick={() => loadPackage(p)}>{p.name}</button>
-                  <button
-                    className="small-delete"
-                    onClick={() => deletePackage(p)}
-                    title="Delete"
+              <div className="pm-grid">
+                {filteredCards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="pm-card"
+                    onClick={() => handleRemove(card)}
+                    title="Click to remove"
                   >
-                    ✕
-                  </button>
-                </div>
-              ))}
+                    <img
+                      src={
+                        card.image_uris?.normal ||
+                        card.image_uris?.small ||
+                        card.image ||
+                        ""
+                      }
+                      alt={card.name}
+                    />
+                    <div className="pm-remove">×</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="pm-disabled-msg">
+              ⚠️ Select or create a package to view its cards.
             </div>
           )}
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="pm-footer">
+        <div>Your Packages:</div>
+        <div className="pm-packages">
+          {packages.map((p) => (
+            <button
+              key={p.id || p.name}
+              className={`pkg-btn ${currentPackage?.id === p.id ? "active" : ""}`}
+              onClick={() => setCurrentPackage(p)}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </footer>
     </div>
   );
 }

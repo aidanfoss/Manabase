@@ -5,14 +5,15 @@ import LandCycleSelector from "./LandCycleSelector";
 import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar({
-  packages = [],     // ✅ renamed from metas, with safe default
+  packages = [],
   landcycles = [],
   selected,
   toggle,
-  collapsed,          // keep for className
+  collapsed,
 }) {
   const { user } = useAuth();
 
+  // --- Group land cycles by tier ---
   const groupedLandcycles = useMemo(() => {
     const groups = { premium: [], playable: [], budget: [], terrible: [] };
     for (const lc of landcycles) {
@@ -31,29 +32,31 @@ export default function Sidebar({
   }
 
   return (
-    <aside className={`aside-slide ${collapsed ? "hidden" : "visible"}`}>
-      {/* Profile */}
-      <div className="sidebar-header">
-        <div className="profile">
-          <div className="profile-info">
-            <div className="profile-name">
-              {user?.username || user?.email || "Guest"}
-            </div>
-          </div>
-        </div>
+    <aside className={`aside ${collapsed ? "hidden" : ""}`}>
+      <div className="section">
+        <ColorSelector selected={selected} toggle={toggle} />
       </div>
 
-      {/* Filters */}
-      <ColorSelector selected={selected} toggle={toggle} />
-      <PackageSelector packages={packages} selected={selected} toggle={toggle} />
-      <LandCycleSelector
-        groupedLandcycles={groupedLandcycles}
-        selected={selected}
-        toggle={toggle}
-      />
+      {/* === Package Selector === */}
+      <div className="section">
+        <PackageSelector
+          packages={packages}
+          selected={selected}
+          toggle={toggle}
+        />
+      </div>
 
-      {/* Share button */}
-      <div style={{ marginTop: "1.25rem", textAlign: "center" }}>
+      {/* === Land Cycle Selector === */}
+      <div className="section">
+        <LandCycleSelector
+          groupedLandcycles={groupedLandcycles}
+          selected={selected}
+          toggle={toggle}
+        />
+      </div>
+
+      {/* === Share Button === */}
+      <div className="section" style={{ textAlign: "center" }}>
         <button
           className="export-btn"
           onClick={copyShareLink}
@@ -75,6 +78,7 @@ export default function Sidebar({
             <polyline points="16 6 12 2 8 6" />
             <line x1="12" y1="2" x2="12" y2="15" />
           </svg>
+          <span style={{ marginLeft: "6px" }}>Share</span>
         </button>
       </div>
     </aside>

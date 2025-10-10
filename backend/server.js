@@ -22,6 +22,7 @@ import cardsRouter from "./routes/cards.js";
 import authRouter from "./routes/auth.js";
 import usersRouter from "./routes/users.js";
 import packagesRouter from "./routes/packages.js";
+import scryfallRouter from "./routes/scryfall.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -64,6 +65,7 @@ app.get("/api/health", (_req, res) => {
 // ✅ Authentication & User routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/scryfall", scryfallRouter);
 
 // ✅ Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
