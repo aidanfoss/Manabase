@@ -16,8 +16,11 @@ COPY backend/ .
 # Copy built frontend into backend
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 
-# Create /data directory and make it writable
-RUN mkdir -p /data && chmod -R 777 /data
+# Create /data and symlink it to /app/db to prevent init errors
+RUN mkdir -p /data && \
+    mkdir -p /app/db && \
+    ln -sf /data/manabase.db /app/db/manabase.db && \
+    chmod -R 777 /data /app/db
 
 ENV NODE_ENV=production
 ENV PORT=9001
