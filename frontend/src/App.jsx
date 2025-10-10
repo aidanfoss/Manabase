@@ -36,7 +36,7 @@ function AppContent() {
           <LoginForm compact onSuccess={() => setShowLogin(false)} />
         </div>
       )}
-      {screen === "main" ? <MainApp /> : <PackageManager />}
+        {screen === "main" ? <MainApp /> : <PackageManager />}
     </>
   );
 }
