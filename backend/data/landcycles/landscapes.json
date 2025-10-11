@@ -1,0 +1,19 @@
+{
+  "id": "landscapes",
+  "name": "Landscapes",
+  "tier": "premium",
+  "untapQuality": "alwaysTapped",
+  "description": "Enter tapped and can be sacrificed to fetch two basic land types. Each also has cycling for flexibility. Excellent fixing and utility in multicolor decks, especially in slower or Commander formats.",
+  "cards": [
+    "Bountiful Landscape",
+    "Contaminated Landscape",
+    "Deceptive Landscape",
+    "Forboding Landscape",
+    "Perilous Landscape",
+    "Seething Landscape",
+    "Shattered Landscape",
+    "Sheltering Landscape",
+    "Tranquil Landscape",
+    "Twisted Landscape"
+  ]
+}
