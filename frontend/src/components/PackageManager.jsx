@@ -10,16 +10,16 @@ export default function PackageManager() {
   const [packageSearch, setPackageSearch] = useState("");
   const [draggedCard, setDraggedCard] = useState(null);
   const [isOverDropZone, setIsOverDropZone] = useState(false);
-  const [showLoadMenu, setShowLoadMenu] = useState(false); // new modal toggle
+  const [showLoadMenu, setShowLoadMenu] = useState(false); // modal toggle
 
-  // Load saved packages list
+  // Load saved packages once
   useEffect(() => {
     api.getPackages().then(setPackages).catch(console.error);
   }, []);
 
-  // --- Search via backend (local or proxy) ---
+  // --- Manual Search (Enter or Button) ---
   async function handleSearch(e) {
-    e.preventDefault();
+    e?.preventDefault?.();
     if (!searchTerm.trim()) return;
     try {
       const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
@@ -28,6 +28,27 @@ export default function PackageManager() {
       console.error("Search failed:", err);
     }
   }
+
+  // --- Debounced Live Search (runs automatically while typing) ---
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    // Wait 500 ms after typing stops
+    const timeout = setTimeout(async () => {
+      try {
+        const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
+        setSearchResults(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Live search failed:", err);
+      }
+    }, 500);
+
+    // Cancel previous timer if user keeps typing
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
 
   // --- Create new package ---
   function newPackage() {
@@ -41,31 +62,26 @@ export default function PackageManager() {
     if (!currentPackage) return;
     await api.savePackage(currentPackage);
     alert("💾 Package saved!");
-    // refresh list after saving
     const updatedList = await api.getPackages();
     setPackages(updatedList);
   }
 
-  // --- Load package ---
+  // --- Load/Delete/Share (future) ---
   function loadPackage(pkg) {
     setCurrentPackage(pkg);
     setShowLoadMenu(false);
   }
 
-  // --- Delete package ---
   async function deletePackage(pkg) {
     if (!window.confirm(`Delete "${pkg.name}"?`)) return;
     await api.deletePackage(pkg.id);
     alert("🗑️ Deleted package.");
-    // reload the list
     const updatedList = await api.getPackages();
     setPackages(updatedList);
-    // clear current package if it was deleted
     if (currentPackage?.id === pkg.id) setCurrentPackage(null);
   }
 
-  // --- Placeholder for future Share feature ---
-  // TODO: Implement share functionality (e.g., generate link, export JSON)
+  // TODO: Future share functionality (e.g. export/share link)
   function sharePackage(pkg) {
     alert("🚧 Share feature coming soon!");
   }
@@ -114,9 +130,7 @@ export default function PackageManager() {
 
   function handleDrop(e) {
     e.preventDefault();
-    if (draggedCard && currentPackage) {
-      handleAdd(draggedCard);
-    }
+    if (draggedCard && currentPackage) handleAdd(draggedCard);
     setDraggedCard(null);
     setIsOverDropZone(false);
   }
@@ -134,7 +148,7 @@ export default function PackageManager() {
 
       {/* === Main Layout === */}
       <main className="pm-main">
-        {/* Left: Scryfall Search */}
+        {/* Left: Search cards (debounced live search) */}
         <div className="pm-column">
           <form className="pm-search" onSubmit={handleSearch}>
             <input
@@ -181,7 +195,10 @@ export default function PackageManager() {
         >
           {currentPackage ? (
             <>
-              <form className="pm-search small" onSubmit={(e) => e.preventDefault()}>
+              <form
+                className="pm-search small"
+                onSubmit={(e) => e.preventDefault()}
+              >
                 <input
                   type="text"
                   placeholder={`Filter cards in "${currentPackage.name}"...`}
@@ -240,7 +257,10 @@ export default function PackageManager() {
                       <button onClick={() => sharePackage(p)} disabled>
                         Share
                       </button>
-                      <button className="delete" onClick={() => deletePackage(p)}>
+                      <button
+                        className="delete"
+                        onClick={() => deletePackage(p)}
+                      >
                         Delete
                       </button>
                     </div>

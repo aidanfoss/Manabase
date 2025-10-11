@@ -30,6 +30,8 @@ import { initDB } from "./db/connection.js";
 // --- Utilities ---
 import { readJsonSafe } from "./utils/safeJson.js";
 import { fetchCardData } from "./services/scryfall.js";
+import { updateBulkDataIfNeeded, refreshOldPrices } from "./services/scryfallUpdater.js";
+import scryfallLocal from "./routes/scryfallLocal.js";
 
 // ---------------------------------
 // Core Setup
@@ -65,7 +67,7 @@ app.get("/api/health", (_req, res) => {
 // ✅ Authentication & User routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
-app.use("/api/scryfall", scryfallRouter);
+app.use("/api/scryfall/live", scryfallRouter); //allow direct scryfall querying if needed
 
 // ✅ Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
@@ -139,6 +141,7 @@ app.get("/api/landcycles", async (_req, res) => {
 
 // ✅ Cards route (handles fetchable detection internally)
 app.use("/api/cards", cardsRouter);
+app.use("/api/scryfall", scryfallLocal);
 
 // ---------------------------------
 // 🧱 Static Frontend Serving (React build)
@@ -164,6 +167,7 @@ app.get(/.*/, (req, res) => {
 // ---------------------------------
 await initDB();
 
+// ✅ Start Express server first (non-blocking)
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`📦 Routes available:`);
@@ -175,5 +179,25 @@ app.listen(PORT, () => {
   console.log(`   → /api/colors`);
   console.log(`   → /api/landcycles`);
   console.log(`   → /api/cards`);
+  console.log(`   → /api/scryfall (bulk data search)`);
   console.log(`🌐 Serving frontend from: ${frontendPath}`);
 });
+
+// ✅ Background bulk data + price updates
+(async () => {
+  try {
+    // Download bulk data if missing or outdated
+    await updateBulkDataIfNeeded();
+
+    // Refresh old prices (cards not updated in >7 days)
+    await refreshOldPrices();
+
+    // Schedule regular background tasks
+    setInterval(updateBulkDataIfNeeded, 24 * 60 * 60 * 1000); // every 24h
+    setInterval(refreshOldPrices, 6 * 60 * 60 * 1000);        // every 6h
+
+    console.log("⏰ Scheduled bulk data and price update tasks initialized.");
+  } catch (err) {
+    console.error("⚠️ Failed to initialize Scryfall background updates:", err);
+  }
+})();
