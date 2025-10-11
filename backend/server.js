@@ -51,8 +51,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Logging middleware
 app.use((req, _res, next) => {
-  console.log(`→ ${req.method} ${req.originalUrl}`);
-  next();
+    console.log(`→ ${req.method} ${req.originalUrl}`);
+    next();
 });
 
 // ---------------------------------
@@ -61,13 +61,13 @@ app.use((req, _res, next) => {
 
 // ✅ Health check
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, time: new Date().toISOString() });
+    res.json({ ok: true, time: new Date().toISOString() });
 });
 
 // ✅ Authentication & User routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
-app.use("/api/scryfall/live", scryfallRouter); //allow direct scryfall querying if needed
+app.use("/api/scryfall/live", scryfallRouter); // allow direct live Scryfall querying if needed
 
 // ✅ Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
@@ -84,63 +84,65 @@ app.get("/api/colors", (_req, res) => res.json(colors));
  * Returns an array of landcycle objects with tier & untapQuality metadata
  */
 app.get("/api/landcycles", async (_req, res) => {
-  try {
-    const landcyclesDir = path.join(__dirname, "data/landcycles");
-    const files = fs.readdirSync(landcyclesDir).filter((f) => f.endsWith(".json"));
-    const cycles = [];
+    try {
+        const landcyclesDir = path.join(__dirname, "data/landcycles");
+        const files = fs.readdirSync(landcyclesDir).filter((f) => f.endsWith(".json"));
+        const cycles = [];
 
-    for (const file of files) {
-      const fullPath = path.join(landcyclesDir, file);
-      const json = await readJsonSafe(fullPath);
+        for (const file of files) {
+            const fullPath = path.join(landcyclesDir, file);
+            const json = await readJsonSafe(fullPath);
 
-      if (json && json.name) {
-        // Safely handle both string and object cards
-        const cards = (json.cards || []).map((c) =>
-          typeof c === "string"
-            ? { name: c, fetchable: false }
-            : { name: c.name ?? "", fetchable: c.fetchable ?? false }
-        );
+            if (json && json.name) {
+                // Safely handle both string and object cards
+                const cards = (json.cards || []).map((c) =>
+                    typeof c === "string"
+                        ? { name: c, fetchable: false }
+                        : { name: c.name ?? "", fetchable: c.fetchable ?? false }
+                );
 
-        // 🔍 Check Scryfall data to determine if ANY card is fetchable
-        let cycleFetchable = false;
-        for (const card of cards) {
-          const data = await fetchCardData(card.name);
-          if (data?.fetchable) {
-            cycleFetchable = true;
-            break;
-          }
+                // 🔍 Check Scryfall data to determine if ANY card is fetchable
+                let cycleFetchable = false;
+                for (const card of cards) {
+                    const data = await fetchCardData(card.name);
+                    if (data?.fetchable) {
+                        cycleFetchable = true;
+                        break;
+                    }
+                }
+
+                cycles.push({
+                    id: json.id || path.basename(file, ".json"),
+                    name: json.name,
+                    tier: json.tier || "budget",
+                    untapQuality: json.untapQuality || "unknown",
+                    description: json.description || "",
+                    fetchable: cycleFetchable,
+                    cards,
+                });
+            }
         }
 
-        cycles.push({
-          id: json.id || path.basename(file, ".json"),
-          name: json.name,
-          tier: json.tier || "budget",
-          untapQuality: json.untapQuality || "unknown",
-          description: json.description || "",
-          fetchable: cycleFetchable,
-          cards,
+        // Sort by tier and then alphabetically
+        const tierOrder = { premium: 0, playable: 1, budget: 2, unknown: 3 };
+        cycles.sort((a, b) => {
+            const ta = tierOrder[a.tier?.toLowerCase()] ?? 3;
+            const tb = tierOrder[b.tier?.toLowerCase()] ?? 3;
+            if (ta !== tb) return ta - tb;
+            return a.name.localeCompare(b.name);
         });
-      }
+
+        res.json(cycles);
+    } catch (err) {
+        console.error("❌ Failed to load landcycles:", err);
+        res.status(500).json({ error: "Failed to load landcycles." });
     }
-
-    // Sort by tier and then alphabetically
-    const tierOrder = { premium: 0, playable: 1, budget: 2, unknown: 3 };
-    cycles.sort((a, b) => {
-      const ta = tierOrder[a.tier?.toLowerCase()] ?? 3;
-      const tb = tierOrder[b.tier?.toLowerCase()] ?? 3;
-      if (ta !== tb) return ta - tb;
-      return a.name.localeCompare(b.name);
-    });
-
-    res.json(cycles);
-  } catch (err) {
-    console.error("❌ Failed to load landcycles:", err);
-    res.status(500).json({ error: "Failed to load landcycles." });
-  }
 });
 
 // ✅ Cards route (handles fetchable detection internally)
 app.use("/api/cards", cardsRouter);
+
+// ✅ Local Scryfall bulk data route (always loaded from local bulk JSON)
 app.use("/api/scryfall", scryfallLocal);
 
 // ---------------------------------
@@ -151,15 +153,15 @@ app.use(express.static(frontendPath));
 
 // ✅ Fallback route for SPA (React)
 app.get(/.*/, (req, res) => {
-  const indexFile = path.join(frontendPath, "index.html");
-  console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
+    const indexFile = path.join(frontendPath, "index.html");
+    console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
 
-  if (fs.existsSync(indexFile)) {
-    res.sendFile(indexFile);
-  } else {
-    console.error("❌ Frontend build not found at", indexFile);
-    res.status(404).send("Frontend build not found.");
-  }
+    if (fs.existsSync(indexFile)) {
+        res.sendFile(indexFile);
+    } else {
+        console.error("❌ Frontend build not found at", indexFile);
+        res.status(404).send("Frontend build not found.");
+    }
 });
 
 // ---------------------------------
@@ -169,35 +171,35 @@ await initDB();
 
 // ✅ Start Express server first (non-blocking)
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📦 Routes available:`);
-  console.log(`   → /api/health`);
-  console.log(`   → /api/auth`);
-  console.log(`   → /api/users`);
-  console.log(`   → /api/packages`);
-  console.log(`   → /api/metas (alias)`);
-  console.log(`   → /api/colors`);
-  console.log(`   → /api/landcycles`);
-  console.log(`   → /api/cards`);
-  console.log(`   → /api/scryfall (bulk data search)`);
-  console.log(`🌐 Serving frontend from: ${frontendPath}`);
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📦 Routes available:`);
+    console.log(`   → /api/health`);
+    console.log(`   → /api/auth`);
+    console.log(`   → /api/users`);
+    console.log(`   → /api/packages`);
+    console.log(`   → /api/metas (alias)`);
+    console.log(`   → /api/colors`);
+    console.log(`   → /api/landcycles`);
+    console.log(`   → /api/cards`);
+    console.log(`   → /api/scryfall (bulk data search)`);
+    console.log(`🌐 Serving frontend from: ${frontendPath}`);
 });
 
 // ✅ Background bulk data + price updates
 (async () => {
-  try {
-    // Download bulk data if missing or outdated
-    await updateBulkDataIfNeeded();
+    try {
+        // Ensure bulk data exists and is up to date (once a week)
+        await updateBulkDataIfNeeded();
 
-    // Refresh old prices (cards not updated in >7 days)
-    await refreshOldPrices();
+        // Refresh old prices (cards not updated in >7 days)
+        await refreshOldPrices();
 
-    // Schedule regular background tasks
-    setInterval(updateBulkDataIfNeeded, 24 * 60 * 60 * 1000); // every 24h
-    setInterval(refreshOldPrices, 6 * 60 * 60 * 1000);        // every 6h
+        // Schedule regular background tasks
+        setInterval(updateBulkDataIfNeeded, 7 * 24 * 60 * 60 * 1000); // once a week
+        setInterval(refreshOldPrices, 6 * 60 * 60 * 1000);            // every 6 hours
 
-    console.log("⏰ Scheduled bulk data and price update tasks initialized.");
-  } catch (err) {
-    console.error("⚠️ Failed to initialize Scryfall background updates:", err);
-  }
+        console.log("⏰ Scheduled bulk data (weekly) and price update (6h) tasks initialized.");
+    } catch (err) {
+        console.error("⚠️ Failed to initialize Scryfall background updates:", err);
+    }
 })();
