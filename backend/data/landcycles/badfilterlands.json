@@ -1,9 +1,9 @@
 {
-  "id": "odysseyfilterlands",
-  "name": "Odyssey Filter Lands",
+  "id": "badFilters",
+  "name": "Bad Filters",
   "tier": "premium",
   "untapQuality": "always",
-  "description": "Enter untapped and filter mana for two colors using 1 generic. These are premium fixing lands with solid color flexibility and no ETB cost.",
+  "description": "Not \"Bad\", but dont produce mana on their own. Sometimes leads to accidentally holding up no mana. Good if your pod is nice and lets you rearrange how you tap.",
   "tags": "premium, filter, untapped, two-color, odyssey",
   "cards": [
     "Skycloud Expanse",
