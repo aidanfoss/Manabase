@@ -42,39 +42,6 @@ if (fs.existsSync(dir)) {
   console.warn(`⚠️ landcycles folder not found: ${dir}`);
 }
 
-// Global pricing data for modularity
-export const LAND_PRICING = {
-  // Premium lands
-  shocklands: 12.00,    // Shock lands: Hallowed Fountain, Blood Crypt, etc.
-  fetchlands: 15.00,    // Fetch lands: Windswept Heath, Misty Rainforest, etc.
-  triomes: 5.00,       // Triomes: Raugrin Triome, Zagoth Triome, etc.
-
-  // Playable lands
-  painlands: 2.50,     // Pain lands: Adarkar Wastes, Sulfurous Springs, etc.
-  battlefields: 3.00,  // Battlefield Forge, Caves of Koilos, etc.
-  bouncelands: 1.50,   // Bounceland cycles
-  filterlands: 1.00,   // Filter land cycles
-  horizonlands: 2.00,  // Horizon land cycles
-  chemistery: 6.00,    // Boseiju, Who Endures & other chemistery lands
-  checklands: 2.00,    // Checkland cycles
-
-  // Budget lands
-  scrylands: 1.00,     // Scry land cycles
-  creaturelands: 0.50, // Creature-producing lands
-  gainlands: 1.50,     // Life gain land cycles
-  cyclelands: 0.75,    // Bounce/cycle lands
-  badfilters: 0.50,    // Budget filter lands
-  taintedlands: 0.75,  // Tainted isle, etc.
-  vergelands: 0.50,    // Verge cycle lands
-  lowlifelands: 0.50,  // Low life/exile lands
-
-  // Basic/utility lands
-  locus: 0.25,         // Mana locus lands
-  basic: 0.10,         // Basic lands
-  wasteland: 20.00,    // Wasteland
-  dust_bowl: 8.00      // Dust Bowl
-};
-
 // Calculate price helper function (modular for custom presets)
 export const calculatePresetPrice = (landCycles, { packages = [], colors = [] }, defaultCounts = {}) => {
   let total = 0;
