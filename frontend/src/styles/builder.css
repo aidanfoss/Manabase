@@ -443,6 +443,95 @@ h2 {
     font-size: 0.9rem;
 }
 
+/* === Package Selector Compact Styles === */
+.package-selector-compact {
+    padding: 0.5rem 0;
+}
+
+.dropdown-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .dropdown-header span:last-child {
+        font-size: 0.8em;
+        transform: rotate(0deg);
+        transition: transform 0.2s ease;
+    }
+
+    .dropdown-header:hover span:last-child {
+        opacity: 0.8;
+    }
+
+.packages-compact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.package-compact-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+    .package-compact-card:hover {
+        border-color: #2563eb;
+        background: #334155;
+    }
+
+    .package-compact-card.selected {
+        border-color: #2563eb;
+        background: #1e293b;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .package-compact-card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.package-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+    .package-compact-header h5 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #f8fafc;
+    }
+
+.package-compact-count {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    border-radius: 4px;
+    padding: 0.2rem 0.4rem;
+    font-weight: 500;
+}
+
+.package-compact-description {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin: 0;
+    line-height: 1.3;
+}
+
 /* === Sidebar spacer === */
 .sidebar-spacer {
     margin: 1.5rem 0;

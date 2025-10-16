@@ -49,6 +49,8 @@ export const api = {
   getMetas: () => api.json("/packages"), // for backwards safety
   getPackages: () => api.json("/packages"),
   getLandcycles: () => api.json("/landcycles"),
+  // Presets
+  getPresets: () => api.json("/presets"),
   getLandcyclePresets: (packages, landcycles, colors) => {
     const params = new URLSearchParams();
     if (packages) params.append('packages', packages);
@@ -56,7 +58,12 @@ export const api = {
     if (colors) params.append('colors', colors);
     return api.json(`/presets?${params.toString()}`);
   },
+  getPreset: (id) => api.json(`/presets/${id}`),
   savePreset: (presetData) => api.post("/presets", presetData),
+  updatePreset: (id, presetData) => api.json(`/presets/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(presetData),
+  }),
   deletePreset: (presetId) => api.json(`/presets/${presetId}`, { method: "DELETE" }),
 
   getCards: ({ packages = [], landcycles = [], colors = [] }) => {

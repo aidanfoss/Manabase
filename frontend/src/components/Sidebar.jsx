@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+﻿import React, { useMemo, useState } from "react";
 import ColorSelector from "./ColorSelector";
 import PackageSelector from "./PackageSelector";
 import LandPresetSelector from "./LandPresetSelector";
@@ -14,6 +14,7 @@ export default function Sidebar({
   collapsed,
 }) {
   const { user } = useAuth();
+
 
   // --- Group land cycles by tier ---
   const groupedLandcycles = useMemo(() => {
@@ -63,7 +64,7 @@ export default function Sidebar({
 
       <div className="sidebar-spacer"></div>
 
-      {/* === Land Cycle Presets === */}
+      {/* === Presets === */}
       <div className="section">
         <LandPresetSelector
           selectedPackages={selected.packages}
@@ -103,9 +104,27 @@ export default function Sidebar({
       {/* === Package Selector === */}
       <div className="section">
         <PackageSelector
-          packages={packages}
-          selected={selected}
-          toggle={toggle}
+          selectedPackages={Array.from(selected.packages)}
+          compact={true}
+          onChange={(newPackages) => {
+            // Convert array back to Set for backwards compatibility with sidebar state
+            const currentPackages = new Set(selected.packages);
+            const newPackagesSet = new Set(newPackages);
+
+            // Remove deselected packages
+            currentPackages.forEach(pkg => {
+              if (!newPackagesSet.has(pkg)) {
+                toggle("packages", pkg);
+              }
+            });
+
+            // Add newly selected packages
+            newPackagesSet.forEach(pkg => {
+              if (!currentPackages.has(pkg)) {
+                toggle("packages", pkg);
+              }
+            });
+          }}
         />
       </div>
 

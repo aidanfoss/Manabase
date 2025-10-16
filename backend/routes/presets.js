@@ -155,7 +155,7 @@ router.get("/", async (req, res) => {
 // POST create new user preset
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const { name, description, landCycles, packages } = req.body;
+    const { name, description, packages } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: "Name is required" });
@@ -175,7 +175,7 @@ router.post("/", requireAuth, async (req, res) => {
         user_id: req.user.id,
         name: name.trim(),
         description: description?.trim() || '',
-        landCycles: JSON.stringify(landCycles || {}),
+        landCycles: JSON.stringify({}), // Empty for now, will be set when using preset
         packages: JSON.stringify(packages || [])
       })
       .returning("*");
@@ -194,6 +194,116 @@ router.post("/", requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error creating preset:', error);
     res.status(500).json({ error: 'Failed to create preset' });
+  }
+});
+
+// GET specific preset by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const presetId = req.params.id;
+    const userId = getUserId(req);
+
+    // First try user presets if logged in
+    if (userId) {
+      const userPreset = await db("user_presets")
+        .where({ id: presetId, user_id: userId })
+        .first();
+
+      if (userPreset) {
+        return res.json({
+          id: userPreset.id,
+          name: userPreset.name,
+          description: userPreset.description,
+          landCycles: userPreset.landCycles ? JSON.parse(userPreset.landCycles) : {},
+          packages: userPreset.packages ? JSON.parse(userPreset.packages) : [],
+          userId: userPreset.user_id,
+          isUserPreset: true,
+          createdAt: userPreset.created_at,
+          updatedAt: userPreset.updated_at
+        });
+      }
+    }
+
+    // Then try default presets
+    const defaultPreset = await db("default_presets")
+      .where({ id: presetId })
+      .first();
+
+    if (defaultPreset) {
+      return res.json({
+        id: defaultPreset.id,
+        name: defaultPreset.name,
+        description: defaultPreset.description,
+        landCycles: defaultPreset.landCycles ? JSON.parse(defaultPreset.landCycles) : {},
+        packages: defaultPreset.packages ? JSON.parse(defaultPreset.packages) : [],
+        isDefaultPreset: true,
+        createdAt: defaultPreset.created_at,
+        updatedAt: defaultPreset.updated_at
+      });
+    }
+
+    return res.status(404).json({ error: "Preset not found" });
+  } catch (error) {
+    console.error('Error getting preset:', error);
+    res.status(500).json({ error: 'Failed to get preset' });
+  }
+});
+
+// PUT update user preset
+router.put("/:id", requireAuth, async (req, res) => {
+  try {
+    const presetId = req.params.id;
+    const { name, description, packages } = req.body;
+
+    const preset = await db("user_presets")
+      .where({ id: presetId, user_id: req.user.id })
+      .first();
+
+    if (!preset) {
+      return res.status(404).json({ error: "Preset not found" });
+    }
+
+    // Check for duplicate name if name is being changed
+    if (name && name.trim() !== preset.name) {
+      const existing = await db("user_presets")
+        .where({ user_id: req.user.id, name: name.trim() })
+        .whereNot({ id: presetId })
+        .first();
+
+      if (existing) {
+        return res.status(400).json({ error: "Preset name already exists" });
+      }
+    }
+
+    const updates = {};
+    if (name !== undefined) updates.name = name.trim();
+    if (description !== undefined) updates.description = description?.trim() || '';
+    if (packages !== undefined) updates.packages = JSON.stringify(packages || []);
+    updates.updated_at = new Date();
+
+    await db("user_presets")
+      .where({ id: presetId })
+      .update(updates);
+
+    // Fetch updated preset
+    const updatedPreset = await db("user_presets")
+      .where({ id: presetId })
+      .first();
+
+    res.json({
+      id: updatedPreset.id,
+      name: updatedPreset.name,
+      description: updatedPreset.description,
+      landCycles: updatedPreset.landCycles ? JSON.parse(updatedPreset.landCycles) : {},
+      packages: updatedPreset.packages ? JSON.parse(updatedPreset.packages) : [],
+      userId: updatedPreset.user_id,
+      isUserPreset: true,
+      createdAt: updatedPreset.created_at,
+      updatedAt: updatedPreset.updated_at
+    });
+  } catch (error) {
+    console.error('Error updating preset:', error);
+    res.status(500).json({ error: 'Failed to update preset' });
   }
 });
 

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import BuilderView from "./components/BuilderView";
 import PackageManager from "./components/PackageManager";
+import Presets from "./components/Presets";
 import "./styles/nav-auth.css";
 
 
@@ -17,9 +18,20 @@ export default function App() {
 
 function AppContent() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState("main"); // "main" or "packages"
+  const [screen, setScreen] = useState("main"); // "main", "packages", or "presets"
   const [showLogin, setShowLogin] = useState(false);
   const packageRef = useRef();
+
+  const getScreenComponent = () => {
+    switch (screen) {
+      case "presets":
+        return <Presets />;
+      case "packages":
+        return <PackageManager ref={packageRef} />;
+      default:
+        return <BuilderView />;
+    }
+  };
 
   return (
     <>
@@ -38,7 +50,7 @@ function AppContent() {
         </div>
       )}
 
-      {screen === "main" ? <BuilderView /> : <PackageManager ref={packageRef} />}
+      {getScreenComponent()}
     </>
   );
 }
@@ -108,6 +120,12 @@ function TopNav({ user, screen, setScreen, showLogin, setShowLogin, packageRef }
           onClick={() => setScreen("main")}
         >
           🧱 Builder
+        </button>
+        <button
+          className={screen === "presets" ? "active" : ""}
+          onClick={() => setScreen("presets")}
+        >
+          🎯 Presets
         </button>
         <button
           className={screen === "packages" ? "active" : ""}

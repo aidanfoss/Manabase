@@ -83,7 +83,7 @@ const LandPresetSelector = ({ selectedPackages, selectedColors, selectedLandcycl
         }}
         onClick={() => setOpen((o) => !o)}
       >
-        <span>Land Cycle Presets</span>
+        <span>Presets</span>
         <span
           style={{
             fontSize: "0.8em",
