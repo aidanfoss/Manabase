@@ -67,7 +67,18 @@ export const api = {
   // ---------------------------------------
   // === Packages ===
   // ---------------------------------------
-  savePackage: (data) => api.post("/packages", data),
+  savePackage: (data) => {
+    if (data.id) {
+      // Update existing
+      return api.json(`/packages/${data.id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+    } else {
+      // Create new
+      return api.post("/packages", data);
+    }
+  },
   deletePackage: (id) =>
     api.json(`/packages/${id}`, {
       method: "DELETE",

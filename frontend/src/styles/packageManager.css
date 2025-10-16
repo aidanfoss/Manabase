@@ -8,46 +8,7 @@
     font-family: system-ui, sans-serif;
 }
 
-/* === Header Bar === */
-.pm-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #111827;
-    border-bottom: 1px solid #1f2937;
-    padding: 0.6rem 1rem;
-    z-index: 10;
-}
 
-.pm-header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-    .pm-header-left button {
-        background-color: #2563eb;
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        border-radius: 6px;
-        padding: 0.45rem 0.9rem;
-        cursor: pointer;
-        transition: background 0.2s ease, transform 0.1s ease;
-    }
-
-        .pm-header-left button:hover {
-            background-color: #1d4ed8;
-            transform: scale(1.03);
-        }
-
-        .pm-header-left button.saveas {
-            background-color: #10b981;
-        }
-
-            .pm-header-left button.saveas:hover {
-                background-color: #059669;
-            }
 
 .pm-search {
     width: 100%; /* fill the column horizontally */
@@ -163,102 +124,7 @@
     background-color: #ef4444;
 }
 
-/* === Footer === */
-.pm-footer {
-    background-color: #111827;
-    border-top: 1px solid #1f2937;
-    padding: 0.75rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #9ca3af;
-}
 
-.pm-packages {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-.pkg-btn {
-    background: #1f2937;
-    color: #f8fafc;
-    border: 1px solid #374151;
-    border-radius: 6px;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-    .pkg-btn:hover {
-        background: #2563eb;
-        border-color: #2563eb;
-    }
-
-    .pkg-btn.active {
-        background-color: #2563eb;
-        color: #fff;
-    }
-
-/* === Sidebar (popout panel) === */
-.pm-sidebar {
-    position: absolute;
-    right: -280px;
-    top: 0;
-    height: 100%;
-    width: 280px;
-    background-color: #111827;
-    border-left: 1px solid #1f2937;
-    transition: right 0.3s ease;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-}
-
-    .pm-sidebar.open {
-        right: 0;
-    }
-
-    .pm-sidebar .sidebar-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .pm-sidebar input {
-        flex: 1;
-        padding: 0.4rem 0.6rem;
-        background: #1f2937;
-        border: 1px solid #374151;
-        border-radius: 6px;
-        color: #fff;
-    }
-
-    .pm-sidebar button {
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        font-size: 1.1rem;
-        transition: color 0.2s ease;
-    }
-
-    .pm-sidebar .share {
-        color: #10b981;
-    }
-
-    .pm-sidebar .delete {
-        color: #ef4444;
-    }
-
-    .pm-sidebar .share:hover {
-        color: #22c55e;
-    }
-
-    .pm-sidebar .delete:hover {
-        color: #f87171;
-    }
 
     /* === Dark Scrollbar (shared) === */
     .pm-main::-webkit-scrollbar,
@@ -296,10 +162,43 @@
     margin-top: 2rem;
 }
 
+/* === Package Header (with search and undo) === */
+.pm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+}
+
+    .pm-header button {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+        white-space: nowrap;
+    }
+
+        .pm-header button:hover:not(:disabled) {
+            background: #1d4ed8;
+            transform: scale(1.02);
+        }
+
+        .pm-header button:disabled {
+            background: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+
 /* === Small search variant for right column === */
 .pm-search.small {
+    flex: 1;
     height: 30px;
-    margin-bottom: 0.75rem;
 }
 
     .pm-search.small input {
@@ -389,13 +288,20 @@
     gap: 0.4rem;
 }
 
-    .pkg-actions button {
-        border: none;
-        border-radius: 6px;
-        padding: 0.25rem 0.6rem;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: background 0.15s ease;
+.pkg-actions button {
+    border: 1px solid #374151;
+    background: #1f2937;
+    color: #f8fafc;
+    border-radius: 6px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+    .pkg-actions button:hover:not(:disabled) {
+        background: #2563eb;
+        border-color: #2563eb;
     }
 
         .pkg-actions button.delete {

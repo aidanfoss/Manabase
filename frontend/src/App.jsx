@@ -1,5 +1,5 @@
 ﻿// src/App.jsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import BuilderView from "./components/BuilderView";
@@ -19,6 +19,7 @@ function AppContent() {
   const { user } = useAuth();
   const [screen, setScreen] = useState("main"); // "main" or "packages"
   const [showLogin, setShowLogin] = useState(false);
+  const packageRef = useRef();
 
   return (
     <>
@@ -28,6 +29,7 @@ function AppContent() {
         setScreen={setScreen}
         showLogin={showLogin}
         setShowLogin={setShowLogin}
+        packageRef={packageRef}
       />
 
       {showLogin && !user && (
@@ -36,16 +38,34 @@ function AppContent() {
         </div>
       )}
 
-      {screen === "main" ? <BuilderView /> : <PackageManager />}
+      {screen === "main" ? <BuilderView /> : <PackageManager ref={packageRef} />}
     </>
   );
 }
 
-function TopNav({ user, screen, setScreen, showLogin, setShowLogin }) {
+function TopNav({ user, screen, setScreen, showLogin, setShowLogin, packageRef }) {
   const { logout } = useAuth();
 
   const displayName = user?.username || user?.email || "Guest";
   const avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
+
+  const handleNewPackage = () => {
+    if (packageRef.current && packageRef.current.newPackage) {
+      packageRef.current.newPackage();
+    }
+  };
+
+  const handleLoadPackage = () => {
+    if (packageRef.current && packageRef.current.loadPackage) {
+      packageRef.current.loadPackage();
+    }
+  };
+
+  const handleUndo = () => {
+    if (packageRef.current && packageRef.current.undo) {
+      packageRef.current.undo();
+    }
+  };
 
   return (
     <nav className="top-nav">
@@ -68,6 +88,18 @@ function TopNav({ user, screen, setScreen, showLogin, setShowLogin }) {
           </button>
         )}
       </div>
+
+      {/* Center: package actions (only show when on packages screen) */}
+      {screen === "packages" && user && (
+        <div className="nav-actions">
+          <button onClick={handleNewPackage}>
+            New Package
+          </button>
+          <button onClick={handleLoadPackage}>
+            Load Package
+          </button>
+        </div>
+      )}
 
       {/* Right: screen switch */}
       <div className="nav-buttons">
