@@ -127,10 +127,14 @@ router.get("/", async (req, res) => {
         const colorName = f.replace(".json", "").toUpperCase();
         if (colors.includes(colorName)) {
           const colorData = await readJsonSafe(path.join(colorDir, f));
+          let staples = [];
           if (Array.isArray(colorData)) {
-            console.log(`🎨 Loaded ${colorData.length} ${colorName} staples`);
-            allCards.push(...colorData);
+            staples = colorData;
+          } else if (colorData?.staples && Array.isArray(colorData.staples)) {
+            staples = colorData.staples;
           }
+          console.log(`🎨 Loaded ${staples.length} ${colorName} staples`);
+          allCards.push(...staples);
         }
       }
     }

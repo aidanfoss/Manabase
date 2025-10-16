@@ -71,31 +71,47 @@ export default function Sidebar({
           selectedColors={selected.colors}
           selectedLandcycles={selected.landcycles}
           onPresetSelect={(preset) => {
+            console.log('[FRONTEND PRESET] Starting preset selection:', preset?.name, preset);
+
             if (preset && preset.landCycles) {
-              // Clear current landcycle selections and apply preset
+              console.log('[FRONTEND PRESET] Current selections - landcycles:', [...selected.landcycles], 'packages:', [...selected.packages]);
+
+              // Clear current landcycle selections and apply preset landcycles
               const currentLandcycles = new Set(selected.landcycles);
-              const newLandcycles = new Set();
+              const newLandcycles = new Set(Object.keys(preset.landCycles));
 
-              // Apply the preset land cycles
-              Object.keys(preset.landCycles).forEach(landCycle => {
-                newLandcycles.add(landCycle);
-              });
+              console.log('[FRONTEND PRESET] Clearing landcycles:', [...currentLandcycles]);
+              console.log('[FRONTEND PRESET] Applying new landcycles:', [...newLandcycles]);
 
-              // Update selected state - we need to modify selected.landcycles
-              // Since we can't directly mutate selected, we'll call the toggle function
-              // First clear all current selections
+              // Handle landcycles: clear all current selections and set new ones
               currentLandcycles.forEach(lc => {
-                if (!newLandcycles.has(lc)) {
-                  toggle("landcycles", lc);
-                }
+                console.log('[FRONTEND PRESET] Toggling off landcycle:', lc);
+                toggle("landcycles", lc);
+              });
+              newLandcycles.forEach(lc => {
+                console.log('[FRONTEND PRESET] Toggling on landcycle:', lc);
+                toggle("landcycles", lc);
               });
 
-              // Then add the new ones
-              newLandcycles.forEach(lc => {
-                if (!currentLandcycles.has(lc)) {
-                  toggle("landcycles", lc);
-                }
+              // Handle packages: clear all current selections and set new ones from preset
+              const currentPackages = new Set(selected.packages);
+              const newPackages = new Set(Array.isArray(preset.packages) ? preset.packages : []);
+
+              console.log('[FRONTEND PRESET] Clearing packages:', [...currentPackages]);
+              console.log('[FRONTEND PRESET] Applying new packages:', [...newPackages]);
+
+              currentPackages.forEach(pkg => {
+                console.log('[FRONTEND PRESET] Toggling off package:', pkg);
+                toggle("packages", pkg);
               });
+              newPackages.forEach(pkg => {
+                console.log('[FRONTEND PRESET] Toggling on package:', pkg);
+                toggle("packages", pkg);
+              });
+
+              console.log('[FRONTEND PRESET] Preset application complete');
+            } else {
+              console.warn('[FRONTEND PRESET] Invalid preset data:', preset);
             }
           }}
         />

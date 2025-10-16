@@ -5,12 +5,22 @@ import { api } from "../api/client";
 
 export class PresetsService {
   // Get both local and community presets
-  static async getPresets(params = {}) {
+  static async getPresets(colors) {
     try {
-      return await api.json("/presets", { method: "GET", body: params });
+      return await api.getPresets(colors);
     } catch (error) {
       console.error("Failed to fetch presets:", error);
       return [];
+    }
+  }
+
+  // Apply preset (get details and log usage)
+  static async applyPreset(presetId) {
+    try {
+      return await api.applyPreset(presetId);
+    } catch (error) {
+      console.error(`Failed to apply preset ${presetId}:`, error);
+      throw error;
     }
   }
 

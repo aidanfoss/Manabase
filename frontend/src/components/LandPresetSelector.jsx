@@ -111,7 +111,7 @@ const LandPresetSelector = ({ selectedPackages, selectedColors, selectedLandcycl
                     <h4>{preset.name}</h4>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <span className={`price ${preset.price > 50 ? 'high-price' : 'low-price'}`}>${preset.price || 0}</span>
-                      {preset.isUserPreset && (
+                      {preset.isUserPreset && !preset.isDefaultPreset && (
                         <button
                           className="delete-preset-btn"
                           onClick={(e) => {
@@ -119,6 +119,18 @@ const LandPresetSelector = ({ selectedPackages, selectedColors, selectedLandcycl
                             handleDeletePreset(preset.id);
                           }}
                           title="Delete preset"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#ff6b6b",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                            transition: "background-color 0.2s"
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 107, 107, 0.1)'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                         >
                           ×
                         </button>

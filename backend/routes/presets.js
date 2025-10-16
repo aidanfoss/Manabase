@@ -4,8 +4,42 @@ import jwt from "jsonwebtoken";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { landCyclePresets } from "../data/landcyclesData.js";
-import { readJsonSafe } from "../utils/safeJson.js";
-import { fetchCardData } from "../services/scryfall.js";
+
+// Helper function to calculate preset price
+async function calculatePresetPrice(preset, colors) {
+  try {
+    // Prepare query params for cards endpoint
+    const params = new URLSearchParams();
+    (Array.isArray(preset.packages) ? preset.packages : []).forEach(pkg => params.append('packages', pkg));
+    Object.keys(preset.landCycles || {}).forEach(lc => params.append('landcycles', lc));
+        colors.forEach(color => params.append('colors', color));
+
+    // Fetch from internal cards API
+    const response = await fetch(`http://localhost:${process.env.PORT || 8080}/api/cards?${params.toString()}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    let totalPrice = 0;
+
+    // Sum up prices from response
+    if (Array.isArray(data)) {
+      data.forEach(card => {
+        const price = card.price || card.prices?.usd || "0";
+        totalPrice += parseFloat(price) || 0;
+      });
+    } else if (data?.lands) {
+      data.lands.forEach(card => {
+        const price = card.price || card.prices?.usd || "0";
+        totalPrice += parseFloat(price) || 0;
+      });
+    }
+
+    return `$${totalPrice.toFixed(2)}`;
+  } catch (error) {
+    console.error('Error calculating preset price:', error);
+    return "$0.00";
+  }
+}
 
 // Seed default presets into database
 async function seedDefaultPresets() {
@@ -49,6 +83,48 @@ function getUserId(req) {
   return null;
 }
 
+// Helper to parse preset data from database row
+function parsePresetData(preset) {
+  const landCycles = preset.landCycles ? JSON.parse(preset.landCycles) : {};
+  const packages = preset.packages ? JSON.parse(preset.packages) : [];
+  const cards = preset.cards ? JSON.parse(preset.cards) : [];
+  const optionsCount = packages.length + Object.keys(landCycles).length + cards.length;
+  return { landCycles, packages, cards, optionsCount };
+}
+
+// Helper to parse query param that can be string or array (from multiple query params)
+function parseQueryArray(param) {
+  if (Array.isArray(param)) {
+    return param.filter(Boolean);
+  }
+  if (typeof param === 'string') {
+    return param.split(',').filter(Boolean);
+  }
+  return [];
+}
+
+// Helper to serialize preset for API response
+function serializePreset(preset, isUserPreset = false) {
+  const { landCycles, packages, cards, optionsCount } = parsePresetData(preset);
+  const base = {
+    id: preset.id,
+    name: preset.name,
+    description: preset.description,
+    landCycles,
+    packages,
+    cards,
+    optionsCount,
+    isDefaultPreset: !isUserPreset,
+    isUserPreset,
+    createdAt: preset.created_at,
+    updatedAt: preset.updated_at
+  };
+  if (isUserPreset) {
+    base.userId = preset.user_id;
+  }
+  return base;
+}
+
 // GET all presets (default + user's)
 router.get("/", async (req, res) => {
   try {
@@ -58,24 +134,17 @@ router.get("/", async (req, res) => {
     // Always seed default presets if needed
     await seedDefaultPresets();
 
-    const selectedPackages = packages.split(',').filter(Boolean);
-    const selectedLandcycles = landcycles.split(',').filter(Boolean);
-    const selectedColors = colors.split(',').filter(Boolean);
+    const selectedPackages = parseQueryArray(packages);
+    const selectedLandcycles = parseQueryArray(landcycles);
+    let selectedColors = parseQueryArray(colors);
+
+    selectedColors = selectedColors.length === 0 ? ['colorless'] : selectedColors.filter(color => color !== 'colorless');
 
     // Start with default presets from database
     const defaultPresetsDb = await db("default_presets")
       .orderBy("created_at");
 
-    let presets = defaultPresetsDb.map(preset => ({
-      id: preset.id,
-      name: preset.name,
-      description: preset.description,
-      landCycles: preset.landCycles ? JSON.parse(preset.landCycles) : {},
-      packages: preset.packages ? JSON.parse(preset.packages) : [],
-      isDefaultPreset: true,
-      createdAt: preset.created_at,
-      updatedAt: preset.updated_at
-    }));
+    let presets = defaultPresetsDb.map(preset => serializePreset(preset, false));
 
     // Add user presets if logged in
     if (userId) {
@@ -83,69 +152,27 @@ router.get("/", async (req, res) => {
         .where({ user_id: userId })
         .orderBy("updated_at", "desc");
 
-      const parsedUserPresets = userPresets.map(preset => ({
-        ...preset,
-        id: preset.id,
-        name: preset.name,
-        description: preset.description,
-        landCycles: preset.landCycles ? JSON.parse(preset.landCycles) : {},
-        packages: preset.packages ? JSON.parse(preset.packages) : [],
-        userId: preset.user_id,
-        isUserPreset: true,
-        createdAt: preset.created_at,
-        updatedAt: preset.updated_at
-      }));
-
+      const parsedUserPresets = userPresets.map(preset => serializePreset(preset, true));
       presets.push(...parsedUserPresets);
     }
 
-    // Calculate prices for all presets
-    const presetsWithPrices = await Promise.all(
-      presets.map(async (preset) => {
-        // Create query combining user's current selections with preset
-        const presetQuery = {
-          packages: selectedPackages,
-          landcycles: Object.keys(preset.landCycles || {}),
-          colors: selectedColors.length === 0 ? ['colorless'] : selectedColors
-        };
-
+    // Calculate prices if colors are provided and not colorless
+    if (selectedColors.length > 0 && !selectedColors.includes('colorless')) {
+      const pricePromises = presets.map(async (preset) => {
         try {
-          // Fetch actual cards that would be shown
-          const cardsURL = new URL(`http://localhost:${process.env.PORT || 8080}/api/cards`);
-          cardsURL.searchParams.append('packages', presetQuery.packages.join(','));
-          presetQuery.landcycles.forEach(lc => cardsURL.searchParams.append('landcycles', lc));
-          presetQuery.colors.forEach(c => cardsURL.searchParams.append('colors', c));
-
-          const cardsResponse = await fetch(cardsURL.toString());
-          if (!cardsResponse.ok) throw new Error();
-
-          const cardsData = await cardsResponse.json();
-
-          // Calculate total price
-          let totalPrice = 0;
-          if (Array.isArray(cardsData)) {
-            cardsData.forEach(card => {
-              const price = card.price || card.prices?.usd || 0;
-              totalPrice += parseFloat(price) || 0;
-            });
-          } else if (cardsData?.lands) {
-            cardsData.lands.forEach(card => {
-              const price = card.price || card.prices?.usd || 0;
-              totalPrice += parseFloat(price) || 0;
-            });
-          }
-
-          return {
-            ...preset,
-            price: Math.round(totalPrice * 100) / 100
-          };
+          return await calculatePresetPrice(preset, selectedColors);
         } catch (error) {
-          return { ...preset, price: 0 };
+          console.error(`Error calculating price for preset ${preset.id}:`, error);
+          return "$0.00";
         }
-      })
-    );
+      });
+      const prices = await Promise.all(pricePromises);
+      presets.forEach((preset, index) => {
+        preset.price = prices[index];
+      });
+    }
 
-    res.json(presetsWithPrices);
+    res.json(presets);
   } catch (error) {
     console.error('Error loading presets:', error);
     res.status(500).json({ error: 'Failed to load presets' });
@@ -155,7 +182,7 @@ router.get("/", async (req, res) => {
 // POST create new user preset
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const { name, description, packages } = req.body;
+    const { name, description, packages, landCycles } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: "Name is required" });
@@ -175,22 +202,13 @@ router.post("/", requireAuth, async (req, res) => {
         user_id: req.user.id,
         name: name.trim(),
         description: description?.trim() || '',
-        landCycles: JSON.stringify({}), // Empty for now, will be set when using preset
-        packages: JSON.stringify(packages || [])
+        landCycles: JSON.stringify(landCycles || {}),
+        packages: JSON.stringify(packages || []),
+        cards: JSON.stringify(req.body.cards || [])
       })
       .returning("*");
 
-    res.json({
-      id: preset.id,
-      name: preset.name,
-      description: preset.description,
-      landCycles: preset.landCycles ? JSON.parse(preset.landCycles) : {},
-      packages: preset.packages ? JSON.parse(preset.packages) : [],
-      userId: preset.user_id,
-      isUserPreset: true,
-      createdAt: preset.created_at,
-      updatedAt: preset.updated_at
-    });
+    res.json(serializePreset(preset, true));
   } catch (error) {
     console.error('Error creating preset:', error);
     res.status(500).json({ error: 'Failed to create preset' });
@@ -210,17 +228,7 @@ router.get("/:id", async (req, res) => {
         .first();
 
       if (userPreset) {
-        return res.json({
-          id: userPreset.id,
-          name: userPreset.name,
-          description: userPreset.description,
-          landCycles: userPreset.landCycles ? JSON.parse(userPreset.landCycles) : {},
-          packages: userPreset.packages ? JSON.parse(userPreset.packages) : [],
-          userId: userPreset.user_id,
-          isUserPreset: true,
-          createdAt: userPreset.created_at,
-          updatedAt: userPreset.updated_at
-        });
+        return res.json(serializePreset(userPreset, true));
       }
     }
 
@@ -230,16 +238,7 @@ router.get("/:id", async (req, res) => {
       .first();
 
     if (defaultPreset) {
-      return res.json({
-        id: defaultPreset.id,
-        name: defaultPreset.name,
-        description: defaultPreset.description,
-        landCycles: defaultPreset.landCycles ? JSON.parse(defaultPreset.landCycles) : {},
-        packages: defaultPreset.packages ? JSON.parse(defaultPreset.packages) : [],
-        isDefaultPreset: true,
-        createdAt: defaultPreset.created_at,
-        updatedAt: defaultPreset.updated_at
-      });
+      return res.json(serializePreset(defaultPreset, false));
     }
 
     return res.status(404).json({ error: "Preset not found" });
@@ -253,7 +252,7 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", requireAuth, async (req, res) => {
   try {
     const presetId = req.params.id;
-    const { name, description, packages } = req.body;
+    const { name, description, packages, landCycles } = req.body;
 
     const preset = await db("user_presets")
       .where({ id: presetId, user_id: req.user.id })
@@ -279,6 +278,8 @@ router.put("/:id", requireAuth, async (req, res) => {
     if (name !== undefined) updates.name = name.trim();
     if (description !== undefined) updates.description = description?.trim() || '';
     if (packages !== undefined) updates.packages = JSON.stringify(packages || []);
+    if (landCycles !== undefined) updates.landCycles = JSON.stringify(landCycles || {});
+    if (req.body.cards !== undefined) updates.cards = JSON.stringify(req.body.cards || []);
     updates.updated_at = new Date();
 
     await db("user_presets")
@@ -290,20 +291,42 @@ router.put("/:id", requireAuth, async (req, res) => {
       .where({ id: presetId })
       .first();
 
-    res.json({
-      id: updatedPreset.id,
-      name: updatedPreset.name,
-      description: updatedPreset.description,
-      landCycles: updatedPreset.landCycles ? JSON.parse(updatedPreset.landCycles) : {},
-      packages: updatedPreset.packages ? JSON.parse(updatedPreset.packages) : [],
-      userId: updatedPreset.user_id,
-      isUserPreset: true,
-      createdAt: updatedPreset.created_at,
-      updatedAt: updatedPreset.updated_at
-    });
+    res.json(serializePreset(updatedPreset, true));
   } catch (error) {
     console.error('Error updating preset:', error);
     res.status(500).json({ error: 'Failed to update preset' });
+  }
+});
+
+// POST apply preset (get details and log interaction)
+router.post("/:id/apply", async (req, res) => {
+  try {
+    const presetId = req.params.id;
+    const userId = getUserId(req);
+
+    // Find the preset (try user first, then default)
+    let preset = null;
+
+    if (userId) {
+      preset = await db("user_presets")
+        .where({ id: presetId, user_id: userId })
+        .first();
+    }
+
+    if (!preset) {
+      preset = await db("default_presets")
+        .where({ id: presetId })
+        .first();
+    }
+
+    if (!preset) {
+      return res.status(404).json({ error: "Preset not found" });
+    }
+
+    res.json(serializePreset(preset, !!preset.user_id));
+  } catch (error) {
+    console.error('Error applying preset:', error);
+    res.status(500).json({ error: 'Failed to apply preset' });
   }
 });
 

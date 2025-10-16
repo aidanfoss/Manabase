@@ -66,9 +66,19 @@ export async function initDB() {
       t.string("description");
       t.json("landCycles");
       t.json("packages");
+      t.json("cards");
       t.timestamps(true, true);
       t.unique(["user_id", "name"]); // Prevent duplicate names per user
     });
+  }
+
+  // Add cards column if it doesn't exist (for existing databases)
+  const hasCardsColumn = await db.schema.hasColumn("user_presets", "cards");
+  if (!hasCardsColumn) {
+    await db.schema.table("user_presets", (t) => {
+      t.json("cards");
+    });
+    console.log("✅ Added cards column to user_presets table");
   }
 
   // Create default presets table for built-in presets visible to all users

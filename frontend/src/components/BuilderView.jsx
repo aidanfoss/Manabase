@@ -7,19 +7,13 @@ import MainContent from "./MainContent";
 import BottomBar from "./BottomBar";
 import "../styles/builder.css"; // ⬅️ builder-specific styles
 
-export default function BuilderView() {
+export default function BuilderView({ selected, setSelected }) {
   const [packages, setPackages] = useState([]);
   const [landcycles, setLandcycles] = useState([]);
   const [data, setData] = useState({ lands: [], nonlands: [] });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-
-  const [selected, setSelected] = useState({
-    packages: new Set(),
-    landcycles: new Set(),
-    colors: new Set(),
-  });
 
   // restore hash
   useEffect(() => {

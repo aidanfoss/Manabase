@@ -3,14 +3,16 @@ import { PresetsService } from "../services/presetsService";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import PackageSelector from "./PackageSelector";
+import PresetEditor from "./PresetEditor";
 import "../styles/presets.css";
 
-export default function Presets() {
+export default function Presets({ currentSelection, onApplyPreset, landcycles }) {
   const { user } = useAuth();
   const [presets, setPresets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("your"); // "your" or "community"
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingPreset, setEditingPreset] = useState(null);
 
   useEffect(() => {
     loadPresets();
@@ -18,7 +20,8 @@ export default function Presets() {
 
   const loadPresets = async () => {
     try {
-      const data = await PresetsService.getPresets();
+      const colorsArray = currentSelection.colors ? Array.from(currentSelection.colors) : [];
+      const data = await PresetsService.getPresets(colorsArray);
       setPresets(data);
     } catch (error) {
       console.error("Failed to load presets:", error);
@@ -71,8 +74,8 @@ export default function Presets() {
               <PresetCard
                 key={preset.id}
                 preset={preset}
-                onUse={() => handleUsePreset(preset)}
-                onImport={user ? () => handleImportPreset(preset) : null}
+                onEdit={() => setEditingPreset(preset)}
+                onDelete={user ? () => handleDeletePreset(preset) : null}
               />
             ))}
             {filteredPresets.length === 0 && (
@@ -86,6 +89,7 @@ export default function Presets() {
 
       {showCreateModal && (
         <CreatePresetModal
+          currentSelection={currentSelection}
           onClose={() => setShowCreateModal(false)}
           onSave={(preset) => {
             setPresets(prev => [...prev, preset]);
@@ -93,31 +97,44 @@ export default function Presets() {
           }}
         />
       )}
+
+      {editingPreset && (
+        <PresetEditor
+          preset={editingPreset}
+          landcycles={landcycles}
+          onClose={() => setEditingPreset(null)}
+          onApply={onApplyPreset}
+          onSave={(updatedPreset) => {
+            setPresets(prev => prev.map(p => p.id === updatedPreset.id ? updatedPreset : p));
+            setEditingPreset(null);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function PresetCard({ preset, onUse, onImport }) {
+function PresetCard({ preset, onEdit, onDelete }) {
   return (
-    <div className="preset-card">
-      <div className="preset-header">
-        <h3>{preset.name}</h3>
-        {preset.author && <span className="preset-author">by {preset.author}</span>}
+    <div className="preset-list-item">
+      <div className="preset-list-content">
+        <span className="preset-name">{preset.name}</span>
+        <span className="preset-options-count">{preset.optionsCount} items</span>
+        <span className="preset-author">Official</span>
       </div>
-      <p className="preset-description">{preset.description}</p>
-      <div className="preset-packages">
-        {preset.packages?.slice(0, 3).map((pkgId) => (
-          <span key={pkgId} className="package-tag">Package {pkgId}</span>
-        ))}
-        {preset.packages?.length > 3 && <span className="package-more">+{preset.packages.length - 3} more</span>}
-      </div>
-      <div className="preset-actions">
-        <button className="btn-primary" onClick={onUse}>
-          Use
+      <div className="preset-list-actions">
+        {preset.price && (
+          <span className="preset-list-price">{preset.price}</span>
+        )}
+        <button
+          className="btn-primary-small"
+          onClick={onEdit}
+        >
+          Select
         </button>
-        {onImport && (
-          <button className="btn-secondary" onClick={onImport}>
-            Import
+        {!preset.isDefaultPreset && onDelete && (
+          <button className="btn-delete-small" onClick={onDelete}>
+            ×
           </button>
         )}
       </div>
@@ -125,11 +142,12 @@ function PresetCard({ preset, onUse, onImport }) {
   );
 }
 
-function CreatePresetModal({ onClose, onSave }) {
+function CreatePresetModal({ onClose, onSave, currentSelection }) {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    packages: []
+    packages: [...currentSelection.packages],
+    landCycles: Object.fromEntries(currentSelection.landcycles)
   });
   const [loading, setLoading] = useState(false);
 
@@ -179,19 +197,16 @@ function CreatePresetModal({ onClose, onSave }) {
   );
 }
 
-// Placeholder functions - need to implement navigation and state integration
-const handleUsePreset = (preset) => {
-  // TODO: Navigate to builder and apply preset
-  console.log("Using preset:", preset);
-};
+const handleDeletePreset = async (preset) => {
+  if (!window.confirm(`Are you sure you want to delete the "${preset.name}" preset?`)) {
+    return;
+  }
 
-const handleImportPreset = async (preset) => {
   try {
-    const importedPreset = await PresetsService.importPreset(preset.id);
-    setPresets(prev => [...prev, importedPreset]);
-    alert("Preset imported successfully!");
+    await PresetsService.deletePreset(preset.id);
+    setPresets(prev => prev.filter(p => p.id !== preset.id));
   } catch (error) {
-    console.error("Failed to import preset:", error);
-    alert("Failed to import preset. Please try again.");
+    console.error("Failed to delete preset:", error);
+    alert("Failed to delete preset. Please try again.");
   }
 };

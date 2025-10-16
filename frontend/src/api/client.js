@@ -50,7 +50,16 @@ export const api = {
   getPackages: () => api.json("/packages"),
   getLandcycles: () => api.json("/landcycles"),
   // Presets
-  getPresets: () => api.json("/presets"),
+  getPresets: (colors) => {
+    const params = new URLSearchParams();
+    if (colors && colors.length > 0) {
+      colors.forEach(color => params.append('colors', color));
+    } else {
+      params.append('colors', 'colorless');
+    }
+    return api.json(`/presets?${params.toString()}`);
+  },
+  applyPreset: (presetId) => api.json(`/presets/${presetId}/apply`, { method: "POST" }),
   getLandcyclePresets: (packages, landcycles, colors) => {
     const params = new URLSearchParams();
     if (packages) params.append('packages', packages);
