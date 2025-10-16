@@ -4,7 +4,7 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { readJsonSafe } from "../utils/safeJson.js";
 import { fetchCardData } from "../services/scryfall.js";
-import { landCyclePresets } from "../data/landcycles.js";
+import { landCyclePresets } from "../data/landcyclesData.js";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -34,7 +34,7 @@ function normalizeCard(card) {
     return { name, fetchable: card.fetchable ?? false };
 }
 
-// GET land cycle presets
+// GET land cycle presets (DEPRECATED - use /api/presets instead)
 router.get("/presets", async (req, res) => {
     // Parse selected state from query params
     const { packages = '', landcycles = '', colors = '' } = req.query;

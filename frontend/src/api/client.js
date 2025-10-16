@@ -54,8 +54,10 @@ export const api = {
     if (packages) params.append('packages', packages);
     if (landcycles) params.append('landcycles', landcycles);
     if (colors) params.append('colors', colors);
-    return api.json(`/landcycles/presets?${params.toString()}`);
+    return api.json(`/presets?${params.toString()}`);
   },
+  savePreset: (presetData) => api.post("/presets", presetData),
+  deletePreset: (presetId) => api.json(`/presets/${presetId}`, { method: "DELETE" }),
 
   getCards: ({ packages = [], landcycles = [], colors = [] }) => {
     const q = new URLSearchParams();

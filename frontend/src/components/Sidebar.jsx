@@ -4,6 +4,7 @@ import PackageSelector from "./PackageSelector";
 import LandPresetSelector from "./LandPresetSelector";
 import LandCycleSelector from "./LandCycleSelector";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../api/client";
 
 export default function Sidebar({
   packages = [],
@@ -26,6 +27,28 @@ export default function Sidebar({
     }
     return groups;
   }, [landcycles]);
+
+  const handleSavePreset = () => {
+    const name = prompt('Enter a name for your preset:');
+    if (!name || !name.trim()) return;
+
+    const presetData = {
+      name: name.trim(),
+      description: `Custom preset with ${[...selected.colors].length} colors`,
+      landCycles: selected.landcycles,
+      packages: selected.packages
+    };
+
+    api.savePreset(presetData)
+      .then(newPreset => {
+        // Trigger a re-render by updating some state - this is a bit hacky
+        // For a better solution, we might want to use context or Redux
+        window.location.reload(); // Temporary solution
+      })
+      .catch(error => {
+        alert(`Failed to save preset: ${error.message || 'Unknown error'}`);
+      });
+  };
 
   function copyShareLink() {
     navigator.clipboard.writeText(window.location.href);
@@ -95,6 +118,19 @@ export default function Sidebar({
           moveDown={true}
         />
       </div>
+
+      {/* === Actions === */}
+      {user && (
+        <div className="section">
+          <button
+            className="export-btn"
+            onClick={handleSavePreset}
+            style={{ width: "100%", marginBottom: "0.5rem" }}
+          >
+            💾 Save Preset
+          </button>
+        </div>
+      )}
 
       {/* === Share Button === */}
       <div className="section" style={{ textAlign: "center" }}>

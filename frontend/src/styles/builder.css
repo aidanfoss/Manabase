@@ -357,6 +357,14 @@ h2 {
         box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
     }
 
+    .preset-card.default-preset {
+        border-left: 4px solid #10b981;
+    }
+
+    .preset-card.user-preset {
+        border-left: 4px solid #f59e0b;
+    }
+
 .preset-header {
     display: flex;
     justify-content: space-between;
@@ -377,6 +385,35 @@ h2 {
     margin-bottom: 0.5rem;
     font-style: italic;
 }
+
+    .preset-header .price.high-price {
+        color: #ef4444;
+    }
+
+    .preset-header .price.low-price {
+        color: #10b981;
+    }
+
+    .delete-preset-btn {
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s ease;
+    }
+
+    .delete-preset-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
 
 .preset-lands {
     display: flex;

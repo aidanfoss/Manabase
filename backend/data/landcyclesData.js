@@ -42,23 +42,6 @@ if (fs.existsSync(dir)) {
   console.warn(`⚠️ landcycles folder not found: ${dir}`);
 }
 
-// Calculate price helper function (modular for custom presets)
-export const calculatePresetPrice = (landCycles, { packages = [], colors = [] }, defaultCounts = {}) => {
-  let total = 0;
-
-  // For each land cycle type in the preset, calculate price
-  Object.entries(landCycles).forEach(([cycleKey, count]) => {
-    if (LAND_PRICING[cycleKey]) {
-      total += LAND_PRICING[cycleKey] * count;
-    }
-  });
-
-  // Add package prices (placeholder - would need actual package pricing)
-  // This is easy to extend in the future
-
-  return Math.round(total * 100) / 100;
-};
-
 // Default preset structure for EDH mana bases
 export const createPreset = (name, description, landCycles, userId = null) => ({
   id: `preset_${Date.now()}`,
@@ -68,39 +51,11 @@ export const createPreset = (name, description, landCycles, userId = null) => ({
   landCycles, // object like { shocklands: 4, painlands: 8, basic: 24 }
   packages: [], // Future: selected packages that could affect pricing/cost
   colorRequirements: [],
-  getPrice: (selectedState = {}) => {
-    const { packages = [], colors = [] } = selectedState;
-    const isMulticolor = colors.size >= 4;
-    const defaultCounts = landCycles; // Use the defined counts
-    return calculatePresetPrice(defaultCounts, { packages, colors });
-  },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });
 
-// Land cycle presets for EDH decks (using modular structure)
-export const landCyclePresets = [
-  createPreset(
-    "Precon",
-    "Standard precon lands: scrylands, cycle lands, gain lands",
-    { scrylands: 4, creaturelands: 4, gainlands: 4 }
-  ),
-  createPreset(
-    "Budget Competitive",
-    "Budget competitive mana base: shocks, painlands, bad filters, tainted lands, vergelands",
-    { shocklands: 4, painlands: 8, badfilters: 4, taintedlands: 4, vergelands: 4 }
-  ),
-  createPreset(
-    "Maximize Fetchable",
-    "Focus on lands that fetch well: fetches, shocks, triomes",
-    { fetchlands: 4, shocklands: 4, triomes: 4, checklands: 4 }
-  ),
-  createPreset(
-    "Utility Focused",
-    "Lands with utility: gain lands, locus lands, horizon lands",
-    { gainlands: 4, lowlifelands: 8, horizonlands: 4 }
-  )
-];
-
 export const allLandNames = Array.from(masterLands);
+export const landCyclePresets = []; // No hardcoded presets as per requirements
+
 export default landcycles;

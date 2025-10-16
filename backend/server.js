@@ -23,6 +23,7 @@ import authRouter from "./routes/auth.js";
 import usersRouter from "./routes/users.js";
 import packagesRouter from "./routes/packages.js";
 import landcyclesRouter from "./routes/landcycles.js";
+import presetsRouter from "./routes/presets.js";
 import scryfallRouter from "./routes/scryfall.js";
 
 // --- DB ---
@@ -81,6 +82,9 @@ app.get("/api/colors", (_req, res) => res.json(colors));
 
 // ✅ Land cycle routes
 app.use("/api/landcycles", landcyclesRouter);
+
+// ✅ User presets routes
+app.use("/api/presets", presetsRouter);
 
 /**
  * ✅ Dynamic Landcycle Loader (kept for backward compatibility)
