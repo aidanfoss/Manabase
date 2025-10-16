@@ -3,6 +3,7 @@
   "description": "Battle for Zendikar dual lands that can enter untapped if you control two or more basic lands, and count as both basic land types for fetch land synergy.",
   "tags": "good, conditional, fetchable, friendly",
   "tap_status": "conditional",
+  "tier": "playable",
   "has_basic_types": false,
   "cards": [
     "Prairie Stream",
