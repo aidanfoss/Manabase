@@ -1,6 +1,6 @@
 ﻿import React, { useState } from "react";
 
-export default function LandCycleSelector({ groupedLandcycles, selected, toggle }) {
+export default function LandCycleSelector({ groupedLandcycles, selected, toggle, moveDown }) {
     const [open, setOpen] = useState(true); // dropdown open by default
 
     const tiers = [
@@ -11,7 +11,7 @@ export default function LandCycleSelector({ groupedLandcycles, selected, toggle 
     ];
 
     return (
-        <div className="section">
+        <div className="section land-cycle-section">
             <h3
                 className="dropdown-header"
                 style={{

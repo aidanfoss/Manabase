@@ -330,6 +330,88 @@ h2 {
         background: rgba(0, 255, 100, 0.15);
     }
 
+/* === Land Cycle Preset Styles === */
+.preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.preset-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .preset-card:hover {
+        border-color: #2563eb;
+        background: #334155;
+    }
+
+    .preset-card.selected {
+        border-color: #2563eb;
+        background: #1e293b;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    }
+
+.preset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+    .preset-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f8fafc;
+    }
+
+.preset-description {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.preset-lands {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.land-item {
+    font-size: 0.75rem;
+    color: #60a5fa;
+    font-weight: 500;
+    padding: 0.2rem 0.4rem;
+    background: rgba(96, 165, 250, 0.1);
+    border-radius: 4px;
+}
+
+    .land-item .land-type {
+        color: inherit;
+    }
+
+.no-presets {
+    color: #6b7280;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+/* === Sidebar spacer === */
+.sidebar-spacer {
+    margin: 1.5rem 0;
+    border-top: 1px solid #374151;
+}
+
 /* === Dark Scrollbars (Global) === */
 ::-webkit-scrollbar {
     width: 8px;
@@ -354,5 +436,3 @@ h2 {
     scrollbar-width: thin;
     scrollbar-color: #374151 #111827;
 }
-
-

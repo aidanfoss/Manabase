@@ -1,6 +1,7 @@
 ﻿import React, { useMemo } from "react";
 import ColorSelector from "./ColorSelector";
 import PackageSelector from "./PackageSelector";
+import LandPresetSelector from "./LandPresetSelector";
 import LandCycleSelector from "./LandCycleSelector";
 import { useAuth } from "../context/AuthContext";
 
@@ -37,6 +38,45 @@ export default function Sidebar({
         <ColorSelector selected={selected} toggle={toggle} />
       </div>
 
+      <div className="sidebar-spacer"></div>
+
+      {/* === Land Cycle Presets === */}
+      <div className="section">
+        <LandPresetSelector
+          selectedPackages={selected.packages}
+          selectedColors={selected.colors}
+          selectedLandcycles={selected.landcycles}
+          onPresetSelect={(preset) => {
+            if (preset && preset.landCycles) {
+              // Clear current landcycle selections and apply preset
+              const currentLandcycles = new Set(selected.landcycles);
+              const newLandcycles = new Set();
+
+              // Apply the preset land cycles
+              Object.keys(preset.landCycles).forEach(landCycle => {
+                newLandcycles.add(landCycle);
+              });
+
+              // Update selected state - we need to modify selected.landcycles
+              // Since we can't directly mutate selected, we'll call the toggle function
+              // First clear all current selections
+              currentLandcycles.forEach(lc => {
+                if (!newLandcycles.has(lc)) {
+                  toggle("landcycles", lc);
+                }
+              });
+
+              // Then add the new ones
+              newLandcycles.forEach(lc => {
+                if (!currentLandcycles.has(lc)) {
+                  toggle("landcycles", lc);
+                }
+              });
+            }
+          }}
+        />
+      </div>
+
       {/* === Package Selector === */}
       <div className="section">
         <PackageSelector
@@ -46,12 +86,13 @@ export default function Sidebar({
         />
       </div>
 
-      {/* === Land Cycle Selector === */}
+      {/* === Land Cycle Selector (moved down) === */}
       <div className="section">
         <LandCycleSelector
           groupedLandcycles={groupedLandcycles}
           selected={selected}
           toggle={toggle}
+          moveDown={true}
         />
       </div>
 

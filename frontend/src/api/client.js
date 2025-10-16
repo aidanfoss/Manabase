@@ -49,6 +49,13 @@ export const api = {
   getMetas: () => api.json("/packages"), // for backwards safety
   getPackages: () => api.json("/packages"),
   getLandcycles: () => api.json("/landcycles"),
+  getLandcyclePresets: (packages, landcycles, colors) => {
+    const params = new URLSearchParams();
+    if (packages) params.append('packages', packages);
+    if (landcycles) params.append('landcycles', landcycles);
+    if (colors) params.append('colors', colors);
+    return api.json(`/landcycles/presets?${params.toString()}`);
+  },
 
   getCards: ({ packages = [], landcycles = [], colors = [] }) => {
     const q = new URLSearchParams();
