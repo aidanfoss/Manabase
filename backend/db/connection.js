@@ -56,4 +56,42 @@ export async function initDB() {
       t.timestamps(true, true);
     });
   }
+
+  const hasUserPresets = await db.schema.hasTable("user_presets");
+  if (!hasUserPresets) {
+    await db.schema.createTable("user_presets", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users");
+      t.string("name").notNullable();
+      t.string("description");
+      t.json("landCycles");
+      t.json("packages");
+      t.json("cards");
+      t.timestamps(true, true);
+      t.unique(["user_id", "name"]); // Prevent duplicate names per user
+    });
+  }
+
+  // Add cards column if it doesn't exist (for existing databases)
+  const hasCardsColumn = await db.schema.hasColumn("user_presets", "cards");
+  if (!hasCardsColumn) {
+    await db.schema.table("user_presets", (t) => {
+      t.json("cards");
+    });
+    console.log("✅ Added cards column to user_presets table");
+  }
+
+  // Create default presets table for built-in presets visible to all users
+  const hasDefaultPresets = await db.schema.hasTable("default_presets");
+  if (!hasDefaultPresets) {
+    await db.schema.createTable("default_presets", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.string("name").notNullable();
+      t.string("description");
+      t.json("landCycles");
+      t.json("packages");
+      t.timestamps(true, true);
+      t.unique("name"); // Prevent duplicate names
+    });
+  }
 }

@@ -8,15 +8,16 @@ import fs from "fs";
 /**
  * Safely parse a JSON string, stripping any BOM and catching syntax errors.
  * @param {string} text
+ * @param {string} [filePath] - Optional file path for logging
  * @returns {any|null}
  */
-export function safeJsonParse(text) {
+export function safeJsonParse(text, filePath) {
     if (typeof text !== "string") return null;
     try {
         const clean = text.replace(/^\uFEFF/, ""); // remove BOM if present
         return JSON.parse(clean);
     } catch (e) {
-        console.error("⚠️ safeJsonParse: Failed to parse JSON:", e.message);
+        console.error(`⚠️ safeJsonParse: Failed to parse JSON${filePath ? ` for file: ${filePath}` : ''}:`, e.message);
         return null;
     }
 }
@@ -35,10 +36,10 @@ export function readJsonSafe(filePath, fallback = {}) {
             return fallback;
         }
         const raw = fs.readFileSync(filePath, "utf8");
-        const parsed = safeJsonParse(raw);
+        const parsed = safeJsonParse(raw, filePath);
         return parsed ?? fallback;
     } catch (e) {
-        console.error("⚠️ readJsonSafe error:", e.message);
+        console.error(`⚠️ readJsonSafe error for file: ${filePath}:`, e.message);
         return fallback;
     }
 }

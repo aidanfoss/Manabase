@@ -49,6 +49,31 @@ export const api = {
   getMetas: () => api.json("/packages"), // for backwards safety
   getPackages: () => api.json("/packages"),
   getLandcycles: () => api.json("/landcycles"),
+  // Presets
+  getPresets: (colors) => {
+    const params = new URLSearchParams();
+    if (colors && colors.length > 0) {
+      colors.forEach(color => params.append('colors', color));
+    } else {
+      params.append('colors', 'colorless');
+    }
+    return api.json(`/presets?${params.toString()}`);
+  },
+  applyPreset: (presetId) => api.json(`/presets/${presetId}/apply`, { method: "POST" }),
+  getLandcyclePresets: (packages, landcycles, colors) => {
+    const params = new URLSearchParams();
+    if (packages) params.append('packages', packages);
+    if (landcycles) params.append('landcycles', landcycles);
+    if (colors) params.append('colors', colors);
+    return api.json(`/presets?${params.toString()}`);
+  },
+  getPreset: (id) => api.json(`/presets/${id}`),
+  savePreset: (presetData) => api.post("/presets", presetData),
+  updatePreset: (id, presetData) => api.json(`/presets/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(presetData),
+  }),
+  deletePreset: (presetId) => api.json(`/presets/${presetId}`, { method: "DELETE" }),
 
   getCards: ({ packages = [], landcycles = [], colors = [] }) => {
     const q = new URLSearchParams();

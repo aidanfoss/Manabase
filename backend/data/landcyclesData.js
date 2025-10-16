@@ -42,5 +42,20 @@ if (fs.existsSync(dir)) {
   console.warn(`⚠️ landcycles folder not found: ${dir}`);
 }
 
+// Default preset structure for EDH mana bases
+export const createPreset = (name, description, landCycles, userId = null) => ({
+  id: `preset_${Date.now()}`,
+  name,
+  description,
+  userId, // null for built-in presets
+  landCycles, // object like { shocklands: 4, painlands: 8, basic: 24 }
+  packages: [], // Future: selected packages that could affect pricing/cost
+  colorRequirements: [],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+});
+
 export const allLandNames = Array.from(masterLands);
+export const landCyclePresets = []; // No hardcoded presets as per requirements
+
 export default landcycles;

@@ -330,6 +330,214 @@ h2 {
         background: rgba(0, 255, 100, 0.15);
     }
 
+/* === Land Cycle Preset Styles === */
+.preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.preset-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .preset-card:hover {
+        border-color: #2563eb;
+        background: #334155;
+    }
+
+    .preset-card.selected {
+        border-color: #2563eb;
+        background: #1e293b;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .preset-card.default-preset {
+        border-left: 4px solid #10b981;
+    }
+
+    .preset-card.user-preset {
+        border-left: 4px solid #f59e0b;
+    }
+
+.preset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+    .preset-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f8fafc;
+    }
+
+.preset-description {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+    .preset-header .price.high-price {
+        color: #ef4444;
+    }
+
+    .preset-header .price.low-price {
+        color: #10b981;
+    }
+
+    .delete-preset-btn {
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s ease;
+    }
+
+    .delete-preset-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+.preset-lands {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.land-item {
+    font-size: 0.75rem;
+    color: #60a5fa;
+    font-weight: 500;
+    padding: 0.2rem 0.4rem;
+    background: rgba(96, 165, 250, 0.1);
+    border-radius: 4px;
+}
+
+    .land-item .land-type {
+        color: inherit;
+    }
+
+.no-presets {
+    color: #6b7280;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+/* === Package Selector Compact Styles === */
+.package-selector-compact {
+    padding: 0.5rem 0;
+}
+
+.dropdown-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .dropdown-header span:last-child {
+        font-size: 0.8em;
+        transform: rotate(0deg);
+        transition: transform 0.2s ease;
+    }
+
+    .dropdown-header:hover span:last-child {
+        opacity: 0.8;
+    }
+
+.packages-compact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.package-compact-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+    .package-compact-card:hover {
+        border-color: #2563eb;
+        background: #334155;
+    }
+
+    .package-compact-card.selected {
+        border-color: #2563eb;
+        background: #1e293b;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .package-compact-card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.package-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+    .package-compact-header h5 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #f8fafc;
+    }
+
+.package-compact-count {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    border-radius: 4px;
+    padding: 0.2rem 0.4rem;
+    font-weight: 500;
+}
+
+.package-compact-description {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* === Sidebar spacer === */
+.sidebar-spacer {
+    margin: 1.5rem 0;
+    border-top: 1px solid #374151;
+}
+
 /* === Dark Scrollbars (Global) === */
 ::-webkit-scrollbar {
     width: 8px;
@@ -354,5 +562,3 @@ h2 {
     scrollbar-width: thin;
     scrollbar-color: #374151 #111827;
 }
-
-

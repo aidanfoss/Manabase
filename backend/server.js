@@ -22,6 +22,8 @@ import cardsRouter from "./routes/cards.js";
 import authRouter from "./routes/auth.js";
 import usersRouter from "./routes/users.js";
 import packagesRouter from "./routes/packages.js";
+import landcyclesRouter from "./routes/landcycles.js";
+import presetsRouter from "./routes/presets.js";
 import scryfallRouter from "./routes/scryfall.js";
 
 // --- DB ---
@@ -78,12 +80,18 @@ app.use("/api/metas", packagesRouter);
 // ✅ Simple color endpoint
 app.get("/api/colors", (_req, res) => res.json(colors));
 
+// ✅ Land cycle routes
+app.use("/api/landcycles", landcyclesRouter);
+
+// ✅ User presets routes
+app.use("/api/presets", presetsRouter);
+
 /**
- * ✅ Dynamic Landcycle Loader
+ * ✅ Dynamic Landcycle Loader (kept for backward compatibility)
  * Reads all JSON files in /data/landcycles/
  * Returns an array of landcycle objects with tier & untapQuality metadata
  */
-app.get("/api/landcycles", async (_req, res) => {
+app.get("/api/landcycles-old", async (_req, res) => {
     try {
         const landcyclesDir = path.join(__dirname, "data/landcycles");
         const files = fs.readdirSync(landcyclesDir).filter((f) => f.endsWith(".json"));

@@ -140,3 +140,5 @@ vite.config.ts.timestamp-*
 
 *.vsidx
 *.db
+/.idea/vcs.xml
+/.idea/modules.xml

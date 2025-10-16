@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import BuilderView from "./components/BuilderView";
 import PackageManager from "./components/PackageManager";
+import Presets from "./components/Presets";
 import "./styles/nav-auth.css";
 
 
@@ -17,9 +18,50 @@ export default function App() {
 
 function AppContent() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState("main"); // "main" or "packages"
+  const [screen, setScreen] = useState("main"); // "main", "packages", or "presets"
   const [showLogin, setShowLogin] = useState(false);
+  const [landcycles, setLandcycles] = useState([]);
   const packageRef = useRef();
+
+  const [selected, setSelected] = useState({
+    packages: new Set(),
+    landcycles: new Set(),
+    colors: new Set(),
+  });
+
+  // Load landcycles for presets
+  React.useEffect(() => {
+    const loadLandcycles = async () => {
+      try {
+        const data = await fetch('/api/landcycles').then(r => r.json());
+        setLandcycles(data || []);
+      } catch (error) {
+        console.error('Failed to load landcycles:', error);
+      }
+    };
+    loadLandcycles();
+  }, []);
+
+  const getScreenComponent = () => {
+    switch (screen) {
+      case "presets":
+        return <Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />;
+      case "packages":
+        return <PackageManager ref={packageRef} />;
+      default:
+        return <BuilderView selected={selected} setSelected={setSelected} onSetMainScreen={() => setScreen("main")} />;
+    }
+  };
+
+  const applyPreset = (preset) => {
+    // Apply preset and switch to builder
+    setSelected({
+      packages: new Set(preset.packages || []),
+      landcycles: new Set(Object.keys(preset.landCycles || {})),
+      colors: new Set(), // Keep current colors or reset
+    });
+    setScreen("main");
+  };
 
   return (
     <>
@@ -38,7 +80,7 @@ function AppContent() {
         </div>
       )}
 
-      {screen === "main" ? <BuilderView /> : <PackageManager ref={packageRef} />}
+      {getScreenComponent()}
     </>
   );
 }
@@ -108,6 +150,12 @@ function TopNav({ user, screen, setScreen, showLogin, setShowLogin, packageRef }
           onClick={() => setScreen("main")}
         >
           🧱 Builder
+        </button>
+        <button
+          className={screen === "presets" ? "active" : ""}
+          onClick={() => setScreen("presets")}
+        >
+          🎯 Presets
         </button>
         <button
           className={screen === "packages" ? "active" : ""}
