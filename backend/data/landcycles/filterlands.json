@@ -1,7 +1,7 @@
 {
   "name": "Good Filter Lands",
   "description": "Filter mana into color pairs. Excellent fixing for multicolor decks.",
-  "tap_status": "unconditional", // "tapped" | "conditional" | "untapped"
+  "tap_status": "unconditional",
   "has_basic_types": false,
   "cards": [
     "Mystic Gate",
