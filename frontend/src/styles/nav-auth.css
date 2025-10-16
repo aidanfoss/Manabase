@@ -2,7 +2,7 @@
 .top-nav {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: stretch;
     background: #111827;
     border-bottom: 1px solid #1f2937;
     padding: 0.8rem 1.5rem;
@@ -11,6 +11,11 @@
     top: 0;
     z-index: 100;
 }
+
+    .top-nav > div {
+        display: flex;
+        align-items: center;
+    }
 
 .nav-profile {
     display: flex;
@@ -70,6 +75,36 @@
             background: #2563eb;
             border-color: #2563eb;
             color: white;
+        }
+
+/* === Nav Actions (Package Controls) === */
+.nav-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+    .nav-actions button {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+        .nav-actions button:hover {
+            background: #1d4ed8;
+            transform: scale(1.02);
+        }
+
+        .nav-actions button:disabled {
+            background: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+            transform: none;
         }
 
 /* === Login Form === */

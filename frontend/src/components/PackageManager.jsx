@@ -1,8 +1,8 @@
-﻿import React, { useEffect, useState, useMemo } from "react";
+﻿import React, { useEffect, useState, useMemo, useImperativeHandle, forwardRef } from "react";
 import { api } from "../api/client";
 import "../styles/packageManager.css";
 
-export default function PackageManager() {
+const PackageManager = forwardRef(function PackageManager(props, ref) {
   const [packages, setPackages] = useState([]);
   const [currentPackage, setCurrentPackage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,11 +11,46 @@ export default function PackageManager() {
   const [draggedCard, setDraggedCard] = useState(null);
   const [isOverDropZone, setIsOverDropZone] = useState(false);
   const [showLoadMenu, setShowLoadMenu] = useState(false); // modal toggle
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [undoStack, setUndoStack] = useState([]);
 
   // Load saved packages once
   useEffect(() => {
     api.getPackages().then(setPackages).catch(console.error);
   }, []);
+
+  // Helper to parse cards from string
+  function parsePackage(pkg) {
+    if (!pkg) return pkg;
+    try {
+      return {
+        ...pkg,
+        cards: typeof pkg.cards === "string" ? JSON.parse(pkg.cards) : pkg.cards,
+      };
+    } catch {
+      return { ...pkg, cards: [] };
+    }
+  }
+
+  // --- Debounced Auto-Save ---
+  useEffect(() => {
+    if (!hasUnsavedChanges || !currentPackage) return;
+
+    const timeout = setTimeout(async () => {
+      try {
+        const savedPackage = await api.savePackage(currentPackage);
+        const parsedPackage = parsePackage(savedPackage);
+        setCurrentPackage(parsedPackage); // Update with parsed data
+        setHasUnsavedChanges(false);
+        const updatedList = await api.getPackages();
+        setPackages(updatedList);
+      } catch (err) {
+        console.error("Auto-save failed:", err);
+      }
+    }, 2000); // Auto-save after 2 seconds of no changes
+
+    return () => clearTimeout(timeout);
+  }, [currentPackage, hasUnsavedChanges]);
 
   // --- Manual Search (Enter or Button) ---
   async function handleSearch(e) {
@@ -55,12 +90,14 @@ export default function PackageManager() {
     const name = prompt("Enter a name for your new package:");
     if (!name) return;
     setCurrentPackage({ name, cards: [] });
+    setHasUnsavedChanges(true); // New package needs to be saved
   }
 
   // --- Save current package ---
   async function savePackage() {
     if (!currentPackage) return;
-    await api.savePackage(currentPackage);
+    const savedPackage = await api.savePackage(currentPackage);
+    setCurrentPackage(savedPackage); // Update with new ID
     alert("💾 Package saved!");
     const updatedList = await api.getPackages();
     setPackages(updatedList);
@@ -69,6 +106,7 @@ export default function PackageManager() {
   // --- Load/Delete/Share (future) ---
   function loadPackage(pkg) {
     setCurrentPackage(pkg);
+    setHasUnsavedChanges(false); // Reset since loading from saved state
     setShowLoadMenu(false);
   }
 
@@ -86,28 +124,51 @@ export default function PackageManager() {
     alert("🚧 Share feature coming soon!");
   }
 
+  // --- Undo functionality ---
+  useImperativeHandle(ref, () => ({
+    newPackage,
+    loadPackage: () => setShowLoadMenu(true),
+    undo: () => {
+      if (undoStack.length > 0) {
+        const previousPackage = undoStack[undoStack.length - 1];
+        setCurrentPackage(previousPackage);
+        setUndoStack(undoStack.slice(0, -1));
+      }
+    },
+  }));
+
   // --- Card add/remove ---
   function handleAdd(card) {
     if (!currentPackage) return;
+    setUndoStack([...undoStack, currentPackage]);
     const updated = {
       ...currentPackage,
       cards: [...(currentPackage.cards || []), card],
     };
     setCurrentPackage(updated);
+    setHasUnsavedChanges(true);
   }
 
   function handleRemove(card) {
     if (!currentPackage) return;
+    setUndoStack([...undoStack, currentPackage]);
     const updated = {
       ...currentPackage,
       cards: (currentPackage.cards || []).filter((c) => c.id !== card.id),
     };
     setCurrentPackage(updated);
+    setHasUnsavedChanges(true);
   }
+
+  // Reset undo stack when switching packages
+  useEffect(() => {
+    setUndoStack([]);
+  }, [currentPackage?.id]);
 
   // --- Filter cards within package ---
   const filteredCards = useMemo(() => {
-    const cards = currentPackage?.cards || [];
+    if (!currentPackage || !Array.isArray(currentPackage.cards)) return [];
+    const cards = currentPackage.cards;
     if (!packageSearch.trim()) return cards;
     const q = packageSearch.toLowerCase();
     return cards.filter((c) => c.name?.toLowerCase().includes(q));
@@ -137,14 +198,7 @@ export default function PackageManager() {
 
   return (
     <div className="pm-page">
-      {/* === Header === */}
-      <header className="pm-header">
-        <div className="pm-header-left">
-          <button onClick={newPackage}>New</button>
-          <button onClick={savePackage}>Save</button>
-          <button onClick={() => setShowLoadMenu(true)}>Load</button>
-        </div>
-      </header>
+
 
       {/* === Main Layout === */}
       <main className="pm-main">
@@ -195,20 +249,31 @@ export default function PackageManager() {
         >
           {currentPackage ? (
             <>
-              <form
-                className="pm-search small"
-                onSubmit={(e) => e.preventDefault()}
-              >
-                <input
-                  type="text"
-                  placeholder={`Filter cards in "${currentPackage.name}"...`}
-                  value={packageSearch}
-                  onChange={(e) => setPackageSearch(e.target.value)}
-                />
-                <button type="button" disabled>
-                  🔍
+              <div className="pm-header">
+                <form
+                  className="pm-search small"
+                  onSubmit={(e) => e.preventDefault()}
+                >
+                  <input
+                    type="text"
+                    placeholder={`Filter cards in "${currentPackage.name}"...`}
+                    value={packageSearch}
+                    onChange={(e) => setPackageSearch(e.target.value)}
+                  />
+                  <button type="button" disabled>
+                    🔍
+                  </button>
+                </form>
+                <button onClick={() => {
+                  if (undoStack.length > 0) {
+                    const previousPackage = undoStack[undoStack.length - 1];
+                    setCurrentPackage(previousPackage);
+                    setUndoStack(undoStack.slice(0, -1));
+                  }
+                }} disabled={undoStack.length === 0}>
+                  ↶ Undo
                 </button>
-              </form>
+              </div>
 
               <div className="pm-grid">
                 {filteredCards.map((card) => (
@@ -276,4 +341,6 @@ export default function PackageManager() {
       )}
     </div>
   );
-}
+});
+
+export default PackageManager;
