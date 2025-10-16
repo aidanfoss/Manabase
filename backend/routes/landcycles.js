@@ -4,6 +4,7 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { readJsonSafe } from "../utils/safeJson.js";
 import { fetchCardData } from "../services/scryfall.js";
+import { landCyclePresets } from "../data/landcycles.js";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -32,6 +33,71 @@ function normalizeCard(card) {
 
     return { name, fetchable: card.fetchable ?? false };
 }
+
+// GET land cycle presets
+router.get("/presets", async (req, res) => {
+    // Parse selected state from query params
+    const { packages = '', landcycles = '', colors = '' } = req.query;
+
+    const selectedPackages = packages.split(',').filter(Boolean);
+    const selectedLandcycles = landcycles.split(',').filter(Boolean);
+    const selectedColors = colors.split(',').filter(Boolean);
+
+    try {
+        // Get cards that would be shown for each preset with current selection
+        const presetPrices = await Promise.all(
+            landCyclePresets.map(async (preset) => {
+                // Create a mock query that combines preset landcycles with user selections
+                const presetQuery = {
+                    packages: selectedPackages,
+                    landcycles: Object.keys(preset.landCycles), // Use preset land cycles
+                    colors: selectedColors.length === 0 ? ['colorless'] : selectedColors
+                };
+
+                // Fetch the actual cards the builder would show
+                const cardsURL = new URL(`http://localhost:${process.env.PORT || 8080}/api/cards`);
+                cardsURL.searchParams.append('packages', presetQuery.packages.join(','));
+                presetQuery.landcycles.forEach(lc => cardsURL.searchParams.append('landcycles', lc));
+                presetQuery.colors.forEach(c => cardsURL.searchParams.append('colors', c));
+
+                const cardsResponse = await fetch(cardsURL.toString());
+
+                if (!cardsResponse.ok) {
+                    console.error(`Failed to fetch cards for preset ${preset.name}`);
+                    return { ...preset, price: 0 };
+                }
+
+                const cardsData = await cardsResponse.json();
+
+                // Calculate total price from all lands
+                let totalPrice = 0;
+                if (Array.isArray(cardsData)) {
+                    // Old format => all lands
+                    cardsData.forEach(card => {
+                        const price = card.price || card.prices?.usd || 0;
+                        totalPrice += parseFloat(price) || 0;
+                    });
+                } else if (cardsData?.lands) {
+                    // New format
+                    cardsData.lands.forEach(card => {
+                        const price = card.price || card.prices?.usd || 0;
+                        totalPrice += parseFloat(price) || 0;
+                    });
+                }
+
+                return {
+                    ...preset,
+                    price: Math.round(totalPrice * 100) / 100
+                };
+            })
+        );
+
+        res.json(presetPrices);
+    } catch (error) {
+        console.error('Error calculating preset prices:', error);
+        res.status(500).json({ error: 'Failed to calculate preset prices' });
+    }
+});
 
 router.get("/", async (_req, res) => {
     try {
@@ -64,20 +130,14 @@ router.get("/", async (_req, res) => {
                 }
             }
 
-            const meta = Array.isArray(metaIndex)
-                ? metaIndex.find(
-                    (x) =>
-                        (x.id || x.name)?.toLowerCase().replace(/\s+/g, "") ===
-                        id.toLowerCase()
-                )
-                : null;
-
+            // Use the data directly from the JSON file
+            const data = await readJsonSafe(filePath);
             cycles.push({
-                id,
-                name: meta?.name || toName(id),
-                tier: meta?.tier || "budget",
-                description: meta?.description || "",
-                fetchable,
+                id: data.id || id,
+                name: data.name || toName(id),
+                tier: data.tier || "budget",
+                description: data.description || "",
+                fetchable: data.fetchable || fetchable,
                 cards,
             });
         }
