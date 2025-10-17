@@ -100,6 +100,48 @@ function substringMatch(query) {
 }
 
 // ----------------------------------------------------
+// GET /api/scryfall/card?name=<exact_name>
+// ----------------------------------------------------
+router.get("/card", (req, res) => {
+  const name = (req.query.name || "").trim();
+  if (!name) return res.status(400).json({ error: "Card name required" });
+
+  const nameLower = name.toLowerCase();
+
+  // Find exact match
+  const exactMatches = dedupedCards.filter(
+    (c) => c.name?.toLowerCase() === nameLower
+  );
+
+  if (exactMatches.length > 0) {
+    console.log(`✅ Exact card match for "${name}"`);
+    const card = exactMatches[0];
+
+    // Enhance with all printings information
+    const allPrintings = allCards.filter(c =>
+      (c.oracle_id && c.oracle_id === card.oracle_id) ||
+      (c.name?.toLowerCase() === nameLower)
+    );
+
+    const enhancedCard = {
+      ...card,
+      prints: allPrintings.map(p => ({
+        set: p.set,
+        set_name: p.set_name,
+        collector_number: p.collector_number,
+        prices: p.prices,
+        released_at: p.released_at,
+      }))
+    };
+
+    return res.json(enhancedCard);
+  }
+
+  console.log(`❌ No exact match found for "${name}"`);
+  res.status(404).json({ error: "Card not found" });
+});
+
+// ----------------------------------------------------
 // GET /api/scryfall?q=<query>
 // ----------------------------------------------------
 router.get("/", (req, res) => {

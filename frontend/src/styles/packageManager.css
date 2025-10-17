@@ -11,6 +11,12 @@
   margin-bottom: 2rem;
 }
 
+.packages-header-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .packages-header h1 {
   margin: 0;
   font-size: 2rem;
@@ -792,6 +798,41 @@
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 2rem;
+}
+
+/* === Import Modal Styles === */
+.import-help {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #374151;
+}
+
+.import-help p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.moxfield-url-input {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: #f8fafc;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.moxfield-url-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.moxfield-url-input::placeholder {
+  color: #6b7280;
 }
 
 /* === Responsive Design === */

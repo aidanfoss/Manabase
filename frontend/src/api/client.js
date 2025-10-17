@@ -108,6 +108,8 @@ export const api = {
     api.json(`/packages/${id}`, {
       method: "DELETE",
     }),
+  importFromMoxfield: (url) =>
+    api.post("/packages/import/moxfield", { url }),
 
   // ---------------------------------------
   // === Scryfall Proxy ===

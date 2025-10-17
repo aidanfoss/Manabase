@@ -47,7 +47,7 @@ function AppContent() {
       case "presets":
         return <Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />;
       case "packages":
-        return <PackageManager ref={packageRef} />;
+        return <PackageManager />;
       default:
         return <BuilderView selected={selected} setSelected={setSelected} onSetMainScreen={() => setScreen("main")} />;
     }
