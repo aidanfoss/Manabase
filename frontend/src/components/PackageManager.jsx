@@ -50,6 +50,16 @@ export default function PackageManager({ onApplyPackage }) {
     }
   };
 
+  const handleUpdatePackage = async (updatedPackage) => {
+    try {
+      const savedPackage = await api.savePackage(updatedPackage);
+      setPackages(prev => prev.map(p => p.id === savedPackage.id ? savedPackage : p));
+    } catch (error) {
+      console.error("Failed to update package:", error);
+      throw error; // Re-throw to let PackageCard handle the error
+    }
+  };
+
   return (
     <div className="packages-screen">
       <div className="packages-header">
@@ -89,6 +99,7 @@ export default function PackageManager({ onApplyPackage }) {
                 package={pkg}
                 onEdit={() => handleEditPackage(pkg)}
                 onDelete={user ? () => handleDeletePackage(pkg) : null}
+                onUpdatePackage={handleUpdatePackage}
               />
             ))}
             {filteredPackages.length === 0 && (
@@ -125,11 +136,73 @@ export default function PackageManager({ onApplyPackage }) {
   );
 }
 
-function PackageCard({ package: pkg, onEdit, onDelete }) {
+function PackageCard({ package: pkg, onEdit, onDelete, onUpdatePackage }) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(pkg.name);
+
+  const handleRenameClick = () => {
+    setIsRenaming(true);
+    setNewName(pkg.name);
+  };
+
+  const handleRenameSubmit = async (e) => {
+    e.preventDefault();
+    if (!newName.trim() || newName.trim() === pkg.name) {
+      setIsRenaming(false);
+      return;
+    }
+
+    try {
+      const updatedPackage = { ...pkg, name: newName.trim() };
+      await onUpdatePackage(updatedPackage);
+      setIsRenaming(false);
+    } catch (error) {
+      console.error("Failed to rename package:", error);
+      alert("Failed to rename package. Please try again.");
+      setNewName(pkg.name);
+      setIsRenaming(false);
+    }
+  };
+
+  const handleRenameCancel = () => {
+    setNewName(pkg.name);
+    setIsRenaming(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      handleRenameCancel();
+    } else if (e.key === 'Enter') {
+      handleRenameSubmit(e);
+    }
+  };
+
   return (
     <div className="package-list-item">
       <div className="package-list-content">
-        <span className="package-name">{pkg.name}</span>
+        {isRenaming ? (
+          <form onSubmit={handleRenameSubmit} className="package-rename-form">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onBlur={handleRenameSubmit}
+              onKeyDown={handleKeyDown}
+              className="package-rename-input"
+              autoFocus
+              maxLength={50}
+            />
+          </form>
+        ) : (
+          <span
+            className="package-name"
+            onClick={handleRenameClick}
+            title="Click to rename"
+            style={{ cursor: 'pointer' }}
+          >
+            {pkg.name}
+          </span>
+        )}
         <span className="package-cards-count">{pkg.cards?.length || 0} cards</span>
         <span className="package-author">{pkg.userId ? "User" : "Community"}</span>
       </div>

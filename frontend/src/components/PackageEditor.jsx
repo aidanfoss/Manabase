@@ -183,22 +183,20 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
 
         {/* Right: Current Package Cards */}
         <div className="package-column">
-          <div className="pm-header">
-            <form
-              className="pm-search small"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                type="text"
-                placeholder={`Filter cards in "${currentPackage.name}"...`}
-                value={packageSearch}
-                onChange={(e) => setPackageSearch(e.target.value)}
-              />
-              <button type="button" disabled>
-                🔍
-              </button>
-            </form>
-          </div>
+          <form
+            className="pm-search"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <input
+              type="text"
+              placeholder={`Filter cards in "${currentPackage.name}"...`}
+              value={packageSearch}
+              onChange={(e) => setPackageSearch(e.target.value)}
+            />
+            <button type="button" disabled>
+              🔍
+            </button>
+          </form>
 
           <div className="pm-grid">
             {filteredCards.map((card) => (
@@ -251,10 +249,7 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
             Cancel
           </button>
           <button className="btn-primary" onClick={handleApply}>
-            Apply Package
-          </button>
-          <button className="btn-save" onClick={handleSave} disabled={!hasUnsavedChanges}>
-            Save Changes
+            Apply
           </button>
         </div>
       </div>

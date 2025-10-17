@@ -59,14 +59,13 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
   };
 
   const handleApply = () => {
-    // Create a preset-like object with current edits including cards
+    // Create a preset-like object with current edits
     const editedPresetData = {
       id: preset.id,
       name: editedPreset.name,
       description: editedPreset.description,
       packages: editedPreset.packages,
       landCycles: editedPreset.landCycles,
-      cards: editedPreset.cards,
       price: editedPreset.price
     };
     onApply(editedPresetData);
