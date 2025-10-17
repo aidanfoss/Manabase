@@ -1,346 +1,280 @@
-﻿import React, { useEffect, useState, useMemo, useImperativeHandle, forwardRef } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
+import PackageEditor from "./PackageEditor";
 import "../styles/packageManager.css";
 
-const PackageManager = forwardRef(function PackageManager(props, ref) {
+export default function PackageManager({ onApplyPackage }) {
+  const { user } = useAuth();
   const [packages, setPackages] = useState([]);
-  const [currentPackage, setCurrentPackage] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [packageSearch, setPackageSearch] = useState("");
-  const [draggedCard, setDraggedCard] = useState(null);
-  const [isOverDropZone, setIsOverDropZone] = useState(false);
-  const [showLoadMenu, setShowLoadMenu] = useState(false); // modal toggle
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [undoStack, setUndoStack] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("your"); // "your" or "community"
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingPackage, setEditingPackage] = useState(null);
 
-  // Load saved packages once
   useEffect(() => {
-    api.getPackages().then(setPackages).catch(console.error);
+    loadPackages();
   }, []);
 
-  // Helper to parse cards from string
-  function parsePackage(pkg) {
-    if (!pkg) return pkg;
+  const loadPackages = async () => {
     try {
-      return {
-        ...pkg,
-        cards: typeof pkg.cards === "string" ? JSON.parse(pkg.cards) : pkg.cards,
-      };
-    } catch {
-      return { ...pkg, cards: [] };
+      const data = await api.getPackages();
+      setPackages(data);
+    } catch (error) {
+      console.error("Failed to load packages:", error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  // --- Debounced Auto-Save ---
-  useEffect(() => {
-    if (!hasUnsavedChanges || !currentPackage) return;
+  const yourPackages = packages.filter(p => p.userId || p.isUserPackage);
+  const communityPackages = packages.filter(p => p.isDefaultPackage || !p.userId);
 
-    const timeout = setTimeout(async () => {
-      try {
-        const savedPackage = await api.savePackage(currentPackage);
-        const parsedPackage = parsePackage(savedPackage);
-        setCurrentPackage(parsedPackage); // Update with parsed data
-        setHasUnsavedChanges(false);
-        const updatedList = await api.getPackages();
-        setPackages(updatedList);
-      } catch (err) {
-        console.error("Auto-save failed:", err);
-      }
-    }, 2000); // Auto-save after 2 seconds of no changes
+  const filteredPackages = activeTab === "your" ? yourPackages : communityPackages;
 
-    return () => clearTimeout(timeout);
-  }, [currentPackage, hasUnsavedChanges]);
+  const handleEditPackage = (pkg) => {
+    setEditingPackage(pkg);
+  };
 
-  // --- Manual Search (Enter or Button) ---
-  async function handleSearch(e) {
-    e?.preventDefault?.();
-    if (!searchTerm.trim()) return;
-    try {
-      const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
-      setSearchResults(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Search failed:", err);
-    }
-  }
-
-  // --- Debounced Live Search (runs automatically while typing) ---
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
+  const handleDeletePackage = async (pkg) => {
+    if (!window.confirm(`Are you sure you want to delete the "${pkg.name}" package?`)) {
       return;
     }
 
-    // Wait 500 ms after typing stops
-    const timeout = setTimeout(async () => {
-      try {
-        const data = await api.json(`/scryfall?q=${encodeURIComponent(searchTerm)}`);
-        setSearchResults(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Live search failed:", err);
-      }
-    }, 500);
+    try {
+      await api.deletePackage(pkg.id);
+      setPackages(prev => prev.filter(p => p.id !== pkg.id));
+    } catch (error) {
+      console.error("Failed to delete package:", error);
+      alert("Failed to delete package. Please try again.");
+    }
+  };
 
-    // Cancel previous timer if user keeps typing
-    return () => clearTimeout(timeout);
-  }, [searchTerm]);
-
-  // --- Create new package ---
-  function newPackage() {
-    const name = prompt("Enter a name for your new package:");
-    if (!name) return;
-    setCurrentPackage({ name, cards: [] });
-    setHasUnsavedChanges(true); // New package needs to be saved
-  }
-
-  // --- Save current package ---
-  async function savePackage() {
-    if (!currentPackage) return;
-    const savedPackage = await api.savePackage(currentPackage);
-    setCurrentPackage(savedPackage); // Update with new ID
-    alert("💾 Package saved!");
-    const updatedList = await api.getPackages();
-    setPackages(updatedList);
-  }
-
-  // --- Load/Delete/Share (future) ---
-  function loadPackage(pkg) {
-    setCurrentPackage(pkg);
-    setHasUnsavedChanges(false); // Reset since loading from saved state
-    setShowLoadMenu(false);
-  }
-
-  async function deletePackage(pkg) {
-    if (!window.confirm(`Delete "${pkg.name}"?`)) return;
-    await api.deletePackage(pkg.id);
-    alert("🗑️ Deleted package.");
-    const updatedList = await api.getPackages();
-    setPackages(updatedList);
-    if (currentPackage?.id === pkg.id) setCurrentPackage(null);
-  }
-
-  // TODO: Future share functionality (e.g. export/share link)
-  function sharePackage(pkg) {
-    alert("🚧 Share feature coming soon!");
-  }
-
-  // --- Undo functionality ---
-  useImperativeHandle(ref, () => ({
-    newPackage,
-    loadPackage: () => setShowLoadMenu(true),
-    undo: () => {
-      if (undoStack.length > 0) {
-        const previousPackage = undoStack[undoStack.length - 1];
-        setCurrentPackage(previousPackage);
-        setUndoStack(undoStack.slice(0, -1));
-      }
-    },
-  }));
-
-  // --- Card add/remove ---
-  function handleAdd(card) {
-    if (!currentPackage) return;
-    setUndoStack([...undoStack, currentPackage]);
-    const updated = {
-      ...currentPackage,
-      cards: [...(currentPackage.cards || []), card],
-    };
-    setCurrentPackage(updated);
-    setHasUnsavedChanges(true);
-  }
-
-  function handleRemove(card) {
-    if (!currentPackage) return;
-    setUndoStack([...undoStack, currentPackage]);
-    const updated = {
-      ...currentPackage,
-      cards: (currentPackage.cards || []).filter((c) => c.id !== card.id),
-    };
-    setCurrentPackage(updated);
-    setHasUnsavedChanges(true);
-  }
-
-  // Reset undo stack when switching packages
-  useEffect(() => {
-    setUndoStack([]);
-  }, [currentPackage?.id]);
-
-  // --- Filter cards within package ---
-  const filteredCards = useMemo(() => {
-    if (!currentPackage || !Array.isArray(currentPackage.cards)) return [];
-    const cards = currentPackage.cards;
-    if (!packageSearch.trim()) return cards;
-    const q = packageSearch.toLowerCase();
-    return cards.filter((c) => c.name?.toLowerCase().includes(q));
-  }, [currentPackage, packageSearch]);
-
-  // --- Drag and drop handlers ---
-  function handleDragStart(card) {
-    setDraggedCard(card);
-  }
-
-  function handleDragOver(e) {
-    if (!currentPackage) return;
-    e.preventDefault();
-    setIsOverDropZone(true);
-  }
-
-  function handleDragLeave() {
-    setIsOverDropZone(false);
-  }
-
-  function handleDrop(e) {
-    e.preventDefault();
-    if (draggedCard && currentPackage) handleAdd(draggedCard);
-    setDraggedCard(null);
-    setIsOverDropZone(false);
-  }
+  const handleUpdatePackage = async (updatedPackage) => {
+    try {
+      const savedPackage = await api.savePackage(updatedPackage);
+      setPackages(prev => prev.map(p => p.id === savedPackage.id ? savedPackage : p));
+    } catch (error) {
+      console.error("Failed to update package:", error);
+      throw error; // Re-throw to let PackageCard handle the error
+    }
+  };
 
   return (
-    <div className="pm-page">
-
-
-      {/* === Main Layout === */}
-      <main className="pm-main">
-        {/* Left: Search cards (debounced live search) */}
-        <div className="pm-column">
-          <form className="pm-search" onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Find and add cards..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button type="submit">🔍</button>
-          </form>
-
-          <div className="pm-grid">
-            {searchResults.map((card) => (
-              <div
-                key={card.id}
-                className="pm-card"
-                draggable
-                onDragStart={() => handleDragStart(card)}
-                title="Drag to add"
-              >
-                <img
-                  src={
-                    card.image_uris?.normal ||
-                    card.image_uris?.small ||
-                    card.image ||
-                    ""
-                  }
-                  alt={card.name}
-                />
-                <div className="pm-add">+</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Current Package */}
-        <div
-          className={`pm-column ${
-            !currentPackage ? "pm-column-disabled" : ""
-          } ${isOverDropZone ? "pm-drop-highlight" : ""}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+    <div className="packages-screen">
+      <div className="packages-header">
+        <h1>Packages</h1>
+        <button
+          className="btn-primary"
+          onClick={() => setShowCreateModal(true)}
+          disabled={!user}
         >
-          {currentPackage ? (
-            <>
-              <div className="pm-header">
-                <form
-                  className="pm-search small"
-                  onSubmit={(e) => e.preventDefault()}
-                >
-                  <input
-                    type="text"
-                    placeholder={`Filter cards in "${currentPackage.name}"...`}
-                    value={packageSearch}
-                    onChange={(e) => setPackageSearch(e.target.value)}
-                  />
-                  <button type="button" disabled>
-                    🔍
-                  </button>
-                </form>
-                <button onClick={() => {
-                  if (undoStack.length > 0) {
-                    const previousPackage = undoStack[undoStack.length - 1];
-                    setCurrentPackage(previousPackage);
-                    setUndoStack(undoStack.slice(0, -1));
-                  }
-                }} disabled={undoStack.length === 0}>
-                  ↶ Undo
-                </button>
-              </div>
+          Create New Package
+        </button>
+      </div>
 
-              <div className="pm-grid">
-                {filteredCards.map((card) => (
-                  <div
-                    key={card.id}
-                    className="pm-card"
-                    onClick={() => handleRemove(card)}
-                    title="Click to remove"
-                  >
-                    <img
-                      src={
-                        card.image_uris?.normal ||
-                        card.image_uris?.small ||
-                        card.image ||
-                        ""
-                      }
-                      alt={card.name}
-                    />
-                    <div className="pm-remove">×</div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="pm-disabled-msg">
-              ⚠️ Create or load a package to view its cards.
-            </div>
-          )}
-        </div>
-      </main>
+      <div className="packages-tabs">
+        <button
+          className={activeTab === "your" ? "active" : ""}
+          onClick={() => setActiveTab("your")}
+        >
+          Your Packages
+        </button>
+        <button
+          className={activeTab === "community" ? "active" : ""}
+          onClick={() => setActiveTab("community")}
+        >
+          Community Packages
+        </button>
+      </div>
 
-      {/* === Load Menu Modal === */}
-      {showLoadMenu && (
-        <div className="pm-modal-overlay" onClick={() => setShowLoadMenu(false)}>
-          <div className="pm-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>📦 Manage Packages</h3>
-            {packages.length === 0 ? (
-              <p className="pm-disabled-msg">No saved packages yet.</p>
-            ) : (
-              <ul className="pm-package-list">
-                {packages.map((p) => (
-                  <li key={p.id || p.name}>
-                    <span className="pkg-name">{p.name}</span>
-                    <div className="pkg-actions">
-                      <button onClick={() => loadPackage(p)}>Load</button>
-                      <button onClick={() => sharePackage(p)} disabled>
-                        Share
-                      </button>
-                      <button
-                        className="delete"
-                        onClick={() => deletePackage(p)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+      <div className="packages-content">
+        {loading ? (
+          <div className="loading">Loading packages...</div>
+        ) : (
+          <div className="packages-grid">
+            {filteredPackages.map((pkg) => (
+              <PackageCard
+                key={pkg.id}
+                package={pkg}
+                onEdit={() => handleEditPackage(pkg)}
+                onDelete={user ? () => handleDeletePackage(pkg) : null}
+                onUpdatePackage={handleUpdatePackage}
+              />
+            ))}
+            {filteredPackages.length === 0 && (
+              <div className="empty-state">
+                {activeTab === "your" ? "You haven't created any packages yet." : "No community packages available."}
+              </div>
             )}
-            <button className="pm-close" onClick={() => setShowLoadMenu(false)}>
-              Close
-            </button>
           </div>
-        </div>
+        )}
+      </div>
+
+      {showCreateModal && (
+        <CreatePackageModal
+          onClose={() => setShowCreateModal(false)}
+          onSave={(pkg) => {
+            setPackages(prev => [...prev, pkg]);
+            setShowCreateModal(false);
+          }}
+        />
+      )}
+
+      {editingPackage && (
+        <PackageEditor
+          package={editingPackage}
+          onClose={() => setEditingPackage(null)}
+          onApply={onApplyPackage}
+          onSave={(updatedPackage) => {
+            setPackages(prev => prev.map(p => p.id === updatedPackage.id ? updatedPackage : p));
+            setEditingPackage(null);
+          }}
+        />
       )}
     </div>
   );
-});
+}
 
-export default PackageManager;
+function PackageCard({ package: pkg, onEdit, onDelete, onUpdatePackage }) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(pkg.name);
+
+  const handleRenameClick = () => {
+    setIsRenaming(true);
+    setNewName(pkg.name);
+  };
+
+  const handleRenameSubmit = async (e) => {
+    e.preventDefault();
+    if (!newName.trim() || newName.trim() === pkg.name) {
+      setIsRenaming(false);
+      return;
+    }
+
+    try {
+      const updatedPackage = { ...pkg, name: newName.trim() };
+      await onUpdatePackage(updatedPackage);
+      setIsRenaming(false);
+    } catch (error) {
+      console.error("Failed to rename package:", error);
+      alert("Failed to rename package. Please try again.");
+      setNewName(pkg.name);
+      setIsRenaming(false);
+    }
+  };
+
+  const handleRenameCancel = () => {
+    setNewName(pkg.name);
+    setIsRenaming(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      handleRenameCancel();
+    } else if (e.key === 'Enter') {
+      handleRenameSubmit(e);
+    }
+  };
+
+  return (
+    <div className="package-list-item">
+      <div className="package-list-content">
+        {isRenaming ? (
+          <form onSubmit={handleRenameSubmit} className="package-rename-form">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onBlur={handleRenameSubmit}
+              onKeyDown={handleKeyDown}
+              className="package-rename-input"
+              autoFocus
+              maxLength={50}
+            />
+          </form>
+        ) : (
+          <span
+            className="package-name"
+            onClick={handleRenameClick}
+            title="Click to rename"
+            style={{ cursor: 'pointer' }}
+          >
+            {pkg.name}
+          </span>
+        )}
+        <span className="package-cards-count">{pkg.cards?.length || 0} cards</span>
+        <span className="package-author">{pkg.userId ? "User" : "Community"}</span>
+      </div>
+      <div className="package-list-actions">
+        <button
+          className="btn-primary-small"
+          onClick={onEdit}
+        >
+          Select
+        </button>
+        {!pkg.isDefaultPackage && onDelete && (
+          <button className="btn-delete-small" onClick={onDelete}>
+            ×
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CreatePackageModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    cards: []
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const pkg = await api.savePackage(form);
+      onSave(pkg);
+    } catch (error) {
+      console.error("Failed to create package:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2>Create New Package</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Name</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Description (optional)</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+              rows={3}
+              placeholder="Describe what this package contains..."
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={onClose}>Cancel</button>
+            <button type="submit" disabled={loading} className="btn-primary">
+              {loading ? "Creating..." : "Create"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
