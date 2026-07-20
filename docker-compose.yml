@@ -3,7 +3,7 @@ services:
   manabase:
     build: .
     ports:
-      - "8080:8080"
+      - "9001:8080"
     environment:
       - NODE_ENV=production
     restart: unless-stopped

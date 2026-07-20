@@ -26,6 +26,12 @@ import landcyclesRouter from "./routes/landcycles.js";
 import presetsRouter from "./routes/presets.js";
 import scryfallRouter from "./routes/scryfall.js";
 
+// --- Playgroup Nexus Routes ---
+import playgroupsRouter from "./routes/playgroups.js";
+import inventoryRouter from "./routes/inventory.js";
+import listsRouter from "./routes/lists.js";
+import ordersRouter from "./routes/orders.js";
+
 // --- DB ---
 import { initDB } from "./db/connection.js";
 
@@ -85,6 +91,12 @@ app.use("/api/landcycles", landcyclesRouter);
 
 // ✅ User presets routes
 app.use("/api/presets", presetsRouter);
+
+// ✅ Playgroup Nexus Routes
+app.use("/api/playgroups", playgroupsRouter);
+app.use("/api/inventory", inventoryRouter);
+app.use("/api/lists", listsRouter);
+app.use("/api/orders", ordersRouter);
 
 /**
  * ✅ Dynamic Landcycle Loader (kept for backward compatibility)

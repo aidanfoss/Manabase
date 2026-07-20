@@ -1,4 +1,4 @@
-﻿// backend/db/connection.js
+// backend/db/connection.js
 import knex from "knex";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -92,6 +92,63 @@ export async function initDB() {
       t.json("packages");
       t.timestamps(true, true);
       t.unique("name"); // Prevent duplicate names
+    });
+  }
+
+  // --- PLAYGROUP NEXUS SCHEMA ---
+  
+  const hasPlaygroups = await db.schema.hasTable("playgroups");
+  if (!hasPlaygroups) {
+    await db.schema.createTable("playgroups", (t) => {
+      t.increments("id").primary();
+      t.string("name").notNullable();
+      t.timestamps(true, true); // creates created_at and updated_at
+    });
+  }
+
+  const hasPlaygroupMembers = await db.schema.hasTable("playgroup_members");
+  if (!hasPlaygroupMembers) {
+    await db.schema.createTable("playgroup_members", (t) => {
+      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups").onDelete("CASCADE");
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.primary(["playgroup_id", "user_id"]);
+    });
+  }
+
+  const hasUserCards = await db.schema.hasTable("user_cards");
+  if (!hasUserCards) {
+    await db.schema.createTable("user_cards", (t) => {
+      t.increments("id").primary();
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("card_name").notNullable();
+      t.string("set_code").notNullable();
+      t.string("collector_number").notNullable();
+      t.boolean("is_foil").defaultTo(false);
+      t.decimal("market_price", 10, 2);
+      t.decimal("max_price_threshold", 10, 2);
+      t.timestamps(true, true);
+    });
+  }
+
+  const hasUserLists = await db.schema.hasTable("user_lists");
+  if (!hasUserLists) {
+    await db.schema.createTable("user_lists", (t) => {
+      t.increments("id").primary();
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("card_name").notNullable();
+      t.string("list_kind").notNullable(); // 'proxy_wishlist', 'real_list', 'trade_sandbox'
+      t.uuid("target_owner_id").references("id").inTable("users"); // for trade_sandbox
+      t.timestamps(true, true);
+    });
+  }
+
+  const hasProxyOrders = await db.schema.hasTable("proxy_orders");
+  if (!hasProxyOrders) {
+    await db.schema.createTable("proxy_orders", (t) => {
+      t.increments("id").primary();
+      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups");
+      t.string("status").defaultTo("open"); // 'open', 'locked', 'ordered'
+      t.timestamps(true, true);
     });
   }
 }

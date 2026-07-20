@@ -1,10 +1,12 @@
-﻿// src/App.jsx
+// src/App.jsx
 import React, { useState, useRef } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import BuilderView from "./components/BuilderView";
 import PackageManager from "./components/PackageManager";
 import Presets from "./components/Presets";
+import Playgroups from "./components/Playgroups";
+import TradeMatrix from "./components/TradeMatrix";
 import "./styles/nav-auth.css";
 
 
@@ -48,6 +50,10 @@ function AppContent() {
         return <Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />;
       case "packages":
         return <PackageManager ref={packageRef} />;
+      case "playgroups":
+        return <Playgroups />;
+      case "tradematrix":
+        return <TradeMatrix />;
       default:
         return <BuilderView selected={selected} setSelected={setSelected} onSetMainScreen={() => setScreen("main")} />;
     }
@@ -164,6 +170,20 @@ function TopNav({ user, screen, setScreen, showLogin, setShowLogin, packageRef }
           title={!user ? "Log in to manage packages" : ""}
         >
           📦 Packages
+        </button>
+        <button
+          className={screen === "playgroups" ? "active" : ""}
+          onClick={() => setScreen("playgroups")}
+          disabled={!user}
+        >
+          🫂 Playgroups
+        </button>
+        <button
+          className={screen === "tradematrix" ? "active" : ""}
+          onClick={() => setScreen("tradematrix")}
+          disabled={!user}
+        >
+          🤝 Trade Matrix
         </button>
       </div>
     </nav>
