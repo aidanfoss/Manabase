@@ -8,7 +8,34 @@ export function AuthProvider({ children }) {
 
   // On load or token change, validate token and fetch user
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      const isDev = import.meta.env.MODE === "development" || 
+                    window.location.hostname === "localhost" || 
+                    window.location.hostname === "127.0.0.1";
+      if (isDev) {
+        (async () => {
+          try {
+            console.log("🛠️ Dev environment detected. Attempting auto-login...");
+            const res = await fetch("/api/auth/dev-login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.token && data.user) {
+                localStorage.setItem("token", data.token);
+                setUser(data.user);
+                setToken(data.token);
+                console.log("⚡ Dev auto-login successful:", data.user.username);
+              }
+            }
+          } catch (e) {
+            console.error("❌ Dev auto-login failed:", e);
+          }
+        })();
+      }
+      return;
+    }
 
     (async () => {
       try {

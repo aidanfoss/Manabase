@@ -1,8 +1,5 @@
-﻿// frontend/src/api/client.js
-const BASE =
-  import.meta.env.MODE === "development"
-    ? "http://localhost:8080/api"
-    : "/api";
+// frontend/src/api/client.js
+const BASE = "/api";
 
 export const api = {
   // ---------------------------------------
@@ -20,16 +17,22 @@ export const api = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
+    console.log(`🌐 [API Request] ${method} ${url}`, options.body ? JSON.parse(options.body) : "");
+
     const response = await fetch(url, {
       method,
       headers,
       body: options.body,
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      console.error(`❌ [API Error] ${method} ${url} status: ${response.status}`);
+      throw new Error(`HTTP ${response.status}`);
+    }
     const text = await response.text();
-    // Strip BOM if present
-    return text ? JSON.parse(text.replace(/^\uFEFF/, "")) : {};
+    const data = text ? JSON.parse(text.replace(/^\uFEFF/, "")) : {};
+    console.log(`✅ [API Response] ${method} ${url}`, Array.isArray(data) ? `Array(${data.length})` : typeof data === "object" ? `Keys: [${Object.keys(data).join(", ")}]` : data);
+    return data;
   },
 
   // ---------------------------------------
@@ -116,4 +119,14 @@ export const api = {
   // (calls your backend route, not Scryfall directly)
   // ---------------------------------------
   getCardSearch: (query) => api.json(`/scryfall?q=${encodeURIComponent(query)}`),
+  getCardDetails: (name) => api.json(`/scryfall/card?name=${encodeURIComponent(name)}`),
+  getCardDetailsBatch: (names) => api.post(`/scryfall/batch`, { names }),
+
+  // ---------------------------------------
+  // === Playgroup Trading ===
+  // ---------------------------------------
+  getTradeUsers: () => api.json("/trade/users"),
+  getTradeMatches: () => api.json("/trade/matches"),
+  getTradePartnerInventory: (userId) => api.json(`/trade/inventory/${userId}`),
+  executeTrade: (partnerId, offer, demand) => api.post("/trade/propose", { partnerId, offer, demand }),
 };

@@ -1,7 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import Card from "./Card";
 
-export default function MainContent({ data, status, error }) {
+export default function MainContent({ data, status, error, userCollection = [] }) {
     function exportSection(name, cards) {
         if (!cards?.length) return;
         const lines = cards.map((c) => {
@@ -67,7 +67,7 @@ export default function MainContent({ data, status, error }) {
                         </div>
                         <div className="grid">
                             {cards.map((it, i) => (
-                                <Card key={i} item={it} />
+                                <Card key={i} item={it} userCollection={userCollection} />
                             ))}
                         </div>
                     </div>

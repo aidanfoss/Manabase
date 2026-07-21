@@ -1,4 +1,4 @@
-﻿import fs from "fs";
+import fs from "fs";
 import path from "path";
 import fetch from "node-fetch";
 
@@ -16,6 +16,8 @@ function readJsonSafe(file, fallback) {
         return fallback;
     }
 }
+
+const PARSED_CACHE_PATH = path.join(DATA_DIR, "scryfall-parsed-cache.json");
 
 /**
  * ✅ Update bulk data if missing or older than 7 days.
@@ -35,32 +37,117 @@ export async function updateBulkDataIfNeeded() {
         }
 
         console.log("⬇️  Downloading new Scryfall bulk data metadata...");
-        const meta = await fetch("https://api.scryfall.com/bulk-data/default-cards").then(r => r.json());
+        const meta = await fetch("https://api.scryfall.com/bulk-data/default-cards", { headers: { "User-Agent": "Manabase/1.0" } }).then(r => r.json());
         const url = meta.download_uri;
         console.log("📦 Downloading cards from:", url);
 
-        const text = await fetch(url).then(r => r.text());
-        fs.writeFileSync(BULK_PATH, text);
+        const { pipeline } = await import("stream/promises");
+        const res = await fetch(url, { headers: { "User-Agent": "Manabase/1.0" } });
+        if (!res.ok) throw new Error(`unexpected response ${res.statusText}`);
+        await pipeline(res.body, fs.createWriteStream(BULK_PATH));
+        
+        // Remove stale parsed cache to trigger rebuild
+        if (fs.existsSync(PARSED_CACHE_PATH)) {
+            fs.unlinkSync(PARSED_CACHE_PATH);
+        }
+
         console.log("✅ Scryfall bulk data updated successfully.");
     } catch (err) {
         console.error("❌ Failed to update Scryfall bulk data:", err);
     }
 }
 
+import { chain } from "stream-chain";
+import { parser } from "stream-json";
+import { streamArray } from "stream-json/streamers/stream-array.js";
+
 /**
  * ✅ Load all cards from the bulk data file into memory.
- * Always called after updateBulkDataIfNeeded().
+ * Uses fast pre-parsed cache file if available, or streams raw bulk data to generate cache.
  */
-export function loadCardData() {
-    try {
-        const raw = fs.readFileSync(BULK_PATH, "utf8");
-        const cards = JSON.parse(raw);
-        console.log(`📚 Loaded ${cards.length.toLocaleString()} cards from bulk data.`);
-        return cards;
-    } catch (err) {
-        console.error("⚠️ Failed to load bulk data:", err);
-        return [];
+export async function loadCardData() {
+    // ⚡ Fast path: load pre-parsed stripped cache in ~150ms if it exists
+    if (fs.existsSync(PARSED_CACHE_PATH)) {
+        try {
+            console.log("⚡ Loading cards from fast pre-parsed cache...");
+            const data = JSON.parse(fs.readFileSync(PARSED_CACHE_PATH, "utf8"));
+            console.log(`📚 Loaded ${data.length.toLocaleString()} cards instantly from cache.`);
+            return data;
+        } catch (err) {
+            console.warn("⚠️ Fast cache read failed, falling back to raw stream:", err.message);
+        }
     }
+
+    // 🐢 Slow path: stream 557MB raw bulk data file and generate fast cache
+    return new Promise((resolve, reject) => {
+        const cards = [];
+        if (!fs.existsSync(BULK_PATH)) {
+            console.log("⚠️ No bulk data found to load.");
+            return resolve([]);
+        }
+
+        console.log("⏳ Building fast pre-parsed cache from raw bulk data (this happens once)...");
+        const pipeline = chain([
+            fs.createReadStream(BULK_PATH),
+            parser(),
+            streamArray()
+        ]);
+
+        pipeline.on("data", (data) => {
+            const c = data.value;
+            // Only keep fields needed by scryfallLocal.js to prevent OOM
+            const stripped = {
+                id: c.id,
+                oracle_id: c.oracle_id,
+                name: c.name,
+                layout: c.layout,
+                released_at: c.released_at,
+                set: c.set,
+                set_name: c.set_name,
+                promo: c.promo,
+                full_art: c.full_art,
+                border_color: c.border_color,
+                collector_number: c.collector_number,
+                prices: c.prices,
+                type_line: c.type_line,
+                color_identity: c.color_identity,
+                scryfall_uri: c.scryfall_uri,
+                rulings_uri: c.rulings_uri,
+                purchase_uris: c.purchase_uris,
+            };
+            
+            if (c.image_uris) {
+                stripped.image_uris = {
+                    normal: c.image_uris.normal,
+                    small: c.image_uris.small
+                };
+            }
+            
+            if (c.card_faces) {
+                stripped.card_faces = c.card_faces.map(f => ({
+                    image_uris: f.image_uris ? { normal: f.image_uris.normal } : null
+                }));
+            }
+            
+            cards.push(stripped);
+        });
+
+        pipeline.on("end", () => {
+            console.log(`📚 Streamed ${cards.length.toLocaleString()} cards. Saving fast cache...`);
+            try {
+                fs.writeFileSync(PARSED_CACHE_PATH, JSON.stringify(cards));
+                console.log("💾 Saved pre-parsed cache for instant future startups.");
+            } catch (err) {
+                console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
+            }
+            resolve(cards);
+        });
+
+        pipeline.on("error", (err) => {
+            console.error("⚠️ Failed to load bulk data:", err);
+            resolve([]); // fallback
+        });
+    });
 }
 
 /**
@@ -84,7 +171,7 @@ export async function refreshOldPrices() {
 
     for (const id of needsUpdate.slice(0, 200)) { // limit batch
         try {
-            const card = await fetch(`https://api.scryfall.com/cards/${id}`).then(r => r.json());
+            const card = await fetch(`https://api.scryfall.com/cards/${id}`, { headers: { "User-Agent": "Manabase/1.0" } }).then(r => r.json());
             const price = card.prices?.usd || card.prices?.usd_foil || null;
             if (price) {
                 priceCache[id] = {

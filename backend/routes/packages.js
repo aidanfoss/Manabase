@@ -1,4 +1,4 @@
-﻿// backend/routes/packages.js
+// backend/routes/packages.js
 import express from "express";
 import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
@@ -308,34 +308,18 @@ async function enhanceCardsWithDetails(cards) {
   const uniqueCardNames = [...new Set(cards.map(card => card.name))];
   console.log('[Backend] Unique card names to fetch:', uniqueCardNames.length);
 
-  // Import the loadCardData function
-  const { loadCardData } = await import("../services/scryfallUpdater.js");
-  const allCards = loadCardData();
+  const { getLocalCardByName } = await import("./scryfallLocal.js");
 
   // Fetch detailed information for each unique card name
   for (const cardName of uniqueCardNames) {
     try {
       console.log('[Backend] Fetching details for card:', cardName);
 
-      const nameLower = cardName.toLowerCase();
+      const card = await getLocalCardByName(cardName);
 
-      // Find exact match in local card data
-      const exactMatches = allCards.filter(
-        (c) => c.name?.toLowerCase() === nameLower
-      );
-
-      if (exactMatches.length > 0) {
-        console.log('[Backend] Found', exactMatches.length, 'matches for', cardName);
-        const card = exactMatches[0];
-
-        // Get all printings for this card
-        const allPrintings = allCards.filter(c =>
-          (c.oracle_id && c.oracle_id === card.oracle_id) ||
-          (c.name?.toLowerCase() === nameLower)
-        );
-
+      if (card) {
         // Find all instances of this card in the original cards array
-        const cardInstances = cards.filter(card => card.name === cardName);
+        const cardInstances = cards.filter(c => c.name === cardName);
 
         // For each instance, create an enhanced version with detailed information
         for (const cardInstance of cardInstances) {
@@ -350,15 +334,9 @@ async function enhanceCardsWithDetails(cards) {
             image_uris: card.image_uris,
             scryfall_uri: card.scryfall_uri,
             prices: card.prices,
-            prints: allPrintings.map(p => ({
-              set: p.set,
-              set_name: p.set_name,
-              collector_number: p.collector_number,
-              prices: p.prices,
-              released_at: p.released_at,
-            })),
+            prints: card.prints || [],
             // Choose the optimal printing (cheapest non-foil, or most recent if no price)
-            selectedPrinting: selectOptimalPrinting(card, allPrintings)
+            selectedPrinting: selectOptimalPrinting(card, card.prints)
           };
 
           enhancedCards.push(enhancedCard);
@@ -366,7 +344,7 @@ async function enhanceCardsWithDetails(cards) {
       } else {
         console.warn('[Backend] No match found for', cardName);
         // If no detailed info found, keep the original card
-        const cardInstances = cards.filter(card => card.name === cardName);
+        const cardInstances = cards.filter(c => c.name === cardName);
         enhancedCards.push(...cardInstances);
       }
     } catch (error) {

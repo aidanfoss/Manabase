@@ -1,0 +1,354 @@
+// backend/routes/playgroups.js
+import express from "express";
+import { db } from "../db/connection.js";
+import { requireAuth } from "../middleware/auth.js";
+
+const router = express.Router();
+
+// GET /api/playgroups - List user's playgroups
+router.get("/", requireAuth, async (req, res) => {
+  try {
+    const playgroups = await db("playgroups")
+      .join("playgroup_members", "playgroups.id", "playgroup_members.playgroup_id")
+      .where("playgroup_members.user_id", req.user.id)
+      .select("playgroups.id", "playgroups.name", "playgroups.created_at");
+    res.json(playgroups);
+  } catch (err) {
+    console.error("Error fetching playgroups:", err);
+    res.status(500).json({ error: "Failed to fetch playgroups." });
+  }
+});
+
+// POST /api/playgroups - Create a playgroup
+router.post("/", requireAuth, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Playgroup name is required" });
+
+    const newGroup = await db.transaction(async (trx) => {
+      const [inserted] = await trx("playgroups").insert({ name }).returning("*");
+      // Knex returns array of inserted objects or IDs
+      const playgroupId = typeof inserted === "object" ? inserted.id : inserted;
+      
+      await trx("playgroup_members").insert({
+        playgroup_id: playgroupId,
+        user_id: req.user.id
+      });
+      
+      return { id: playgroupId, name };
+    });
+    
+    res.json(newGroup);
+  } catch (err) {
+    console.error("Error creating playgroup:", err);
+    res.status(500).json({ error: "Failed to create playgroup." });
+  }
+});
+
+// POST /api/playgroups/join - Join a playgroup
+router.post("/join", requireAuth, async (req, res) => {
+  try {
+    const { playgroup_id } = req.body;
+    if (!playgroup_id) return res.status(400).json({ error: "Playgroup ID is required" });
+
+    const group = await db("playgroups").where({ id: playgroup_id }).first();
+    if (!group) return res.status(404).json({ error: "Playgroup not found" });
+
+    // Insert user into playgroup
+    await db("playgroup_members")
+      .insert({
+        playgroup_id: parseInt(playgroup_id),
+        user_id: req.user.id
+      })
+      .onConflict(["playgroup_id", "user_id"])
+      .ignore();
+
+    res.json({ success: true, message: "Joined playgroup successfully", name: group.name });
+  } catch (err) {
+    console.error("Error joining playgroup:", err);
+    res.status(500).json({ error: "Failed to join playgroup." });
+  }
+});
+
+// GET /api/playgroups/:id/members - List members
+router.get("/:id/members", requireAuth, async (req, res) => {
+  try {
+    const members = await db("users")
+      .join("playgroup_members", "users.id", "playgroup_members.user_id")
+      .where("playgroup_members.playgroup_id", req.params.id)
+      .select("users.id", "users.username", "users.email");
+      
+    res.json(members);
+  } catch (err) {
+    console.error("Error fetching playgroup members:", err);
+    res.status(500).json({ error: "Failed to fetch members." });
+  }
+});
+
+// GET /api/playgroups/:id/inventory - Get combined owned inventories
+router.get("/:id/inventory", requireAuth, async (req, res) => {
+  try {
+    const playgroupId = req.params.id;
+
+    // Verify membership
+    const isMember = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .first();
+    if (!isMember) return res.status(403).json({ error: "Not a member of this playgroup" });
+
+    const inventory = await db("user_cards")
+      .join("users", "user_cards.user_id", "users.id")
+      .whereIn("user_cards.user_id", function() {
+        this.select("user_id").from("playgroup_members").where("playgroup_id", playgroupId);
+      })
+      .where("user_cards.list_type", "owned")
+      .select(
+        "user_cards.id",
+        "user_cards.user_id",
+        "user_cards.card_name",
+        "user_cards.set_code",
+        "user_cards.collector_number",
+        "user_cards.is_foil",
+        "user_cards.quantity",
+        "user_cards.market_price",
+        "user_cards.max_price_threshold",
+        "users.username as owner_username"
+      );
+
+    res.json(inventory);
+  } catch (err) {
+    console.error("Error fetching group inventory:", err);
+    res.status(500).json({ error: "Failed to fetch playgroup inventory." });
+  }
+});
+
+// GET /api/playgroups/:id/wishlist - Get combined playgroup wishlists
+router.get("/:id/wishlist", requireAuth, async (req, res) => {
+  try {
+    const playgroupId = req.params.id;
+
+    // Verify membership
+    const isMember = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .first();
+    if (!isMember) return res.status(403).json({ error: "Not a member of this playgroup" });
+
+    // Fetch wishlist items
+    const items = await db("user_cards")
+      .join("users", "user_cards.user_id", "users.id")
+      .whereIn("user_cards.user_id", function() {
+        this.select("user_id").from("playgroup_members").where("playgroup_id", playgroupId);
+      })
+      .where("user_cards.list_type", "wishlist")
+      .select(
+        "user_cards.id",
+        "user_cards.user_id",
+        "user_cards.card_name",
+        "user_cards.set_code",
+        "user_cards.collector_number",
+        "user_cards.is_foil",
+        "user_cards.quantity",
+        "user_cards.created_at",
+        "users.username"
+      )
+      .orderBy("user_cards.created_at", "asc");
+
+    // Flatten lists by quantity (to enforce chronological cutoff of individual copies)
+    const flatQueue = [];
+    items.forEach((item) => {
+      for (let i = 0; i < item.quantity; i++) {
+        flatQueue.push({
+          id: item.id,
+          user_id: item.user_id,
+          username: item.username,
+          card_name: item.card_name,
+          set_code: item.set_code,
+          collector_number: item.collector_number,
+          is_foil: item.is_foil,
+          created_at: item.created_at,
+          index: i + 1
+        });
+      }
+    });
+
+    res.json(flatQueue);
+  } catch (err) {
+    console.error("Error fetching group wishlist:", err);
+    res.status(500).json({ error: "Failed to fetch playgroup wishlists." });
+  }
+});
+
+// GET /api/playgroups/:id/orders - List proxy orders
+router.get("/:id/orders", requireAuth, async (req, res) => {
+  try {
+    const orders = await db("proxy_orders")
+      .where({ playgroup_id: req.params.id })
+      .orderBy("created_at", "desc");
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching group orders:", err);
+    res.status(500).json({ error: "Failed to fetch playgroup orders." });
+  }
+});
+
+// POST /api/playgroups/:id/orders/mpcfill - Lock order and generate JSON
+router.post("/:id/orders/mpcfill", requireAuth, async (req, res) => {
+  const playgroupId = req.params.id;
+  try {
+    // Verify membership
+    const isMember = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .first();
+    if (!isMember) return res.status(403).json({ error: "Not a member of this playgroup" });
+
+    // Fetch wishlist items
+    const items = await db("user_cards")
+      .join("users", "user_cards.user_id", "users.id")
+      .whereIn("user_cards.user_id", function() {
+        this.select("user_id").from("playgroup_members").where("playgroup_id", playgroupId);
+      })
+      .where("user_cards.list_type", "wishlist")
+      .select(
+        "user_cards.id",
+        "user_cards.user_id",
+        "user_cards.card_name",
+        "user_cards.set_code",
+        "user_cards.collector_number",
+        "user_cards.is_foil",
+        "user_cards.quantity",
+        "user_cards.created_at",
+        "users.username"
+      )
+      .orderBy("user_cards.created_at", "asc");
+
+    // Flatten lists by quantity
+    const flatQueue = [];
+    items.forEach((item) => {
+      for (let i = 0; i < item.quantity; i++) {
+        flatQueue.push({
+          id: item.id,
+          user_id: item.user_id,
+          username: item.username,
+          card_name: item.card_name,
+          set_code: item.set_code,
+          collector_number: item.collector_number,
+          is_foil: item.is_foil,
+          created_at: item.created_at
+        });
+      }
+    });
+
+    const targetCards = flatQueue.slice(0, 612);
+
+    // Build standard MPCfill card layout
+    const mpcCards = targetCards.map((card, index) => ({
+      id: index + 1,
+      name: card.card_name,
+      set: card.set_code || "",
+      collector_number: card.collector_number || "",
+      foil: !!card.is_foil,
+      owner: card.username,
+      owner_id: card.user_id
+    }));
+
+    // Record order in db
+    const [inserted] = await db("proxy_orders")
+      .insert({
+        playgroup_id: playgroupId,
+        status: "locked"
+      })
+      .returning("*");
+
+    const orderId = typeof inserted === "object" ? inserted.id : inserted;
+
+    res.json({
+      success: true,
+      order_id: orderId,
+      total_cards: targetCards.length,
+      overflow_cards: flatQueue.length > 612 ? flatQueue.length - 612 : 0,
+      cards: mpcCards
+    });
+  } catch (err) {
+    console.error("Error creating MPCfill order:", err);
+    res.status(500).json({ error: "Failed to create MPCfill order." });
+  }
+});
+
+// POST /api/playgroups/:id/trade-fulfill - One-click trade fulfillment
+router.post("/:id/trade-fulfill", requireAuth, async (req, res) => {
+  const { card_name, owner_id, buyer_id } = req.body;
+  if (!card_name || !owner_id || !buyer_id) {
+    return res.status(400).json({ error: "Missing required trade details." });
+  }
+
+  try {
+    await db.transaction(async (trx) => {
+      // 1. Shift ownership of physical card from owner to buyer
+      const ownerCard = await trx("user_cards")
+        .where({ user_id: owner_id, card_name, list_type: "owned" })
+        .first();
+
+      if (!ownerCard || ownerCard.quantity <= 0) {
+        throw new Error("Owner does not own this card in physical inventory.");
+      }
+
+      // Deduct from owner
+      if (ownerCard.quantity === 1) {
+        await trx("user_cards").where({ id: ownerCard.id }).delete();
+      } else {
+        await trx("user_cards")
+          .where({ id: ownerCard.id })
+          .update({ quantity: ownerCard.quantity - 1, updated_at: trx.fn.now() });
+      }
+
+      // Add/credit to buyer
+      const buyerCard = await trx("user_cards")
+        .where({ user_id: buyer_id, card_name, list_type: "owned" })
+        .first();
+
+      if (buyerCard) {
+        await trx("user_cards")
+          .where({ id: buyerCard.id })
+          .update({ quantity: buyerCard.quantity + 1, updated_at: trx.fn.now() });
+      } else {
+        await trx("user_cards").insert({
+          user_id: buyer_id,
+          card_name,
+          list_type: "owned",
+          quantity: 1,
+          set_code: ownerCard.set_code,
+          collector_number: ownerCard.collector_number,
+          is_foil: ownerCard.is_foil,
+          market_price: ownerCard.market_price
+        });
+      }
+
+      // 2. Strip it from buyer's wishlist
+      const buyerWishlist = await trx("user_cards")
+        .where({ user_id: buyer_id, card_name, list_type: "wishlist" })
+        .first();
+
+      if (buyerWishlist) {
+        if (buyerWishlist.quantity <= 1) {
+          await trx("user_cards").where({ id: buyerWishlist.id }).delete();
+        } else {
+          await trx("user_cards")
+            .where({ id: buyerWishlist.id })
+            .update({ quantity: buyerWishlist.quantity - 1, updated_at: trx.fn.now() });
+        }
+      }
+
+      // 3. Strip from buyer's trade sandbox staged items
+      await trx("user_cards")
+        .where({ user_id: buyer_id, card_name, list_type: "trade_sandbox", target_owner_id: owner_id })
+        .delete();
+    });
+
+    res.json({ success: true, message: "Physical trade completed, ownership shifted, and buyer wishlist updated!" });
+  } catch (err) {
+    console.error("Trade fulfillment error:", err);
+    res.status(500).json({ error: err.message || "Failed to fulfill trade." });
+  }
+});
+
+export default router;

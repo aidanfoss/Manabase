@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
 
-export default function Card({ item }) {
+export default function Card({ item, userCollection = [] }) {
     const [showPrices, setShowPrices] = useState(false);
     const [hovering, setHovering] = useState(false);
     const [showBack, setShowBack] = useState(false);
@@ -23,6 +23,12 @@ export default function Card({ item }) {
 
     const name = currentFace.name || item.name;
     const note = item.note || null;
+
+    const isOwned = useMemo(() => {
+        return (userCollection || []).some(
+            (c) => c.card_name?.toLowerCase() === name?.toLowerCase() && c.list_type === "owned"
+        );
+    }, [userCollection, name]);
 
     const priceValue =
         item.price ??
@@ -89,7 +95,7 @@ export default function Card({ item }) {
 
     return (
         <div
-            className={`card ${isMDFC ? "mdfc" : ""}`}
+            className={`card ${isMDFC ? "mdfc" : ""} ${isOwned ? "owned-highlight" : ""}`}
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => {
                 setHovering(false);
@@ -98,6 +104,9 @@ export default function Card({ item }) {
             onClick={handleCardClick}
         >
             <div className="card-image">
+                {isOwned && (
+                    <span className="owned-card-badge">✓ Owned</span>
+                )}
                 {image ? (
                     <img
                         key={showBack ? "back" : "front"}

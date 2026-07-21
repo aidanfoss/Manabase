@@ -1,0 +1,515 @@
+/* src/styles/proxy-hub.css */
+
+.proxy-hub-container {
+  padding: 1.5rem;
+  color: #f8fafc;
+  background-color: #0f172a;
+  min-height: 100vh;
+  padding-bottom: 6rem;
+}
+
+/* === Overview Row === */
+.overview-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.overview-card {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.overview-card.highlight {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(30, 41, 59, 0.4));
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.overview-card .label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.overview-card .value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.overview-card .value.sub {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  margin-top: auto;
+}
+
+/* === Control/Export Panel === */
+.control-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.panel-title h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.panel-title p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hub-btn {
+  background: #334155;
+  color: #f1f5f9;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hub-btn:hover {
+  background: #475569;
+  border-color: #64748b;
+  transform: translateY(-1px);
+}
+
+.hub-btn.primary {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.hub-btn.primary:hover {
+  background: #1d4ed8;
+  border-color: #2563eb;
+}
+
+.hub-btn.print {
+  background: #059669;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.hub-btn.print:hover {
+  background: #047857;
+  border-color: #059669;
+}
+
+.hub-btn:active {
+  transform: translateY(1px);
+}
+
+/* === Proxy Grid === */
+.proxy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+}
+
+.proxy-card-item {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.proxy-card-item:hover {
+  border-color: #475569;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.proxy-card-preview {
+  position: relative;
+  flex: 0 0 120px;
+  height: 168px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.proxy-card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.proxy-card-preview .mdfc-tag {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #f8fafc;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.proxy-card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.card-header-row .card-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  color: #f8fafc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-header-row .card-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #93c5fd;
+  white-space: nowrap;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.control-group label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Quantity controls */
+.qty-controls {
+  display: flex;
+  align-items: center;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  width: fit-content;
+  overflow: hidden;
+}
+
+.qty-controls button {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  font-size: 1.1rem;
+  width: 32px;
+  height: 30px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-controls button:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+.qty-controls input {
+  background: transparent;
+  color: #f8fafc;
+  border: none;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  width: 40px;
+  height: 30px;
+  border-left: 1px solid #334155;
+  border-right: 1px solid #334155;
+}
+
+.qty-controls input::-webkit-outer-spin-button,
+.qty-controls input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Print set selector */
+.print-select {
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.4rem;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.print-select:focus {
+  border-color: #3b82f6;
+}
+
+/* Finish Toggle Selector */
+.finish-picker {
+  display: flex;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 2px;
+  width: fit-content;
+}
+
+.finish-btn {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.finish-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.finish-btn:hover:not(.active) {
+  color: #cbd5e1;
+}
+
+/* === Print Sheets Overlay & Grid === */
+.print-sheets-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0b0f19;
+  z-index: 2000;
+  overflow-y: auto;
+  padding: 2rem;
+  color: #f8fafc;
+}
+
+.print-header {
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.print-header-info h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.3rem;
+}
+
+.print-header-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.print-header-info p.hint {
+  margin-top: 0.4rem;
+  color: #10b981;
+}
+
+.print-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.print-actions button {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+
+.print-actions .btn-primary {
+  background: #059669;
+  color: white;
+}
+
+.print-actions .btn-secondary {
+  background: #475569;
+  color: white;
+}
+
+.print-sheets-grid {
+  display: grid;
+  /* MTG cards print nicely in 3 columns on standard paper (Letter/A4) */
+  grid-template-columns: repeat(3, 63mm);
+  grid-auto-rows: 88mm;
+  gap: 0px; /* tightly packed for printing and cutting */
+  justify-content: center;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.print-card-wrapper {
+  width: 63mm;
+  height: 88mm;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+  border: 1px dashed rgba(255, 255, 255, 0.15); /* cutting guide */
+}
+
+.print-card-img {
+  width: 63mm;
+  height: 88mm;
+  display: block;
+}
+
+.print-card-label {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0,0,0,0.8);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+
+.print-card-mdfc-indicator {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 0.55rem;
+  text-align: center;
+  padding: 0.15rem;
+  border-radius: 3px;
+}
+
+/* Print styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-sheets-overlay, .print-sheets-overlay * {
+    visibility: visible;
+  }
+  
+  .print-sheets-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    height: auto !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-sheets-grid {
+    grid-template-columns: repeat(3, 63mm);
+    grid-auto-rows: 88mm;
+    gap: 0px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+  
+  .print-card-wrapper {
+    border: 1px solid #000000 !important; /* solid cut guide for printing */
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .proxy-grid {
+    grid-template-columns: 1fr;
+  }
+  .proxy-card-item {
+    flex-direction: column;
+    align-items: center;
+  }
+  .proxy-card-preview {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 180px;
+    height: 252px;
+  }
+  .control-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-buttons {
+    flex-direction: column;
+  }
+}
