@@ -1,4 +1,4 @@
-﻿// src/components/BuilderView.jsx
+// src/components/BuilderView.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { encodeSelection, decodeSelection } from "../utils/hashState";
@@ -7,13 +7,13 @@ import MainContent from "./MainContent";
 import BottomBar from "./BottomBar";
 import "../styles/builder.css"; // ⬅️ builder-specific styles
 
-export default function BuilderView({ selected, setSelected }) {
+export default function BuilderView({ selected, setSelected, onDataLoaded, userCollection = [] }) {
   const [packages, setPackages] = useState([]);
   const [landcycles, setLandcycles] = useState([]);
   const [data, setData] = useState({ lands: [], nonlands: [] });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   // restore hash
   useEffect(() => {
@@ -91,6 +91,7 @@ export default function BuilderView({ selected, setSelected }) {
           };
 
         setData(parsed);
+        if (onDataLoaded) onDataLoaded(parsed);
         setStatus("done");
 
         const selection = {
@@ -115,13 +116,16 @@ export default function BuilderView({ selected, setSelected }) {
   return (
     <div className={`app ${collapsed ? "" : "sidebar-open"}`}>
       <button
-        className={`sidebar-toggle ${collapsed ? "" : "open"}`}
+        className={`sidebar-toggle-btn ${collapsed ? "" : "open"}`}
         onClick={() => setCollapsed((c) => !c)}
-        title={collapsed ? "Open menu" : "Hide menu"}
-        aria-label="Toggle sidebar"
+        title={collapsed ? "Open setup menu" : "Close menu"}
       >
-        ☰
+        {collapsed ? "🛠️ Setup Manabase" : "✕ Close Menu"}
       </button>
+
+      {!collapsed && (
+        <div className="drawer-backdrop" onClick={() => setCollapsed(true)} />
+      )}
 
       <Sidebar
         packages={packages}
@@ -132,7 +136,7 @@ export default function BuilderView({ selected, setSelected }) {
         setCollapsed={setCollapsed}
       />
 
-      <MainContent data={data} status={status} error={error} />
+      <MainContent data={data} status={status} error={error} userCollection={userCollection} />
       <BottomBar data={data} />
     </div>
   );

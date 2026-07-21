@@ -1,0 +1,1084 @@
+/* src/styles/tradelist.css */
+
+/* Keep base layout */
+.collection-page-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.collection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.collection-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #ffffff 40%, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.collection-subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Autocomplete search bar */
+.search-bar-row {
+  position: relative;
+  width: 100%;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.25rem 1rem;
+}
+
+.search-icon {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-right: 0.75rem;
+}
+
+.collection-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 0.6rem 0;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-spinner-inline {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.search-suggestions-overlay {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  z-index: 300;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.suggestion-row {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.suggestion-row:last-child {
+  border-bottom: none;
+}
+
+.suggestion-row:hover {
+  background: #2563eb;
+}
+
+.suggestion-row .name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.suggestion-row .set {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* CSV Spreadsheet Table Wrapper */
+.csv-table-wrapper {
+  background: rgba(30, 41, 59, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.table-loading,
+.table-empty {
+  padding: 4rem 2rem;
+  text-align: center;
+  font-size: 0.92rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.csv-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.csv-table th {
+  background: rgba(15, 23, 42, 0.6);
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.csv-table td {
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.csv-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.csv-table .font-bold {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Column Dimensions */
+.col-qty { width: 120px; }
+.col-name { width: auto; }
+.col-set { width: 160px; }
+.col-num { width: 150px; }
+.col-foil { width: 160px; }
+.col-actions { width: 120px; }
+
+/* Inline cell inputs */
+.table-input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.table-input:focus {
+  background: #0f172a;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.qty-picker-compact {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.qty-picker-compact button {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  width: 24px;
+  height: 24px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.qty-picker-compact button:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.qty-picker-compact span {
+  font-weight: 700;
+  padding: 0 0.5rem;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Toggle Slider Switch */
+.switch-container {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  background-color: #334155;
+  transition: .2s;
+  border-radius: 18px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .2s;
+  border-radius: 50%;
+}
+
+.switch-container input:checked + .slider {
+  background-color: #10b981;
+}
+
+.switch-container input:checked + .slider:before {
+  transform: translateX(14px);
+}
+
+.foil-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.switch-container input:checked ~ .foil-label {
+  color: #10b981;
+}
+
+.table-delete-btn {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.table-delete-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #f87171;
+}
+
+
+/* ==========================================================================
+   STEAM TRADING CARD THEME STYLING
+   ========================================================================== */
+
+:root {
+  --steam-bg-dark: #171a21;
+  --steam-bg-mid: #1b2838;
+  --steam-bg-light: #2a475e;
+  --steam-blue-accent: #66c0f4;
+  --steam-green-ready: #a3cf06;
+  --steam-green-ready-hover: #bbf808;
+  --steam-text-muted: #c6d4df;
+  --steam-border-dark: #121821;
+}
+
+/* Tabs Container */
+.steam-tabs-container {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--steam-bg-light);
+  padding-bottom: 2px;
+}
+
+.steam-tab-btn {
+  background: rgba(42, 71, 94, 0.3);
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--steam-text-muted);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.steam-tab-btn:hover {
+  background: rgba(42, 71, 94, 0.6);
+  color: #ffffff;
+}
+
+.steam-tab-btn.active {
+  background: var(--steam-bg-light);
+  border-color: var(--steam-bg-light);
+  color: #ffffff;
+  box-shadow: 0 -3px 8px rgba(102, 192, 244, 0.2);
+}
+
+/* Steam Layouts */
+.steam-trading-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Wishlist Matchmaker layout */
+.steam-matchmaker-container {
+  background: var(--steam-bg-mid);
+  border: 1px solid rgba(102, 192, 244, 0.15);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.steam-section-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1rem;
+}
+
+.steam-section-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.steam-section-header p {
+  color: var(--steam-text-muted);
+  margin: 0.35rem 0 0 0;
+  font-size: 0.9rem;
+}
+
+.direct-partner-select {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--steam-bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.direct-partner-select select {
+  background: var(--steam-bg-light);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  outline: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.steam-matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.steam-match-card {
+  background: var(--steam-bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.steam-match-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--steam-blue-accent);
+  box-shadow: 0 8px 24px rgba(102, 192, 244, 0.15);
+}
+
+.steam-match-img-wrapper {
+  position: relative;
+  padding-top: 130%; /* Fixed aspect ratio for MTG cards */
+  background: #0d121a;
+  overflow: hidden;
+}
+
+.steam-match-img {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.steam-match-card:hover .steam-match-img {
+  transform: scale(1.05);
+}
+
+.steam-match-badge {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: #8b5cf6; /* Wishlist purple */
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.steam-match-info {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.steam-match-info h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.owners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.owner-title {
+  color: #94a3b8;
+}
+
+.owner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.owner-name {
+  font-weight: 600;
+  color: var(--steam-text-muted);
+  font-size: 0.85rem;
+}
+
+.owner-meta {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.trade-initiate-btn {
+  background: var(--steam-bg-light);
+  color: #ffffff;
+  border: 1px solid rgba(102, 192, 244, 0.25);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trade-initiate-btn:hover {
+  background: var(--steam-blue-accent);
+  color: var(--steam-bg-dark);
+  border-color: #ffffff;
+}
+
+/* Loader / Empty States */
+.steam-loader,
+.steam-empty-box {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--steam-bg-dark);
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  color: var(--steam-text-muted);
+}
+
+.steam-empty-box .sub {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+/* ==========================
+   STEAM TRADE SCREEN
+   ========================== */
+
+.steam-trade-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.steam-back-btn {
+  align-self: flex-start;
+  background: var(--steam-bg-dark);
+  color: var(--steam-text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.steam-back-btn:hover {
+  background: var(--steam-bg-light);
+  color: #ffffff;
+}
+
+.steam-trade-header h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.steam-trade-header .partner-name {
+  color: var(--steam-blue-accent);
+}
+
+.steam-trade-header p {
+  color: var(--steam-text-muted);
+  margin: 0.25rem 0 0 0;
+  font-size: 0.92rem;
+}
+
+/* Split Panel View */
+.steam-split-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.steam-main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Trade slots board */
+.steam-trade-slots-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  background: var(--steam-bg-mid);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.steam-offer-side h3 {
+  margin: 0 0 0.2rem 0;
+  font-size: 1.15rem;
+  color: #ffffff;
+}
+
+.steam-offer-side .subtitle {
+  margin: 0 0 1rem 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  background: var(--steam-bg-dark);
+  border: 1px solid var(--steam-border-dark);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* Steam slot item */
+.steam-slot {
+  aspect-ratio: 0.73;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.steam-slot.empty {
+  border-style: dashed;
+}
+
+.steam-slot.empty .plus {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.08);
+}
+
+.steam-slot.filled:hover {
+  border-color: #ef4444; /* red delete overlay highlight */
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+.steam-slot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.steam-slot-badge {
+  position: absolute;
+  bottom: 4px; right: 4px;
+  background: var(--steam-bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+/* Foil holographic shimmer animation */
+.foil-rainbow {
+  position: relative;
+}
+
+.foil-rainbow::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.15),
+    rgba(255, 127, 0, 0.15),
+    rgba(255, 255, 0, 0.15),
+    rgba(0, 255, 0, 0.15),
+    rgba(0, 0, 255, 0.15),
+    rgba(75, 0, 130, 0.15),
+    rgba(148, 0, 211, 0.15)
+  );
+  background-size: 400% 400%;
+  mix-blend-mode: color-dodge;
+  opacity: 0.7;
+  pointer-events: none;
+  animation: foil-shimmer 4s ease infinite;
+}
+
+@keyframes foil-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Actions bar in trade */
+.steam-actions-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: var(--steam-bg-mid);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+
+.trade-status-message {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  width: 100%;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.trade-status-message.success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.trade-status-message.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.actions-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.execute-trade-btn {
+  background: linear-gradient(180deg, var(--steam-green-ready) 0%, #7d9e03 100%);
+  color: #ffffff;
+  border: 1px solid #c1f802;
+  font-weight: 800;
+  padding: 0.9rem 2rem;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(163, 207, 6, 0.3);
+}
+
+.execute-trade-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--steam-green-ready-hover) 0%, var(--steam-green-ready) 100%);
+  box-shadow: 0 6px 20px rgba(163, 207, 6, 0.5);
+  transform: translateY(-1px);
+}
+
+.execute-trade-btn:disabled {
+  background: #3a3f45;
+  border-color: #555c65;
+  color: #777d85;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cancel-trade-btn {
+  background: var(--steam-bg-light);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.9rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancel-trade-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Lower Inventories Bin */
+.steam-inventories-section {
+  background: var(--steam-bg-mid);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.steam-inventory-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.steam-inv-tab {
+  background: transparent;
+  border: none;
+  color: var(--steam-text-muted);
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.steam-inv-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.steam-inv-tab.active {
+  color: #ffffff;
+  background: rgba(42, 71, 94, 0.25);
+}
+
+.steam-inv-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--steam-blue-accent);
+}
+
+.steam-inventory-pane {
+  padding: 1.5rem;
+}
+
+.filter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--steam-text-muted);
+}
+
+.checkbox-label input {
+  cursor: pointer;
+}
+
+.count-label {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.steam-inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Steam inventory grid card */
+.steam-inv-card {
+  aspect-ratio: 0.73;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: var(--steam-bg-dark);
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.steam-inv-card:hover:not(.depleted) {
+  border-color: var(--steam-blue-accent);
+  box-shadow: 0 0 10px rgba(102, 192, 244, 0.4);
+  transform: translateY(-2px);
+}
+
+.steam-inv-card.depleted {
+  opacity: 0.25;
+  cursor: not-allowed;
+  border-style: dotted;
+}
+
+.inv-img-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.inv-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foil-pill {
+  position: absolute;
+  top: 4px; left: 4px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+
+.set-badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 0.05rem 0.25rem;
+  border-radius: 3px;
+}
+
+.inv-quantity-badge {
+  position: absolute;
+  bottom: 4px; left: 4px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+}
+
+.added-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(102, 192, 244, 0.2);
+  border: 1px solid var(--steam-blue-accent);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 0.25rem;
+  backdrop-filter: blur(1px);
+}
+
+/* ==============================
+   SELECTED CARD INSPECTOR SIDEBAR
+   ============================== */
+
+.steam-inspector-sidebar {
+  width: 280px;
+  background: var(--steam-bg-mid);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.5rem;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  position: sticky;
+  top: 100px;
+}
+
+.steam-inspector-sidebar h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.5rem;
+}
+
+.inspector-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inspector-img-wrapper {
+  aspect-ratio: 0.73;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d121a;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+.inspector-large-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inspector-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.inspector-details-list h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.82rem;
+}
+
+.detail-item .lbl {
+  color: #64748b;
+}
+
+.detail-item .val {
+  color: var(--steam-text-muted);
+  font-weight: 600;
+}
+
+.detail-item.price {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border-left: 2px solid var(--steam-blue-accent);
+}
+
+.inspector-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #64748b;
+  padding: 2rem 0;
+}
+
+.placeholder-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.2;
+}
+
+.inspector-placeholder p {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .steam-split-container {
+    flex-direction: column;
+  }
+  .steam-inspector-sidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .steam-trade-slots-board {
+    grid-template-columns: 1fr;
+  }
+}

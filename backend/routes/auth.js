@@ -1,4 +1,4 @@
-﻿// backend/routes/auth.js
+// backend/routes/auth.js
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -40,6 +40,34 @@ router.post("/login", async (req, res) => {
     token,
     user: { id: user.id, email: user.email, username: user.username },
   });
+});
+
+// Dev auto-login (disabled in production)
+router.post("/dev-login", async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({ error: "Dev login only allowed in development environment" });
+  }
+
+  try {
+    const devEmail = "dev@manabase.com";
+    let user = await db("users").where({ email: devEmail }).first();
+    if (!user) {
+      const hash = await bcrypt.hash("devpassword", 10);
+      const [insertedUser] = await db("users")
+        .insert({ email: devEmail, username: "DevUser", password_hash: hash })
+        .returning(["id", "email", "username"]);
+      user = insertedUser;
+    }
+
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    res.json({
+      token,
+      user: { id: user.id, email: user.email, username: user.username },
+    });
+  } catch (err) {
+    console.error("❌ Dev login error:", err);
+    res.status(500).json({ error: "Dev login failed" });
+  }
 });
 
 export default router;

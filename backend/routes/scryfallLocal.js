@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Scryfall Local Search Route
  * ---------------------------
  * Serves local search results from the cached bulk data file.
@@ -19,77 +19,97 @@ const router = express.Router();
 // ----------------------------------------------------
 // Load all cards from local cache
 // ----------------------------------------------------
-const allCards = loadCardData();
-console.log(`🧠 ScryfallLocal loaded ${allCards.length.toLocaleString()} cards from bulk data.`);
+let allCards = [];
+let dedupedCards = [];
+let fuse;
+let oracleGroups = new Map();
+let nameToOracle = new Map();
 
-// ----------------------------------------------------
-// Deduplicate by oracle_id (keep best printing per card)
-// ----------------------------------------------------
-const groups = new Map();
+let loadPromise = null;
 
-for (const card of allCards) {
-  const oracle = card.oracle_id || card.name?.toLowerCase() || card.id;
-  if (!oracle) continue;
-  if (!groups.has(oracle)) groups.set(oracle, []);
-  groups.get(oracle).push(card);
-}
+export async function reloadLocalScryfall(force = false) {
+  if (loadPromise && !force) {
+    return loadPromise;
+  }
+  loadPromise = (async () => {
+    allCards = await loadCardData();
+    console.log(`🧠 ScryfallLocal loaded ${allCards.length.toLocaleString()} cards from bulk data.`);
 
-const dedupedCards = [];
+    const groups = new Map();
+    nameToOracle.clear();
 
-for (const [oracle, cards] of groups.entries()) {
-  // Skip tokens, art-only, and placeholder layouts
-  const filtered = cards.filter((c) => {
-    const layout = c.layout || "";
-    if (layout.includes("token") || layout.includes("art_series")) return false;
-    return (
-      c.image_uris?.normal ||
-      c.image_uris?.small ||
-      c.card_faces?.[0]?.image_uris?.normal
+    for (const card of allCards) {
+      const oracle = card.oracle_id || card.name?.toLowerCase() || card.id;
+      if (!oracle) continue;
+      if (!groups.has(oracle)) groups.set(oracle, []);
+      groups.get(oracle).push(card);
+      
+      if (card.name) {
+        nameToOracle.set(card.name.toLowerCase(), oracle);
+      }
+    }
+
+    oracleGroups = groups;
+    dedupedCards = [];
+
+    for (const [oracle, cards] of groups.entries()) {
+      const filtered = cards.filter((c) => {
+        const layout = c.layout || "";
+        if (layout.includes("token") || layout.includes("art_series")) return false;
+        return (
+          c.image_uris?.normal ||
+          c.image_uris?.small ||
+          c.card_faces?.[0]?.image_uris?.normal
+        );
+      });
+
+      if (filtered.length === 0) continue;
+
+      filtered.sort((a, b) => {
+        const dateA = a.released_at ? new Date(a.released_at) : new Date(0);
+        const dateB = b.released_at ? new Date(b.released_at) : new Date(0);
+
+        if (dateB - dateA !== 0) return dateB - dateA;
+
+        const isSecretLairA = a.set?.toLowerCase() === "sld" || a.set_name?.toLowerCase().includes("secret lair");
+        const isSecretLairB = b.set?.toLowerCase() === "sld" || b.set_name?.toLowerCase().includes("secret lair");
+        if (isSecretLairA !== isSecretLairB) return isSecretLairA ? 1 : -1;
+
+        const promoA = a.promo || a.full_art || a.border_color === "borderless";
+        const promoB = b.promo || b.full_art || b.border_color === "borderless";
+        if (promoA !== promoB) return promoA ? 1 : -1;
+
+        const numA = parseInt(a.collector_number) || 0;
+        const numB = parseInt(b.collector_number) || 0;
+        return numB - numA;
+      });
+
+      dedupedCards.push(filtered[0]);
+    }
+
+    console.log(
+      `🧹 Deduplicated ${allCards.length.toLocaleString()} → ${dedupedCards.length.toLocaleString()} unique cards.`
     );
-  });
 
-  if (filtered.length === 0) continue;
+    fuse = new Fuse(dedupedCards, {
+      keys: ["name"],
+      threshold: 0.2,
+      ignoreLocation: true,
+      minMatchCharLength: 3,
+    });
+  })();
 
-  // --- Sorting preference ---
-  filtered.sort((a, b) => {
-    const dateA = a.released_at ? new Date(a.released_at) : new Date(0);
-    const dateB = b.released_at ? new Date(b.released_at) : new Date(0);
-
-    // 1️⃣ Prefer newer printings overall
-    if (dateB - dateA !== 0) return dateB - dateA;
-
-    // 2️⃣ Strongly prefer non-Secret-Lair versions
-    const isSecretLairA = a.set?.toLowerCase() === "sld" || a.set_name?.toLowerCase().includes("secret lair");
-    const isSecretLairB = b.set?.toLowerCase() === "sld" || b.set_name?.toLowerCase().includes("secret lair");
-    if (isSecretLairA !== isSecretLairB) return isSecretLairA ? 1 : -1;
-
-    // 3️⃣ Prefer normal border, non-promo, non-full-art
-    const promoA = a.promo || a.full_art || a.border_color === "borderless";
-    const promoB = b.promo || b.full_art || b.border_color === "borderless";
-    if (promoA !== promoB) return promoA ? 1 : -1;
-
-    // 4️⃣ Fallback to collector number
-    const numA = parseInt(a.collector_number) || 0;
-    const numB = parseInt(b.collector_number) || 0;
-    return numB - numA;
-  });
-
-  dedupedCards.push(filtered[0]);
+  return loadPromise;
 }
 
-console.log(
-  `🧹 Deduplicated ${allCards.length.toLocaleString()} → ${dedupedCards.length.toLocaleString()} unique cards (Secret Lairs deprioritized).`
-);
+export async function ensureLoaded() {
+  if (loadPromise) {
+    await loadPromise;
+  }
+}
 
-// ----------------------------------------------------
-// Fuse.js setup (for fuzzy name matching)
-// ----------------------------------------------------
-const fuse = new Fuse(dedupedCards, {
-  keys: ["name"],
-  threshold: 0.2, // stricter = fewer wrong matches
-  ignoreLocation: true,
-  minMatchCharLength: 3,
-});
+// Initial load
+reloadLocalScryfall();
 
 // ----------------------------------------------------
 // Helper for substring match (fallback)
@@ -100,11 +120,12 @@ function substringMatch(query) {
 }
 
 // ----------------------------------------------------
-// GET /api/scryfall/card?name=<exact_name>
+// Exportable Functional API
 // ----------------------------------------------------
-router.get("/card", (req, res) => {
-  const name = (req.query.name || "").trim();
-  if (!name) return res.status(400).json({ error: "Card name required" });
+
+export async function getLocalCardByName(name) {
+  if (!name) return null;
+  await ensureLoaded();
 
   const nameLower = name.toLowerCase();
 
@@ -113,40 +134,47 @@ router.get("/card", (req, res) => {
     (c) => c.name?.toLowerCase() === nameLower
   );
 
-  if (exactMatches.length > 0) {
-    console.log(`✅ Exact card match for "${name}"`);
-    const card = exactMatches[0];
+  if (exactMatches.length === 0) return null;
 
-    // Enhance with all printings information
-    const allPrintings = allCards.filter(c =>
-      (c.oracle_id && c.oracle_id === card.oracle_id) ||
-      (c.name?.toLowerCase() === nameLower)
-    );
+  const card = exactMatches[0];
+  const allPrintings = allCards.filter(c =>
+    (c.oracle_id && c.oracle_id === card.oracle_id) ||
+    (c.name?.toLowerCase() === nameLower)
+  );
 
-    const enhancedCard = {
-      ...card,
-      prints: allPrintings.map(p => ({
+  return {
+    ...card,
+    prints: allPrintings
+      .sort((a, b) => new Date(b.released_at || 0) - new Date(a.released_at || 0))
+      .map(p => ({
         set: p.set,
         set_name: p.set_name,
         collector_number: p.collector_number,
         prices: p.prices,
         released_at: p.released_at,
+        image_uris: p.image_uris,
+        card_faces: p.card_faces,
       }))
-    };
+  };
+}
 
-    return res.json(enhancedCard);
+export async function getLocalCardsBatch(names = []) {
+  await ensureLoaded();
+  const result = {};
+
+  for (const name of names) {
+    const cardData = await getLocalCardByName(name);
+    if (cardData) {
+      result[name] = cardData;
+    }
   }
 
-  console.log(`❌ No exact match found for "${name}"`);
-  res.status(404).json({ error: "Card not found" });
-});
+  return result;
+}
 
-// ----------------------------------------------------
-// GET /api/scryfall?q=<query>
-// ----------------------------------------------------
-router.get("/", (req, res) => {
-  const q = (req.query.q || "").trim();
-  if (!q) return res.json([]);
+export async function searchLocalCards(q) {
+  if (!q) return [];
+  await ensureLoaded();
 
   const qLower = q.toLowerCase();
 
@@ -155,12 +183,11 @@ router.get("/", (req, res) => {
     (c) => c.name?.toLowerCase() === qLower
   );
   if (exactMatches.length > 0) {
-    console.log(`✅ Exact match for "${q}" → ${exactMatches.length}`);
-    return res.json(exactMatches.slice(0, 1));
+    return exactMatches.slice(0, 1);
   }
 
   // 2️⃣ Fuzzy match
-  const fuseResults = fuse.search(q).slice(0, 20).map((r) => r.item);
+  const fuseResults = fuse ? fuse.search(q).slice(0, 20).map((r) => r.item) : [];
 
   // 3️⃣ Fallback substring
   const substringResults = substringMatch(q);
@@ -174,8 +201,58 @@ router.get("/", (req, res) => {
     return true;
   });
 
-  console.log(`🔎 Search "${q}" → ${combined.length} results`);
-  res.json(combined.slice(0, 20));
+  return combined.slice(0, 20);
+}
+
+// ----------------------------------------------------
+// GET /api/scryfall/card?name=<exact_name>
+// ----------------------------------------------------
+router.get("/card", async (req, res) => {
+  const name = (req.query.name || "").trim();
+  if (!name) return res.status(400).json({ error: "Card name required" });
+
+  const enhancedCard = await getLocalCardByName(name);
+
+  if (enhancedCard) {
+    console.log(`✅ Exact card match for "${name}"`);
+    return res.json(enhancedCard);
+  }
+
+  console.log(`❌ No exact match found for "${name}"`);
+  res.status(404).json({ error: "Card not found" });
+});
+
+// ----------------------------------------------------
+// POST /api/scryfall/batch
+// ----------------------------------------------------
+router.post("/batch", async (req, res) => {
+  const names = req.body.names || [];
+  console.log(`📦 [Backend /api/scryfall/batch] Received batch request for ${names.length} names:`, names);
+  if (!Array.isArray(names)) return res.status(400).json({ error: "names array required" });
+  
+  const start = Date.now();
+  const result = await getLocalCardsBatch(names);
+  const matchedKeys = Object.keys(result);
+  console.log(`✅ [Backend /api/scryfall/batch] Done in ${Date.now() - start}ms. Found ${matchedKeys.length}/${names.length} cards:`, matchedKeys);
+  res.json(result);
+});
+
+// ----------------------------------------------------
+// GET /api/scryfall?q=<query>
+// ----------------------------------------------------
+router.get("/", async (req, res) => {
+  const q = (req.query.q || "").trim();
+  if (!q) return res.json([]);
+
+  const results = await searchLocalCards(q);
+  
+  if (results.length > 0 && results[0].name?.toLowerCase() === q.toLowerCase()) {
+     console.log(`✅ Exact match for "${q}" → 1`);
+  } else {
+     console.log(`🔎 Search "${q}" → ${results.length} results`);
+  }
+
+  res.json(results);
 });
 
 export default router;

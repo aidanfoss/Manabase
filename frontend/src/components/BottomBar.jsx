@@ -1,7 +1,8 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
 
 export default function BottomBar({ data }) {
+  const [adding, setAdding] = React.useState(false);
   const all = [...(data.lands || []), ...(data.nonlands || [])];
 
   const totals = useMemo(() => {
@@ -25,6 +26,43 @@ export default function BottomBar({ data }) {
     const shareUrl = window.location.href;
     navigator.clipboard.writeText(shareUrl);
     alert("🔗 Share link copied to clipboard!");
+  }
+
+  async function addLandsToWishlist() {
+    if (!data.lands || data.lands.length === 0) return;
+    setAdding(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please log in to add lands to your wishlist.");
+        setAdding(false);
+        return;
+      }
+
+      let addedCount = 0;
+      for (const card of data.lands) {
+        await fetch("/api/collection/wishlist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            card_name: card.name,
+            quantity: 1,
+            set_code: (card.set || "").toUpperCase(),
+            collector_number: card.collector_number || "",
+          }),
+        });
+        addedCount++;
+      }
+      alert(`✨ Added ${addedCount} lands to your proxy Wishlist!`);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to add lands to wishlist.");
+    } finally {
+      setAdding(false);
+    }
   }
 
   return (
@@ -56,6 +94,17 @@ export default function BottomBar({ data }) {
             <line x1="12" y1="2" x2="12" y2="15"/>
           </svg>
         </button>
+
+        {data.lands?.length > 0 && (
+          <button
+            className="add-wishlist-bar-btn"
+            onClick={addLandsToWishlist}
+            disabled={adding}
+            title="Add all recommended lands to Wishlist"
+          >
+            {adding ? "Adding..." : "✨ Add Lands to Wishlist"}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-﻿// backend/db/connection.js
+// backend/db/connection.js
 import knex from "knex";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,11 +9,17 @@ const __dirname = path.dirname(__filename);
 
 // Use /data when running in production (e.g. inside container)
 const isProd = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
 // Determine correct DB path
-const dbPath = isProd
-  ? "/data/manabase.db"
-  : path.join(__dirname, "manabase.db");
+let dbPath;
+if (isTest) {
+  dbPath = ":memory:";
+} else if (isProd) {
+  dbPath = "/data/manabase.db";
+} else {
+  dbPath = path.join(__dirname, "manabase.db");
+}
 
 // Ensure folder exists (avoids "no such file or directory" on first run)
 try {
@@ -93,5 +99,149 @@ export async function initDB() {
       t.timestamps(true, true);
       t.unique("name"); // Prevent duplicate names
     });
+  }
+
+  // Create user_cards table for collection tracking (Owned, Wishlist, Tradelist)
+  const hasUserCards = await db.schema.hasTable("user_cards");
+  if (!hasUserCards) {
+    await db.schema.createTable("user_cards", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users");
+      t.string("card_name").notNullable();
+      t.string("list_type").notNullable(); // "owned", "wishlist", "tradelist"
+      t.integer("quantity").defaultTo(1);
+      t.string("set_code").defaultTo("");
+      t.string("collector_number").defaultTo("");
+      t.boolean("is_foil").defaultTo(false);
+      t.string("card_condition").defaultTo("NM");
+      t.string("card_language").defaultTo("EN");
+      t.decimal("market_price", 10, 2).defaultTo(0);
+      t.decimal("max_price_threshold", 10, 2);
+      t.uuid("target_owner_id").references("id").inTable("users");
+      t.timestamps(true, true);
+      t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language"]);
+    });
+    console.log("✅ Created user_cards table");
+  } else {
+    // Run schema migration if card_condition column is missing
+    const hasConditionColumn = await db.schema.hasColumn("user_cards", "card_condition");
+    if (!hasConditionColumn) {
+      console.log("🔄 Migrating user_cards table to add Cardsphere features (condition, language)...");
+      
+      // 1. Rename old table
+      await db.schema.renameTable("user_cards", "user_cards_temp");
+      
+      // 2. Create new table with updated schema
+      await db.schema.createTable("user_cards", (t) => {
+        t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+        t.uuid("user_id").notNullable().references("id").inTable("users");
+        t.string("card_name").notNullable();
+        t.string("list_type").notNullable();
+        t.integer("quantity").defaultTo(1);
+        t.string("set_code").defaultTo("");
+        t.string("collector_number").defaultTo("");
+        t.boolean("is_foil").defaultTo(false);
+        t.string("card_condition").defaultTo("NM");
+        t.string("card_language").defaultTo("EN");
+        t.decimal("market_price", 10, 2).defaultTo(0);
+        t.decimal("max_price_threshold", 10, 2);
+        t.uuid("target_owner_id").references("id").inTable("users");
+        t.timestamps(true, true);
+        t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language"]);
+      });
+      
+      // 3. Migrate data
+      const oldRows = await db("user_cards_temp");
+      console.log(`📦 Found ${oldRows.length} old user cards to migrate.`);
+      
+      // Check which columns actually existed in temp table to avoid select errors
+      const hasTempMarketPrice = await db.schema.hasColumn("user_cards_temp", "market_price");
+      const hasTempMaxPrice = await db.schema.hasColumn("user_cards_temp", "max_price_threshold");
+      const hasTempTargetOwner = await db.schema.hasColumn("user_cards_temp", "target_owner_id");
+      
+      for (const row of oldRows) {
+        await db("user_cards").insert({
+          id: row.id,
+          user_id: row.user_id,
+          card_name: row.card_name,
+          list_type: row.list_type,
+          quantity: row.quantity || 1,
+          set_code: row.set_code || "",
+          collector_number: row.collector_number || "",
+          is_foil: !!row.is_foil,
+          card_condition: "NM",
+          card_language: "EN",
+          market_price: hasTempMarketPrice ? (row.market_price || 0) : 0,
+          max_price_threshold: hasTempMaxPrice ? (row.max_price_threshold || null) : null,
+          target_owner_id: hasTempTargetOwner ? (row.target_owner_id || null) : null,
+          created_at: row.created_at || db.fn.now(),
+          updated_at: row.updated_at || db.fn.now()
+        });
+      }
+      
+      // 4. Drop temp table
+      await db.schema.dropTable("user_cards_temp");
+      console.log("✅ Successfully migrated user_cards schema!");
+    }
+  }
+
+  // Create playgroups tables
+  const hasPlaygroups = await db.schema.hasTable("playgroups");
+  if (!hasPlaygroups) {
+    await db.schema.createTable("playgroups", (t) => {
+      t.increments("id").primary();
+      t.string("name").notNullable();
+      t.timestamps(true, true);
+    });
+    console.log("✅ Created playgroups table");
+  }
+
+  const hasPlaygroupMembers = await db.schema.hasTable("playgroup_members");
+  if (!hasPlaygroupMembers) {
+    await db.schema.createTable("playgroup_members", (t) => {
+      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups").onDelete("CASCADE");
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.primary(["playgroup_id", "user_id"]);
+    });
+    console.log("✅ Created playgroup_members table");
+  }
+
+  const hasProxyOrders = await db.schema.hasTable("proxy_orders");
+  if (!hasProxyOrders) {
+    await db.schema.createTable("proxy_orders", (t) => {
+      t.increments("id").primary();
+      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups");
+      t.string("status").defaultTo("open"); // 'open', 'locked', 'ordered'
+      t.timestamps(true, true);
+    });
+    console.log("✅ Created proxy_orders table");
+  }
+
+  // Trades system
+  const hasTrades = await db.schema.hasTable("trades");
+  if (!hasTrades) {
+    await db.schema.createTable("trades", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("sender_id").notNullable().references("id").inTable("users");
+      t.uuid("receiver_id").notNullable().references("id").inTable("users");
+      t.string("status").defaultTo("proposed"); // 'proposed', 'countered', 'accepted', 'completed', 'cancelled', 'declined'
+      t.timestamps(true, true);
+    });
+    console.log("✅ Created trades table");
+  }
+
+  const hasTradeItems = await db.schema.hasTable("trade_items");
+  if (!hasTradeItems) {
+    await db.schema.createTable("trade_items", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("trade_id").notNullable().references("id").inTable("trades").onDelete("CASCADE");
+      t.uuid("user_id").notNullable().references("id").inTable("users"); // The user giving the card
+      t.string("card_name").notNullable();
+      t.integer("quantity").defaultTo(1);
+      t.string("set_code").defaultTo("");
+      t.boolean("is_foil").defaultTo(false);
+      t.timestamps(true, true);
+    });
+    console.log("✅ Created trade_items table");
   }
 }

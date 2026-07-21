@@ -1,4 +1,4 @@
-﻿x kill porimport fs from "fs";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readJsonSafe } from "../utils/safeJson.js";
