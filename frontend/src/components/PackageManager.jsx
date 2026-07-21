@@ -2,6 +2,7 @@
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import PackageEditor from "./PackageEditor";
+import { MoxfieldService } from "../services/moxfieldService";
 import "../styles/packageManager.css";
 
 export default function PackageManager({ onApplyPackage }) {
@@ -10,6 +11,7 @@ export default function PackageManager({ onApplyPackage }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("your"); // "your" or "community"
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingPackage, setEditingPackage] = useState(null);
 
   useEffect(() => {
@@ -54,9 +56,35 @@ export default function PackageManager({ onApplyPackage }) {
     try {
       const savedPackage = await api.savePackage(updatedPackage);
       setPackages(prev => prev.map(p => p.id === savedPackage.id ? savedPackage : p));
+      return savedPackage;
     } catch (error) {
       console.error("Failed to update package:", error);
       throw error; // Re-throw to let PackageCard handle the error
+    }
+  };
+
+  const handleImportFromMoxfield = async (url) => {
+    try {
+      // Import from Moxfield via our backend (which handles CORS)
+      const importedData = await api.importFromMoxfield(url);
+
+      // Create the package
+      const newPackage = await api.savePackage({
+        name: importedData.name,
+        cards: importedData.cards,
+        description: `Imported from Moxfield deck: ${importedData.sourceUrl}`
+      });
+
+      // Add to packages list and close modal
+      setPackages(prev => [...prev, newPackage]);
+      setShowImportModal(false);
+
+      // Show success message
+      alert(`Successfully imported "${newPackage.name}" with ${newPackage.cards.length} cards!`);
+
+    } catch (error) {
+      console.error("Failed to import from Moxfield:", error);
+      alert(`Import failed: ${error.message}`);
     }
   };
 
@@ -64,13 +92,21 @@ export default function PackageManager({ onApplyPackage }) {
     <div className="packages-screen">
       <div className="packages-header">
         <h1>Packages</h1>
-        <button
-          className="btn-primary"
-          onClick={() => setShowCreateModal(true)}
-          disabled={!user}
-        >
-          Create New Package
-        </button>
+        <div className="packages-header-buttons">
+          <button
+            className="btn-secondary"
+            onClick={() => setShowImportModal(true)}
+          >
+            Import from Moxfield
+          </button>
+          <button
+            className="btn-primary"
+            onClick={() => setShowCreateModal(true)}
+            disabled={!user}
+          >
+            Create New Package
+          </button>
+        </div>
       </div>
 
       <div className="packages-tabs">
@@ -110,6 +146,13 @@ export default function PackageManager({ onApplyPackage }) {
           </div>
         )}
       </div>
+
+      {showImportModal && (
+        <ImportModal
+          onClose={() => setShowImportModal(false)}
+          onImport={handleImportFromMoxfield}
+        />
+      )}
 
       {showCreateModal && (
         <CreatePackageModal
@@ -218,6 +261,69 @@ function PackageCard({ package: pkg, onEdit, onDelete, onUpdatePackage }) {
             ×
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ImportModal({ onClose, onImport }) {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+
+    setLoading(true);
+    try {
+      await onImport(url.trim());
+    } catch (error) {
+      // Error is handled in the parent component
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2>Import from Moxfield</h2>
+        <p>Enter a Moxfield deck URL to import it as a package.</p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Moxfield Deck URL</label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="https://moxfield.com/decks/..."
+              className="moxfield-url-input"
+              autoFocus
+              required
+            />
+          </div>
+
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} disabled={loading}>
+              Cancel
+            </button>
+            <button type="submit" disabled={loading || !url.trim()} className="btn-primary">
+              {loading ? "Importing..." : "Import"}
+            </button>
+          </div>
+        </form>
+
+        <div className="import-help">
+          <p>Example: https://moxfield.com/decks/IKbNfhe_sU65t9KBUTq4tQ</p>
+        </div>
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
 
   // Auto-save functionality
   useEffect(() => {
-    if (!hasUnsavedChanges || !currentPackage) return;
+    if (!hasUnsavedChanges || !currentPackage || !currentPackage.id) return;
 
     const timeout = setTimeout(async () => {
       try {
@@ -38,6 +38,8 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
         setHasUnsavedChanges(false);
       } catch (err) {
         console.error("Auto-save failed:", err);
+        // Don't show alert for auto-save failures to avoid annoying the user
+        // The user can manually save if needed
       }
     }, 2000);
 
@@ -53,6 +55,13 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
       setSearchResults(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Search failed:", err);
+      setSearchResults([]);
+      // Show user-friendly error message
+      if (err.message.includes('404')) {
+        setSearchResults([]); // No results found
+      } else {
+        alert("Search temporarily unavailable. Please try again.");
+      }
     }
   }
 
@@ -69,6 +78,8 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
         setSearchResults(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Live search failed:", err);
+        setSearchResults([]);
+        // Don't show alert for live search failures to avoid annoying the user
       }
     }, 500);
 
@@ -106,7 +117,7 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
   }, [currentPackage, packageSearch]);
 
   const handleApply = () => {
-    if (onApply) {
+    if (onApply && typeof onApply === 'function') {
       onApply(currentPackage);
     }
     onClose();
@@ -247,6 +258,9 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
         <div className="package-editor-actions">
           <button className="btn-secondary" onClick={onClose}>
             Cancel
+          </button>
+          <button className="btn-secondary" onClick={handleSave} disabled={!hasUnsavedChanges}>
+            Save
           </button>
           <button className="btn-primary" onClick={handleApply}>
             Apply
