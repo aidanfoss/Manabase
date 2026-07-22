@@ -59,12 +59,21 @@ export default function LoginForm({ onSuccess }) {
     if (setSsoError) setSsoError(null);
     setLoading(true);
     try {
-      if (providers.devMode && !providers[provider]) {
-        // Dev mode instant login fallback
-        const res = provider === "google" ? await api.loginWithGoogle() : await api.loginWithDiscord();
-        if (res && res.token && res.user) {
-          login(res);
-          if (onSuccess) onSuccess();
+      if (!providers[provider]) {
+        if (providers.devMode) {
+          // Dev mode instant login fallback
+          const res = provider === "google" ? await api.loginWithGoogle() : await api.loginWithDiscord();
+          if (res && res.token && res.user) {
+            login(res);
+            if (onSuccess) onSuccess();
+            return;
+          }
+        } else {
+          // Unconfigured in production
+          const name = provider === "google" ? "Google" : "Discord";
+          const envVar = provider === "google" ? "GOOGLE_CLIENT_ID" : "DISCORD_CLIENT_ID";
+          setError(`${name} OAuth is not configured on this server. Please set ${envVar} in environment variables.`);
+          setLoading(false);
           return;
         }
       }
