@@ -132,6 +132,9 @@ export async function ensureLoaded() {
   if (loadPromise) {
     await loadPromise;
   }
+  if (allCards.length === 0) {
+    await reloadLocalScryfall(true);
+  }
 }
 
 // Initial load (deferred via setImmediate to allow server startup and auth requests to complete unblocked)

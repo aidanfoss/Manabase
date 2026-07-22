@@ -213,13 +213,16 @@ if (process.env.NODE_ENV !== "test") {
             // Ensure bulk data exists and is up to date (once a week)
             await updateBulkDataIfNeeded();
             const { reloadLocalScryfall } = await import("./routes/scryfallLocal.js");
-            await reloadLocalScryfall();
+            await reloadLocalScryfall(true);
 
             // Refresh old prices (cards not updated in >7 days)
             await refreshOldPrices();
 
             // Schedule regular background tasks
-            setInterval(updateBulkDataIfNeeded, 7 * 24 * 60 * 60 * 1000); // once a week
+            setInterval(async () => {
+                await updateBulkDataIfNeeded();
+                await reloadLocalScryfall(true);
+            }, 7 * 24 * 60 * 60 * 1000); // once a week
             setInterval(refreshOldPrices, 6 * 60 * 60 * 1000);            // every 6 hours
 
             console.log("⏰ Scheduled bulk data (weekly) and price update (6h) tasks initialized.");
