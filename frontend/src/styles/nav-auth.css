@@ -269,6 +269,90 @@
     text-decoration: underline;
 }
 
+/* === SSO Styling === */
+.sso-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+}
+
+.sso-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.sso-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sso-google {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: #e5e7eb;
+}
+
+.sso-google:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sso-discord {
+    background: #5865F2;
+    color: #ffffff;
+}
+
+.sso-discord:hover:not(:disabled) {
+    background: #4752C4;
+    box-shadow: 0 2px 8px rgba(88, 101, 242, 0.3);
+}
+
+.sso-icon {
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.sso-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0.25rem 0;
+}
+
+.sso-divider::before,
+.sso-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #334155;
+}
+
+.sso-divider span {
+    padding: 0 0.6rem;
+}
+
+.nav-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #3b82f6;
+    object-fit: cover;
+}
+
 /* === Animations === */
 @keyframes fadeIn {
     from { opacity: 0; }

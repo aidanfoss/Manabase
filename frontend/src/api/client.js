@@ -94,6 +94,9 @@ export const api = {
   // ---------------------------------------
   login: (credentials) => api.post("/auth/login", credentials),
   register: (credentials) => api.post("/auth/register", credentials),
+  getAuthProviders: () => api.json("/auth/providers"),
+  loginWithGoogle: (payload = {}) => api.post("/auth/google", payload),
+  loginWithDiscord: (payload = {}) => api.post("/auth/discord", payload),
 
   // ---------------------------------------
   // === Packages ===
