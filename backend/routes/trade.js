@@ -19,8 +19,8 @@ router.get("/users", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/trade/alerts - Get active trade requests count
-router.get("/alerts", requireAuth, async (req, res) => {
+// GET /api/trade/pending-count - Get active trade requests count
+router.get("/pending-count", requireAuth, async (req, res) => {
   try {
     const countRes = await db("trades")
       .where(function() {
@@ -88,105 +88,92 @@ router.get("/active", requireAuth, async (req, res) => {
 });
 
 
-// GET /api/trade/matches - Get current user's wishlist cards owned by others
+// GET /api/trade/matches - Get user-centric trade matches for matchmaker
 router.get("/matches", requireAuth, async (req, res) => {
   try {
-    // 1. Get current user's wishlist
-    const myWishlist = await db("user_cards")
-      .where({ user_id: req.user.id, list_type: "wishlist" });
-
-    if (myWishlist.length === 0) {
-      return res.json([]);
-    }
-
-    // Adjust for accepted trades (pause cards)
-    const acceptedTrades = await db("trades")
-      .where("status", "accepted")
-      .where(function() {
-        this.where("sender_id", req.user.id).orWhere("receiver_id", req.user.id);
-      });
-    const acceptedTradeIds = acceptedTrades.map(t => t.id);
-
-    let incomingQuantities = {};
-    if (acceptedTradeIds.length > 0) {
-      const items = await db("trade_items").whereIn("trade_id", acceptedTradeIds).whereNot("user_id", req.user.id);
-      for (const item of items) {
-        incomingQuantities[item.card_name] = (incomingQuantities[item.card_name] || 0) + item.quantity;
-      }
-    }
-
-    const adjustedWishlist = [];
-    for (const item of myWishlist) {
-      const incoming = incomingQuantities[item.card_name] || 0;
-      const newQty = item.quantity - incoming;
-      if (newQty > 0) {
-        adjustedWishlist.push({ ...item, quantity: newQty });
-      }
-    }
-
-    if (adjustedWishlist.length === 0) {
-      return res.json([]);
-    }
-
-    const wishlistNames = adjustedWishlist.map(c => c.card_name);
-
-    // 2. Find other users who have these cards in their tradelist or owned collection
-    const matches = await db("user_cards")
-      .join("users", "user_cards.user_id", "users.id")
-      .whereIn("user_cards.card_name", wishlistNames)
-      .whereNot("user_cards.user_id", req.user.id)
-      .whereIn("user_cards.list_type", ["tradelist", "owned"])
-      .select(
-        "user_cards.id",
-        "user_cards.user_id",
-        "user_cards.card_name",
-        "user_cards.list_type",
-        "user_cards.quantity",
-        "user_cards.set_code",
-        "user_cards.collector_number",
-        "user_cards.is_foil",
-        "users.username"
-      )
-      .orderBy("user_cards.card_name", "asc");
-
-    // Exclude cards the peers are already giving away in accepted trades
-    let outgoingQuantities = {};
-    if (acceptedTradeIds.length > 0) {
-       const outgoingItems = await db("trade_items").whereIn("trade_id", acceptedTradeIds);
-       for (const item of outgoingItems) {
-         if (!outgoingQuantities[item.user_id]) outgoingQuantities[item.user_id] = {};
-         outgoingQuantities[item.user_id][item.card_name] = (outgoingQuantities[item.user_id][item.card_name] || 0) + item.quantity;
-       }
-    }
-
-    // Group matches by card name for easy UI rendering
-    const groupedMatches = {};
-    for (const match of matches) {
-      const peerOutgoing = outgoingQuantities[match.user_id]?.[match.card_name] || 0;
-      const availableQty = match.quantity - peerOutgoing;
+    const me = req.user.id;
+    
+    // 1. Fetch my wishlist and tradelist
+    const myCards = await db("user_cards")
+      .where("user_id", me)
+      .whereIn("list_type", ["wishlist", "tradelist"]);
       
-      if (availableQty <= 0) continue; // Peer has committed all these cards
+    const myWishlist = myCards.filter(c => c.list_type === "wishlist");
+    const myTradelist = myCards.filter(c => c.list_type === "tradelist");
 
-      const name = match.card_name;
-      if (!groupedMatches[name]) {
-        groupedMatches[name] = [];
-      }
-      groupedMatches[name].push({
-        user_id: match.user_id,
-        username: match.username,
-        list_type: match.list_type,
-        quantity: availableQty,
-        set_code: match.set_code,
-        collector_number: match.collector_number,
-        is_foil: !!match.is_foil,
-      });
+    // 2. Fetch peers
+    const peers = await db("users").whereNot("id", me).select("id", "username", "email");
+
+    // 3. Fetch peer cards (wishlist and tradelist)
+    const peerCards = await db("user_cards")
+      .whereNot("user_id", me)
+      .whereIn("list_type", ["wishlist", "tradelist"]);
+
+    // 4. Adjust quantities for accepted trades
+    const committedItems = await db("trade_items")
+      .join("trades", "trade_items.trade_id", "trades.id")
+      .where("trades.status", "accepted")
+      .select("trade_items.user_id", "trade_items.card_name", "trade_items.quantity");
+
+    const committed = {};
+    for (const item of committedItems) {
+      if (!committed[item.user_id]) committed[item.user_id] = {};
+      committed[item.user_id][item.card_name] = (committed[item.user_id][item.card_name] || 0) + item.quantity;
     }
 
-    // Convert to a nice format
-    const result = adjustedWishlist.map(c => ({
-      wishlist_item: c,
-      owners: groupedMatches[c.card_name] || []
-    }));
+    const getAvailableQty = (userId, cardName, totalQty) => {
+      const used = committed[userId]?.[cardName] || 0;
+      return Math.max(0, totalQty - used);
+    };
+
+    const myWishlistAdjusted = myWishlist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
+    const myTradelistAdjusted = myTradelist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
+    
+    const myActiveWishlistNames = new Set(myWishlistAdjusted.filter(c => c.quantity > 0).map(c => c.card_name));
+    
+    const result = [];
+
+    for (const peer of peers) {
+      const pCards = peerCards.filter(c => c.user_id === peer.id);
+      const youWant = [];
+      const theyWant = [];
+      
+      for (const pCard of pCards) {
+        const availQty = getAvailableQty(peer.id, pCard.card_name, pCard.quantity);
+        if (availQty <= 0) continue;
+        
+        if (pCard.list_type === "tradelist") {
+          const myWants = myWishlistAdjusted.filter(c => c.card_name === pCard.card_name && c.quantity > 0);
+          const hasMatch = myWants.some(w => w.any_printing || w.set_code.toUpperCase() === pCard.set_code.toUpperCase());
+          if (hasMatch) {
+            youWant.push({...pCard, quantity: availQty});
+          }
+        }
+      }
+      
+      for (const mCard of myTradelistAdjusted) {
+        if (mCard.quantity <= 0) continue;
+        const peerWants = pCards.find(c => {
+          if (c.list_type !== "wishlist" || c.card_name !== mCard.card_name) return false;
+          if (c.any_printing === false && c.set_code.toUpperCase() !== mCard.set_code.toUpperCase()) return false;
+          return true;
+        });
+        if (peerWants) {
+          const peerAvail = getAvailableQty(peer.id, peerWants.card_name, peerWants.quantity);
+          if (peerAvail > 0) {
+             theyWant.push(mCard);
+          }
+        }
+      }
+      
+      if (youWant.length > 0 || theyWant.length > 0) {
+        result.push({
+          user: peer,
+          youWant,
+          theyWant
+        });
+      }
+    }
 
     res.json(result);
   } catch (err) {

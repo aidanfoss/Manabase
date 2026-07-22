@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "seed:10": "node seed-10-users.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

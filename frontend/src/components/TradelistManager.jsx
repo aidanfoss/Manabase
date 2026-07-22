@@ -50,6 +50,17 @@ export default function TradelistManager() {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (activeTab === "trading" && !activePartner && partners.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const partnerId = urlParams.get("partner");
+      if (partnerId) {
+        const p = partners.find(usr => String(usr.id) === partnerId);
+        if (p) setActivePartner(p);
+      }
+    }
+  }, [activeTab, partners, activePartner]);
+
   // Load partner's details when activePartner changes
   useEffect(() => {
     if (activePartner) {
@@ -126,7 +137,13 @@ export default function TradelistManager() {
     try {
       const res = await api.getTradeMatches();
       setWishlistMatches(res || []);
-      fetchCardMetadataBatch(res.map(m => m.wishlist_item.card_name));
+      
+      const cardNames = [];
+      res.forEach(match => {
+        match.theyWant.forEach(c => cardNames.push(c.card_name));
+        match.youWant.forEach(c => cardNames.push(c.card_name));
+      });
+      fetchCardMetadataBatch(cardNames);
     } catch (e) {
       console.error("Failed to load trade matches:", e);
     } finally {
@@ -257,6 +274,60 @@ export default function TradelistManager() {
       }
     } catch (e) {
       console.error("Failed to remove tradelist card:", e);
+    }
+  };
+
+  const updateWishlistCardDetails = async (card, updates) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const payload = {
+        card_name: card.card_name,
+        quantity: updates.quantity !== undefined ? Math.max(0, updates.quantity) : card.quantity,
+        set_code: updates.set_code !== undefined ? updates.set_code : card.set_code,
+        collector_number: updates.collector_number !== undefined ? updates.collector_number : card.collector_number,
+        is_foil: updates.is_foil !== undefined ? updates.is_foil : card.is_foil,
+      };
+
+      const res = await fetch("/api/collection/wishlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        loadMyWishlist();
+      }
+    } catch (e) {
+      console.error("Failed to update wishlist card:", e);
+    }
+  };
+
+  const deleteWishlistCard = async (card) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch("/api/collection/wishlist", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          card_name: card.card_name,
+        }),
+      });
+
+      if (res.ok) {
+        loadMyWishlist();
+      }
+    } catch (e) {
+      console.error("Failed to remove wishlist card:", e);
     }
   };
 
@@ -429,6 +500,100 @@ export default function TradelistManager() {
             </div>
           </div>
 
+          <div style={{ marginBottom: "1rem" }}>
+            <details style={{ background: "rgba(30,41,59,0.5)", borderRadius: "8px", padding: "0.5rem 1rem", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.1rem" }}>🖨️ Proxy Wishlist Drawer ({myWishlist.length})</summary>
+              <div className="csv-table-wrapper" style={{ marginTop: "1rem" }}>
+                {myWishlist.length === 0 ? (
+                  <div className="table-empty">Your proxy wishlist is currently empty.</div>
+                ) : (
+                  <table className="csv-table">
+                    <thead>
+                      <tr>
+                        <th className="col-qty">Quantity</th>
+                        <th className="col-name">Card Name</th>
+                        <th className="col-print">Printing</th>
+                        <th className="col-foil">Finish</th>
+                        <th className="col-actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myWishlist.map((card) => (
+                        <tr key={card.id}>
+                          <td className="col-qty">
+                            <div className="qty-picker-compact">
+                              <button onClick={() => updateWishlistCardDetails(card, { quantity: card.quantity - 1 })}>-</button>
+                              <span>{card.quantity}</span>
+                              <button onClick={() => updateWishlistCardDetails(card, { quantity: card.quantity + 1 })}>+</button>
+                            </div>
+                          </td>
+                          <td className="col-name font-bold">
+                            {card.card_name}
+                          </td>
+                          <td className="col-print">
+                            {(() => {
+                              const cardMeta = printsCache[card.card_name];
+                              const prints = cardMeta?.prints || [];
+                              const activePrintIdx = prints.findIndex(p => p.set?.toUpperCase() === card.set_code?.toUpperCase() && p.collector_number === card.collector_number);
+                              const valueIdx = activePrintIdx !== -1 ? activePrintIdx : 0;
+                              
+                              if (prints.length > 0) {
+                                return (
+                                  <select 
+                                    value={valueIdx}
+                                    onChange={(e) => {
+                                      const idx = parseInt(e.target.value);
+                                      const p = prints[idx];
+                                      if (p) {
+                                        updateWishlistCardDetails(card, {
+                                          set_code: p.set?.toUpperCase(),
+                                          collector_number: p.collector_number || ""
+                                        });
+                                      }
+                                    }}
+                                    className="table-input set-select"
+                                    style={{ width: "100%", padding: "4px" }}
+                                  >
+                                    {prints.map((p, idx) => (
+                                      <option key={idx} value={idx}>
+                                        {p.set?.toUpperCase()} - {p.set_name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                );
+                              }
+                              return <span className="loading-label">Loading...</span>;
+                            })()}
+                          </td>
+                          <td className="col-foil">
+                            <label className="switch-container">
+                              <input
+                                type="checkbox"
+                                checked={!!card.is_foil}
+                                onChange={(e) => updateWishlistCardDetails(card, { is_foil: e.target.checked })}
+                              />
+                              <span className="slider round"></span>
+                              <span className="foil-label">{card.is_foil ? "Foil" : "Normal"}</span>
+                            </label>
+                          </td>
+                          <td className="col-actions">
+                            <button 
+                              className="table-delete-btn"
+                              onClick={() => deleteWishlistCard(card)}
+                              title="Remove card"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </details>
+          </div>
+
           <div className="search-bar-row">
             <div className="search-input-wrapper">
               <span className="search-icon">🔍</span>
@@ -589,41 +754,67 @@ export default function TradelistManager() {
                   <span className="sub">Tip: Go to the Wishlist tab and add cards, or have other members add cards to their Tradelists!</span>
                 </div>
               ) : (
-                <div className="steam-matches-grid">
+                <div className="steam-user-matches-grid">
                   {wishlistMatches.map((match) => {
-                    const cardName = match.wishlist_item.card_name;
-                    const image = getCardImage(cardName, match.wishlist_item.set_code);
-                    // Filter matching owners who have it in tradelist specifically, or fallback to owned
-                    const owners = match.owners;
-                    if (owners.length === 0) return null;
-
+                    const { user, youWant, theyWant } = match;
                     return (
-                      <div key={match.wishlist_item.id} className="steam-match-card">
-                        <div className="steam-match-img-wrapper">
-                          <img src={image} alt={cardName} className="steam-match-img" />
-                          <div className="steam-match-badge">Wishlist</div>
+                      <div key={user.id} className="steam-user-match-row">
+                        <div className="user-match-header">
+                          <h3>👤 {user.username}</h3>
+                          <button 
+                            className="trade-initiate-btn"
+                            onClick={() => {
+                              const p = partners.find(usr => usr.id === user.id);
+                              if (p) setActivePartner(p);
+                            }}
+                          >
+                            Start Trade
+                          </button>
                         </div>
-                        <div className="steam-match-info">
-                          <h3>{cardName}</h3>
-                          <div className="owners-list">
-                            <span className="owner-title font-semibold text-sm">Playgroup Owners:</span>
-                            {owners.map((owner, idx) => (
-                              <div key={idx} className="owner-row">
-                                <span className="owner-name">👤 {owner.username}</span>
-                                <span className="owner-meta">
-                                  {owner.quantity}x ({owner.list_type === "tradelist" ? "Tradelist" : "Collection"})
-                                </span>
-                                <button 
-                                  className="trade-initiate-btn"
-                                  onClick={() => {
-                                    const p = partners.find(usr => usr.id === owner.user_id);
-                                    if (p) setActivePartner(p);
-                                  }}
-                                >
-                                  Trade
-                                </button>
-                              </div>
-                            ))}
+                        <div className="user-match-body">
+                          {/* Left side: They want */}
+                          <div className="match-half they-want-half">
+                            <span className="match-half-title">Cards they want from you</span>
+                            <div className="match-mini-grid">
+                              {theyWant.slice(0, 8).map((c, i) => (
+                                <img 
+                                  key={i} 
+                                  src={getCardImage(c.card_name, c.set_code)} 
+                                  alt={c.card_name} 
+                                  title={`${c.card_name} (x${c.quantity})`} 
+                                  className="mini-card-img" 
+                                />
+                              ))}
+                              {theyWant.length > 8 && (
+                                <div className="mini-card-more" title={`${theyWant.length - 8} more cards`}>...</div>
+                              )}
+                              {theyWant.length === 0 && <span className="no-cards-txt">None</span>}
+                            </div>
+                          </div>
+                          
+                          {/* Middle: Arrow */}
+                          <div className="match-arrow-center">
+                            ⟷
+                          </div>
+
+                          {/* Right side: You want */}
+                          <div className="match-half you-want-half">
+                            <span className="match-half-title">Cards you want from them</span>
+                            <div className="match-mini-grid">
+                              {youWant.slice(0, 8).map((c, i) => (
+                                <img 
+                                  key={i} 
+                                  src={getCardImage(c.card_name, c.set_code)} 
+                                  alt={c.card_name} 
+                                  title={`${c.card_name} (x${c.quantity})`} 
+                                  className="mini-card-img" 
+                                />
+                              ))}
+                              {youWant.length > 8 && (
+                                <div className="mini-card-more" title={`${youWant.length - 8} more cards`}>...</div>
+                              )}
+                              {youWant.length === 0 && <span className="no-cards-txt">None</span>}
+                            </div>
                           </div>
                         </div>
                       </div>

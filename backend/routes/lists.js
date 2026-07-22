@@ -10,7 +10,7 @@ router.get("/:type", requireAuth, async (req, res) => {
   const { type } = req.params;
   const listType = type === "proxy_wishlist" ? "wishlist" : type; // map to db naming
 
-  if (!["wishlist", "real_list", "trade_sandbox"].includes(listType)) {
+  if (!["wishlist", "tradelist"].includes(listType)) {
     return res.status(400).json({ error: "Invalid list type." });
   }
 
@@ -18,13 +18,7 @@ router.get("/:type", requireAuth, async (req, res) => {
     const query = db("user_cards")
       .where({ user_id: req.user.id, list_type: listType });
 
-    if (listType === "trade_sandbox") {
-      // Join users to get target owner name
-      query.leftJoin("users as targets", "user_cards.target_owner_id", "targets.id")
-        .select("user_cards.*", "targets.username as target_owner_name");
-    } else {
-      query.select("user_cards.*");
-    }
+    query.select("user_cards.*");
 
     const cards = await query.orderBy("card_name", "asc");
     res.json(cards);
@@ -36,10 +30,10 @@ router.get("/:type", requireAuth, async (req, res) => {
 
 // POST /api/lists - Add/Update item in list
 router.post("/", requireAuth, async (req, res) => {
-  const { card_name, list_kind, quantity, set_code, collector_number, is_foil, target_owner_id } = req.body;
+  const { card_name, list_kind, quantity, set_code, collector_number, is_foil, target_owner_id, any_printing } = req.body;
   const listType = list_kind === "proxy_wishlist" ? "wishlist" : list_kind;
 
-  if (!["wishlist", "real_list", "trade_sandbox"].includes(listType)) {
+  if (!["wishlist", "tradelist"].includes(listType)) {
     return res.status(400).json({ error: "Invalid list type." });
   }
 
@@ -50,9 +44,6 @@ router.post("/", requireAuth, async (req, res) => {
   try {
     // Find existing based on user, name, list type, and (if trade sandbox) target owner
     const matchCriteria = { user_id: req.user.id, card_name, list_type: listType };
-    if (listType === "trade_sandbox") {
-      matchCriteria.target_owner_id = target_owner_id || null;
-    }
 
     const existing = await db("user_cards").where(matchCriteria).first();
 
@@ -64,6 +55,7 @@ router.post("/", requireAuth, async (req, res) => {
           set_code: set_code !== undefined ? set_code : existing.set_code,
           collector_number: collector_number !== undefined ? collector_number : existing.collector_number,
           is_foil: is_foil !== undefined ? is_foil : existing.is_foil,
+          any_printing: any_printing !== undefined ? any_printing : existing.any_printing,
           updated_at: db.fn.now()
         })
         .returning("*");
@@ -84,7 +76,8 @@ router.post("/", requireAuth, async (req, res) => {
           set_code: set_code || null,
           collector_number: collector_number || null,
           is_foil: !!is_foil,
-          target_owner_id: listType === "trade_sandbox" ? (target_owner_id || null) : null
+          any_printing: any_printing !== undefined ? any_printing : true,
+          target_owner_id: null
         })
         .returning("*");
 
@@ -93,6 +86,19 @@ router.post("/", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("Error adding to list:", err);
     res.status(500).json({ error: "Failed to add/update card in list." });
+  }
+});
+
+// POST /api/lists/set-all-any-printing - Bulk update wishlist items to any_printing = true
+router.post("/set-all-any-printing", requireAuth, async (req, res) => {
+  try {
+    await db("user_cards")
+      .where({ user_id: req.user.id, list_type: "wishlist" })
+      .update({ any_printing: true, updated_at: db.fn.now() });
+    res.json({ success: true, message: "Specific trade printing rules cleared for wishlist." });
+  } catch (err) {
+    console.error("Error setting any printing:", err);
+    res.status(500).json({ error: "Failed to update wishlist." });
   }
 });
 

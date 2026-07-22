@@ -403,121 +403,126 @@
   cursor: pointer;
 }
 
-.steam-matches-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+.steam-user-matches-grid {
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
-.steam-match-card {
+.steam-user-match-row {
   background: var(--steam-bg-dark);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.steam-match-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--steam-blue-accent);
-  box-shadow: 0 8px 24px rgba(102, 192, 244, 0.15);
+.user-match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.steam-match-img-wrapper {
-  position: relative;
-  padding-top: 130%; /* Fixed aspect ratio for MTG cards */
-  background: #0d121a;
-  overflow: hidden;
-}
-
-.steam-match-img {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.steam-match-card:hover .steam-match-img {
-  transform: scale(1.05);
-}
-
-.steam-match-badge {
-  position: absolute;
-  top: 10px; right: 10px;
-  background: #8b5cf6; /* Wishlist purple */
+.user-match-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
   color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-.steam-match-info {
-  padding: 1rem;
+.user-match-body {
+  display: flex;
+  padding: 1.5rem;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.match-half {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.steam-match-info h3 {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.owners-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.owner-title {
-  color: #94a3b8;
-}
-
-.owner-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 0.4rem 0.65rem;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.owner-name {
+.match-half-title {
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--steam-text-muted);
-  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.owner-meta {
-  font-size: 0.78rem;
+.match-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.mini-card-img {
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: transform 0.2s, z-index 0s;
+}
+
+.mini-card-img:hover {
+  transform: scale(1.4);
+  z-index: 10;
+  position: relative;
+}
+
+.mini-card-more {
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  height: auto;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.no-cards-txt {
+  color: #475569;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.match-arrow-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  font-size: 2rem;
   color: #64748b;
 }
 
 .trade-initiate-btn {
-  background: var(--steam-bg-light);
-  color: #ffffff;
-  border: 1px solid rgba(102, 192, 244, 0.25);
-  padding: 0.2rem 0.6rem;
+  background: var(--steam-blue-accent);
+  color: white;
+  border: none;
   border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.2s ease;
 }
 
 .trade-initiate-btn:hover {
-  background: var(--steam-blue-accent);
-  color: var(--steam-bg-dark);
-  border-color: #ffffff;
+  background: #3b82f6;
 }
 
 /* Loader / Empty States */

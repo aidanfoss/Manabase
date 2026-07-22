@@ -49,6 +49,7 @@ router.post("/dev-login", async (req, res) => {
   }
 
   try {
+    // AI NOTE: DevUser is the canonical primary user for testing and local dev. Do not change this to DevTest or anything else without explicit instruction.
     const devEmail = "dev@manabase.com";
     let user = await db("users").where({ email: devEmail }).first();
     if (!user) {
