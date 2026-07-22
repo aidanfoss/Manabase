@@ -1,6 +1,7 @@
 // src/components/OwnedCollection.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { api } from "../api/client";
+import { parseImportInput } from "../utils/csvImporter";
 import "../styles/owned.css";
 
 const LANGUAGES = [
@@ -40,6 +41,8 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [searching, setSearching] = useState(false);
   const [importText, setImportText] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState("");
   
   // Cache for card prints: cardName -> Scryfall details
   const [printsCache, setPrintsCache] = useState({});
@@ -323,55 +326,83 @@ export default function OwnedCollection({ onCollectionChanged }) {
     document.body.removeChild(link);
   };
 
-  // Import from Text / CSV paste
+  // File upload handler for CSV/TXT files
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result || "";
+      setImportText(text);
+      setImportStatus(`Loaded file "${file.name}" (${(file.size / 1024).toFixed(1)} KB)`);
+    };
+    reader.readAsText(file);
+  };
+
+  // Import from CSV or Text paste
   const handleImport = async () => {
-    const lines = importText.split("\n");
-    let addedCount = 0;
+    if (!importText.trim()) return;
+
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      alert("Please log in to import cards.");
+      return;
+    }
 
-    setLoading(true);
-    for (let line of lines) {
-      line = line.trim();
-      if (!line) continue;
+    setImporting(true);
+    setImportStatus("Parsing CSV / decklist content...");
 
-      const match = line.match(/^(\d+)\x20+(.+)$/);
-      let qty = 1;
-      let name = line;
-      if (match) {
-        qty = parseInt(match[1]) || 1;
-        name = match[2].trim();
+    try {
+      const parsedCards = parseImportInput(importText);
+      if (parsedCards.length === 0) {
+        alert("No valid cards found in the provided CSV or text input.");
+        setImporting(false);
+        setImportStatus("");
+        return;
       }
 
-      name = name.replace(/^["']|["']$/g, "").replace(/,.*$/, ""); // strip quotes
+      setImportStatus(`Found ${parsedCards.length} cards. Starting batch import...`);
 
-      try {
-        await fetch("/api/collection/owned", {
+      const CHUNK_SIZE = 500;
+      let totalAdded = 0;
+
+      for (let i = 0; i < parsedCards.length; i += CHUNK_SIZE) {
+        const chunk = parsedCards.slice(i, i + CHUNK_SIZE);
+        const batchNum = Math.floor(i / CHUNK_SIZE) + 1;
+        const totalBatches = Math.ceil(parsedCards.length / CHUNK_SIZE);
+
+        setImportStatus(`Importing batch ${batchNum} of ${totalBatches} (${chunk.length} cards)...`);
+
+        const res = await fetch("/api/collection/owned/bulk", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            card_name: name,
-            quantity: qty,
-            set_code: "",
-            is_foil: false,
-            card_condition: "NM",
-            card_language: "EN"
-          }),
+          body: JSON.stringify({ cards: chunk }),
         });
-        addedCount++;
-      } catch (err) {
-        console.error("Failed importing card: " + name);
-      }
-    }
 
-    setImportText("");
-    setShowImport(false);
-    await loadCollection();
-    setLoading(false);
-    alert(`Imported ${addedCount} cards successfully!`);
+        if (res.ok) {
+          const data = await res.json();
+          totalAdded += data.count || chunk.length;
+        } else {
+          console.error("Batch import chunk failed:", res.status);
+        }
+      }
+
+      setImportText("");
+      setShowImport(false);
+      setImportStatus("");
+      await loadCollection();
+      alert(`🎉 Successfully imported ${totalAdded} cards into your collection!`);
+    } catch (err) {
+      console.error("Failed importing cards:", err);
+      alert("An error occurred during import. Please try again.");
+    } finally {
+      setImporting(false);
+      setLoading(false);
+    }
   };
 
   // Sort clicking helper
@@ -521,18 +552,40 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
       {showImport && (
         <div className="bulk-import-panel">
-          <h3>Paste Cards list (Decklist Format)</h3>
-          <p className="import-help">Format: E.g., "4 Hallowed Fountain" or "Watery Grave", one per line.</p>
+          <h3>📤 Bulk Collection Importer</h3>
+          <p className="import-help">
+            Supports <strong>ManaBox CSV files</strong> (e.g., <code>Giga Boxes.csv</code>), Scryfall/Cardsphere CSVs, or standard decklists (<code>4 Hallowed Fountain</code>).
+          </p>
+          
+          <div className="import-file-section">
+            <label htmlFor="csv-file-input" className="file-upload-btn">
+              📁 Choose CSV or Text File
+            </label>
+            <input
+              id="csv-file-input"
+              type="file"
+              accept=".csv,.txt"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+            {importStatus && <span className="import-status-text">{importStatus}</span>}
+          </div>
+
           <textarea
             value={importText}
             onChange={(e) => setImportText(e.target.value)}
-            placeholder="4 Hallowed Fountain&#10;1 Watery Grave&#10;Breeding Pool"
-            rows={6}
+            placeholder="Or paste CSV text / decklist lines here:&#10;Name,Set code,Collector number,Foil,Quantity,Condition,Language&#10;Brainstorm,TLE,155,foil,1,near_mint,en"
+            rows={7}
             className="import-textarea"
+            disabled={importing}
           />
           <div className="import-actions">
-            <button className="import-confirm-btn" onClick={handleImport}>Start Import</button>
-            <button className="import-cancel-btn" onClick={() => setShowImport(false)}>Cancel</button>
+            <button className="import-confirm-btn" onClick={handleImport} disabled={importing || !importText.trim()}>
+              {importing ? "Importing..." : "Start Import"}
+            </button>
+            <button className="import-cancel-btn" onClick={() => { setShowImport(false); setImportStatus(""); }} disabled={importing}>
+              Cancel
+            </button>
           </div>
         </div>
       )}

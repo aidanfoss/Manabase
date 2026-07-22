@@ -29,7 +29,10 @@ router.post("/register", async (req, res) => {
 // Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await db("users").where({ email }).first();
+  const user = await db("users")
+    .where({ email })
+    .orWhere({ username: email })
+    .first();
   if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
   const ok = await bcrypt.compare(password, user.password_hash);
@@ -49,14 +52,26 @@ router.post("/dev-login", async (req, res) => {
   }
 
   try {
-    const devEmail = "dev@manabase.com";
-    let user = await db("users").where({ email: devEmail }).first();
+    // AI NOTE: DevUser is the canonical primary user for testing and local dev. Do not change this to DevTest or anything else without explicit instruction.
+    let user = await db("users")
+      .where({ username: "DevUser" })
+      .orWhere({ email: "dev@manabase.com" })
+      .orWhere({ email: "devuser@example.com" })
+      .first();
+
     if (!user) {
-      const hash = await bcrypt.hash("devpassword", 10);
-      const [insertedUser] = await db("users")
-        .insert({ email: devEmail, username: "DevUser", password_hash: hash })
-        .returning(["id", "email", "username"]);
-      user = insertedUser;
+      const hash = await bcrypt.hash("devpassword", 4);
+      const inserted = await db("users")
+        .insert({ email: "dev@manabase.com", username: "DevUser", password_hash: hash })
+        .returning("id");
+
+      const rawId = Array.isArray(inserted) ? inserted[0] : inserted;
+      const newId = typeof rawId === "object" && rawId !== null ? (rawId.id || rawId) : rawId;
+      user = await db("users").where({ id: newId }).first();
+    }
+
+    if (!user) {
+      return res.status(500).json({ error: "Failed to locate or create DevUser" });
     }
 
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });

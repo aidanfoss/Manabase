@@ -1,0 +1,25 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+frontend/dist
+dist
+
+# Large Scryfall bulk data & caches (downloaded/generated at runtime)
+backend/data/scryfall-*.json
+data/scryfall-*.json
+
+# Databases
+*.db
+backend/data/*.db
+data/*.db
+
+# Git and IDE
+.git
+.gitignore
+.github
+.vscode
+.gemini
+*.log
+.env

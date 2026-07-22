@@ -44,9 +44,9 @@ export default function LoginForm() {
         <h2>{mode === "signup" ? "Create Account" : "Welcome Back"}</h2>
         {error && <div className="error-box">{error}</div>}
 
-        <label>Email</label>
+        <label>{mode === "signup" ? "Email" : "Email or Username"}</label>
         <input
-          type="email"
+          type={mode === "signup" ? "email" : "text"}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required

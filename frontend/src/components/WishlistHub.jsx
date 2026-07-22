@@ -5,16 +5,13 @@ import "../styles/wishlist.css";
 
 export default function WishlistHub() {
   const [activeTab, setActiveTab] = useState("lists"); // "lists", "nexus", "trades"
+  const [selectedList, setSelectedList] = useState("proxy_wishlist");
   const [activeTrades, setActiveTrades] = useState([]);
   const [counterTrade, setCounterTrade] = useState(null);
   const [counterOffer, setCounterOffer] = useState([]);
   const [counterDemand, setCounterDemand] = useState([]);
-  const [selectedList, setSelectedList] = useState("proxy_wishlist"); // "proxy_wishlist", "real_list", "trade_sandbox"
-  
   // Lists data states
   const [wishlist, setWishlist] = useState([]);
-  const [realList, setRealList] = useState([]);
-  const [sandboxList, setSandboxList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Autocomplete search states
@@ -66,7 +63,7 @@ export default function WishlistHub() {
 
       // Fetch Proxy Wishlist
       let newWishlist = [];
-      let newRealList = [];
+      let newTradeList = [];
       const resWish = await fetch("/api/lists/proxy_wishlist", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -75,30 +72,15 @@ export default function WishlistHub() {
         setWishlist(newWishlist);
       }
 
-      // Fetch Real List
-      const resReal = await fetch("/api/lists/real_list", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (resReal.ok) {
-        newRealList = await resReal.json() || [];
-        setRealList(newRealList);
-      }
+      // Fetch Trade List (removed)
 
-      // Fetch Trade Sandbox
-      const resSand = await fetch("/api/lists/trade_sandbox", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (resSand.ok) {
-        setSandboxList(await resSand.json());
-      }
-      
+
       const uniqueNames = [...new Set([
-        ...newWishlist.map(c => c.card_name),
-        ...newRealList.map(c => c.card_name)
+        ...newWishlist.map(c => c.card_name)
       ])];
       
       if (uniqueNames.length > 0) {
-        fetchPrintsBatch(uniqueNames, newWishlist, newRealList);
+        fetchPrintsBatch(uniqueNames, newWishlist);
       }
       
     } catch (e) {
@@ -108,7 +90,7 @@ export default function WishlistHub() {
     }
   };
 
-  const fetchPrintsBatch = async (cardNames, wList, rList) => {
+  const fetchPrintsBatch = async (cardNames, wList) => {
     const namesToFetch = cardNames.filter(name => !printsCache[name]);
     console.log("📋 [WishlistHub] fetchPrintsBatch requested for:", cardNames, "Uncached to fetch:", namesToFetch);
     if (namesToFetch.length === 0) return;
@@ -125,7 +107,7 @@ export default function WishlistHub() {
 
       setSelectedPrints(prev => {
         const next = { ...prev };
-        const currentList = [...(wList || wishlist), ...(rList || realList)];
+        const currentList = [...(wList || wishlist)];
         
         namesToFetch.forEach(cardName => {
           const cardData = batchResult[cardName];
@@ -192,7 +174,7 @@ export default function WishlistHub() {
 
       const payload = {
         card_name: card.name,
-        list_kind: selectedList,
+        list_kind: "proxy_wishlist",
         quantity: 1,
         set_code: (card.set || "").toUpperCase(),
         collector_number: card.collector_number || "",
@@ -226,11 +208,12 @@ export default function WishlistHub() {
 
       const payload = {
         card_name: card.card_name,
-        list_kind: selectedList,
+        list_kind: "proxy_wishlist",
         quantity: updates.quantity !== undefined ? updates.quantity : card.quantity,
         set_code: updates.set_code !== undefined ? updates.set_code : card.set_code,
         collector_number: updates.collector_number !== undefined ? updates.collector_number : card.collector_number,
         is_foil: updates.is_foil !== undefined ? updates.is_foil : card.is_foil,
+        any_printing: updates.any_printing !== undefined ? updates.any_printing : card.any_printing,
         target_owner_id: updates.target_owner_id !== undefined ? updates.target_owner_id : card.target_owner_id
       };
 
@@ -248,6 +231,49 @@ export default function WishlistHub() {
       }
     } catch (e) {
       console.error("Failed to update list item:", e);
+    }
+  };
+
+  const handleSetAllAnyPrinting = async () => {
+    if (!window.confirm("Are you sure you want to clear specific printing requirements for all wishlist cards in trades?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const itemsToUpdate = wishlist.filter(c => !c.any_printing);
+      
+      await Promise.all(itemsToUpdate.map(async (c) => {
+        const cardMeta = printsCache[c.card_name];
+        const defaultSet = cardMeta?.set?.toUpperCase() || c.set_code;
+        const defaultNum = cardMeta?.collector_number || c.collector_number || "";
+
+        await fetch(`/api/lists/${c.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            quantity: c.quantity,
+            is_foil: c.is_foil,
+            any_printing: true,
+            set_code: defaultSet,
+            collector_number: defaultNum,
+            target_owner_id: c.target_owner_id
+          })
+        });
+      }));
+      
+      // Clear print index cache for updated items
+      setSelectedPrints(prev => {
+        const next = { ...prev };
+        itemsToUpdate.forEach(c => next[c.card_name] = 0);
+        return next;
+      });
+
+      loadLists();
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -468,7 +494,7 @@ export default function WishlistHub() {
   };
 
   const handleDownloadMpcCsv = () => {
-    const currentList = selectedList === "proxy_wishlist" ? wishlist : realList;
+    const currentList = wishlist;
     if (currentList.length === 0) return;
 
     const headers = "Quantity,Name,Set,Collector Number,Foil\r\n";
@@ -480,13 +506,13 @@ export default function WishlistHub() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `mpc_${selectedList}_export.csv`;
+    link.download = `mpc_proxy_wishlist_export.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   const handleCopyMoxfield = () => {
-    const currentList = selectedList === "proxy_wishlist" ? wishlist : realList;
+    const currentList = wishlist;
     if (currentList.length === 0) return;
 
     const listText = currentList.map(c => `${c.quantity} ${c.card_name}`).join("\n");
@@ -522,39 +548,7 @@ export default function WishlistHub() {
     }
   };
 
-  // Stage card to trade sandbox from peer inventory
-  const handleStageToSandbox = async (card) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
 
-      const payload = {
-        card_name: card.card_name,
-        list_kind: "trade_sandbox",
-        quantity: 1,
-        set_code: card.set_code,
-        collector_number: card.collector_number,
-        is_foil: card.is_foil,
-        target_owner_id: card.user_id // peer owner
-      };
-
-      const res = await fetch("/api/lists", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        loadLists();
-        alert(`Added ${card.card_name} to your Trade Sandbox!`);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   // Math metrics for MPC Order Engine
   const mpcListCount = groupWishlist.length;
@@ -689,12 +683,6 @@ export default function WishlistHub() {
         >
           👥 Playgroup Nexus
         </button>
-        <button 
-          className={`nexus-tab-btn ${activeTab === "trades" ? "active" : ""}`}
-          onClick={() => { setActiveTab("trades"); loadActiveTrades(); }}
-        >
-          🤝 Active Trades
-        </button>
       </div>
 
 
@@ -710,36 +698,28 @@ export default function WishlistHub() {
               🖨️ Proxy Wishlist ({wishlist.length})
             </button>
             <button 
-              className={`sub-tab-btn ${selectedList === "real_list" ? "active" : ""}`}
-              onClick={() => setSelectedList("real_list")}
+              className="sub-tab-btn"
+              onClick={() => window.location.href = "/trade"}
             >
-              💎 The Real List ({realList.length})
+              🤝 Go to Trade Hub ↗
             </button>
-            <button 
-              className={`sub-tab-btn ${selectedList === "trade_sandbox" ? "active" : ""}`}
-              onClick={() => setSelectedList("trade_sandbox")}
-            >
-              🤝 Trade Sandbox ({sandboxList.length})
-            </button>
+
           </div>
 
           {/* Quick descriptions */}
           <div className="compliance-banner compliant" style={{ background: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.2)", color: "#93c5fd" }}>
-            {selectedList === "proxy_wishlist" && "🖨️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets."}
-            {selectedList === "real_list" && "💎 The Real List: Authentic cards you plan to purchase or acquire. Excluded from the MPC Order Engine."}
-            {selectedList === "trade_sandbox" && "🤝 Trade Sandbox: Stage cards owned by peers. Calculate trades and check monetary balances at 85% price."}
+            🖨️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
           </div>
 
-          {/* Search bar (only show for wishlist & real_list) */}
-          {selectedList !== "trade_sandbox" && (
-            <div className="search-bar-row">
+          {/* Search bar */}
+          <div className="search-bar-row">
               <div className="search-input-wrapper">
                 <span className="search-icon">🔍</span>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  placeholder={`Search card to add to ${selectedList.replace("_", " ")}...`}
+                  placeholder="Search card to add to proxy wishlist..."
                   className="collection-search-input"
                 />
                 {searching && <span className="search-spinner-inline">Searching...</span>}
@@ -759,186 +739,161 @@ export default function WishlistHub() {
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
+          </div>
           {/* Lists Views */}
-          {selectedList === "trade_sandbox" ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {/* Sandbox calculation & layout */}
-              {sandboxList.length === 0 ? (
-                <div className="empty-wishlist-box">
-                  Your Trade Sandbox is empty. Go to the Playgroup Nexus, browse peer inventory, and stage trade cards.
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  <div className="wishlist-grid">
-                    {sandboxList.map((c) => (
-                      <div key={c.id} className="wishlist-card-item">
-                        <div className="card-info-box" style={{ padding: "0.25rem" }}>
-                          <h4 className="card-name-text">{c.card_name}</h4>
-                          <p style={{ margin: "0", fontSize: "0.8rem", color: "#94a3b8" }}>
-                            Owned by peer: <strong>{c.target_owner_name || "Unknown"}</strong>
-                          </p>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
-                            <span className="matrix-price" style={{ color: "#34d399" }}>
-                              Value at 85%: ${(Number(c.market_price || 0) * 0.85).toFixed(2)}
-                            </span>
-                            <button className="remove-card-link" onClick={() => deleteCard(c)}>
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Balancing calculation */}
-                  <div className="venmo-calculator-card" style={{ marginTop: "1rem" }}>
-                    <h3>Staged Peer Card Trades Balance</h3>
-                    <p style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
-                      Trade configurations balanced at 85% market price value.
-                    </p>
-                    <div className="venmo-grid">
-                      {Object.entries(
-                        sandboxList.reduce((acc, card) => {
-                          const owner = card.target_owner_name || "Unknown";
-                          acc[owner] = (acc[owner] || 0) + Number(card.market_price || 0);
-                          return acc;
-                        }, {})
-                      ).map(([owner, totalMarketPrice]) => {
-                        const tradeVal = totalMarketPrice * 0.85;
-                        return (
-                          <div key={owner} className="venmo-user-card">
-                            <div>
-                              <span className="venmo-user-name">{owner}</span>
-                              <div className="venmo-user-stats">Total Peer value: ${totalMarketPrice.toFixed(2)}</div>
-                            </div>
-                            <div className="venmo-price-share" style={{ color: "#fbbf24" }}>
-                              ${tradeVal.toFixed(2)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Wishlist / Real List Displays
-            <>
+          <>
               {/* Summary Bar */}
               <div className="wishlist-summary-bar">
                 <div className="stat-cards-row">
                   <div className="summary-stat-card">
                     <span className="label">Unique Cards</span>
-                    <span className="val">{(selectedList === "proxy_wishlist" ? wishlist : realList).length}</span>
+                    <span className="val">{wishlist.length}</span>
                   </div>
                   <div className="summary-stat-card">
                     <span className="label">Total Quantity</span>
                     <span className="val">
-                      {(selectedList === "proxy_wishlist" ? wishlist : realList).reduce((sum, c) => sum + c.quantity, 0)}
+                      {wishlist.reduce((sum, c) => sum + c.quantity, 0)}
                     </span>
                   </div>
                   <div className="summary-stat-card">
                     <span className="label">Est. Cost</span>
                     <span className="val">
                       ${(
-                        (selectedList === "proxy_wishlist" ? wishlist : realList).reduce((sum, c) => sum + c.quantity, 0) * 
-                        (selectedList === "proxy_wishlist" ? 0.25 : 0.75)
+                        wishlist.reduce((sum, c) => sum + c.quantity, 0) * 0.25
                       ).toFixed(2)}
                     </span>
                   </div>
                 </div>
 
                 <div className="proxy-actions-row">
-                  <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={(selectedList === "proxy_wishlist" ? wishlist : realList).length === 0}>
+                  <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={wishlist.length === 0}>
                     📋 Copy Decklist
                   </button>
-                  <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={(selectedList === "proxy_wishlist" ? wishlist : realList).length === 0}>
+                  <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={wishlist.length === 0}>
                     💾 Download CSV
                   </button>
-                  {selectedList === "proxy_wishlist" && (
-                    <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={wishlist.length === 0}>
-                      🖨️ Print Sheets
-                    </button>
-                  )}
+                  <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={wishlist.length === 0}>
+                    🖨️ Print Sheets
+                  </button>
+                  <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={wishlist.length === 0}>
+                    🔄 Clear Specific Trade Printing Rules
+                  </button>
                 </div>
               </div>
 
               {/* Grid cards */}
-              {(selectedList === "proxy_wishlist" ? wishlist : realList).length === 0 ? (
+              {wishlist.length === 0 ? (
                 <div className="empty-wishlist-box">
                   This list is empty. Search cards above to add them.
                 </div>
               ) : (
-                <div className="wishlist-grid">
-                  {(selectedList === "proxy_wishlist" ? wishlist : realList).map((c) => {
-                    const cardMeta = printsCache[c.card_name];
-                    const prints = cardMeta?.prints || [];
-                    const activePrintIdx = selectedPrints[c.card_name] || 0;
-                    const activePrint = prints[activePrintIdx] || cardMeta;
-                    const imageUri = activePrint?.image_uris?.normal || activePrint?.card_faces?.[0]?.image_uris?.normal || cardMeta?.image_uris?.normal || cardMeta?.card_faces?.[0]?.image_uris?.normal || "https://cards.scryfall.io/card_back.png";
+                <div className="csv-table-wrapper">
+                  <table className="csv-table">
+                    <thead>
+                      <tr>
+                        <th className="col-qty">Quantity</th>
+                        <th className="col-name">Card Name</th>
+                        <th className="col-print">Printing</th>
+                        <th className="col-foil">Finish</th>
+                        <th className="col-any">Any Print</th>
+                        <th className="col-actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {wishlist.map((c) => {
+                        const cardMeta = printsCache[c.card_name];
+                        const prints = cardMeta?.prints || [];
+                        const activePrintIdx = selectedPrints[c.card_name] || 0;
 
-                    return (
-                      <div key={c.id} className="wishlist-card-item">
-                        <div className="card-image-box">
-                          <img src={imageUri} alt={c.card_name} className="card-render" />
-                        </div>
-                        
-                        <div className="card-info-box">
-                          <h4 className="card-name-text">{c.card_name}</h4>
-                          
-                          {/* Print Selector Dropdown */}
-                          <div className="field-group">
-                            <label>Set Printing:</label>
-                            {prints.length > 0 ? (
-                              <select 
-                                value={activePrintIdx}
-                                onChange={(e) => handlePrintChange(c, parseInt(e.target.value))}
-                                className="set-select"
+                        return (
+                          <tr key={c.id}>
+                            <td className="col-qty">
+                              <div className="qty-picker-compact">
+                                <button onClick={() => updateCardDetails(c, { quantity: c.quantity - 1 })}>-</button>
+                                <span>{c.quantity}</span>
+                                <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
+                              </div>
+                            </td>
+                            <td className="col-name font-bold">
+                              {c.card_name}
+                            </td>
+                            <td className="col-print">
+                              {!c.any_printing ? (
+                                prints.length > 0 ? (
+                                  <select 
+                                    value={activePrintIdx}
+                                    onChange={(e) => handlePrintChange(c, parseInt(e.target.value))}
+                                    className="table-input set-select"
+                                    style={{ width: "100%", padding: "4px" }}
+                                  >
+                                    {prints.map((p, idx) => (
+                                      <option key={idx} value={idx}>
+                                        {p.set?.toUpperCase()} - {p.set_name} (#{p.collector_number || "?"})
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <span className="loading-label">Loading...</span>
+                                )
+                              ) : (
+                                <span className="sub" style={{ color: "#64748b" }}>Any Printing</span>
+                              )}
+                            </td>
+                            <td className="col-foil">
+                              <label className="switch-container">
+                                <input
+                                  type="checkbox"
+                                  checked={!!c.is_foil}
+                                  onChange={(e) => updateCardDetails(c, { is_foil: e.target.checked })}
+                                />
+                                <span className="slider round"></span>
+                                <span className="foil-label">{c.is_foil ? "Foil" : "Normal"}</span>
+                              </label>
+                            </td>
+                            <td className="col-any">
+                                <label className="switch-container" title="If unchecked, you will only accept the selected printing in a trade">
+                                  <input 
+                                    type="checkbox"
+                                    checked={c.any_printing}
+                                    onChange={(e) => {
+                                      const anyPrint = e.target.checked;
+                                      if (anyPrint) {
+                                        updateCardDetails(c, { any_printing: true });
+                                      } else {
+                                        const meta = printsCache[c.card_name];
+                                        if (meta) {
+                                          updateCardDetails(c, { 
+                                            any_printing: false, 
+                                            set_code: meta.set?.toUpperCase(), 
+                                            collector_number: meta.collector_number || "" 
+                                          });
+                                          setSelectedPrints(prev => ({ ...prev, [c.card_name]: 0 }));
+                                        } else {
+                                          updateCardDetails(c, { any_printing: false });
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <span className="slider round"></span>
+                                </label>
+                              </td>
+                            <td className="col-actions">
+                              <button 
+                                className="table-delete-btn"
+                                onClick={() => deleteCard(c)}
+                                title="Remove card"
                               >
-                                {prints.map((p, idx) => (
-                                  <option key={idx} value={idx}>
-                                    {p.set?.toUpperCase()} - {p.set_name} (#{p.collector_number || "?"})
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              <span className="loading-label">Loading printings...</span>
-                            )}
-                          </div>
-
-                          {/* Quantity & Finish */}
-                          <div className="card-controls-row">
-                            <div className="qty-picker-large">
-                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity - 1 })}>-</button>
-                              <span>{c.quantity}</span>
-                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
-                            </div>
-
-                            <label className="checkbox-wrap">
-                              <input 
-                                type="checkbox"
-                                checked={!!c.is_foil}
-                                onChange={(e) => updateCardDetails(c, { is_foil: e.target.checked })}
-                              />
-                              <span>Foil</span>
-                            </label>
-                          </div>
-
-                          <button className="remove-card-link" onClick={() => deleteCard(c)}>
-                            Remove from List
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </>
-          )}
         </div>
       )}
 
@@ -1177,14 +1132,11 @@ export default function WishlistHub() {
                             ⚖️ <strong>Engine:</strong> Recommends trading {cardsPeerWants.length > 0 ? `[${cardsPeerWants[0].card_name}]` : "No cards"} for {cardsIWant.length > 0 ? `[${cardsIWant[0].card_name}]` : "No cards"} to offset balances.
                           </span>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            {cardsIWant.map(c => (
-                              <button 
-                                key={c.id}
-                                className="trade-matrix-btn"
-                                onClick={() => handleProposeTrade(c.user_id || peer.id, [], [{ card_name: c.card_name, quantity: 1, set_code: c.set_code, is_foil: !!c.is_foil }])}
-                              > Propose Trade ({c.card_name})
-                              </button>
-                            ))}
+                            <button 
+                              className="trade-matrix-btn"
+                              onClick={() => window.location.href = `/trade?partner=${peer.id}`}
+                            > Build Trade in Hub
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1211,7 +1163,6 @@ export default function WishlistHub() {
                         <th>Set / Print</th>
                         <th>Market Price</th>
                         <th>Safety Warning</th>
-                        <th>Sandbox Staging</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1230,21 +1181,12 @@ export default function WishlistHub() {
                                 <span style={{ color: "#64748b", fontSize: "0.8rem" }}>Clear</span>
                               )}
                             </td>
-                            <td>
-                              <button 
-                                className="trade-matrix-btn" 
-                                style={{ background: "#475569" }}
-                                onClick={() => handleStageToSandbox(card)}
-                              >
-                                Stage Trade
-                              </button>
-                            </td>
                           </tr>
                         );
                       })}
                       {groupInventory.length === 0 && (
                         <tr>
-                          <td colSpan="6" style={{ textAlign: "center", color: "#64748b" }}>
+                          <td colSpan="5" style={{ textAlign: "center", color: "#64748b" }}>
                             No physical collections loaded in this playgroup yet.
                           </td>
                         </tr>

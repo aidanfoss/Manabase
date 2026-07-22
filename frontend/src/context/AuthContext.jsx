@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const devLoginAttempted = useRef(false);
 
   // On load or token change, validate token and fetch user
   useEffect(() => {
@@ -13,6 +14,9 @@ export function AuthProvider({ children }) {
                     window.location.hostname === "localhost" || 
                     window.location.hostname === "127.0.0.1";
       if (isDev) {
+        if (devLoginAttempted.current) return;
+        devLoginAttempted.current = true;
+
         (async () => {
           try {
             console.log("🛠️ Dev environment detected. Attempting auto-login...");
@@ -31,6 +35,8 @@ export function AuthProvider({ children }) {
             }
           } catch (e) {
             console.error("❌ Dev auto-login failed:", e);
+          } finally {
+            devLoginAttempted.current = false;
           }
         })();
       }
@@ -47,11 +53,13 @@ export function AuthProvider({ children }) {
           setUser(data);
         } else {
           setUser(null);
+          setToken(null);
           localStorage.removeItem("token");
         }
       } catch (e) {
         console.error("Auth validation failed:", e);
         setUser(null);
+        setToken(null);
         localStorage.removeItem("token");
       }
     })();

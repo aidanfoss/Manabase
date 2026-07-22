@@ -1,6 +1,9 @@
 // frontend/src/api/client.js
 const BASE = "/api";
 
+const batchCache = {};
+const inflightBatch = {};
+
 export const api = {
   // ---------------------------------------
   // Generic JSON fetcher
@@ -120,7 +123,38 @@ export const api = {
   // ---------------------------------------
   getCardSearch: (query) => api.json(`/scryfall?q=${encodeURIComponent(query)}`),
   getCardDetails: (name) => api.json(`/scryfall/card?name=${encodeURIComponent(name)}`),
-  getCardDetailsBatch: (names) => api.post(`/scryfall/batch`, { names }),
+  getCardDetailsBatch: async (names) => {
+    const missingNames = names.filter((n) => !batchCache[n]);
+    const namesToFetch = missingNames.filter((n) => !inflightBatch[n]);
+
+    if (namesToFetch.length > 0) {
+      const fetchPromise = api.post(`/scryfall/batch`, { names: namesToFetch }).then((res) => {
+        Object.keys(res).forEach((k) => {
+          batchCache[k] = res[k];
+        });
+        return res;
+      }).finally(() => {
+        namesToFetch.forEach((n) => {
+          delete inflightBatch[n];
+        });
+      });
+
+      namesToFetch.forEach((n) => {
+        inflightBatch[n] = fetchPromise;
+      });
+    }
+
+    const promises = missingNames.map((n) => inflightBatch[n]).filter(Boolean);
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
+
+    const result = {};
+    names.forEach((n) => {
+      if (batchCache[n]) result[n] = batchCache[n];
+    });
+    return result;
+  },
 
   // ---------------------------------------
   // === Playgroup Trading ===
@@ -129,4 +163,8 @@ export const api = {
   getTradeMatches: () => api.json("/trade/matches"),
   getTradePartnerInventory: (userId) => api.json(`/trade/inventory/${userId}`),
   executeTrade: (partnerId, offer, demand) => api.post("/trade/propose", { partnerId, offer, demand }),
+  getActiveTrades: () => api.json("/trade/active"),
+  tradeAction: (tradeId, action, offer = null, demand = null) => api.post(`/trade/${tradeId}/action`, { action, offer, demand }),
+  getTradeHistory: () => api.json("/trade/history"),
+  getTradeLedger: () => api.json("/trade/ledger"),
 };

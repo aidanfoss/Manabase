@@ -142,3 +142,5 @@ vite.config.ts.timestamp-*
 *.db
 /.idea/vcs.xml
 /.idea/modules.xml
+
+Giga Boxes.csv

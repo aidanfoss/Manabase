@@ -2,6 +2,7 @@
 import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { fetchBatchPricesFromScryfall } from "../services/scryfall.js";
 
 const router = express.Router();
 
@@ -19,8 +20,8 @@ router.get("/users", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/trade/alerts - Get active trade requests count
-router.get("/alerts", requireAuth, async (req, res) => {
+// GET /api/trade/pending-count - Get active trade requests count
+router.get("/pending-count", requireAuth, async (req, res) => {
   try {
     const countRes = await db("trades")
       .where(function() {
@@ -53,8 +54,9 @@ router.get("/alerts", requireAuth, async (req, res) => {
 router.get("/active", requireAuth, async (req, res) => {
   try {
     const trades = await db("trades")
-      .where("sender_id", req.user.id)
-      .orWhere("receiver_id", req.user.id)
+      .where(function() {
+        this.where("sender_id", req.user.id).orWhere("receiver_id", req.user.id);
+      })
       .whereIn("status", ["proposed", "countered", "accepted"])
       .orderBy("updated_at", "desc");
 
@@ -69,14 +71,48 @@ router.get("/active", requireAuth, async (req, res) => {
     const userMap = {};
     users.forEach(u => userMap[u.id] = u.username);
 
+    const userCards = await db("user_cards").select("card_name", "market_price");
+    const priceMap = {};
+    userCards.forEach(uc => {
+      if (uc.market_price && uc.market_price > 0) {
+        priceMap[uc.card_name.toLowerCase()] = uc.market_price;
+      }
+    });
+
     const result = trades.map(t => {
       const tItems = items.filter(i => i.trade_id === t.id);
+      const isSender = t.sender_id === req.user.id;
+      const partnerId = isSender ? t.receiver_id : t.sender_id;
+      const partnerUsername = userMap[partnerId] || "Unknown";
+
+      const decoratedItems = tItems.map(item => ({
+        ...item,
+        market_price: (item.price && parseFloat(item.price) > 0)
+          ? parseFloat(item.price)
+          : (priceMap[item.card_name.toLowerCase()] || 0)
+      }));
+
+      const offer = decoratedItems.filter(i => i.user_id === req.user.id);
+      const demand = decoratedItems.filter(i => i.user_id !== req.user.id);
+
+      let isOutbound = false;
+      if (t.status === "proposed") {
+        isOutbound = isSender;
+      } else if (t.status === "countered") {
+        isOutbound = !isSender;
+      }
+
       return {
         ...t,
-        partner_id: t.sender_id === req.user.id ? t.receiver_id : t.sender_id,
-        partner_username: t.sender_id === req.user.id ? userMap[t.receiver_id] : userMap[t.sender_id],
-        offer: tItems.filter(i => i.user_id === req.user.id),
-        demand: tItems.filter(i => i.user_id !== req.user.id)
+        is_sender: isSender,
+        is_outbound: isOutbound,
+        partner_id: partnerId,
+        partner_username: partnerUsername,
+        sender_username: userMap[t.sender_id] || "Unknown",
+        receiver_username: userMap[t.receiver_id] || "Unknown",
+        items: decoratedItems,
+        offer,
+        demand
       };
     });
 
@@ -87,106 +123,252 @@ router.get("/active", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/trade/history - Get all trade history for user
+router.get("/history", requireAuth, async (req, res) => {
+  try {
+    const trades = await db("trades")
+      .where("sender_id", req.user.id)
+      .orWhere("receiver_id", req.user.id)
+      .orderBy("updated_at", "desc");
 
-// GET /api/trade/matches - Get current user's wishlist cards owned by others
+    const tradeIds = trades.map(t => t.id);
+    let items = [];
+    if (tradeIds.length > 0) {
+      items = await db("trade_items").whereIn("trade_id", tradeIds);
+    }
+
+    const users = await db("users").select("id", "username", "email");
+    const userMap = {};
+    users.forEach(u => userMap[u.id] = u.username);
+
+    const result = trades.map(t => {
+      const tItems = items.filter(i => i.trade_id === t.id);
+      const isSender = t.sender_id === req.user.id;
+      const partnerId = isSender ? t.receiver_id : t.sender_id;
+      const partnerUsername = userMap[partnerId] || "Unknown";
+
+      const senderItems = tItems.filter(i => i.user_id === t.sender_id);
+      const receiverItems = tItems.filter(i => i.user_id === t.receiver_id);
+
+      const offer = isSender ? senderItems : receiverItems;
+      const demand = isSender ? receiverItems : senderItems;
+
+      return {
+        ...t,
+        is_sender: isSender,
+        partner_id: partnerId,
+        partner_username: partnerUsername,
+        sender_username: userMap[t.sender_id] || "Unknown",
+        receiver_username: userMap[t.receiver_id] || "Unknown",
+        items: tItems,
+        offer,
+        demand
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("❌ Failed to fetch trade history:", err);
+    res.status(500).json({ error: "Failed to fetch trade history" });
+  }
+});
+
+// GET /api/trade/ledger - Get per-user debt/credit ledger
+router.get("/ledger", requireAuth, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const users = await db("users").whereNot("id", me).select("id", "username", "email");
+
+    const trades = await db("trades")
+      .where(function() {
+        this.where("sender_id", me).orWhere("receiver_id", me);
+      })
+      .whereIn("status", ["completed", "accepted"])
+      .orderBy("updated_at", "desc");
+
+    const tradeIds = trades.map(t => t.id);
+    let items = [];
+    if (tradeIds.length > 0) {
+      items = await db("trade_items").whereIn("trade_id", tradeIds);
+    }
+
+    const ledgerMap = {};
+    users.forEach(u => {
+      ledgerMap[u.id] = {
+        partner_id: u.id,
+        partner_username: u.username,
+        partner_email: u.email,
+        total_given_value: 0,
+        total_received_value: 0,
+        net_balance: 0,
+        completed_trades_count: 0,
+        accepted_trades_count: 0,
+        trades: []
+      };
+    });
+
+    const userCards = await db("user_cards").select("card_name", "market_price");
+    const priceMap = {};
+    userCards.forEach(uc => {
+      if (uc.market_price && uc.market_price > 0) {
+        priceMap[uc.card_name.toLowerCase()] = uc.market_price;
+      }
+    });
+
+    trades.forEach(t => {
+      const isSender = t.sender_id === me;
+      const partnerId = isSender ? t.receiver_id : t.sender_id;
+
+      if (!ledgerMap[partnerId]) {
+        ledgerMap[partnerId] = {
+          partner_id: partnerId,
+          partner_username: "User",
+          partner_email: "",
+          total_given_value: 0,
+          total_received_value: 0,
+          net_balance: 0,
+          completed_trades_count: 0,
+          accepted_trades_count: 0,
+          trades: []
+        };
+      }
+
+      if (t.status === "completed") ledgerMap[partnerId].completed_trades_count++;
+      if (t.status === "accepted") ledgerMap[partnerId].accepted_trades_count++;
+
+      const tItems = items.filter(i => i.trade_id === t.id);
+
+      let tradeGivenVal = 0;
+      let tradeReceivedVal = 0;
+
+      tItems.forEach(item => {
+        const itemPrice = (item.price && parseFloat(item.price) > 0) ? parseFloat(item.price) : (priceMap[item.card_name.toLowerCase()] || 0);
+        const itemTotal = itemPrice * (item.quantity || 1);
+        if (item.user_id === me) {
+          tradeGivenVal += itemTotal;
+        } else {
+          tradeReceivedVal += itemTotal;
+        }
+      });
+
+      ledgerMap[partnerId].total_given_value += tradeGivenVal;
+      ledgerMap[partnerId].total_received_value += tradeReceivedVal;
+      ledgerMap[partnerId].trades.push({
+        id: t.id,
+        status: t.status,
+        updated_at: t.updated_at,
+        given_value: tradeGivenVal,
+        received_value: tradeReceivedVal,
+        net_delta: tradeGivenVal - tradeReceivedVal
+      });
+    });
+
+    const ledger = Object.values(ledgerMap).map(l => {
+      const net = l.total_given_value - l.total_received_value;
+      return {
+        ...l,
+        net_balance: net,
+        status_text: net > 0 
+          ? `${l.partner_username} owes you in cards` 
+          : net < 0 
+            ? `You owe ${l.partner_username} in cards` 
+            : `Even ($0.00)`
+      };
+    });
+
+    res.json(ledger);
+  } catch (err) {
+    console.error("❌ Failed to fetch trade ledger:", err);
+    res.status(500).json({ error: "Failed to fetch trade ledger" });
+  }
+});
+
+// GET /api/trade/matches - Get user-centric trade matches for matchmaker
 router.get("/matches", requireAuth, async (req, res) => {
   try {
-    // 1. Get current user's wishlist
-    const myWishlist = await db("user_cards")
-      .where({ user_id: req.user.id, list_type: "wishlist" });
-
-    if (myWishlist.length === 0) {
-      return res.json([]);
-    }
-
-    // Adjust for accepted trades (pause cards)
-    const acceptedTrades = await db("trades")
-      .where("status", "accepted")
-      .where(function() {
-        this.where("sender_id", req.user.id).orWhere("receiver_id", req.user.id);
-      });
-    const acceptedTradeIds = acceptedTrades.map(t => t.id);
-
-    let incomingQuantities = {};
-    if (acceptedTradeIds.length > 0) {
-      const items = await db("trade_items").whereIn("trade_id", acceptedTradeIds).whereNot("user_id", req.user.id);
-      for (const item of items) {
-        incomingQuantities[item.card_name] = (incomingQuantities[item.card_name] || 0) + item.quantity;
-      }
-    }
-
-    const adjustedWishlist = [];
-    for (const item of myWishlist) {
-      const incoming = incomingQuantities[item.card_name] || 0;
-      const newQty = item.quantity - incoming;
-      if (newQty > 0) {
-        adjustedWishlist.push({ ...item, quantity: newQty });
-      }
-    }
-
-    if (adjustedWishlist.length === 0) {
-      return res.json([]);
-    }
-
-    const wishlistNames = adjustedWishlist.map(c => c.card_name);
-
-    // 2. Find other users who have these cards in their tradelist or owned collection
-    const matches = await db("user_cards")
-      .join("users", "user_cards.user_id", "users.id")
-      .whereIn("user_cards.card_name", wishlistNames)
-      .whereNot("user_cards.user_id", req.user.id)
-      .whereIn("user_cards.list_type", ["tradelist", "owned"])
-      .select(
-        "user_cards.id",
-        "user_cards.user_id",
-        "user_cards.card_name",
-        "user_cards.list_type",
-        "user_cards.quantity",
-        "user_cards.set_code",
-        "user_cards.collector_number",
-        "user_cards.is_foil",
-        "users.username"
-      )
-      .orderBy("user_cards.card_name", "asc");
-
-    // Exclude cards the peers are already giving away in accepted trades
-    let outgoingQuantities = {};
-    if (acceptedTradeIds.length > 0) {
-       const outgoingItems = await db("trade_items").whereIn("trade_id", acceptedTradeIds);
-       for (const item of outgoingItems) {
-         if (!outgoingQuantities[item.user_id]) outgoingQuantities[item.user_id] = {};
-         outgoingQuantities[item.user_id][item.card_name] = (outgoingQuantities[item.user_id][item.card_name] || 0) + item.quantity;
-       }
-    }
-
-    // Group matches by card name for easy UI rendering
-    const groupedMatches = {};
-    for (const match of matches) {
-      const peerOutgoing = outgoingQuantities[match.user_id]?.[match.card_name] || 0;
-      const availableQty = match.quantity - peerOutgoing;
+    const me = req.user.id;
+    
+    // 1. Fetch my wishlist and tradelist
+    const myCards = await db("user_cards")
+      .where("user_id", me)
+      .whereIn("list_type", ["wishlist", "tradelist"]);
       
-      if (availableQty <= 0) continue; // Peer has committed all these cards
+    const myWishlist = myCards.filter(c => c.list_type === "wishlist");
+    const myTradelist = myCards.filter(c => c.list_type === "tradelist");
 
-      const name = match.card_name;
-      if (!groupedMatches[name]) {
-        groupedMatches[name] = [];
-      }
-      groupedMatches[name].push({
-        user_id: match.user_id,
-        username: match.username,
-        list_type: match.list_type,
-        quantity: availableQty,
-        set_code: match.set_code,
-        collector_number: match.collector_number,
-        is_foil: !!match.is_foil,
-      });
+    // 2. Fetch peers
+    const peers = await db("users").whereNot("id", me).select("id", "username", "email");
+
+    // 3. Fetch peer cards (wishlist and tradelist)
+    const peerCards = await db("user_cards")
+      .whereNot("user_id", me)
+      .whereIn("list_type", ["wishlist", "tradelist"]);
+
+    // 4. Adjust quantities for accepted trades
+    const committedItems = await db("trade_items")
+      .join("trades", "trade_items.trade_id", "trades.id")
+      .where("trades.status", "accepted")
+      .select("trade_items.user_id", "trade_items.card_name", "trade_items.quantity");
+
+    const committed = {};
+    for (const item of committedItems) {
+      if (!committed[item.user_id]) committed[item.user_id] = {};
+      committed[item.user_id][item.card_name] = (committed[item.user_id][item.card_name] || 0) + item.quantity;
     }
 
-    // Convert to a nice format
-    const result = adjustedWishlist.map(c => ({
-      wishlist_item: c,
-      owners: groupedMatches[c.card_name] || []
-    }));
+    const getAvailableQty = (userId, cardName, totalQty) => {
+      const used = committed[userId]?.[cardName] || 0;
+      return Math.max(0, totalQty - used);
+    };
+
+    const myWishlistAdjusted = myWishlist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
+    const myTradelistAdjusted = myTradelist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
+    
+    const myActiveWishlistNames = new Set(myWishlistAdjusted.filter(c => c.quantity > 0).map(c => c.card_name));
+    
+    const result = [];
+
+    for (const peer of peers) {
+      const pCards = peerCards.filter(c => c.user_id === peer.id);
+      const youWant = [];
+      const theyWant = [];
+      
+      for (const pCard of pCards) {
+        const availQty = getAvailableQty(peer.id, pCard.card_name, pCard.quantity);
+        if (availQty <= 0) continue;
+        
+        if (pCard.list_type === "tradelist") {
+          const myWants = myWishlistAdjusted.filter(c => c.card_name === pCard.card_name && c.quantity > 0);
+          const hasMatch = myWants.some(w => w.any_printing || w.set_code.toUpperCase() === pCard.set_code.toUpperCase());
+          if (hasMatch) {
+            youWant.push({...pCard, quantity: availQty});
+          }
+        }
+      }
+      
+      for (const mCard of myTradelistAdjusted) {
+        if (mCard.quantity <= 0) continue;
+        const peerWants = pCards.find(c => {
+          if (c.list_type !== "wishlist" || c.card_name !== mCard.card_name) return false;
+          if (c.any_printing === false && c.set_code.toUpperCase() !== mCard.set_code.toUpperCase()) return false;
+          return true;
+        });
+        if (peerWants) {
+          const peerAvail = getAvailableQty(peer.id, peerWants.card_name, peerWants.quantity);
+          if (peerAvail > 0) {
+             theyWant.push(mCard);
+          }
+        }
+      }
+      
+      if (youWant.length > 0 || theyWant.length > 0) {
+        result.push({
+          user: peer,
+          youWant,
+          theyWant
+        });
+      }
+    }
 
     res.json(result);
   } catch (err) {
@@ -215,9 +397,18 @@ router.post("/propose", requireAuth, async (req, res) => {
   const { partnerId, offer, demand } = req.body;
 
   if (!partnerId) return res.status(400).json({ error: "Partner ID is required" });
-  if (!offer && !demand) return res.status(400).json({ error: "Offer or demand is required" });
+  if ((!offer || offer.length === 0) && (!demand || demand.length === 0)) {
+    return res.status(400).json({ error: "Offer or demand is required" });
+  }
 
   try {
+    const rawOffer = (offer || []).map(i => ({ ...i, user_id: req.user.id }));
+    const rawDemand = (demand || []).map(i => ({ ...i, user_id: partnerId }));
+    const allRawItems = [...rawOffer, ...rawDemand];
+
+    // Batch price check to Scryfall API for each card involved
+    const pricedItems = await fetchBatchPricesFromScryfall(allRawItems);
+
     await db.transaction(async (trx) => {
       const [tradeId] = await trx("trades").insert({
         sender_id: req.user.id,
@@ -227,35 +418,28 @@ router.post("/propose", requireAuth, async (req, res) => {
 
       const tid = tradeId.id || tradeId;
 
-      const itemsToInsert = [];
-      if (offer) {
-        offer.forEach(item => {
-          itemsToInsert.push({
-            trade_id: tid,
-            user_id: req.user.id, // I am giving this
-            card_name: item.card_name,
-            quantity: item.quantity || 1,
-            set_code: item.set_code || "",
-            is_foil: !!item.is_foil
-          });
-        });
-      }
-
-      if (demand) {
-        demand.forEach(item => {
-          itemsToInsert.push({
-            trade_id: tid,
-            user_id: partnerId, // Partner is giving this
-            card_name: item.card_name,
-            quantity: item.quantity || 1,
-            set_code: item.set_code || "",
-            is_foil: !!item.is_foil
-          });
-        });
-      }
+      const itemsToInsert = pricedItems.map(item => ({
+        trade_id: tid,
+        user_id: item.user_id,
+        card_name: item.card_name || item.name,
+        quantity: item.quantity || 1,
+        set_code: item.set_code || "",
+        collector_number: item.collector_number || "",
+        is_foil: !!item.is_foil,
+        price: item.price || 0
+      }));
 
       if (itemsToInsert.length > 0) {
         await trx("trade_items").insert(itemsToInsert);
+
+        // Update user_cards table with fresh Scryfall prices
+        for (const item of itemsToInsert) {
+          if (item.price > 0) {
+            await trx("user_cards")
+              .where({ card_name: item.card_name })
+              .update({ market_price: item.price, updated_at: trx.fn.now() });
+          }
+        }
       }
     });
     res.json({ success: true });
@@ -292,45 +476,41 @@ router.post("/:id/action", requireAuth, async (req, res) => {
 
     if (action === "counter") {
       await db.transaction(async (trx) => {
-        // Switch sender/receiver roles effectively by status tracking.
-        // Actually, let's keep sender_id/receiver_id the same, but status='countered'
-        // If current user is receiver, and they counter, status -> countered.
-        // If current user is sender, and they counter a counter, status -> proposed.
         const newStatus = trade.sender_id === req.user.id ? "proposed" : "countered";
-        
+        const partnerId = trade.sender_id === req.user.id ? trade.receiver_id : trade.sender_id;
+
+        const rawOffer = (offer || []).map(i => ({ ...i, user_id: req.user.id }));
+        const rawDemand = (demand || []).map(i => ({ ...i, user_id: partnerId }));
+        const allRawItems = [...rawOffer, ...rawDemand];
+
+        // Batch price check to Scryfall API for each card involved
+        const pricedItems = await fetchBatchPricesFromScryfall(allRawItems);
+
         await trx("trades").where({ id }).update({ status: newStatus, updated_at: trx.fn.now() });
         await trx("trade_items").where({ trade_id: id }).delete();
 
-        const partnerId = trade.sender_id === req.user.id ? trade.receiver_id : trade.sender_id;
-
-        const itemsToInsert = [];
-        if (offer) {
-          offer.forEach(item => {
-            itemsToInsert.push({
-              trade_id: id,
-              user_id: req.user.id,
-              card_name: item.card_name,
-              quantity: item.quantity || 1,
-              set_code: item.set_code || "",
-              is_foil: !!item.is_foil
-            });
-          });
-        }
-        if (demand) {
-          demand.forEach(item => {
-            itemsToInsert.push({
-              trade_id: id,
-              user_id: partnerId,
-              card_name: item.card_name,
-              quantity: item.quantity || 1,
-              set_code: item.set_code || "",
-              is_foil: !!item.is_foil
-            });
-          });
-        }
+        const itemsToInsert = pricedItems.map(item => ({
+          trade_id: id,
+          user_id: item.user_id,
+          card_name: item.card_name || item.name,
+          quantity: item.quantity || 1,
+          set_code: item.set_code || "",
+          collector_number: item.collector_number || "",
+          is_foil: !!item.is_foil,
+          price: item.price || 0
+        }));
 
         if (itemsToInsert.length > 0) {
           await trx("trade_items").insert(itemsToInsert);
+
+          // Update user_cards table with fresh Scryfall prices
+          for (const item of itemsToInsert) {
+            if (item.price > 0) {
+              await trx("user_cards")
+                .where({ card_name: item.card_name })
+                .update({ market_price: item.price, updated_at: trx.fn.now() });
+            }
+          }
         }
       });
       return res.json({ success: true });
