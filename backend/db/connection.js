@@ -253,6 +253,14 @@ export async function initDB() {
     }
   }
 
+  // Create DB performance indices for fast trade/collection lookups
+  try {
+    await db.raw('CREATE INDEX IF NOT EXISTS idx_user_cards_user_list ON user_cards (user_id, list_type);');
+    await db.raw('CREATE INDEX IF NOT EXISTS idx_user_cards_list_name ON user_cards (list_type, card_name);');
+  } catch (e) {
+    console.warn("⚠️ Could not create user_cards indexes:", e.message);
+  }
+
   // Create playgroups tables
   const hasPlaygroups = await db.schema.hasTable("playgroups");
   if (!hasPlaygroups) {
@@ -309,8 +317,17 @@ export async function initDB() {
       t.string("set_code").defaultTo("");
       t.string("collector_number").defaultTo("");
       t.boolean("is_foil").defaultTo(false);
+      t.decimal("price", 10, 2).defaultTo(0);
       t.timestamps(true, true);
     });
     console.log("✅ Created trade_items table");
+  } else {
+    const hasPriceColumn = await db.schema.hasColumn("trade_items", "price");
+    if (!hasPriceColumn) {
+      await db.schema.alterTable("trade_items", (t) => {
+        t.decimal("price", 10, 2).defaultTo(0);
+      });
+      console.log("✅ Added price column to trade_items table");
+    }
   }
 }

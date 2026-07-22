@@ -683,12 +683,6 @@ export default function WishlistHub() {
         >
           👥 Playgroup Nexus
         </button>
-        <button 
-          className={`nexus-tab-btn ${activeTab === "trades" ? "active" : ""}`}
-          onClick={() => { setActiveTab("trades"); loadActiveTrades(); }}
-        >
-          🤝 Active Trades
-        </button>
       </div>
 
 

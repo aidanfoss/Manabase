@@ -111,6 +111,72 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/collection/owned/bulk
+router.post("/bulk", requireAuth, async (req, res) => {
+  const { cards } = req.body;
+  if (!Array.isArray(cards) || cards.length === 0) {
+    return res.status(400).json({ error: "cards array is required" });
+  }
+
+  try {
+    let addedCount = 0;
+    await db.transaction(async (trx) => {
+      for (const card of cards) {
+        if (!card.card_name) continue;
+
+        const card_name = card.card_name.trim();
+        const normSetCode = (card.set_code || "").trim().toUpperCase();
+        const normCollectorNum = (card.collector_number || "").trim();
+        const normFoil = !!card.is_foil;
+        const normCondition = card.card_condition || "NM";
+        const normLanguage = (card.card_language || "EN").toUpperCase();
+        const quantity = Math.max(1, parseInt(card.quantity) || 1);
+
+        const existing = await trx("user_cards")
+          .where({
+            user_id: req.user.id,
+            card_name,
+            list_type: "owned",
+            set_code: normSetCode,
+            is_foil: normFoil,
+            card_condition: normCondition,
+            card_language: normLanguage
+          })
+          .first();
+
+        if (existing) {
+          await trx("user_cards")
+            .where({ id: existing.id })
+            .update({
+              quantity: existing.quantity + quantity,
+              collector_number: normCollectorNum || existing.collector_number,
+              updated_at: trx.fn.now()
+            });
+        } else {
+          await trx("user_cards")
+            .insert({
+              user_id: req.user.id,
+              card_name,
+              list_type: "owned",
+              quantity,
+              set_code: normSetCode,
+              collector_number: normCollectorNum,
+              is_foil: normFoil,
+              card_condition: normCondition,
+              card_language: normLanguage
+            });
+        }
+        addedCount += quantity;
+      }
+    });
+
+    res.json({ message: "Bulk import completed successfully", count: addedCount });
+  } catch (err) {
+    console.error("❌ Bulk import failed:", err);
+    res.status(500).json({ error: "Failed to perform bulk import" });
+  }
+});
+
 // DELETE /api/collection/owned
 router.delete("/", requireAuth, async (req, res) => {
   const { id, card_name, clear_all } = req.body;

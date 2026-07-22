@@ -747,6 +747,12 @@
   color: #f87171;
 }
 
+.trade-status-message.info {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
 .actions-buttons {
   display: flex;
   gap: 1rem;
@@ -1048,6 +1054,46 @@
   border-left: 2px solid var(--steam-blue-accent);
 }
 
+.inspector-price-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 0.25rem;
+}
+
+.detail-item.price-row {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 0.88rem !important;
+}
+
+.price-red {
+  color: #ef4444 !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+}
+
+.price-green {
+  color: #10b981 !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+}
+
+.inspector-total-row {
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-align: right;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 0.35rem;
+}
+
 .inspector-placeholder {
   flex: 1;
   display: flex;
@@ -1087,3 +1133,683 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================
+   PRICE DATA STYLING ENHANCEMENTS
+   ========================================== */
+
+.tradelist-total-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  margin-left: 0.5rem;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 0.85rem;
+}
+
+.col-price {
+  width: 140px;
+}
+
+.price-tag-emerald {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.unit-price-sub {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.text-muted-price {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Steam slot price tag */
+.steam-slot-price-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  z-index: 2;
+  backdrop-filter: blur(2px);
+}
+
+/* Steam inventory card price tag */
+.inv-price-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+/* Visual Trade Balance Summary Box */
+.trade-balance-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.85rem 1.25rem;
+  gap: 1rem;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.balance-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.balance-col .lbl {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.balance-col .val {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.balance-col .val.offer-val {
+  color: var(--steam-blue-accent);
+}
+
+.balance-col .val.demand-val {
+  color: #a855f7;
+}
+
+.balance-col .val.positive {
+  color: #34d399;
+}
+
+.balance-col .val.negative {
+  color: #f87171;
+}
+
+.balance-col .val.even {
+  color: #94a3b8;
+}
+
+.balance-vs {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #64748b;
+}
+
+/* Matchmaker Value Balance Badges */
+.match-value-balance {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+
+.match-value-balance.positive {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.match-value-balance.negative {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.match-value-balance.even {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.mini-card-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.mini-card-price {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #34d399;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 0 3px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Card Inspector Active Price */
+.detail-item.price.active-price {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid #10b981;
+}
+
+.detail-item.price.active-price .val.highlight {
+  color: #34d399;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.sub-line-total {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.offer-total-txt {
+  color: var(--steam-blue-accent);
+  font-weight: 700;
+}
+
+.demand-total-txt {
+  color: #a855f7;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Trade History & Per-User Ledger Styles
+   ========================================================================== */
+
+.trade-history-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ledger-section {
+  background: var(--steam-panel-bg);
+  border: var(--steam-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.ledger-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.ledger-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ledger-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.ledger-card.credit {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(15, 23, 42, 0.75) 100%);
+}
+
+.ledger-card.debt {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(15, 23, 42, 0.75) 100%);
+}
+
+.ledger-card.even {
+  border-left: 4px solid #64748b;
+}
+
+.ledger-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.user-avatar-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.user-text-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.partner-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.partner-email {
+  font-size: 0.78rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ledger-status-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  display: inline-block;
+  align-self: flex-start;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ledger-status-badge.credit {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.ledger-status-badge.debt {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ledger-status-badge.even {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.ledger-stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.stat-lbl {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-val.give-val {
+  color: #38bdf8;
+}
+
+.stat-val.get-val {
+  color: #c084fc;
+}
+
+.stat-val.count-val {
+  color: #cbd5e1;
+}
+
+.ledger-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.flex-1 {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+}
+
+.steam-btn.compact {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+/* History Log Section */
+.history-log-section {
+  background: var(--steam-panel-bg);
+  border: var(--steam-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.history-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.history-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.steam-select {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.history-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-trade-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.history-trade-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.history-trade-card.status-completed {
+  border-left: 4px solid #10b981;
+}
+
+.history-trade-card.status-accepted {
+  border-left: 4px solid #3b82f6;
+}
+
+.history-trade-card.status-proposed {
+  border-left: 4px solid #eab308;
+}
+
+.history-trade-card.status-countered {
+  border-left: 4px solid #a855f7;
+}
+
+.history-trade-card.status-declined {
+  border-left: 4px solid #64748b;
+  opacity: 0.75;
+}
+
+.history-trade-header {
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(30, 41, 59, 0.3);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.trade-meta-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.trade-id-tag {
+  font-family: monospace;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: #cbd5e1;
+}
+
+.trade-date {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.trade-partner {
+  font-size: 0.9rem;
+  color: #f1f5f9;
+}
+
+.trade-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trade-values-summary {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.val-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.val-pill.give {
+  background: rgba(100, 116, 139, 0.2);
+  color: #cbd5e1;
+}
+
+.val-pill.get {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+}
+
+.val-pill.net.credit {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.val-pill.net.debt {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.val-pill.net.even {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+}
+
+.history-status-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.history-status-tag.completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.history-status-tag.accepted {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.history-status-tag.proposed {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+}
+
+.history-status-tag.countered {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+
+.history-status-tag.declined {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+}
+
+.expand-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history-trade-details {
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-items-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .history-items-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.history-items-column h4 {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.empty-subtext {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.steam-slots-grid.mini {
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.5rem;
+}
+
+.steam-slot.compact {
+  height: 95px;
+}
+
+.card-name-hover-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.steam-slot.compact:hover .card-name-hover-tooltip {
+  display: block;
+}
+
+

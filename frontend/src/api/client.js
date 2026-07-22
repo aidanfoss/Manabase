@@ -163,4 +163,8 @@ export const api = {
   getTradeMatches: () => api.json("/trade/matches"),
   getTradePartnerInventory: (userId) => api.json(`/trade/inventory/${userId}`),
   executeTrade: (partnerId, offer, demand) => api.post("/trade/propose", { partnerId, offer, demand }),
+  getActiveTrades: () => api.json("/trade/active"),
+  tradeAction: (tradeId, action, offer = null, demand = null) => api.post(`/trade/${tradeId}/action`, { action, offer, demand }),
+  getTradeHistory: () => api.json("/trade/history"),
+  getTradeLedger: () => api.json("/trade/ledger"),
 };

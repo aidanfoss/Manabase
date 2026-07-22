@@ -2,6 +2,7 @@
 import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { fetchCardData } from "../services/scryfall.js";
 
 const router = express.Router();
 
@@ -67,16 +68,29 @@ router.post("/", requireAuth, async (req, res) => {
 
       return res.json(updated);
     } else {
+      let initialPrice = 0.10;
+      try {
+        const cardData = await fetchCardData(card_name);
+        if (cardData && cardData.prices) {
+          initialPrice = is_foil
+            ? (parseFloat(cardData.prices.usd_foil) || parseFloat(cardData.prices.usd) || cardData.prices.latest || cardData.prices.lowest || 0.10)
+            : (parseFloat(cardData.prices.usd) || parseFloat(cardData.prices.usd_foil) || cardData.prices.latest || cardData.prices.lowest || 0.10);
+        }
+      } catch (e) {
+        console.warn("⚠️ Failed to fetch initial card price on insert:", e.message);
+      }
+
       const [inserted] = await db("user_cards")
         .insert({
           user_id: req.user.id,
           card_name,
           list_type: listType,
           quantity: quantity !== undefined ? Math.max(1, quantity) : 1,
-          set_code: set_code || null,
-          collector_number: collector_number || null,
+          set_code: set_code || "",
+          collector_number: collector_number || "",
           is_foil: !!is_foil,
           any_printing: any_printing !== undefined ? any_printing : true,
+          market_price: Number(initialPrice.toFixed(2)) || 0.10,
           target_owner_id: null
         })
         .returning("*");

@@ -9,6 +9,7 @@ import Presets from "./components/Presets";
 import OwnedCollection from "./components/OwnedCollection";
 import WishlistHub from "./components/WishlistHub";
 import TradelistManager from "./components/TradelistManager";
+import { api } from "./api/client";
 import "./styles/nav-auth.css";
 
 export default function App() {
@@ -152,11 +153,61 @@ function LandingDashboard() {
   );
 }
 
+const TEST_USERS = [
+  { username: "DevUser", email: "dev@manabase.com" },
+  { username: "TestUser1", email: "testuser1@example.com" },
+  { username: "TestUser2", email: "testuser2@example.com" },
+  { username: "TestUser3", email: "testuser3@example.com" },
+  { username: "TestUser4", email: "testuser4@example.com" },
+  { username: "TestUser5", email: "testuser5@example.com" },
+  { username: "TestUser6", email: "testuser6@example.com" },
+  { username: "TestUser7", email: "testuser7@example.com" },
+  { username: "TestUser8", email: "testuser8@example.com" },
+  { username: "TestUser9", email: "testuser9@example.com" }
+];
+
 function TopNav({ user, showLogin, setShowLogin }) {
-  const { logout } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [tradeAlerts, setTradeAlerts] = useState(0);
+
+  const isTestUser = user && /^(DevUser|TestUser\d*)$/i.test(user.username);
+
+  const currentTestIndex = isTestUser
+    ? TEST_USERS.findIndex(u => u.username.toLowerCase() === user.username.toLowerCase())
+    : -1;
+
+  const nextTestUser = isTestUser
+    ? TEST_USERS[(currentTestIndex + 1) % TEST_USERS.length]
+    : TEST_USERS[0];
+
+  const handleCycleUser = async () => {
+    try {
+      let res;
+      if (nextTestUser.username === "DevUser") {
+        try {
+          res = await api.devLogin();
+        } catch {
+          res = await api.login({ email: nextTestUser.email, password: "password" });
+        }
+      } else {
+        try {
+          res = await api.login({ email: nextTestUser.email, password: "password" });
+        } catch {
+          res = await api.register({ email: nextTestUser.email, username: nextTestUser.username, password: "password" });
+        }
+      }
+
+      if (res && res.token && res.user) {
+        login(res);
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Failed to cycle test user:", err);
+      alert(`Could not switch to ${nextTestUser.username}`);
+    }
+  };
 
   React.useEffect(() => {
     if (!user) {
@@ -220,6 +271,15 @@ function TopNav({ user, showLogin, setShowLogin }) {
               )}
             </div>
             <span className="nav-name">{displayName}</span>
+            {isTestUser && (
+              <button
+                className="cycle-user-btn"
+                onClick={handleCycleUser}
+                title={`Cycle to ${nextTestUser.username}`}
+              >
+                🔄 Switch: {nextTestUser.username}
+              </button>
+            )}
             <button className="logout-btn nav-logout" onClick={logout}>
               Log out
             </button>

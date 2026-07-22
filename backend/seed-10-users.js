@@ -2,16 +2,8 @@ import { db, initDB } from "./db/connection.js";
 import bcrypt from "bcryptjs";
 
 const cards = [
-  "Sol Ring", "Arcane Signet", "Command Tower", "Swords to Plowshares", "Counterspell", 
-  "Cultivate", "Rampant Growth", "Beast Within", "Cyclonic Rift", "Rhystic Study",
-  "Smothering Tithe", "Demonic Tutor", "Vampiric Tutor", "Enlightened Tutor", "Mystical Tutor", 
-  "Worldly Tutor", "Dockside Extortionist", "Fierce Guardianship", "Deflecting Swat", "Teferi's Protection",
-  "Mana Crypt", "Jeweled Lotus", "Ancient Tomb", "Blood Crypt", "Breeding Pool", 
-  "Overgrown Tomb", "Watery Grave", "Hallowed Fountain", "Temple Garden", "Godless Shrine",
-  "Sacred Foundry", "Stomping Ground", "Steam Vents", "Scalding Tarn", "Misty Rainforest", 
-  "Polluted Delta", "Flooded Strand", "Wooded Foothills", "Windswept Heath", "Bloodstained Mire",
-  "Verdant Catacombs", "Arid Mesa", "Marsh Flats", "Birds of Paradise", "Ignoble Hierarch", 
-  "Noble Hierarch", "Esper Sentinel", "Ragavan, Nimble Pilferer", "Urza's Saga", "Boseiju, Who Endures"
+  "Blood Crypt", "Breeding Pool", "Godless Shrine", "Hallowed Fountain", "Overgrown Tomb",
+  "Sacred Foundry", "Steam Vents", "Stomping Ground", "Temple Garden", "Watery Grave"
 ];
 
 async function seed() {
@@ -55,19 +47,23 @@ async function seed() {
     await db("playgroup_members").insert({ playgroup_id: playgroup.id, user_id: u.id }).onConflict(["playgroup_id", "user_id"]).ignore();
   }
 
+  console.log("Cleaning old seeded cards for test users...");
+  const userIds = dbUsers.map(u => u.id);
+  await db("user_cards").whereIn("user_id", userIds).delete();
+
   console.log("Adding cards to tradelists, owned, and wishlists...");
   
   for (let i = 0; i < dbUsers.length; i++) {
     const user = dbUsers[i];
     
-    // Pick 10 wishlist, 10 tradelist, 20 owned deterministically with overlaps
+    // Pick wishlist, tradelist, owned deterministically from shock lands
     const wishlist = [];
     const tradelist = [];
     const owned = [];
 
-    for (let j = 0; j < 10; j++) wishlist.push(cards[(i * 3 + j) % cards.length]);
-    for (let j = 0; j < 10; j++) tradelist.push(cards[(i * 3 + j + 15) % cards.length]);
-    for (let j = 0; j < 20; j++) owned.push(cards[(i * 3 + j + 30) % cards.length]);
+    for (let j = 0; j < 5; j++) wishlist.push(cards[(i * 2 + j) % cards.length]);
+    for (let j = 0; j < 5; j++) tradelist.push(cards[(i * 2 + j + 3) % cards.length]);
+    for (let j = 0; j < 10; j++) owned.push(cards[(i * 2 + j + 5) % cards.length]);
 
     for (const cardName of wishlist) {
       await db("user_cards").insert({
@@ -75,7 +71,7 @@ async function seed() {
         card_name: cardName,
         list_type: "wishlist",
         quantity: 1,
-        set_code: "LEA",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
@@ -88,7 +84,7 @@ async function seed() {
         card_name: cardName,
         list_type: "tradelist",
         quantity: 1,
-        set_code: "LEA",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
@@ -101,7 +97,7 @@ async function seed() {
         card_name: cardName,
         list_type: "owned",
         quantity: 1,
-        set_code: "LEA",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
