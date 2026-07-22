@@ -52,7 +52,7 @@ export async function findOrCreateSSOUser({ email, username, providerId, provide
   const insertObj = {
     email: userEmail,
     username: finalUsername,
-    password_hash: null,
+    password_hash: "",
     [providerColumn]: providerId,
     avatar_url: avatarUrl || null,
   };
@@ -172,7 +172,7 @@ router.get("/google", (req, res) => {
       // Dev mode fallback
       return res.redirect("/api/auth/google/dev-callback");
     }
-    return res.status(400).json({ error: "Google OAuth is not configured." });
+    return res.redirect(`/?sso_error=${encodeURIComponent("Google OAuth is not configured. Please set GOOGLE_CLIENT_ID in environment variables.")}`);
   }
 
   const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
@@ -342,7 +342,7 @@ router.get("/discord", (req, res) => {
       // Dev mode fallback
       return res.redirect("/api/auth/discord/dev-callback");
     }
-    return res.status(400).json({ error: "Discord OAuth is not configured." });
+    return res.redirect(`/?sso_error=${encodeURIComponent("Discord OAuth is not configured. Please set DISCORD_CLIENT_ID in environment variables.")}`);
   }
 
   const redirectUri = process.env.DISCORD_REDIRECT_URI || `${req.protocol}://${req.get("host")}/api/auth/discord/callback`;
