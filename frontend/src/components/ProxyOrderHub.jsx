@@ -1,6 +1,7 @@
 // src/components/ProxyOrderHub.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
+import { parseImportInput } from "../utils/csvImporter";
 import "../styles/proxy-hub.css";
 
 export default function ProxyOrderHub({ data }) {
@@ -21,6 +22,87 @@ export default function ProxyOrderHub({ data }) {
   const [quantities, setQuantities] = useState({});
   const [selectedPrints, setSelectedPrints] = useState({});
   const [finishes, setFinishes] = useState({}); // "nonfoil" or "foil"
+
+  // Bulk import states
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
+  const parsedPreviewCards = useMemo(() => {
+    if (!importText.trim()) return [];
+    return parseImportInput(importText);
+  }, [importText]);
+
+  const handleBulkImport = async () => {
+    if (!importText.trim()) return;
+
+    setImporting(true);
+    setImportStatus("Parsing cards...");
+
+    try {
+      const parsed = parseImportInput(importText);
+      if (parsed.length === 0) {
+        alert("No valid cards found in the provided input.");
+        setImporting(false);
+        setImportStatus("");
+        return;
+      }
+
+      // Update local quantities for matching cards in allCards
+      const updatedQuants = { ...quantities };
+      const updatedFinishes = { ...finishes };
+
+      parsed.forEach((c) => {
+        const existingQty = updatedQuants[c.card_name] || 0;
+        updatedQuants[c.card_name] = existingQty + (c.quantity || 1);
+        if (c.is_foil) {
+          updatedFinishes[c.card_name] = "foil";
+        }
+      });
+
+      setQuantities(updatedQuants);
+      setFinishes(updatedFinishes);
+
+      // Save to backend Proxy Wishlist if logged in
+      const token = localStorage.getItem("token");
+      if (token) {
+        setImportStatus(`Saving ${parsed.length} cards to Proxy Hub wishlist...`);
+        const CHUNK_SIZE = 500;
+        for (let i = 0; i < parsed.length; i += CHUNK_SIZE) {
+          const chunk = parsed.slice(i, i + CHUNK_SIZE);
+          await fetch("/api/lists/bulk", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ cards: chunk, list_kind: "proxy_wishlist" }),
+          });
+        }
+      }
+
+      setImportText("");
+      setShowImportModal(false);
+      setImportStatus("");
+      alert(`🎉 Successfully bulk imported ${parsed.reduce((sum, c) => sum + c.quantity, 0)} cards!`);
+    } catch (e) {
+      console.error("Bulk import failed:", e);
+      alert("An error occurred during bulk import.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleFileRead = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImportText(e.target.result || "");
+    };
+    reader.readAsText(file);
+  };
 
   // Initialize state when card list changes
   useEffect(() => {
@@ -321,13 +403,16 @@ export default function ProxyOrderHub({ data }) {
           <p>Export your tailored list for ordering sites, deckbuilders, or local home printing.</p>
         </div>
         <div className="action-buttons">
+          <button className="hub-btn primary" onClick={() => setShowImportModal(true)} title="Bulk import decklists or CSV files">
+            📥 Bulk Import
+          </button>
           <button className="hub-btn" onClick={copyMoxfield} title="Copy simple 1x Card Name list">
             📋 Copy Moxfield List
           </button>
           <button className="hub-btn" onClick={copyDetailed} title="Copy detailed list with sets">
             📊 Copy Detailed List
           </button>
-          <button className="hub-btn primary" onClick={downloadMpcCsv} title="Download a CSV template for MakePlayingCards">
+          <button className="hub-btn" onClick={downloadMpcCsv} title="Download a CSV template for MakePlayingCards">
             📦 Download MPC CSV
           </button>
           <button className="hub-btn print" onClick={togglePrintView} title="Render standard 3x3 layout sheets for printer paper">
@@ -414,6 +499,122 @@ export default function ProxyOrderHub({ data }) {
           );
         })}
       </div>
+
+      {/* Bulk Import Modal */}
+      {showImportModal && (
+        <div className="modal-overlay" onClick={() => !importing && setShowImportModal(false)}>
+          <div className="modal-container bulk-import-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-title">
+                <h2>📥 Bulk Import Proxies</h2>
+                <p>Upload CSV or paste decklists to add cards to your proxy order</p>
+              </div>
+              <button className="modal-close-btn" onClick={() => !importing && setShowImportModal(false)}>✕</button>
+            </div>
+
+            <div className="modal-body">
+              <div 
+                className={`import-dropzone ${isDragging ? "dragging" : ""}`}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFileRead(e.dataTransfer.files[0]);
+                  }
+                }}
+              >
+                <span className="dropzone-icon">📄</span>
+                <span className="dropzone-text">Drag & drop CSV or decklist file here, or</span>
+                <label className="file-browse-btn">
+                  Browse File
+                  <input 
+                    type="file" 
+                    accept=".csv,.txt,.json" 
+                    onChange={(e) => e.target.files?.[0] && handleFileRead(e.target.files[0])} 
+                    hidden 
+                  />
+                </label>
+              </div>
+
+              <div className="textarea-wrapper">
+                <label className="input-label">Paste Decklist or CSV:</label>
+                <textarea
+                  value={importText}
+                  onChange={(e) => setImportText(e.target.value)}
+                  placeholder={`4 Brainstorm\n1 Sol Ring (C21) 255 *F*\n1 Watery Grave`}
+                  rows={6}
+                  className="import-textarea"
+                  disabled={importing}
+                />
+              </div>
+
+              {parsedPreviewCards.length > 0 && (
+                <div className="import-preview-box">
+                  <div className="preview-header">
+                    <span>✅ Detected <strong>{parsedPreviewCards.length}</strong> unique cards ({parsedPreviewCards.reduce((s, c) => s + c.quantity, 0)} total items)</span>
+                  </div>
+                  <div className="preview-list-scroll">
+                    <table className="preview-table">
+                      <thead>
+                        <tr>
+                          <th>Qty</th>
+                          <th>Card Name</th>
+                          <th>Set</th>
+                          <th>Finish</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {parsedPreviewCards.slice(0, 10).map((c, idx) => (
+                          <tr key={idx}>
+                            <td>{c.quantity}x</td>
+                            <td>{c.card_name}</td>
+                            <td>{c.set_code || "Auto"}</td>
+                            <td>{c.is_foil ? "Foil" : "Normal"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {importStatus && (
+                <div className="import-status-banner">
+                  <span>⏳</span> {importStatus}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary" 
+                onClick={() => { setImportText(""); setImportStatus(""); }}
+                disabled={importing || !importText}
+              >
+                Clear
+              </button>
+              <div className="right-actions">
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => setShowImportModal(false)}
+                  disabled={importing}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleBulkImport}
+                  disabled={importing || parsedPreviewCards.length === 0}
+                >
+                  {importing ? "Importing..." : `Import ${parsedPreviewCards.reduce((s, c) => s + c.quantity, 0)} Cards`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
