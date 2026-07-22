@@ -240,7 +240,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
   }, [user]);
 
   const displayName = user?.username || user?.email || "Guest";
-  const avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
+  const avatar = user?.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
 
   return (
     <nav className="top-nav">

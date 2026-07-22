@@ -46,9 +46,37 @@ export async function initDB() {
       t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
       t.string("email").unique().notNullable();
       t.string("username").notNullable();
-      t.string("password_hash").notNullable();
+      t.string("password_hash").nullable();
+      t.string("google_id").nullable().unique();
+      t.string("discord_id").nullable().unique();
+      t.string("avatar_url").nullable();
       t.timestamps(true, true);
     });
+  } else {
+    // Schema migrations for users table
+    const hasGoogleId = await db.schema.hasColumn("users", "google_id");
+    if (!hasGoogleId) {
+      await db.schema.table("users", (t) => {
+        t.string("google_id").nullable().unique();
+      });
+      console.log("✅ Added google_id column to users table");
+    }
+
+    const hasDiscordId = await db.schema.hasColumn("users", "discord_id");
+    if (!hasDiscordId) {
+      await db.schema.table("users", (t) => {
+        t.string("discord_id").nullable().unique();
+      });
+      console.log("✅ Added discord_id column to users table");
+    }
+
+    const hasAvatarUrl = await db.schema.hasColumn("users", "avatar_url");
+    if (!hasAvatarUrl) {
+      await db.schema.table("users", (t) => {
+        t.string("avatar_url").nullable();
+      });
+      console.log("✅ Added avatar_url column to users table");
+    }
   }
 
   const hasPackages = await db.schema.hasTable("packages");
