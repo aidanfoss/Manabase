@@ -288,13 +288,13 @@ router.get("/matches", requireAuth, async (req, res) => {
   try {
     const me = req.user.id;
     
-    // 1. Fetch my wishlist, tradelist, and owned collection cards
+    // 1. Fetch my wishlist, tradelist (cards I want to trade for), and owned collection cards
     const myCards = await db("user_cards")
       .where("user_id", me)
       .whereIn("list_type", ["wishlist", "tradelist", "owned"]);
       
-    const myWishlist = myCards.filter(c => c.list_type === "wishlist");
-    const myCollection = myCards.filter(c => c.list_type === "tradelist" || c.list_type === "owned");
+    const myWants = myCards.filter(c => c.list_type === "wishlist" || c.list_type === "tradelist");
+    const myCollection = myCards.filter(c => c.list_type === "owned");
 
     // 2. Fetch peers
     const peers = await db("users").whereNot("id", me).select("id", "username", "email");
@@ -321,7 +321,7 @@ router.get("/matches", requireAuth, async (req, res) => {
       return Math.max(0, totalQty - used);
     };
 
-    const myWishlistAdjusted = myWishlist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
+    const myWantsAdjusted = myWants.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
     const myCollectionAdjusted = myCollection.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
     
     const result = [];
@@ -332,14 +332,15 @@ router.get("/matches", requireAuth, async (req, res) => {
       const theyWant = [];
       
       const seenYouWantKeys = new Set();
+      // Peer's collection cards (owned) that match my wants (wishlist or tradelist)
       for (const pCard of pCards) {
-        if (pCard.list_type !== "tradelist" && pCard.list_type !== "owned") continue;
+        if (pCard.list_type !== "owned" && pCard.list_type !== "tradelist") continue;
 
         const availQty = getAvailableQty(peer.id, pCard.card_name, pCard.quantity);
         if (availQty <= 0) continue;
         
-        const myWants = myWishlistAdjusted.filter(c => c.card_name.toLowerCase() === pCard.card_name.toLowerCase() && c.quantity > 0);
-        const hasMatch = myWants.some(w => w.any_printing || (w.set_code && pCard.set_code && w.set_code.toUpperCase() === pCard.set_code.toUpperCase()));
+        const myMatches = myWantsAdjusted.filter(c => c.card_name.toLowerCase() === pCard.card_name.toLowerCase() && c.quantity > 0);
+        const hasMatch = myMatches.some(w => w.any_printing || (w.set_code && pCard.set_code && w.set_code.toUpperCase() === pCard.set_code.toUpperCase()));
         if (hasMatch) {
           const key = `${pCard.card_name.toLowerCase()}_${(pCard.set_code || "").toUpperCase()}_${!!pCard.is_foil}`;
           if (!seenYouWantKeys.has(key)) {
@@ -350,13 +351,14 @@ router.get("/matches", requireAuth, async (req, res) => {
       }
       
       const seenTheyWantKeys = new Set();
+      // My collection cards (owned) that match peer's wants (wishlist or tradelist)
       for (const mCard of myCollectionAdjusted) {
         if (mCard.quantity <= 0) continue;
         const key = `${mCard.card_name.toLowerCase()}_${(mCard.set_code || "").toUpperCase()}_${!!mCard.is_foil}`;
         if (seenTheyWantKeys.has(key)) continue;
 
         const peerWants = pCards.find(c => {
-          if (c.list_type !== "wishlist" || c.card_name.toLowerCase() !== mCard.card_name.toLowerCase()) return false;
+          if ((c.list_type !== "wishlist" && c.list_type !== "tradelist") || c.card_name.toLowerCase() !== mCard.card_name.toLowerCase()) return false;
           if (c.any_printing === false && c.set_code && mCard.set_code && c.set_code.toUpperCase() !== mCard.set_code.toUpperCase()) return false;
           return true;
         });
@@ -574,9 +576,10 @@ router.post("/:id/action", requireAuth, async (req, res) => {
             });
           }
 
-          // If receiver had it in wishlist, decrement/remove it
+          // If receiver had it in wishlist or tradelist (cards wanted), decrement/remove it
           const receiverWish = await trx("user_cards")
-            .where({ user_id: receiverId, card_name: item.card_name, list_type: "wishlist" })
+            .where({ user_id: receiverId, card_name: item.card_name })
+            .whereIn("list_type", ["wishlist", "tradelist"])
             .first();
           if (receiverWish) {
             const newQty = Math.max(0, receiverWish.quantity - qty);

@@ -642,51 +642,22 @@ export default function TradelistManager() {
     return slots;
   };
 
-  // Filters for Inventories (Collection = Owned + Tradelist)
-  const myCombinedCollection = [...tradelist, ...myOwnedCollection];
-  const mergedMyCards = [];
-  const myMap = new Map();
-  for (const card of myCombinedCollection) {
-    const key = `${card.card_name.toLowerCase()}_${(card.set_code || "").toUpperCase()}_${!!card.is_foil}`;
-    if (myMap.has(key)) {
-      const existing = myMap.get(key);
-      existing.quantity = Math.max(existing.quantity, card.quantity);
-    } else {
-      const clone = { ...card };
-      myMap.set(key, clone);
-      mergedMyCards.push(clone);
-    }
-  }
-
-  const filteredMyTradelist = mergedMyCards.filter(item => {
+  // Filters for Inventories (Collection = Owned cards available to give)
+  const filteredMyTradelist = (myOwnedCollection.length > 0 ? myOwnedCollection : tradelist).filter(item => {
     if (activePartner && filterPartnerWishlist) {
       const partnerWishNames = partnerInventory
-        .filter(c => c.list_type === "wishlist")
+        .filter(c => c.list_type === "wishlist" || c.list_type === "tradelist")
         .map(c => c.card_name.toLowerCase());
       return partnerWishNames.includes(item.card_name.toLowerCase());
     }
     return true;
   });
 
-  const partnerCollection = partnerInventory.filter(c => c.list_type === "tradelist" || c.list_type === "owned");
-  const mergedPartnerCards = [];
-  const partnerMap = new Map();
-  for (const card of partnerCollection) {
-    const key = `${card.card_name.toLowerCase()}_${(card.set_code || "").toUpperCase()}_${!!card.is_foil}`;
-    if (partnerMap.has(key)) {
-      const existing = partnerMap.get(key);
-      existing.quantity = Math.max(existing.quantity, card.quantity);
-    } else {
-      const clone = { ...card };
-      partnerMap.set(key, clone);
-      mergedPartnerCards.push(clone);
-    }
-  }
-
-  const filteredPartnerTradelist = mergedPartnerCards.filter(item => {
+  const partnerCollection = partnerInventory.filter(c => c.list_type === "owned");
+  const filteredPartnerTradelist = (partnerCollection.length > 0 ? partnerCollection : partnerInventory.filter(c => c.list_type === "tradelist")).filter(item => {
     if (filterMyWishlist) {
-      const myWishNames = myWishlist.map(c => c.card_name.toLowerCase());
-      return myWishNames.includes(item.card_name.toLowerCase());
+      const myWantNames = [...myWishlist, ...tradelist].map(c => c.card_name.toLowerCase());
+      return myWantNames.includes(item.card_name.toLowerCase());
     }
     return true;
   });
@@ -1114,7 +1085,7 @@ export default function TradelistManager() {
                             }}
                           >
                             <option value="">+ Add card from your inventory...</option>
-                            {mergedMyCards.map((c, i) => (
+                            {(myOwnedCollection.length > 0 ? myOwnedCollection : tradelist).map((c, i) => (
                               <option key={i} value={JSON.stringify(c)}>{c.card_name} ({c.set_code ? c.set_code.toUpperCase() : "N/A"}) - {formatPrice(getCardPrice(c))}</option>
                             ))}
                           </select>
