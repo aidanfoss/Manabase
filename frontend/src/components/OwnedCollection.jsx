@@ -40,7 +40,7 @@ const isCardUnresolved = (card, printsCache) => {
   return cached.missing === true || !cached.prints || cached.prints.length === 0;
 };
 
-// Memoized individual table row component
+// Memoized Table Row Component
 const CollectionRow = React.memo(({
   card,
   cachedPrints,
@@ -204,6 +204,166 @@ const CollectionRow = React.memo(({
   );
 });
 
+// Memoized Visual Card Art Tile Component (Used for 10-20 per page / Card Art Grid view)
+const CollectionCardTile = React.memo(({
+  card,
+  cachedPrints,
+  onFieldChange,
+  onDelete
+}) => {
+  const isUnresolved = cachedPrints && cachedPrints !== "loading" && (cachedPrints.missing === true || !cachedPrints.prints || cachedPrints.prints.length === 0);
+  const printsLoaded = cachedPrints && cachedPrints !== "loading" && !isUnresolved;
+
+  // Active print match
+  const activePrint = printsLoaded && cachedPrints.prints ? (
+    cachedPrints.prints.find(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase()) || cachedPrints.prints[0]
+  ) : null;
+
+  // Image URI lookup
+  let imageUrl = null;
+  if (activePrint) {
+    imageUrl = activePrint.image_uris?.normal || activePrint.image_uris?.small || activePrint.card_faces?.[0]?.image_uris?.normal;
+  } else if (cachedPrints?.image_uris?.normal) {
+    imageUrl = cachedPrints.image_uris.normal;
+  }
+
+  // Price calculation
+  let rowPrice = 0;
+  if (activePrint && activePrint.prices) {
+    const basePriceStr = card.is_foil ? activePrint.prices.usd_foil : activePrint.prices.usd;
+    const basePrice = parseFloat(basePriceStr) || 0;
+    const mult = CONDITION_MULTIPLIERS[card.card_condition || "NM"] || 1.0;
+    rowPrice = basePrice * mult;
+  }
+  const rowTotal = rowPrice * card.quantity;
+
+  return (
+    <div className={`card-tile ${isUnresolved ? "tile-unresolved" : ""} ${card.is_foil ? "tile-foil" : ""}`}>
+      {/* Visual Card Image */}
+      <div className="tile-art-wrapper">
+        {imageUrl ? (
+          <img src={imageUrl} alt={card.card_name} className="tile-art-img" loading="lazy" />
+        ) : (
+          <div className="tile-art-placeholder">
+            <span className="placeholder-icon">🎴</span>
+            <span className="placeholder-name">{card.card_name}</span>
+            {isUnresolved && <span className="unresolved-badge">⚠️ Token / Unresolved</span>}
+          </div>
+        )}
+        
+        {card.is_foil && <div className="tile-foil-badge">✨ FOIL</div>}
+        
+        <div className="tile-price-tag">
+          {rowPrice > 0 ? `$${rowPrice.toFixed(2)}` : "Price N/A"}
+        </div>
+      </div>
+
+      {/* Tile Content & Fields */}
+      <div className="tile-content">
+        <div className="tile-header">
+          <span className="tile-title" title={card.card_name}>{card.card_name}</span>
+          <button className="tile-delete-btn" onClick={() => onDelete(card)} title="Remove card">✕</button>
+        </div>
+
+        {isUnresolved && (
+          <div className="tile-unresolved-alert">⚠️ Unresolved / Token</div>
+        )}
+
+        <div className="tile-controls-grid">
+          {/* Quantity */}
+          <div className="tile-control-group qty">
+            <label>Qty:</label>
+            <input
+              type="number"
+              min="1"
+              value={card.quantity}
+              onChange={(e) => onFieldChange(card, "quantity", e.target.value)}
+              className="table-input qty"
+            />
+          </div>
+
+          {/* Set Printing (Updates Card Art in Real Time!) */}
+          <div className="tile-control-group set">
+            <label>Set:</label>
+            {isUnresolved ? (
+              <input
+                type="text"
+                value={card.set_code || ""}
+                onChange={(e) => onFieldChange(card, "set_code", e.target.value)}
+                placeholder="Set Code"
+                className="table-input set-input"
+              />
+            ) : printsLoaded ? (
+              <select
+                value={card.set_code ? card.set_code.toUpperCase() : ""}
+                onChange={(e) => onFieldChange(card, "set_code", e.target.value)}
+                className="table-input set-select"
+              >
+                {cachedPrints.prints.map((p, idx) => (
+                  <option key={idx} value={p.set?.toUpperCase()}>
+                    {p.set?.toUpperCase()} - {p.set_name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select disabled className="table-input set-select">
+                <option>{card.set_code ? card.set_code.toUpperCase() : "Loading..."}</option>
+              </select>
+            )}
+          </div>
+
+          {/* Finish */}
+          <div className="tile-control-group finish">
+            <label>Finish:</label>
+            <select
+              value={card.is_foil ? "foil" : "normal"}
+              onChange={(e) => onFieldChange(card, "is_foil", e.target.value === "foil")}
+              className="table-input finish-select"
+            >
+              <option value="normal">Normal</option>
+              <option value="foil">Foil</option>
+            </select>
+          </div>
+
+          {/* Condition */}
+          <div className="tile-control-group condition">
+            <label>Cond:</label>
+            <select
+              value={card.card_condition || "NM"}
+              onChange={(e) => onFieldChange(card, "card_condition", e.target.value)}
+              className="table-input condition-select"
+            >
+              {CONDITIONS.map((cond) => (
+                <option key={cond.code} value={cond.code}>{cond.code}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Language */}
+          <div className="tile-control-group language">
+            <label>Lang:</label>
+            <select
+              value={card.card_language || "EN"}
+              onChange={(e) => onFieldChange(card, "card_language", e.target.value)}
+              className="table-input language-select"
+            >
+              {LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>{lang.code}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {rowTotal > 0 && (
+          <div className="tile-total-row">
+            Total ({card.quantity}): <strong>${rowTotal.toFixed(2)}</strong>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default function OwnedCollection({ onCollectionChanged }) {
   const [collection, setCollection] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -230,9 +390,10 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [sortField, setSortField] = useState("card_name");
   const [sortOrder, setSortOrder] = useState("asc");
 
-  // Pagination State
+  // Pagination & View Mode State
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(20);
+  const [viewMode, setViewMode] = useState("auto"); // "auto", "grid", "table"
 
   // Load collection
   useEffect(() => {
@@ -369,7 +530,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
     }
   };
 
-  // Update card fields (useCallback for child row performance)
+  // Update card fields
   const handleFieldChange = useCallback(async (card, field, val) => {
     try {
       const token = localStorage.getItem("token");
@@ -386,7 +547,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
         card_language: field === "card_language" ? val : (card.card_language || "EN")
       };
 
-      // Automatically update collector_number if set_code changes and prints are available
+      // Automatically update collector_number if set_code changes
       if (field === "set_code" && printsCache[card.card_name] && printsCache[card.card_name].prints) {
         const prints = printsCache[card.card_name].prints || [];
         const match = prints.find(p => p.set?.toUpperCase() === val.toUpperCase());
@@ -706,6 +867,9 @@ export default function OwnedCollection({ onCollectionChanged }) {
     return filteredAndSortedList.slice(startIdx, startIdx + pageSize);
   }, [filteredAndSortedList, currentPage, pageSize]);
 
+  // Determine whether to show Visual Card Art Grid mode or Spreadsheet Table mode
+  const isCardArtView = viewMode === "grid" || (viewMode === "auto" && typeof pageSize === "number" && pageSize <= 20);
+
   // Global totals
   const totalItems = collection.reduce((sum, c) => sum + c.quantity, 0);
   const uniqueCardsCount = new Set(collection.map(c => c.card_name)).size;
@@ -913,13 +1077,33 @@ export default function OwnedCollection({ onCollectionChanged }) {
         )}
       </div>
 
-      {/* Top Pagination Controls */}
+      {/* Top Pagination & View Controls Bar */}
       {totalFilteredCount > 0 && (
         <div className="pagination-bar">
           <div className="pagination-info">
             Showing <strong>{totalFilteredCount === 0 ? 0 : (currentPage - 1) * (pageSize === "all" ? totalFilteredCount : pageSize) + 1} - {Math.min(currentPage * (pageSize === "all" ? totalFilteredCount : pageSize), totalFilteredCount)}</strong> of <strong>{totalFilteredCount}</strong> cards
           </div>
+          
           <div className="pagination-controls">
+            {/* View Mode Switcher */}
+            <div className="view-mode-toggle">
+              <button
+                className={`view-toggle-btn ${isCardArtView ? "active" : ""}`}
+                onClick={() => setViewMode("grid")}
+                title="Switch to Card Art Grid View (ideal for confirming visual artwork)"
+              >
+                🖼️ Card Art
+              </button>
+              <button
+                className={`view-toggle-btn ${!isCardArtView ? "active" : ""}`}
+                onClick={() => setViewMode("table")}
+                title="Switch to Spreadsheet Table View"
+              >
+                📊 Table
+              </button>
+            </div>
+
+            {/* Per Page Selector */}
             <label className="page-size-label">
               Per page:
               <select
@@ -931,7 +1115,8 @@ export default function OwnedCollection({ onCollectionChanged }) {
                 }}
                 className="page-size-select"
               >
-                <option value={25}>25</option>
+                <option value={10}>10 (Visual Art)</option>
+                <option value={20}>20 (Visual Art)</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
                 <option value={250}>250</option>
@@ -984,19 +1169,33 @@ export default function OwnedCollection({ onCollectionChanged }) {
         </div>
       )}
 
-      {/* CSV Spreadsheet Table */}
-      <div className="csv-table-wrapper">
-        {loading && collection.length === 0 ? (
-          <div className="table-loading">Loading inventory...</div>
-        ) : collection.length === 0 ? (
-          <div className="table-empty">
-            Your collection is empty. Search above or bulk import to get started!
-          </div>
-        ) : filteredAndSortedList.length === 0 ? (
-          <div className="table-empty">
-            No cards match the active filters.
-          </div>
-        ) : (
+      {/* Main Content Area: Visual Card Art Grid OR Spreadsheet Table */}
+      {loading && collection.length === 0 ? (
+        <div className="table-loading">Loading inventory...</div>
+      ) : collection.length === 0 ? (
+        <div className="table-empty">
+          Your collection is empty. Search above or bulk import to get started!
+        </div>
+      ) : filteredAndSortedList.length === 0 ? (
+        <div className="table-empty">
+          No cards match the active filters.
+        </div>
+      ) : isCardArtView ? (
+        /* Visual Card Art Grid View */
+        <div className="card-art-grid">
+          {displayedList.map((card) => (
+            <CollectionCardTile
+              key={card.id}
+              card={card}
+              cachedPrints={printsCache[card.card_name]}
+              onFieldChange={handleFieldChange}
+              onDelete={deleteCard}
+            />
+          ))}
+        </div>
+      ) : (
+        /* Spreadsheet Table View */
+        <div className="csv-table-wrapper">
           <table className="csv-table">
             <thead>
               <tr>
@@ -1034,8 +1233,8 @@ export default function OwnedCollection({ onCollectionChanged }) {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Bottom Pagination Controls */}
       {totalFilteredCount > 0 && pageSize !== "all" && totalPages > 1 && (
