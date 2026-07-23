@@ -95,4 +95,20 @@ describe('Playgroup Private Invites API', () => {
     expect(listRes.status).toBe(200);
     expect(listRes.body.some(g => g.id === playgroupId)).toBe(true);
   });
+
+  it('should allow a user to leave a playgroup', async () => {
+    const leaveRes = await request(app)
+      .post(`/api/playgroups/${playgroupId}/leave`)
+      .set('Authorization', `Bearer ${userAToken}`);
+
+    expect(leaveRes.status).toBe(200);
+    expect(leaveRes.body.success).toBe(true);
+
+    const listRes = await request(app)
+      .get('/api/playgroups')
+      .set('Authorization', `Bearer ${userAToken}`);
+
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.some(g => g.id === playgroupId)).toBe(false);
+  });
 });

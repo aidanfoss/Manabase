@@ -120,54 +120,130 @@ export function parseImportInput(rawText) {
   for (const line of lines) {
     if (!line || line.startsWith("//") || line.startsWith("#")) continue;
 
-    // Check CSV row without header
+    // 1. Check standard decklist format with quantity at start: "4 Brainstorm" or "1 Eiganjo, Seat of the Empire"
+    const qtyMatch = line.match(/^(\d+)\s*x?\s+(.+)$/i);
+    if (qtyMatch) {
+      const qty = Math.max(1, parseInt(qtyMatch[1], 10) || 1);
+      let nameStr = qtyMatch[2].trim();
+
+      let setCode = "";
+      let collectorNumber = "";
+      let isFoil = false;
+
+      const setMatch = nameStr.match(/^(.+?)\s+[\(\[]([A-Z0-9]{3,6})[\)\]]\s*(?:#?(\d+))?\s*(.*)$/i);
+      if (setMatch) {
+        nameStr = setMatch[1].trim();
+        setCode = setMatch[2].trim().toUpperCase();
+        if (setMatch[3]) collectorNumber = setMatch[3].trim();
+        if (setMatch[4] && (setMatch[4].toLowerCase().includes("*f*") || setMatch[4].toLowerCase().includes("foil"))) isFoil = true;
+      }
+
+      nameStr = nameStr.replace(/^["']|["']$/g, "").trim();
+      if (nameStr) {
+        parsedCards.push({
+          card_name: nameStr,
+          quantity: qty,
+          set_code: setCode,
+          collector_number: collectorNumber,
+          is_foil: isFoil,
+          card_condition: "NM",
+          card_language: "EN"
+        });
+      }
+      continue;
+    }
+
+    // 2. Unheadered CSV line check (e.g. "Sol Ring, 2", "Eiganjo, Seat of the Empire, 1", "2, Sol Ring")
     if (line.includes(",")) {
       const row = parseCSVLine(line);
       if (row.length >= 2) {
-        const cardName = row[0].replace(/^["']|["']$/g, "").trim();
-        if (cardName) {
-          const qty = parseInt(row[1], 10) || 1;
-          parsedCards.push({
-            card_name: cardName,
-            quantity: Math.max(1, qty),
-            set_code: (row[2] || "").trim().toUpperCase(),
-            collector_number: (row[3] || "").trim(),
-            is_foil: normalizeFoil(row[4]),
-            card_condition: normalizeCondition(row[5]),
-            card_language: (row[6] || "EN").trim().toUpperCase()
-          });
-          continue;
+        // Case A: Quantity is second token: "Sol Ring, 2" or "Eiganjo, Seat of the Empire, 1" (if quoted)
+        if (/^\d+$/.test(row[1])) {
+          const cardName = row[0].replace(/^["']|["']$/g, "").trim();
+          if (cardName) {
+            parsedCards.push({
+              card_name: cardName,
+              quantity: Math.max(1, parseInt(row[1], 10) || 1),
+              set_code: (row[2] || "").trim().toUpperCase(),
+              collector_number: (row[3] || "").trim(),
+              is_foil: normalizeFoil(row[4]),
+              card_condition: normalizeCondition(row[5]),
+              card_language: (row[6] || "EN").trim().toUpperCase()
+            });
+            continue;
+          }
+        }
+        // Case B: Quantity is first token: "2, Sol Ring"
+        else if (/^\d+$/.test(row[0])) {
+          const cardName = row[1].replace(/^["']|["']$/g, "").trim();
+          if (cardName) {
+            parsedCards.push({
+              card_name: cardName,
+              quantity: Math.max(1, parseInt(row[0], 10) || 1),
+              set_code: (row[2] || "").trim().toUpperCase(),
+              collector_number: (row[3] || "").trim(),
+              is_foil: normalizeFoil(row[4]),
+              card_condition: normalizeCondition(row[5]),
+              card_language: (row[6] || "EN").trim().toUpperCase()
+            });
+            continue;
+          }
+        }
+        // Case C: Unquoted card name with comma followed by quantity in column 3: "Eiganjo, Seat of the Empire, 2, NEO"
+        else if (row.length >= 3 && /^\d+$/.test(row[2])) {
+          const cardName = `${row[0]}, ${row[1]}`.replace(/^["']|["']$/g, "").trim();
+          if (cardName) {
+            parsedCards.push({
+              card_name: cardName,
+              quantity: Math.max(1, parseInt(row[2], 10) || 1),
+              set_code: (row[3] || "").trim().toUpperCase(),
+              collector_number: (row[4] || "").trim(),
+              is_foil: normalizeFoil(row[5]),
+              card_condition: normalizeCondition(row[6]),
+              card_language: (row[7] || "EN").trim().toUpperCase()
+            });
+            continue;
+          }
+        }
+        // Case D: Line was explicitly quoted e.g. '"Eiganjo, Seat of the Empire", 1'
+        else if (line.trim().startsWith('"')) {
+          const cardName = row[0].replace(/^["']|["']$/g, "").trim();
+          if (cardName) {
+            const qty = parseInt(row[1], 10) || 1;
+            parsedCards.push({
+              card_name: cardName,
+              quantity: Math.max(1, qty),
+              set_code: (row[2] || "").trim().toUpperCase(),
+              collector_number: (row[3] || "").trim(),
+              is_foil: normalizeFoil(row[4]),
+              card_condition: normalizeCondition(row[5]),
+              card_language: (row[6] || "EN").trim().toUpperCase()
+            });
+            continue;
+          }
         }
       }
     }
 
-    // Standard decklist pattern: "4 Card Name" or "1 Card Name (SET) 123 *F*"
-    let qty = 1;
+    // 3. Fallback decklist line without leading quantity: "Eiganjo, Seat of the Empire" or "Hallowed Fountain (RNA) 251"
     let nameStr = line;
-
-    const qtyMatch = nameStr.match(/^(\d+)\s*x?\s+(.+)$/i);
-    if (qtyMatch) {
-      qty = parseInt(qtyMatch[1], 10) || 1;
-      nameStr = qtyMatch[2].trim();
-    }
-
     let setCode = "";
     let collectorNumber = "";
     let isFoil = false;
 
-    const setMatch = nameStr.match(/^(.+?)\s+[\(\[]([A-Z0-9]{3,4})[\)\]]\s*(\d+)?(.*)$/i);
+    const setMatch = nameStr.match(/^(.+?)\s+[\(\[]([A-Z0-9]{3,6})[\)\]]\s*(?:#?(\d+))?\s*(.*)$/i);
     if (setMatch) {
       nameStr = setMatch[1].trim();
       setCode = setMatch[2].trim().toUpperCase();
       if (setMatch[3]) collectorNumber = setMatch[3].trim();
-      if (setMatch[4] && setMatch[4].toLowerCase().includes("*f*")) isFoil = true;
+      if (setMatch[4] && (setMatch[4].toLowerCase().includes("*f*") || setMatch[4].toLowerCase().includes("foil"))) isFoil = true;
     }
 
     nameStr = nameStr.replace(/^["']|["']$/g, "").trim();
     if (nameStr) {
       parsedCards.push({
         card_name: nameStr,
-        quantity: Math.max(1, qty),
+        quantity: 1,
         set_code: setCode,
         collector_number: collectorNumber,
         is_foil: isFoil,

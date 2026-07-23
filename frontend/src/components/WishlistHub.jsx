@@ -788,6 +788,31 @@ export default function WishlistHub() {
     }
   };
 
+  const handleLeaveGroup = async () => {
+    if (!activeGroup) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/playgroups/${activeGroup.id}/leave`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(data.message || `Left playgroup "${activeGroup.name}"`, "info");
+        const remaining = playgroups.filter(g => g.id !== activeGroup.id);
+        setPlaygroups(remaining);
+        setActiveGroup(remaining.length > 0 ? remaining[0] : null);
+        loadPlaygroups();
+      } else {
+        const err = await res.json();
+        showToast(`Failed to leave playgroup: ${err.error}`, "error");
+      }
+    } catch (e) {
+      console.error("Failed to leave playgroup:", e);
+      showToast("Failed to leave playgroup.", "error");
+    }
+  };
+
   const handleDownloadMpcXml = () => {
     if (groupWishlist.length === 0) return;
 
@@ -1520,17 +1545,27 @@ export default function WishlistHub() {
               )}
 
               {activeGroup && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.75rem", gap: "0.5rem" }}>
                   <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
                     Active members: <strong>{groupMembers.length}</strong> 🔒 Private
                   </div>
-                  <button
-                    onClick={handleGenerateInviteLink}
-                    className="setup-btn"
-                    style={{ background: "#3b82f6", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
-                  >
-                    🔗 Invite Link
-                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      onClick={handleGenerateInviteLink}
+                      className="setup-btn"
+                      style={{ background: "#3b82f6", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
+                    >
+                      🔗 Invite Link
+                    </button>
+                    <button
+                      onClick={handleLeaveGroup}
+                      className="setup-btn"
+                      style={{ background: "transparent", border: "1px solid #ef4444", color: "#f87171", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
+                      title="Leave this playgroup"
+                    >
+                      🚪 Leave
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1869,18 +1904,28 @@ export default function WishlistHub() {
               </div>
 
               <div style={{ flex: 1, minWidth: "240px" }}>
-                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Invite Members</h4>
+                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Manage Group Access</h4>
                 <p style={{ margin: "0 0 0.75rem 0", fontSize: "0.8rem", color: "#94a3b8" }}>
-                  Playgroups are private. Generate an invite link to invite friends to your playgroup.
+                  Invite friends via link or leave this playgroup.
                 </p>
-                <button
-                  onClick={handleGenerateInviteLink}
-                  className="setup-btn"
-                  style={{ background: "#3b82f6" }}
-                  disabled={!activeGroup}
-                >
-                  🔗 Generate & Copy Invite Link
-                </button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    onClick={handleGenerateInviteLink}
+                    className="setup-btn"
+                    style={{ background: "#3b82f6", flex: 1 }}
+                    disabled={!activeGroup}
+                  >
+                    🔗 Copy Invite Link
+                  </button>
+                  <button
+                    onClick={handleLeaveGroup}
+                    className="setup-btn"
+                    style={{ background: "transparent", border: "1px solid #ef4444", color: "#f87171" }}
+                    disabled={!activeGroup}
+                  >
+                    🚪 Leave Group
+                  </button>
+                </div>
               </div>
             </div>
           </div>

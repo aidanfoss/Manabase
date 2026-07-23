@@ -160,6 +160,47 @@ router.post("/join", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/playgroups/:id/leave - Leave a playgroup
+router.post("/:id/leave", requireAuth, async (req, res) => {
+  try {
+    const playgroupId = parseInt(req.params.id);
+    if (isNaN(playgroupId)) {
+      return res.status(400).json({ error: "Invalid playgroup ID" });
+    }
+
+    const group = await db("playgroups").where({ id: playgroupId }).first();
+    if (!group) {
+      return res.status(404).json({ error: "Playgroup not found" });
+    }
+
+    // Delete membership
+    const deletedCount = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .del();
+
+    if (!deletedCount) {
+      return res.status(400).json({ error: "You are not a member of this playgroup" });
+    }
+
+    // Check remaining member count; if 0, delete group and invites
+    const remainingMembers = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId })
+      .count("* as count")
+      .first();
+
+    if (!remainingMembers || parseInt(remainingMembers.count) === 0) {
+      await db("playgroup_invites").where({ playgroup_id: playgroupId }).del();
+      await db("proxy_orders").where({ playgroup_id: playgroupId }).del();
+      await db("playgroups").where({ id: playgroupId }).del();
+    }
+
+    res.json({ success: true, message: `Successfully left playgroup "${group.name}"` });
+  } catch (err) {
+    console.error("Error leaving playgroup:", err);
+    res.status(500).json({ error: "Failed to leave playgroup." });
+  }
+});
+
 // GET /api/playgroups/:id/members - List members
 router.get("/:id/members", requireAuth, async (req, res) => {
   try {
