@@ -40,6 +40,74 @@ const isCardUnresolved = (card, printsCache) => {
   return cached.missing === true || !cached.prints || cached.prints.length === 0;
 };
 
+// Helper to generate descriptive tag for a card print variant (e.g. #290 Borderless)
+const getPrintVariantLabel = (p) => {
+  const parts = [];
+  if (p.collector_number) parts.push(`#${p.collector_number}`);
+  if (p.border_color === "borderless") parts.push("Borderless");
+  if (p.frame_effects?.includes("showcase")) parts.push("Showcase");
+  if (p.frame_effects?.includes("extendedart")) parts.push("Extended Art");
+  if (p.promo_types?.includes("prerelease")) parts.push("Prerelease");
+  if (p.promo_types?.includes("stamped")) parts.push("Stamped");
+  if (p.full_art && !parts.includes("Borderless")) parts.push("Full Art");
+  return parts.join(" ");
+};
+
+// Helper to extract deduplicated unique sets from prints list
+const getUniqueSetsFromPrints = (prints = []) => {
+  const seen = new Set();
+  const uniqueSets = [];
+  for (const p of prints) {
+    const setCode = (p.set || "").toUpperCase();
+    if (!setCode || seen.has(setCode)) continue;
+    seen.add(setCode);
+    uniqueSets.push({
+      set_code: setCode,
+      set_name: p.set_name || setCode
+    });
+  }
+  return uniqueSets;
+};
+
+// Helper to build Finish / Version dropdown options for a given card and set_code
+const getFinishVersionOptions = (cachedPrints, setCode) => {
+  if (!cachedPrints || !cachedPrints.prints || cachedPrints.prints.length === 0) {
+    return [
+      { key: ":normal", collNum: "", isFoil: false, label: "Normal" },
+      { key: ":foil", collNum: "", isFoil: true, label: "Foil" }
+    ];
+  }
+
+  const matchingPrints = cachedPrints.prints.filter(p => p.set?.toUpperCase() === (setCode || "").toUpperCase());
+  const targetPrints = matchingPrints.length > 0 ? matchingPrints : cachedPrints.prints;
+  const isMultiVariant = targetPrints.length > 1;
+
+  const options = [];
+  targetPrints.forEach((p) => {
+    const variantTag = getPrintVariantLabel(p);
+    const tagSuffix = variantTag ? ` (${variantTag})` : isMultiVariant ? ` (#${p.collector_number})` : "";
+
+    const normPrice = p.prices?.usd ? ` ($${parseFloat(p.prices.usd).toFixed(2)})` : "";
+    const foilPrice = p.prices?.usd_foil ? ` ($${parseFloat(p.prices.usd_foil).toFixed(2)})` : "";
+
+    options.push({
+      key: `${p.collector_number || ""}:normal`,
+      collNum: p.collector_number || "",
+      isFoil: false,
+      label: `Normal${tagSuffix}${normPrice}`
+    });
+
+    options.push({
+      key: `${p.collector_number || ""}:foil`,
+      collNum: p.collector_number || "",
+      isFoil: true,
+      label: `Foil${tagSuffix}${foilPrice}`
+    });
+  });
+
+  return options;
+};
+
 // Memoized Table Row Component
 const CollectionRow = React.memo(({
   card,
@@ -49,28 +117,32 @@ const CollectionRow = React.memo(({
 }) => {
   const isUnresolved = cachedPrints && cachedPrints !== "loading" && (cachedPrints.missing === true || !cachedPrints.prints || cachedPrints.prints.length === 0);
   const printsLoaded = cachedPrints && cachedPrints !== "loading" && !isUnresolved;
-  const isCachedFoil = !!card.is_foil;
+
+  // Find exact active print match based on set_code and collector_number
+  const setPrints = printsLoaded && cachedPrints.prints ? (
+    cachedPrints.prints.filter(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase())
+  ) : [];
+
+  const activePrint = setPrints.length > 0 ? (
+    setPrints.find(p => card.collector_number ? p.collector_number === card.collector_number : true) || setPrints[0]
+  ) : (printsLoaded && cachedPrints.prints ? cachedPrints.prints[0] : null);
+
+  // Unique sets for the set dropdown
+  const uniqueSets = getUniqueSetsFromPrints(cachedPrints?.prints);
+  // Version / Finish options for active set
+  const finishOptions = getFinishVersionOptions(cachedPrints, card.set_code);
+
+  const currentSelectedFinishKey = `${activePrint?.collector_number || card.collector_number || ""}:${card.is_foil ? "foil" : "normal"}`;
 
   // Calculate row price
   let rowPrice = 0;
-  if (printsLoaded && cachedPrints.prints && cachedPrints.prints.length > 0) {
-    const activePrint = cachedPrints.prints.find(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase()) || cachedPrints.prints[0];
-    if (activePrint && activePrint.prices) {
-      const basePriceStr = card.is_foil ? activePrint.prices.usd_foil : activePrint.prices.usd;
-      const basePrice = parseFloat(basePriceStr) || 0;
-      const mult = CONDITION_MULTIPLIERS[card.card_condition || "NM"] || 1.0;
-      rowPrice = basePrice * mult;
-    }
+  if (activePrint && activePrint.prices) {
+    const basePriceStr = card.is_foil ? activePrint.prices.usd_foil : activePrint.prices.usd;
+    const basePrice = parseFloat(basePriceStr) || 0;
+    const mult = CONDITION_MULTIPLIERS[card.card_condition || "NM"] || 1.0;
+    rowPrice = basePrice * mult;
   }
   const rowTotal = rowPrice * card.quantity;
-
-  const getFinishLabel = (finishType) => {
-    if (!printsLoaded || !cachedPrints.prints) return finishType === "foil" ? "Foil" : "Normal";
-    const activePrint = cachedPrints.prints.find(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase()) || cachedPrints.prints[0];
-    if (!activePrint || !activePrint.prices) return finishType === "foil" ? "Foil" : "Normal";
-    const price = finishType === "foil" ? activePrint.prices.usd_foil : activePrint.prices.usd;
-    return `${finishType === "foil" ? "Foil" : "Normal"} (${price ? `$${parseFloat(price).toFixed(2)}` : "N/A"})`;
-  };
 
   return (
     <tr className={isUnresolved ? "row-unresolved" : ""}>
@@ -97,7 +169,7 @@ const CollectionRow = React.memo(({
         </div>
       </td>
 
-      {/* Set Printing */}
+      {/* Set Printing (Deduplicated Unique Sets) */}
       <td className="col-set">
         {isUnresolved ? (
           <input
@@ -107,21 +179,17 @@ const CollectionRow = React.memo(({
             placeholder="Set Code (e.g. ELD)"
             className="table-input set-input"
           />
-        ) : printsLoaded ? (
+        ) : printsLoaded && uniqueSets.length > 0 ? (
           <select
             value={card.set_code ? card.set_code.toUpperCase() : ""}
             onChange={(e) => onFieldChange(card, "set_code", e.target.value)}
             className="table-input set-select"
           >
-            {cachedPrints.prints.map((p, idx) => {
-              const priceStr = isCachedFoil ? p.prices?.usd_foil : p.prices?.usd;
-              const priceLabel = priceStr ? ` ($${parseFloat(priceStr).toFixed(2)})` : "";
-              return (
-                <option key={idx} value={p.set?.toUpperCase()}>
-                  {p.set?.toUpperCase()} - {p.set_name}{priceLabel}
-                </option>
-              );
-            })}
+            {uniqueSets.map((s) => (
+              <option key={s.set_code} value={s.set_code}>
+                {s.set_code} - {s.set_name}
+              </option>
+            ))}
           </select>
         ) : (
           <select
@@ -136,15 +204,24 @@ const CollectionRow = React.memo(({
         )}
       </td>
 
-      {/* Finish */}
+      {/* Finish / Version Dropdown (Includes Art Variants & Foils) */}
       <td className="col-foil">
         <select
-          value={card.is_foil ? "foil" : "normal"}
-          onChange={(e) => onFieldChange(card, "is_foil", e.target.value === "foil")}
+          value={currentSelectedFinishKey}
+          onChange={(e) => {
+            const [collNum, finishType] = e.target.value.split(":");
+            onFieldChange(card, "version_finish", {
+              collector_number: collNum,
+              is_foil: finishType === "foil"
+            });
+          }}
           className="table-input finish-select"
         >
-          <option value="normal">{getFinishLabel("normal")}</option>
-          <option value="foil">{getFinishLabel("foil")}</option>
+          {finishOptions.map((opt) => (
+            <option key={opt.key} value={opt.key}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </td>
 
@@ -204,7 +281,7 @@ const CollectionRow = React.memo(({
   );
 });
 
-// Memoized Visual Card Art Tile Component (Used for 10-20 per page / Card Art Grid view)
+// Memoized Visual Card Art Tile Component
 const CollectionCardTile = React.memo(({
   card,
   cachedPrints,
@@ -214,10 +291,17 @@ const CollectionCardTile = React.memo(({
   const isUnresolved = cachedPrints && cachedPrints !== "loading" && (cachedPrints.missing === true || !cachedPrints.prints || cachedPrints.prints.length === 0);
   const printsLoaded = cachedPrints && cachedPrints !== "loading" && !isUnresolved;
 
-  // Active print match
-  const activePrint = printsLoaded && cachedPrints.prints ? (
-    cachedPrints.prints.find(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase()) || cachedPrints.prints[0]
-  ) : null;
+  const setPrints = printsLoaded && cachedPrints.prints ? (
+    cachedPrints.prints.filter(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase())
+  ) : [];
+
+  const activePrint = setPrints.length > 0 ? (
+    setPrints.find(p => card.collector_number ? p.collector_number === card.collector_number : true) || setPrints[0]
+  ) : (printsLoaded && cachedPrints.prints ? cachedPrints.prints[0] : null);
+
+  const uniqueSets = getUniqueSetsFromPrints(cachedPrints?.prints);
+  const finishOptions = getFinishVersionOptions(cachedPrints, card.set_code);
+  const currentSelectedFinishKey = `${activePrint?.collector_number || card.collector_number || ""}:${card.is_foil ? "foil" : "normal"}`;
 
   // Image URI lookup
   let imageUrl = null;
@@ -282,7 +366,7 @@ const CollectionCardTile = React.memo(({
             />
           </div>
 
-          {/* Set Printing (Updates Card Art in Real Time!) */}
+          {/* Set Printing (Deduplicated Unique Sets) */}
           <div className="tile-control-group set">
             <label>Set:</label>
             {isUnresolved ? (
@@ -293,15 +377,15 @@ const CollectionCardTile = React.memo(({
                 placeholder="Set Code"
                 className="table-input set-input"
               />
-            ) : printsLoaded ? (
+            ) : printsLoaded && uniqueSets.length > 0 ? (
               <select
                 value={card.set_code ? card.set_code.toUpperCase() : ""}
                 onChange={(e) => onFieldChange(card, "set_code", e.target.value)}
                 className="table-input set-select"
               >
-                {cachedPrints.prints.map((p, idx) => (
-                  <option key={idx} value={p.set?.toUpperCase()}>
-                    {p.set?.toUpperCase()} - {p.set_name}
+                {uniqueSets.map((s) => (
+                  <option key={s.set_code} value={s.set_code}>
+                    {s.set_code} - {s.set_name}
                   </option>
                 ))}
               </select>
@@ -312,16 +396,25 @@ const CollectionCardTile = React.memo(({
             )}
           </div>
 
-          {/* Finish */}
+          {/* Finish / Version Dropdown (Updates Art Image & Version in Real Time!) */}
           <div className="tile-control-group finish">
-            <label>Finish:</label>
+            <label>Version / Finish:</label>
             <select
-              value={card.is_foil ? "foil" : "normal"}
-              onChange={(e) => onFieldChange(card, "is_foil", e.target.value === "foil")}
+              value={currentSelectedFinishKey}
+              onChange={(e) => {
+                const [collNum, finishType] = e.target.value.split(":");
+                onFieldChange(card, "version_finish", {
+                  collector_number: collNum,
+                  is_foil: finishType === "foil"
+                });
+              }}
               className="table-input finish-select"
             >
-              <option value="normal">Normal</option>
-              <option value="foil">Foil</option>
+              {finishOptions.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -393,7 +486,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
   // Pagination & View Mode State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [viewMode, setViewMode] = useState("auto"); // "auto", "grid", "table"
+  const [viewMode, setViewMode] = useState("auto");
 
   // Load collection
   useEffect(() => {
@@ -536,25 +629,47 @@ export default function OwnedCollection({ onCollectionChanged }) {
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      let newCollectorNumber = card.collector_number;
+      let newIsFoil = !!card.is_foil;
+      let newSetCode = card.set_code;
+      let newQuantity = card.quantity;
+      let newCondition = card.card_condition || "NM";
+      let newLanguage = card.card_language || "EN";
+
+      if (field === "version_finish") {
+        newCollectorNumber = val.collector_number;
+        newIsFoil = !!val.is_foil;
+      } else if (field === "quantity") {
+        newQuantity = parseInt(val) || 0;
+      } else if (field === "set_code") {
+        newSetCode = (val || "").toUpperCase();
+        // Reset collector_number to first print in new set
+        if (printsCache[card.card_name] && printsCache[card.card_name].prints) {
+          const newSetPrints = printsCache[card.card_name].prints.filter(p => p.set?.toUpperCase() === newSetCode);
+          if (newSetPrints.length > 0) {
+            newCollectorNumber = newSetPrints[0].collector_number || "";
+          }
+        }
+      } else if (field === "collector_number") {
+        newCollectorNumber = val;
+      } else if (field === "is_foil") {
+        newIsFoil = !!val;
+      } else if (field === "card_condition") {
+        newCondition = val;
+      } else if (field === "card_language") {
+        newLanguage = val;
+      }
+
       const payload = {
         id: card.id,
         card_name: card.card_name,
-        quantity: field === "quantity" ? parseInt(val) || 0 : card.quantity,
-        set_code: field === "set_code" ? (val || "").toUpperCase() : card.set_code,
-        collector_number: field === "collector_number" ? val : card.collector_number,
-        is_foil: field === "is_foil" ? !!val : !!card.is_foil,
-        card_condition: field === "card_condition" ? val : (card.card_condition || "NM"),
-        card_language: field === "card_language" ? val : (card.card_language || "EN")
+        quantity: newQuantity,
+        set_code: newSetCode,
+        collector_number: newCollectorNumber,
+        is_foil: newIsFoil,
+        card_condition: newCondition,
+        card_language: newLanguage
       };
-
-      // Automatically update collector_number if set_code changes
-      if (field === "set_code" && printsCache[card.card_name] && printsCache[card.card_name].prints) {
-        const prints = printsCache[card.card_name].prints || [];
-        const match = prints.find(p => p.set?.toUpperCase() === val.toUpperCase());
-        if (match) {
-          payload.collector_number = match.collector_number || "";
-        }
-      }
 
       const res = await fetch("/api/collection/owned", {
         method: "POST",
@@ -655,7 +770,11 @@ export default function OwnedCollection({ onCollectionChanged }) {
     const cached = printsCache[card.card_name];
     if (!cached || cached === "loading" || cached.missing || !cached.prints || cached.prints.length === 0) return 0;
 
-    const activePrint = cached.prints.find(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase()) || cached.prints[0];
+    const setPrints = cached.prints.filter(p => p.set?.toUpperCase() === (card.set_code || "").toUpperCase());
+    const activePrint = setPrints.length > 0 ? (
+      setPrints.find(p => card.collector_number ? p.collector_number === card.collector_number : true) || setPrints[0]
+    ) : cached.prints[0];
+
     if (!activePrint || !activePrint.prices) return 0;
 
     const basePriceStr = card.is_foil ? activePrint.prices.usd_foil : activePrint.prices.usd;
@@ -1208,7 +1327,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
                 <th className="col-set clickable" onClick={() => handleSortClick("set_code")}>
                   Set printing{getSortIndicator("set_code")}
                 </th>
-                <th className="col-foil">Finish</th>
+                <th className="col-foil">Version / Finish</th>
                 <th className="col-condition clickable" onClick={() => handleSortClick("card_condition")}>
                   Condition{getSortIndicator("card_condition")}
                 </th>
