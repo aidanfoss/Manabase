@@ -8,6 +8,7 @@ export default function TradelistManager() {
   
   // State for Manage My Tradelist
   const [tradelist, setTradelist] = useState([]);
+  const [myOwnedCollection, setMyOwnedCollection] = useState([]);
   const [loadingMyTrade, setLoadingMyTrade] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -182,16 +183,27 @@ export default function TradelistManager() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch("/api/collection/tradelist", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTradelist(data || []);
-        fetchCardMetadataBatch(data.map(c => c.card_name));
+      const [resTrade, resOwned] = await Promise.all([
+        fetch("/api/collection/tradelist", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/collection/owned", { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+
+      let tradeData = [];
+      let ownedData = [];
+
+      if (resTrade.ok) {
+        tradeData = await resTrade.json();
+        setTradelist(tradeData || []);
       }
+      if (resOwned.ok) {
+        ownedData = await resOwned.json();
+        setMyOwnedCollection(ownedData || []);
+      }
+
+      const allCards = [...(tradeData || []), ...(ownedData || [])];
+      fetchCardMetadataBatch(allCards.map(c => c.card_name));
     } catch (e) {
-      console.error("Failed to load tradelist:", e);
+      console.error("Failed to load tradelist/owned collection:", e);
     } finally {
       setLoadingMyTrade(false);
     }
@@ -630,8 +642,23 @@ export default function TradelistManager() {
     return slots;
   };
 
-  // Filters for Inventories
-  const filteredMyTradelist = tradelist.filter(item => {
+  // Filters for Inventories (Collection = Owned + Tradelist)
+  const myCombinedCollection = [...tradelist, ...myOwnedCollection];
+  const mergedMyCards = [];
+  const myMap = new Map();
+  for (const card of myCombinedCollection) {
+    const key = `${card.card_name.toLowerCase()}_${(card.set_code || "").toUpperCase()}_${!!card.is_foil}`;
+    if (myMap.has(key)) {
+      const existing = myMap.get(key);
+      existing.quantity = Math.max(existing.quantity, card.quantity);
+    } else {
+      const clone = { ...card };
+      myMap.set(key, clone);
+      mergedMyCards.push(clone);
+    }
+  }
+
+  const filteredMyTradelist = mergedMyCards.filter(item => {
     if (activePartner && filterPartnerWishlist) {
       const partnerWishNames = partnerInventory
         .filter(c => c.list_type === "wishlist")
@@ -641,15 +668,28 @@ export default function TradelistManager() {
     return true;
   });
 
-  const filteredPartnerTradelist = partnerInventory
-    .filter(c => c.list_type === "tradelist")
-    .filter(item => {
-      if (filterMyWishlist) {
-        const myWishNames = myWishlist.map(c => c.card_name.toLowerCase());
-        return myWishNames.includes(item.card_name.toLowerCase());
-      }
-      return true;
-    });
+  const partnerCollection = partnerInventory.filter(c => c.list_type === "tradelist" || c.list_type === "owned");
+  const mergedPartnerCards = [];
+  const partnerMap = new Map();
+  for (const card of partnerCollection) {
+    const key = `${card.card_name.toLowerCase()}_${(card.set_code || "").toUpperCase()}_${!!card.is_foil}`;
+    if (partnerMap.has(key)) {
+      const existing = partnerMap.get(key);
+      existing.quantity = Math.max(existing.quantity, card.quantity);
+    } else {
+      const clone = { ...card };
+      partnerMap.set(key, clone);
+      mergedPartnerCards.push(clone);
+    }
+  }
+
+  const filteredPartnerTradelist = mergedPartnerCards.filter(item => {
+    if (filterMyWishlist) {
+      const myWishNames = myWishlist.map(c => c.card_name.toLowerCase());
+      return myWishNames.includes(item.card_name.toLowerCase());
+    }
+    return true;
+  });
 
   const filteredTradeHistory = tradeHistory.filter(t => {
     if (historyPartnerFilter !== "all" && String(t.partner_id) !== String(historyPartnerFilter)) {
@@ -1074,7 +1114,7 @@ export default function TradelistManager() {
                             }}
                           >
                             <option value="">+ Add card from your inventory...</option>
-                            {tradelist.map((c, i) => (
+                            {mergedMyCards.map((c, i) => (
                               <option key={i} value={JSON.stringify(c)}>{c.card_name} ({c.set_code ? c.set_code.toUpperCase() : "N/A"}) - {formatPrice(getCardPrice(c))}</option>
                             ))}
                           </select>
@@ -1137,8 +1177,8 @@ export default function TradelistManager() {
                               e.target.value = "";
                             }}
                           >
-                            <option value="">+ Add card from {counterTrade.partner_username}'s tradelist...</option>
-                            {partnerInventory.map((c, i) => (
+                            <option value="">+ Add card from {counterTrade.partner_username}'s collection...</option>
+                            {partnerInventory.filter(c => c.list_type === "tradelist" || c.list_type === "owned").map((c, i) => (
                               <option key={i} value={JSON.stringify(c)}>{c.card_name} ({c.set_code ? c.set_code.toUpperCase() : "N/A"}) - {formatPrice(getCardPrice(c))}</option>
                             ))}
                           </select>
@@ -1630,7 +1670,7 @@ export default function TradelistManager() {
             <div className="steam-matchmaker-container">
               <div className="steam-section-header">
                 <h2>🤝 Playgroup Wishlist Matches</h2>
-                <p>These are cards on your wishlist that members in your playgroup currently have in their tradelists.</p>
+                <p>These are cards on your wishlist that members in your playgroup currently have in their collection.</p>
               </div>
 
               {/* Direct Select Dropdown */}
@@ -1654,9 +1694,9 @@ export default function TradelistManager() {
                 <div className="steam-loader">Scanning playgroup wishlist matches...</div>
               ) : wishlistMatches.length === 0 ? (
                 <div className="steam-empty-box">
-                  No wishlist matches found. Either your wishlist is empty, or no one in your playgroup has those cards in their tradelists.
+                  No wishlist matches found. Either your wishlist is empty, or no one in your playgroup has those cards in their collection.
                   <br />
-                  <span className="sub">Tip: Go to the Wishlist tab and add cards, or have other members add cards to their Tradelists!</span>
+                  <span className="sub">Tip: Go to the Wishlist tab and add cards, or have other members add cards to their collection!</span>
                 </div>
               ) : (
                 <div className="steam-user-matches-grid">
@@ -1857,13 +1897,13 @@ export default function TradelistManager() {
                         className={`steam-inv-tab ${activeInventoryTab === "partner" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("partner")}
                       >
-                        👤 {activePartner.username}'s Tradelist Inventory
+                        👤 {activePartner.username}'s Collection Inventory
                       </button>
                       <button 
                         className={`steam-inv-tab ${activeInventoryTab === "mine" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("mine")}
                       >
-                        🎒 Your Tradelist Inventory
+                        🎒 Your Collection Inventory
                       </button>
                     </div>
 
@@ -1887,7 +1927,7 @@ export default function TradelistManager() {
                             <div className="steam-loader">Loading partner inventory...</div>
                           ) : filteredPartnerTradelist.length === 0 ? (
                             <div className="steam-empty-box py-6">
-                              No cards found. {filterMyWishlist && "Try unchecking the wishlist filter to see their entire tradelist!"}
+                              No cards found. {filterMyWishlist && "Try unchecking the wishlist filter to see their entire collection!"}
                             </div>
                           ) : (
                             <div className="steam-inv-grid">

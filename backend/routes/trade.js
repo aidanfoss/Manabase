@@ -288,21 +288,21 @@ router.get("/matches", requireAuth, async (req, res) => {
   try {
     const me = req.user.id;
     
-    // 1. Fetch my wishlist and tradelist
+    // 1. Fetch my wishlist, tradelist, and owned collection cards
     const myCards = await db("user_cards")
       .where("user_id", me)
-      .whereIn("list_type", ["wishlist", "tradelist"]);
+      .whereIn("list_type", ["wishlist", "tradelist", "owned"]);
       
     const myWishlist = myCards.filter(c => c.list_type === "wishlist");
-    const myTradelist = myCards.filter(c => c.list_type === "tradelist");
+    const myCollection = myCards.filter(c => c.list_type === "tradelist" || c.list_type === "owned");
 
     // 2. Fetch peers
     const peers = await db("users").whereNot("id", me).select("id", "username", "email");
 
-    // 3. Fetch peer cards (wishlist and tradelist)
+    // 3. Fetch peer cards (wishlist, tradelist, and owned collection)
     const peerCards = await db("user_cards")
       .whereNot("user_id", me)
-      .whereIn("list_type", ["wishlist", "tradelist"]);
+      .whereIn("list_type", ["wishlist", "tradelist", "owned"]);
 
     // 4. Adjust quantities for accepted trades
     const committedItems = await db("trade_items")
@@ -322,9 +322,7 @@ router.get("/matches", requireAuth, async (req, res) => {
     };
 
     const myWishlistAdjusted = myWishlist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
-    const myTradelistAdjusted = myTradelist.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
-    
-    const myActiveWishlistNames = new Set(myWishlistAdjusted.filter(c => c.quantity > 0).map(c => c.card_name));
+    const myCollectionAdjusted = myCollection.map(c => ({...c, quantity: getAvailableQty(me, c.card_name, c.quantity)}));
     
     const result = [];
 
@@ -333,30 +331,40 @@ router.get("/matches", requireAuth, async (req, res) => {
       const youWant = [];
       const theyWant = [];
       
+      const seenYouWantKeys = new Set();
       for (const pCard of pCards) {
+        if (pCard.list_type !== "tradelist" && pCard.list_type !== "owned") continue;
+
         const availQty = getAvailableQty(peer.id, pCard.card_name, pCard.quantity);
         if (availQty <= 0) continue;
         
-        if (pCard.list_type === "tradelist") {
-          const myWants = myWishlistAdjusted.filter(c => c.card_name === pCard.card_name && c.quantity > 0);
-          const hasMatch = myWants.some(w => w.any_printing || w.set_code.toUpperCase() === pCard.set_code.toUpperCase());
-          if (hasMatch) {
+        const myWants = myWishlistAdjusted.filter(c => c.card_name.toLowerCase() === pCard.card_name.toLowerCase() && c.quantity > 0);
+        const hasMatch = myWants.some(w => w.any_printing || (w.set_code && pCard.set_code && w.set_code.toUpperCase() === pCard.set_code.toUpperCase()));
+        if (hasMatch) {
+          const key = `${pCard.card_name.toLowerCase()}_${(pCard.set_code || "").toUpperCase()}_${!!pCard.is_foil}`;
+          if (!seenYouWantKeys.has(key)) {
+            seenYouWantKeys.add(key);
             youWant.push({...pCard, quantity: availQty});
           }
         }
       }
       
-      for (const mCard of myTradelistAdjusted) {
+      const seenTheyWantKeys = new Set();
+      for (const mCard of myCollectionAdjusted) {
         if (mCard.quantity <= 0) continue;
+        const key = `${mCard.card_name.toLowerCase()}_${(mCard.set_code || "").toUpperCase()}_${!!mCard.is_foil}`;
+        if (seenTheyWantKeys.has(key)) continue;
+
         const peerWants = pCards.find(c => {
-          if (c.list_type !== "wishlist" || c.card_name !== mCard.card_name) return false;
-          if (c.any_printing === false && c.set_code.toUpperCase() !== mCard.set_code.toUpperCase()) return false;
+          if (c.list_type !== "wishlist" || c.card_name.toLowerCase() !== mCard.card_name.toLowerCase()) return false;
+          if (c.any_printing === false && c.set_code && mCard.set_code && c.set_code.toUpperCase() !== mCard.set_code.toUpperCase()) return false;
           return true;
         });
         if (peerWants) {
           const peerAvail = getAvailableQty(peer.id, peerWants.card_name, peerWants.quantity);
           if (peerAvail > 0) {
-             theyWant.push(mCard);
+            seenTheyWantKeys.add(key);
+            theyWant.push(mCard);
           }
         }
       }
@@ -377,13 +385,13 @@ router.get("/matches", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/trade/inventory/:userId - Get trade-partner's tradelist and wishlist
+// GET /api/trade/inventory/:userId - Get trade-partner's collection (owned & tradelist) and wishlist
 router.get("/inventory/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const cards = await db("user_cards")
       .where({ user_id: userId })
-      .whereIn("list_type", ["tradelist", "wishlist"])
+      .whereIn("list_type", ["owned", "tradelist", "wishlist"])
       .orderBy("card_name", "asc");
     res.json(cards);
   } catch (err) {
