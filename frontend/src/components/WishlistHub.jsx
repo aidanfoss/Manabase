@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
+import { useToast } from "../context/ToastContext";
 import "../styles/wishlist.css";
 
 function generateManaPoolCheckoutUrl(items) {
@@ -27,6 +28,7 @@ function generateManaPoolCheckoutUrl(items) {
 }
 
 export default function WishlistHub() {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("lists"); // "lists", "nexus", "trades"
   const [selectedList, setSelectedList] = useState("proxy_wishlist");
   const [showMarketplaceDrawer, setShowMarketplaceDrawer] = useState(false);
@@ -66,7 +68,6 @@ export default function WishlistHub() {
   const [groupWishlist, setGroupWishlist] = useState([]);
   const [groupInventory, setGroupInventory] = useState([]);
   const [newGroupName, setNewGroupName] = useState("");
-  const [joinGroupId, setJoinGroupId] = useState("");
 
   // Print view state
   const [showPrintMode, setShowPrintMode] = useState(false);
@@ -764,29 +765,26 @@ export default function WishlistHub() {
     }
   };
 
-  const handleJoinGroup = async () => {
-    if (!joinGroupId.trim()) return;
+  const handleGenerateInviteLink = async () => {
+    if (!activeGroup) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("/api/playgroups/join", {
+      const res = await fetch(`/api/playgroups/${activeGroup.id}/invite`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ playgroup_id: joinGroupId.trim() })
+        headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setJoinGroupId("");
-        loadPlaygroups();
-        alert(`Success! Joined playgroup: ${data.name}`);
+        const url = `${window.location.origin}/invite/${data.token}`;
+        await navigator.clipboard.writeText(url);
+        showToast(`🔗 Playgroup invite link copied to clipboard!`, "success");
       } else {
         const err = await res.json();
-        alert(`Failed: ${err.error}`);
+        showToast(`Failed to generate invite link: ${err.error}`, "error");
       }
     } catch (e) {
-      console.error("Failed to join playgroup:", e);
+      console.error("Failed to generate invite link:", e);
+      showToast("Failed to generate invite link.", "error");
     }
   };
 
@@ -1499,7 +1497,7 @@ export default function WishlistHub() {
       {activeTab === "nexus" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-          {/* Active Playgroup selector & join/create actions */}
+          {/* Active Playgroup selector & invite/create actions */}
           <div className="playgroup-setup-grid">
             {/* Selector */}
             <div className="setup-card">
@@ -1514,7 +1512,7 @@ export default function WishlistHub() {
                   className="playgroup-dropdown"
                 >
                   {playgroups.map(g => (
-                    <option key={g.id} value={g.id}>{g.name} (ID: {g.id})</option>
+                    <option key={g.id} value={g.id}>{g.name}</option>
                   ))}
                 </select>
               ) : (
@@ -1522,15 +1520,25 @@ export default function WishlistHub() {
               )}
 
               {activeGroup && (
-                <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
-                  Active members: <strong>{groupMembers.length}</strong>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.75rem" }}>
+                  <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+                    Active members: <strong>{groupMembers.length}</strong> 🔒 Private
+                  </div>
+                  <button
+                    onClick={handleGenerateInviteLink}
+                    className="setup-btn"
+                    style={{ background: "#3b82f6", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
+                  >
+                    🔗 Invite Link
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Create / Join actions */}
+            {/* Create Group */}
             <div className="setup-card" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", paddingLeft: "1.5rem" }}>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
+              <label className="playgroup-label">✨ Create Private Playgroup:</label>
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
                 <input
                   type="text"
                   value={newGroupName}
@@ -1540,18 +1548,6 @@ export default function WishlistHub() {
                   style={{ flex: 1 }}
                 />
                 <button onClick={handleCreateGroup} className="setup-btn">Create Group</button>
-              </div>
-
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-                <input
-                  type="text"
-                  value={joinGroupId}
-                  onChange={(e) => setJoinGroupId(e.target.value)}
-                  placeholder="Playgroup ID to join..."
-                  className="setup-input"
-                  style={{ flex: 1 }}
-                />
-                <button onClick={handleJoinGroup} className="setup-btn" style={{ background: "#475569" }}>Join Group</button>
               </div>
             </div>
           </div>
@@ -1873,18 +1869,18 @@ export default function WishlistHub() {
               </div>
 
               <div style={{ flex: 1, minWidth: "240px" }}>
-                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Join Playgroup by ID</h4>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <input
-                    type="text"
-                    value={joinGroupId}
-                    onChange={(e) => setJoinGroupId(e.target.value)}
-                    placeholder="Playgroup ID to join..."
-                    className="setup-input"
-                    style={{ flex: 1 }}
-                  />
-                  <button onClick={handleJoinGroup} className="setup-btn" style={{ background: "#475569" }}>Join</button>
-                </div>
+                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Invite Members</h4>
+                <p style={{ margin: "0 0 0.75rem 0", fontSize: "0.8rem", color: "#94a3b8" }}>
+                  Playgroups are private. Generate an invite link to invite friends to your playgroup.
+                </p>
+                <button
+                  onClick={handleGenerateInviteLink}
+                  className="setup-btn"
+                  style={{ background: "#3b82f6" }}
+                  disabled={!activeGroup}
+                >
+                  🔗 Generate & Copy Invite Link
+                </button>
               </div>
             </div>
           </div>

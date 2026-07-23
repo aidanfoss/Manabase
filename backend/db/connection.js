@@ -318,6 +318,18 @@ export async function initDB() {
     console.log("✅ Created playgroup_members table");
   }
 
+  const hasPlaygroupInvites = await db.schema.hasTable("playgroup_invites");
+  if (!hasPlaygroupInvites) {
+    await db.schema.createTable("playgroup_invites", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups").onDelete("CASCADE");
+      t.string("token").notNullable().unique();
+      t.uuid("created_by").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.timestamps(true, true);
+    });
+    console.log("✅ Created playgroup_invites table");
+  }
+
   const hasProxyOrders = await db.schema.hasTable("proxy_orders");
   if (!hasProxyOrders) {
     await db.schema.createTable("proxy_orders", (t) => {
