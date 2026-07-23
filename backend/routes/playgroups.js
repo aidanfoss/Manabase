@@ -149,7 +149,8 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
         "user_cards.is_foil",
         "user_cards.quantity",
         "user_cards.created_at",
-        "users.username"
+        "users.username",
+        "users.default_card_back as user_card_back"
       )
       .orderBy("user_cards.created_at", "asc");
 
@@ -165,6 +166,7 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           set_code: item.set_code,
           collector_number: item.collector_number,
           is_foil: item.is_foil,
+          user_card_back: item.user_card_back || "b:black lotus",
           created_at: item.created_at,
           index: i + 1
         });

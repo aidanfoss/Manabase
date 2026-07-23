@@ -31,6 +31,7 @@ import tradelistRouter from "./routes/tradelist.js";
 import tradeRouter from "./routes/trade.js";
 import playgroupsRouter from "./routes/playgroups.js";
 import listsRouter from "./routes/lists.js";
+import cardbacksRouter from "./routes/cardbacks.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -98,6 +99,10 @@ app.use("/api/landcycles", landcyclesRouter);
 
 // ✅ User presets routes
 app.use("/api/presets", presetsRouter);
+
+// ✅ Prebuilt Cardbacks route & static file serving
+app.use("/api/cardbacks", cardbacksRouter);
+app.use("/cardbacks", express.static(path.join(__dirname, "data/cardbacks")));
 
 /**
  * ✅ Dynamic Landcycle Loader (kept for backward compatibility)

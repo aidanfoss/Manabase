@@ -77,6 +77,14 @@ export async function initDB() {
       });
       console.log("✅ Added avatar_url column to users table");
     }
+
+    const hasDefaultCardBack = await db.schema.hasColumn("users", "default_card_back");
+    if (!hasDefaultCardBack) {
+      await db.schema.table("users", (t) => {
+        t.string("default_card_back").defaultTo("b:black lotus");
+      });
+      console.log("✅ Added default_card_back column to users table (defaulting to Black Lotus)");
+    }
   }
 
   const hasPackages = await db.schema.hasTable("packages");

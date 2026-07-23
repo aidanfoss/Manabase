@@ -23,6 +23,47 @@ export default function ProxyOrderHub({ data }) {
   const [selectedPrints, setSelectedPrints] = useState({});
   const [finishes, setFinishes] = useState({}); // "nonfoil" or "foil"
 
+  // Default Proxy Card Back preference (defaulting to Black Lotus)
+  const [defaultCardBack, setDefaultCardBack] = useState(() => {
+    return localStorage.getItem("manabase_default_card_back") || "b:black lotus";
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("/api/users/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.default_card_back !== undefined) {
+          const backVal = data.default_card_back || "b:black lotus";
+          setDefaultCardBack(backVal);
+          localStorage.setItem("manabase_default_card_back", backVal);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveCardBack = async (newVal) => {
+    setDefaultCardBack(newVal);
+    localStorage.setItem("manabase_default_card_back", newVal);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await fetch("/api/users/me/card-back", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ default_card_back: newVal })
+      });
+    } catch (e) {
+      console.error("Failed to update card back preference:", e);
+    }
+  };
+
   // Bulk import states
   const [showImportModal, setShowImportModal] = useState(false);
   const [importText, setImportText] = useState("");
@@ -299,6 +340,98 @@ export default function ProxyOrderHub({ data }) {
     URL.revokeObjectURL(url);
   };
 
+  const downloadMpcXml = () => {
+    const flatQueue = [];
+    configuredCards.forEach((c) => {
+      if (c.qty > 0) {
+        for (let i = 0; i < c.qty; i++) {
+          flatQueue.push(c);
+        }
+      }
+    });
+
+    if (flatQueue.length === 0) return;
+
+    const cardGroups = new Map();
+    const backCards = [];
+
+    flatQueue.forEach((c, slotIndex) => {
+      const key = `${c.name}__${c.setCode || ""}__${c.collector || ""}`;
+      if (!cardGroups.has(key)) {
+        cardGroups.set(key, {
+          name: c.name,
+          setCode: c.setCode || "",
+          collector: c.collector || "",
+          slots: [slotIndex]
+        });
+      } else {
+        cardGroups.get(key).slots.push(slotIndex);
+      }
+
+      if (c.isMDFC && c.backImage) {
+        backCards.push({
+          name: `${c.name} (Back)`,
+          slot: slotIndex,
+          query: `b:${c.name}`
+        });
+      }
+    });
+
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    };
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<order>\n`;
+    xml += `    <details>\n`;
+    xml += `        <quantity>${flatQueue.length}</quantity>\n`;
+    xml += `        <stock>(S30) Standard Smooth</stock>\n`;
+    xml += `        <foil>false</foil>\n`;
+    xml += `    </details>\n`;
+    xml += `    <fronts>\n`;
+
+    for (const group of cardGroups.values()) {
+      const fileName = group.name.match(/\.(png|jpg|jpeg)$/i)
+        ? group.name
+        : `${group.name}.png`;
+
+      xml += `        <card>\n`;
+      xml += `            <id></id>\n`;
+      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(group.name)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    xml += `    </fronts>\n`;
+    xml += `    <backs>\n`;
+    backCards.forEach((bc) => {
+      xml += `        <card>\n`;
+      xml += `            <id></id>\n`;
+      xml += `            <slots>${bc.slot}</slots>\n`;
+      xml += `            <name>${escapeXml(bc.name)}.jpg</name>\n`;
+      xml += `            <query>${escapeXml(bc.query)}</query>\n`;
+      xml += `        </card>\n`;
+    });
+    xml += `    </backs>\n`;
+    xml += `    <cardback>${escapeXml(defaultCardBack.trim())}</cardback>\n`;
+    xml += `</order>\n`;
+
+    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `manabase_mpc_order.xml`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   // --- Print Sheets View ---
   const [printSheetsActive, setPrintSheetsActive] = useState(false);
 
@@ -415,9 +548,25 @@ export default function ProxyOrderHub({ data }) {
           <button className="hub-btn" onClick={downloadMpcCsv} title="Download a CSV template for MakePlayingCards">
             📦 Download MPC CSV
           </button>
+          <button className="hub-btn" onClick={downloadMpcXml} title="Download an XML manifest for MPCfill / MPC Autofill">
+            🛠️ Download MPC XML
+          </button>
           <button className="hub-btn print" onClick={togglePrintView} title="Render standard 3x3 layout sheets for printer paper">
             🖨️ Print Sheets
           </button>
+        </div>
+        <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", maxWidth: "500px" }}>
+          <label style={{ fontSize: "0.85rem", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
+            🎨 Default Card Back ID / Query:
+          </label>
+          <input
+            type="text"
+            className="setup-input"
+            style={{ flex: 1, fontSize: "0.85rem", padding: "0.35rem 0.6rem" }}
+            placeholder="e.g. Google Drive ID, URL, or cardback search query"
+            value={defaultCardBack}
+            onChange={(e) => handleSaveCardBack(e.target.value)}
+          />
         </div>
       </div>
 

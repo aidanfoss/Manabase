@@ -130,10 +130,64 @@ export default function WishlistHub() {
     reader.readAsText(file);
   };
 
+  // Default Proxy Card Back preference (defaulting to Black Lotus)
+  const [defaultCardBack, setDefaultCardBack] = useState(() => {
+    return localStorage.getItem("manabase_default_card_back") || "b:black lotus";
+  });
+
+  // Prebuilt cardbacks list loaded from webserver
+  const [prebuiltCardbacks, setPrebuiltCardbacks] = useState([]);
+
   useEffect(() => {
     loadLists();
     loadPlaygroups();
+
+    // Fetch prebuilt cardbacks from backend
+    fetch("/api/cardbacks")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setPrebuiltCardbacks(data);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch user default card back preference
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetch("/api/users/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.default_card_back !== undefined) {
+            const backVal = data.default_card_back || "b:black lotus";
+            setDefaultCardBack(backVal);
+            localStorage.setItem("manabase_default_card_back", backVal);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
+
+  const handleSaveCardBack = async (newVal) => {
+    setDefaultCardBack(newVal);
+    localStorage.setItem("manabase_default_card_back", newVal);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await fetch("/api/users/me/card-back", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ default_card_back: newVal })
+      });
+    } catch (e) {
+      console.error("Failed to save default card back:", e);
+    }
+  };
 
   useEffect(() => {
     if (activeGroup) {
@@ -559,27 +613,187 @@ export default function WishlistHub() {
     }
   };
 
-  const handleDownloadMpcJson = () => {
+  const handleDownloadMpcXml = () => {
     if (groupWishlist.length === 0) return;
     
     // Active print queue (first 612)
     const printQueue = groupWishlist.slice(0, 612);
 
-    const mpcfillData = {
-      cards: printQueue.map(c => ({
-        name: c.card_name,
-        quantity: 1,
-        set: c.set_code || "",
-        collector_number: c.collector_number || "",
-        foil: !!c.is_foil
-      }))
+    // Group cards by card_name + set_code + collector_number to combine slot indices
+    const cardGroups = new Map();
+
+    printQueue.forEach((c, slotIndex) => {
+      const name = c.card_name || "Unknown Card";
+      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}`;
+      if (!cardGroups.has(key)) {
+        cardGroups.set(key, {
+          name: name,
+          set_code: c.set_code || "",
+          collector_number: c.collector_number || "",
+          slots: [slotIndex]
+        });
+      } else {
+        cardGroups.get(key).slots.push(slotIndex);
+      }
+    });
+
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
     };
 
-    const blob = new Blob([JSON.stringify(mpcfillData, null, 2)], { type: "application/json" });
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<order>\n`;
+    xml += `    <details>\n`;
+    xml += `        <quantity>${printQueue.length}</quantity>\n`;
+    xml += `        <stock>(S30) Standard Smooth</stock>\n`;
+    xml += `        <foil>false</foil>\n`;
+    xml += `    </details>\n`;
+    xml += `    <fronts>\n`;
+
+    for (const group of cardGroups.values()) {
+      const fileName = group.name.match(/\.(png|jpg|jpeg)$/i)
+        ? group.name
+        : `${group.name}.png`;
+      const query = group.name;
+
+      xml += `        <card>\n`;
+      xml += `            <id></id>\n`;
+      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(query)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    // Helper to resolve cardback details canonically
+    const resolveCardbackDetails = (rawVal, username) => {
+      const val = (rawVal || "").trim();
+      if (!val) return null;
+
+      const match = prebuiltCardbacks.find(
+        (pb) => pb.driveId === val || pb.query === val || pb.id === val || pb.name === val
+      );
+
+      let cardId = "";
+      let queryVal = "";
+      let fileName = `${username || "User"} Card Back.png`;
+
+      if (match) {
+        cardId = match.driveId || "";
+        queryVal = match.query || match.name || "";
+        fileName = match.name.match(/\.(png|jpg|jpeg)$/i) ? match.name : `${match.name}.png`;
+      } else if (/^[1-9a-zA-Z_-]{20,}$/.test(val)) {
+        cardId = val;
+        queryVal = ""; // Leave query empty when exact Drive ID is provided to prevent search failure
+        fileName = "Card Back.png";
+      } else {
+        cardId = "";
+        queryVal = val;
+        fileName = "Card Back.png";
+      }
+
+      const canonicalKey = cardId ? `id:${cardId}` : `query:${queryVal.toLowerCase()}`;
+      return { rawVal, canonicalKey, cardId, queryVal, fileName, matchName: match ? match.name : null, username };
+    };
+
+    // 1. Resolve cardback for every slot in the print queue
+    const slotCardbacks = printQueue.map((c, idx) => {
+      const raw = (c.user_card_back || defaultCardBack || "b:black lotus").trim();
+      return resolveCardbackDetails(raw, c.username);
+    });
+
+    // 2. Count frequency of canonical cardbacks to determine primary default <cardback>
+    const frequencyMap = new Map(); // canonicalKey -> { count, details }
+    slotCardbacks.forEach((cb) => {
+      if (cb) {
+        if (!frequencyMap.has(cb.canonicalKey)) {
+          frequencyMap.set(cb.canonicalKey, { count: 1, details: cb });
+        } else {
+          frequencyMap.get(cb.canonicalKey).count++;
+        }
+      }
+    });
+
+    let primaryCardbackDetails = null;
+    let maxCount = 0;
+    for (const entry of frequencyMap.values()) {
+      if (entry.count > maxCount) {
+        maxCount = entry.count;
+        primaryCardbackDetails = entry.details;
+      }
+    }
+
+    const globalCardbackVal = primaryCardbackDetails
+      ? (primaryCardbackDetails.cardId || primaryCardbackDetails.queryVal || primaryCardbackDetails.rawVal)
+      : (defaultCardBack || "b:black lotus").trim();
+
+    // 3. Group slots by canonical key for any cardbacks that OVERRIDE the primary <cardback>
+    const overrideBacksMap = new Map(); // canonicalKey -> { ...details, slots: [] }
+
+    slotCardbacks.forEach((cb, slotIndex) => {
+      if (cb) {
+        const matchesPrimary = primaryCardbackDetails && cb.canonicalKey === primaryCardbackDetails.canonicalKey;
+        if (!matchesPrimary) {
+          if (!overrideBacksMap.has(cb.canonicalKey)) {
+            overrideBacksMap.set(cb.canonicalKey, {
+              ...cb,
+              slots: [slotIndex]
+            });
+          } else {
+            overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
+          }
+        }
+      }
+    });
+
+    // Verbose debug logging for user cardbacks
+    console.group("🛠️ [MPCfill XML Generator] Verbose Debug Log");
+    console.log(`📦 Active Group: "${activeGroup?.name || "group"}"`);
+    console.log(`📋 Total Cards in Print Queue: ${printQueue.length}`);
+    printQueue.forEach((c, idx) => {
+      console.log(
+        `  Slot [${idx}]: "${c.card_name}" | Owner="${c.username}" | Cardback="${c.user_card_back || "(none)"}"`
+      );
+    });
+    console.log(`🏆 Primary Default <cardback>: "${globalCardbackVal}" (used by ${maxCount} cards)`);
+    console.log(`🔀 Override Cardbacks Count: ${overrideBacksMap.size}`);
+
+    xml += `    </fronts>\n`;
+    xml += `    <backs>\n`;
+
+    for (const backGroup of overrideBacksMap.values()) {
+      console.log(`🎨 Exporting <backs> override entry for ${backGroup.username}:`, {
+        canonicalKey: backGroup.canonicalKey,
+        inputCardbackVal: backGroup.rawVal,
+        matchedPrebuilt: backGroup.matchName || "None",
+        resolvedDriveId: backGroup.cardId,
+        resolvedQuery: backGroup.queryVal,
+        fileName: backGroup.fileName,
+        assignedSlots: backGroup.slots.join(",")
+      });
+
+      xml += `        <card>\n`;
+      xml += `            <id>${escapeXml(backGroup.cardId)}</id>\n`;
+      xml += `            <slots>${backGroup.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(backGroup.fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(backGroup.queryVal)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    xml += `    </backs>\n`;
+    xml += `    <cardback>${escapeXml(globalCardbackVal)}</cardback>\n`;
+    xml += `</order>\n`;
+
+    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${activeGroup?.name || "group"}_mpcfill_manifest.json`;
+    link.download = `${activeGroup?.name || "group"}_mpcfill_manifest.xml`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -773,6 +987,12 @@ export default function WishlistHub() {
           onClick={() => setActiveTab("nexus")}
         >
           👥 Playgroup Nexus
+        </button>
+        <button 
+          className={`nexus-tab-btn ${activeTab === "settings" ? "active" : ""}`}
+          onClick={() => setActiveTab("settings")}
+        >
+          ⚙️ Proxy Settings
         </button>
       </div>
 
@@ -1081,10 +1301,25 @@ export default function WishlistHub() {
                   </span>
                 </div>
 
+                {/* Default Card Back Preference Input */}
+                <div style={{ margin: "0.75rem 0", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <label style={{ fontSize: "0.85rem", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
+                    🎨 Default Card Back ID / Query:
+                  </label>
+                  <input
+                    type="text"
+                    className="setup-input"
+                    style={{ flex: 1, minWidth: "220px", fontSize: "0.85rem", padding: "0.35rem 0.6rem" }}
+                    placeholder="e.g. Google Drive ID, image URL, or cardback query"
+                    value={defaultCardBack}
+                    onChange={(e) => handleSaveCardBack(e.target.value)}
+                  />
+                </div>
+
                 {/* Download and actions */}
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button className="setup-btn" onClick={handleDownloadMpcJson} disabled={mpcListCount === 0}>
-                    🛠️ Generate MPCfill JSON Manifest
+                  <button className="setup-btn" onClick={handleDownloadMpcXml} disabled={mpcListCount === 0}>
+                    🛠️ Generate MPCfill XML Manifest
                   </button>
                 </div>
 
@@ -1296,6 +1531,182 @@ export default function WishlistHub() {
               Please create or join a playgroup to access the Playgroup Nexus tools!
             </div>
           )}
+        </div>
+      )}
+
+      {/* VIEW 3: PROXY SETTINGS */}
+      {activeTab === "settings" && (
+        <div className="proxy-settings-container">
+          
+          {/* Card 1: Active Playgroup Selection */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <h3 className="settings-card-title">👥 Active Playgroup Selection</h3>
+              {activeGroup && (
+                <span className="mpc-alert-badge met">
+                  Current: {activeGroup.name}
+                </span>
+              )}
+            </div>
+            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
+              Select which playgroup is currently active for shared wishlist calculation and proxy manifests.
+            </p>
+
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center", marginBottom: "1rem" }}>
+              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#cbd5e1" }}>Active Playgroup:</label>
+              <select
+                className="setup-input"
+                style={{ minWidth: "220px" }}
+                value={activeGroup?.id || ""}
+                onChange={(e) => {
+                  const sel = playgroups.find((g) => g.id === e.target.value);
+                  if (sel) setActiveGroup(sel);
+                }}
+              >
+                {playgroups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} ({g.member_count || 1} members)
+                  </option>
+                ))}
+                {playgroups.length === 0 && <option value="">No playgroups joined</option>}
+              </select>
+            </div>
+
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: "240px" }}>
+                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Create New Playgroup</h4>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="text"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    placeholder="New playgroup name..."
+                    className="setup-input"
+                    style={{ flex: 1 }}
+                  />
+                  <button onClick={handleCreateGroup} className="setup-btn">Create</button>
+                </div>
+              </div>
+
+              <div style={{ flex: 1, minWidth: "240px" }}>
+                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Join Playgroup by ID</h4>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="text"
+                    value={joinGroupId}
+                    onChange={(e) => setJoinGroupId(e.target.value)}
+                    placeholder="Playgroup ID to join..."
+                    className="setup-input"
+                    style={{ flex: 1 }}
+                  />
+                  <button onClick={handleJoinGroup} className="setup-btn" style={{ background: "#475569" }}>Join</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Playgroup Cost Per Proxy */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <h3 className="settings-card-title">💲 Playgroup Cost per Proxy</h3>
+              <span className="mpc-alert-badge met" style={{ background: "rgba(59, 130, 246, 0.15)", color: "#93c5fd" }}>
+                Estimated Cost: ${(mpcActiveCards.length * mpcUnitCost).toFixed(2)}
+              </span>
+            </div>
+            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
+              Set your target per-card print cost for MakePlayingCards orders (default is $0.25/card).
+            </p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#cbd5e1" }}>Cost Per Proxy ($):</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={mpcUnitCost}
+                onChange={(e) => setMpcUnitCost(parseFloat(e.target.value) || 0)}
+                className="setup-input"
+                style={{ width: "120px" }}
+              />
+              <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                (Calculates individual member cost splitting for {mpcListCount} total cards)
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3: Individual Cardback Options & Prebuilt Defaults */}
+          <div className="settings-card">
+            <div className="settings-card-header">
+              <h3 className="settings-card-title">🎨 Individual Cardback Preferences</h3>
+              {defaultCardBack && (
+                <span className="mpc-alert-badge met" style={{ background: "rgba(16, 185, 129, 0.15)" }}>
+                  Active Cardback Selected
+                </span>
+              )}
+            </div>
+            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
+              Choose your default cardback for proxy orders. Pick from prebuilt defaults below or input a custom Google Drive ID / search query string.
+            </p>
+
+            {/* Custom Input */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#cbd5e1", whiteSpace: "nowrap" }}>
+                Custom ID / Query String:
+              </label>
+              <input
+                type="text"
+                className="setup-input"
+                style={{ flex: 1, minWidth: "260px" }}
+                placeholder="e.g. Google Drive ID, image URL, or search query (e.g. b:black lotus)"
+                value={defaultCardBack}
+                onChange={(e) => handleSaveCardBack(e.target.value)}
+              />
+              {defaultCardBack && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => handleSaveCardBack("")}
+                  style={{ padding: "0.4rem 0.75rem" }}
+                >
+                  Clear Selection
+                </button>
+              )}
+            </div>
+
+            {/* Prebuilt Cardbacks Grid */}
+            <h4 style={{ margin: "1rem 0 0.5rem 0", fontSize: "0.95rem", color: "#f1f5f9" }}>
+              Prebuilt Cardback Defaults ({prebuiltCardbacks.length}):
+            </h4>
+            <div className="cardback-grid">
+              {prebuiltCardbacks.map((cb) => {
+                const isSelected =
+                  (cb.driveId && defaultCardBack === cb.driveId) ||
+                  (cb.query && defaultCardBack === cb.query) ||
+                  (cb.id && defaultCardBack === cb.id);
+
+                return (
+                  <div
+                    key={cb.id}
+                    className={`cardback-option-card ${isSelected ? "selected" : ""}`}
+                    onClick={() => handleSaveCardBack(cb.driveId || cb.query || cb.name)}
+                  >
+                    {isSelected && <span className="cardback-selected-badge">✓ Active</span>}
+                    <div className="cardback-preview-wrapper">
+                      <img
+                        src={cb.previewUrl || "https://cards.scryfall.io/card_back.png"}
+                        alt={cb.name}
+                        className="cardback-preview-img"
+                        onError={(e) => { e.target.src = "https://cards.scryfall.io/card_back.png"; }}
+                      />
+                    </div>
+                    <div className="cardback-name">{cb.name}</div>
+                    <div className="cardback-author">{cb.author || "Community"}</div>
+                    <div className="cardback-dpi">{cb.dpi || "800 DPI"}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       )}
 
