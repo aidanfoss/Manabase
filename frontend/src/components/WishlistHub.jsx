@@ -4,13 +4,35 @@ import { parseImportInput } from "../utils/csvImporter";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import "../styles/wishlist.css";
 
+function generateManaPoolCheckoutUrl(items) {
+  if (!items || items.length === 0) return "https://manapool.com/add-deck";
+
+  const deckLines = items.map(item => {
+    const qty = typeof item === "object" ? (item.quantity || item.qty || item.count || 1) : 1;
+    const name = typeof item === "string" ? item : (item.card_name || item.name || item.title || "");
+    const set = typeof item === "object" ? (item.set_code || item.setCode || item.set || "") : "";
+    const collector = typeof item === "object" ? (item.collector_number || item.collector || "") : "";
+    if (set && collector) {
+      return `${qty} ${name} [${set.toLowerCase()}] ${collector}`;
+    }
+    return `${qty} ${name}`;
+  }).filter(line => line.trim().length > 0);
+
+  const deckText = deckLines.join("\n");
+  const base64Deck = typeof btoa !== "undefined"
+    ? btoa(unescape(encodeURIComponent(deckText)))
+    : Buffer.from(deckText).toString("base64");
+
+  return `https://manapool.com/add-deck?ref=scm&tap_s=5258590-8677e0&deck=${encodeURIComponent(base64Deck)}&ref_meta=referrer:manabase-bulkBuy`;
+}
+
 export default function WishlistHub() {
   const [activeTab, setActiveTab] = useState("lists"); // "lists", "nexus", "trades"
   const [selectedList, setSelectedList] = useState("proxy_wishlist");
   const [showMarketplaceDrawer, setShowMarketplaceDrawer] = useState(false);
   const [drawerCardName, setDrawerCardName] = useState("");
   const [drawerCardList, setDrawerCardList] = useState([]);
-  
+
   // Retail provider toggle states & retail price cache (defaulting to both true)
   const [showLotusColumn, setShowLotusColumn] = useState(true);
   const [showManaPoolColumn, setShowManaPoolColumn] = useState(true);
@@ -53,7 +75,7 @@ export default function WishlistHub() {
   const [showCheapModal, setShowCheapModal] = useState(false);
   const [cheapThreshold, setCheapThreshold] = useState(1.00);
   const [deletingCheap, setDeletingCheap] = useState(false);
-  
+
   // Prints resolution cache
   const [printsCache, setPrintsCache] = useState({});
   const [selectedPrints, setSelectedPrints] = useState({}); // cardName -> print index
@@ -164,7 +186,7 @@ export default function WishlistHub() {
           setPrebuiltCardbacks(data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // Fetch user default card back preference
     const token = localStorage.getItem("token");
@@ -180,7 +202,7 @@ export default function WishlistHub() {
             localStorage.setItem("manabase_default_card_back", backVal);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, []);
 
@@ -237,12 +259,12 @@ export default function WishlistHub() {
       const uniqueNames = [...new Set([
         ...newWishlist.map(c => c.card_name)
       ])];
-      
+
       if (uniqueNames.length > 0) {
         fetchPrintsBatch(uniqueNames, newWishlist);
         fetchRetailPrices(newWishlist);
       }
-      
+
     } catch (e) {
       console.error("Failed to load lists:", e);
     } finally {
@@ -268,7 +290,7 @@ export default function WishlistHub() {
       setSelectedPrints(prev => {
         const next = { ...prev };
         const currentList = [...(wList || wishlist)];
-        
+
         namesToFetch.forEach(cardName => {
           const cardData = batchResult[cardName];
           if (!cardData) {
@@ -401,7 +423,7 @@ export default function WishlistHub() {
       if (!token) return;
 
       const itemsToUpdate = wishlist.filter(c => !c.any_printing);
-      
+
       await Promise.all(itemsToUpdate.map(async (c) => {
         const cardMeta = printsCache[c.card_name];
         const defaultSet = cardMeta?.set?.toUpperCase() || c.set_code;
@@ -423,7 +445,7 @@ export default function WishlistHub() {
           })
         });
       }));
-      
+
       // Clear print index cache for updated items
       setSelectedPrints(prev => {
         const next = { ...prev };
@@ -585,6 +607,17 @@ export default function WishlistHub() {
     }
   };
 
+  // Bulk buy cheap cards on ManaPool handler
+  const handleBuyCheapCardsOnManaPool = () => {
+    if (cheapCardsList.length === 0) {
+      alert(`No cheap cards match your current threshold of ≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}.`);
+      return;
+    }
+
+    const url = generateManaPoolCheckoutUrl(cheapCardsList);
+    window.open(url, "_blank");
+  };
+
   // Change print set
   const handlePrintChange = (card, printIdx) => {
     setSelectedPrints(prev => ({ ...prev, [card.card_name]: printIdx }));
@@ -646,7 +679,7 @@ export default function WishlistHub() {
     }
   };
 
-  
+
   const loadActiveTrades = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -759,7 +792,7 @@ export default function WishlistHub() {
 
   const handleDownloadMpcXml = () => {
     if (groupWishlist.length === 0) return;
-    
+
     // Active print queue (first 612)
     const printQueue = groupWishlist.slice(0, 612);
 
@@ -947,7 +980,7 @@ export default function WishlistHub() {
     if (currentList.length === 0) return;
 
     const headers = "Quantity,Name,Set,Collector Number,Foil\r\n";
-    const rows = currentList.map(c => 
+    const rows = currentList.map(c =>
       `${c.quantity},"${c.card_name}",${c.set_code || ""},${c.collector_number || ""},${c.is_foil ? "S" : ""}`
     ).join("\r\n");
 
@@ -1016,16 +1049,16 @@ export default function WishlistHub() {
   // Build the Trade Matrix match list
   const getTradeMatches = () => {
     if (!activeGroup || groupInventory.length === 0 || groupWishlist.length === 0) return [];
-    
+
     // Get current logged in user's ID
     const token = localStorage.getItem("token");
     if (!token) return [];
     // Decode user ID roughly (or we can use user object from context)
     // Find active user's wishlist
     const myWishlistNames = wishlist.map(c => c.card_name.toLowerCase());
-    
+
     // Matches where: peers own cards that the user wants
-    const peersCardsIWant = groupInventory.filter(c => 
+    const peersCardsIWant = groupInventory.filter(c =>
       c.owner_username !== (wishlist[0]?.username || "") && // peer card
       myWishlistNames.includes(c.card_name.toLowerCase())
     );
@@ -1043,8 +1076,8 @@ export default function WishlistHub() {
       // Skip active user
       if (groupWishlist.length > 0 && peer.username === groupWishlist[0]?.username) return;
 
-      const peerCardsIWant = groupInventory.filter(c => 
-        c.owner_username === peer.username && 
+      const peerCardsIWant = groupInventory.filter(c =>
+        c.owner_username === peer.username &&
         myWishlistNames.includes(c.card_name.toLowerCase())
       );
 
@@ -1053,7 +1086,7 @@ export default function WishlistHub() {
         .filter(c => c.username === peer.username)
         .map(c => c.card_name.toLowerCase());
 
-      const myCardsPeerWants = groupInventory.filter(c => 
+      const myCardsPeerWants = groupInventory.filter(c =>
         c.owner_username !== peer.username && // my cards (roughly anything not theirs)
         c.owner_username === groupWishlist[0]?.username && // must be mine
         peerWishlistNames.includes(c.card_name.toLowerCase())
@@ -1108,7 +1141,7 @@ export default function WishlistHub() {
 
   return (
     <div className="wishlist-page-container">
-      
+
       {/* Header and Compliance Checker */}
       <div className="wishlist-header">
         <div>
@@ -1118,21 +1151,21 @@ export default function WishlistHub() {
       </div>
 
       {/* Primary Tab Navigation */}
-      
+
       <div className="nexus-tabs-header">
-        <button 
+        <button
           className={`nexus-tab-btn ${activeTab === "lists" ? "active" : ""}`}
           onClick={() => setActiveTab("lists")}
         >
           📋 My Lists
         </button>
-        <button 
+        <button
           className={`nexus-tab-btn ${activeTab === "nexus" ? "active" : ""}`}
           onClick={() => setActiveTab("nexus")}
         >
           👥 Playgroup Nexus
         </button>
-        <button 
+        <button
           className={`nexus-tab-btn ${activeTab === "settings" ? "active" : ""}`}
           onClick={() => setActiveTab("settings")}
         >
@@ -1146,19 +1179,19 @@ export default function WishlistHub() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {/* Sub-tabs Selection */}
           <div className="sub-tabs-row">
-            <button 
+            <button
               className={`sub-tab-btn ${selectedList === "proxy_wishlist" ? "active" : ""}`}
               onClick={() => setSelectedList("proxy_wishlist")}
             >
               🖨️ Proxy Wishlist ({wishlist.length})
             </button>
-            <button 
+            <button
               className="sub-tab-btn"
               onClick={() => window.location.href = "/trade"}
             >
               🤝 Go to Trade Hub ↗
             </button>
-            <button 
+            <button
               className="sub-tab-btn"
               style={{
                 background: "linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(99, 102, 241, 0.15))",
@@ -1185,267 +1218,279 @@ export default function WishlistHub() {
 
           {/* Search bar */}
           <div className="search-bar-row">
-              <div className="search-input-wrapper">
-                <span className="search-icon">🔍</span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  placeholder="Search card to add to proxy wishlist..."
-                  className="collection-search-input"
-                />
-                {searching && <span className="search-spinner-inline">Searching...</span>}
-              </div>
+            <div className="search-input-wrapper">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search card to add to proxy wishlist..."
+                className="collection-search-input"
+              />
+              {searching && <span className="search-spinner-inline">Searching...</span>}
+            </div>
 
-              {searchResults.length > 0 && (
-                <div className="search-suggestions-overlay">
-                  {searchResults.map((card) => (
-                    <div 
-                      key={card.id} 
-                      className="suggestion-row"
-                      onClick={() => addCard(card)}
-                    >
-                      <span className="name">{card.name}</span>
-                      <span className="set">({card.set ? card.set.toUpperCase() : "N/A"})</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {searchResults.length > 0 && (
+              <div className="search-suggestions-overlay">
+                {searchResults.map((card) => (
+                  <div
+                    key={card.id}
+                    className="suggestion-row"
+                    onClick={() => addCard(card)}
+                  >
+                    <span className="name">{card.name}</span>
+                    <span className="set">({card.set ? card.set.toUpperCase() : "N/A"})</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {/* Lists Views */}
           <>
-              {/* Summary Bar */}
-              <div className="wishlist-summary-bar">
-                <div className="stat-cards-row">
-                  <div className="summary-stat-card">
-                    <span className="label">Unique Cards</span>
-                    <span className="val">{wishlist.length}</span>
-                  </div>
-                  <div className="summary-stat-card">
-                    <span className="label">Total Quantity</span>
-                    <span className="val">
-                      {wishlist.reduce((sum, c) => sum + c.quantity, 0)}
-                    </span>
-                  </div>
-                  <div className="summary-stat-card">
-                    <span className="label">Est. Cost</span>
-                    <span className="val">
-                      ${(
-                        wishlist.reduce((sum, c) => sum + c.quantity, 0) * 0.25
-                      ).toFixed(2)}
-                    </span>
-                  </div>
+            {/* Summary Bar */}
+            <div className="wishlist-summary-bar">
+              <div className="stat-cards-row">
+                <div className="summary-stat-card">
+                  <span className="label">Unique Cards</span>
+                  <span className="val">{wishlist.length}</span>
                 </div>
-
-                <div className="proxy-actions-row">
-                  <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
-                    📥 Bulk Import
-                  </button>
-                  <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={wishlist.length === 0} title="Purge cards cheap enough to buy directly">
-                    🏷️ Remove Cheap Cards
-                  </button>
-                  <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={wishlist.length === 0}>
-                    📋 Copy Decklist
-                  </button>
-                  <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={wishlist.length === 0}>
-                    💾 Download CSV
-                  </button>
-                  <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={wishlist.length === 0}>
-                    🖨️ Print Sheets
-                  </button>
-                  <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={wishlist.length === 0}>
-                    🔄 Clear Specific Trade Printing Rules
-                  </button>
+                <div className="summary-stat-card">
+                  <span className="label">Total Quantity</span>
+                  <span className="val">
+                    {wishlist.reduce((sum, c) => sum + c.quantity, 0)}
+                  </span>
+                </div>
+                <div className="summary-stat-card">
+                  <span className="label">Est. Cost</span>
+                  <span className="val">
+                    ${(
+                      wishlist.reduce((sum, c) => sum + c.quantity, 0) * 0.25
+                    ).toFixed(2)}
+                  </span>
                 </div>
               </div>
 
-              {/* Retail Provider Toggles Bar */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", background: "rgba(15,23,42,0.7)", padding: "0.6rem 1rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                  <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    Retail Columns & Purge Providers:
-                  </span>
-                  <label style={{ fontSize: "0.85rem", color: "#f472b6", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={showLotusColumn}
-                      onChange={(e) => setShowLotusColumn(e.target.checked)}
-                    />
-                    🌸 LotusVault ($0 Local)
-                  </label>
-                  <label style={{ fontSize: "0.85rem", color: "#818cf8", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={showManaPoolColumn}
-                      onChange={(e) => setShowManaPoolColumn(e.target.checked)}
-                    />
-                    ⚡ ManaPool Market
-                  </label>
-                </div>
+              <div className="proxy-actions-row">
+                <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
+                  📥 Bulk Import
+                </button>
+                <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={wishlist.length === 0} title="Purge cards cheap enough to buy directly">
+                  🏷️ Remove Cheap Cards
+                </button>
+                <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={wishlist.length === 0}>
+                  📋 Copy Decklist
+                </button>
+                <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={wishlist.length === 0}>
+                  💾 Download CSV
+                </button>
+                <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={wishlist.length === 0}>
+                  🖨️ Print Sheets
+                </button>
+                <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={wishlist.length === 0}>
+                  🔄 Clear Specific Trade Printing Rules
+                </button>
+              </div>
+            </div>
+
+            {/* Retail Provider Toggles Bar */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", background: "rgba(15,23,42,0.7)", padding: "0.6rem 1rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Retail Providers:
+                </span>
+                <label style={{ fontSize: "0.85rem", color: "#f472b6", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={showLotusColumn}
+                    onChange={(e) => setShowLotusColumn(e.target.checked)}
+                  />
+                  🌸 LotusVault
+                </label>
+                <label style={{ fontSize: "0.85rem", color: "#818cf8", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={showManaPoolColumn}
+                    onChange={(e) => setShowManaPoolColumn(e.target.checked)}
+                  />
+                  ⚡ ManaPool Market
+                </label>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "auto" }}>
+                <button
+                  className="proxy-btn"
+                  style={{ background: "rgba(99,102,241,0.2)", borderColor: "rgba(99,102,241,0.4)", color: "#818cf8", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: "700" }}
+                  onClick={handleBuyCheapCardsOnManaPool}
+                  disabled={wishlist.length === 0 || cheapCardsList.length === 0}
+                  title="Export cheap cards (≤ threshold) directly into ManaPool cart"
+                >
+                  ⚡ Buy Cheap Cards ({cheapCardsList.length})
+                </button>
 
                 <button
                   className="proxy-btn"
-                  style={{ background: "rgba(225,29,72,0.15)", borderColor: "rgba(225,29,72,0.3)", color: "#fb7185", padding: "0.4rem 0.85rem", fontSize: "0.8rem", marginLeft: "auto" }}
+                  style={{ background: "rgba(225,29,72,0.15)", borderColor: "rgba(225,29,72,0.3)", color: "#fb7185", padding: "0.4rem 0.85rem", fontSize: "0.8rem" }}
                   onClick={() => setShowCheapModal(true)}
                   disabled={wishlist.length === 0}
                 >
-                  🧹 Purge Cheap Cards (≤ ${parseFloat(cheapThreshold || 0).toFixed(2)})
+                  🧹 Purge Cheap Cards
                 </button>
               </div>
+            </div>
 
-              {/* Grid cards */}
-              {wishlist.length === 0 ? (
-                <div className="empty-wishlist-box">
-                  This list is empty. Search cards above to add them.
-                </div>
-              ) : (
-                <div className="csv-table-wrapper">
-                  <table className="csv-table">
-                    <thead>
-                      <tr>
-                        <th className="col-qty">Quantity</th>
-                        <th className="col-name">Card Name</th>
-                        <th className="col-print">Printing</th>
-                        <th className="col-foil">Finish</th>
-                        <th className="col-any">Any Print</th>
-                        {showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}>🌸 LotusVault</th>}
-                        {showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}>⚡ ManaPool</th>}
-                        <th className="col-actions">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {wishlist.map((c) => {
-                        const cardMeta = printsCache[c.card_name];
-                        const prints = cardMeta?.prints || [];
-                        const activePrintIdx = selectedPrints[c.card_name] || 0;
-                        const rData = retailPrices[c.card_name];
+            {/* Grid cards */}
+            {wishlist.length === 0 ? (
+              <div className="empty-wishlist-box">
+                This list is empty. Search cards above to add them.
+              </div>
+            ) : (
+              <div className="csv-table-wrapper">
+                <table className="csv-table">
+                  <thead>
+                    <tr>
+                      <th className="col-qty">Quantity</th>
+                      <th className="col-name">Card Name</th>
+                      <th className="col-print">Printing</th>
+                      <th className="col-foil">Finish</th>
+                      <th className="col-any">Any Print</th>
+                      {showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}>🌸 LotusVault</th>}
+                      {showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}>⚡ ManaPool</th>}
+                      <th className="col-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wishlist.map((c) => {
+                      const cardMeta = printsCache[c.card_name];
+                      const prints = cardMeta?.prints || [];
+                      const activePrintIdx = selectedPrints[c.card_name] || 0;
+                      const rData = retailPrices[c.card_name];
 
-                        return (
-                          <tr key={c.id}>
-                            <td className="col-qty">
-                              <div className="qty-picker-compact">
-                                <button onClick={() => updateCardDetails(c, { quantity: c.quantity - 1 })}>-</button>
-                                <span>{c.quantity}</span>
-                                <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
-                              </div>
-                            </td>
-                            <td className="col-name font-bold">
-                              {c.card_name}
-                            </td>
-                            <td className="col-print">
-                              {!c.any_printing ? (
-                                prints.length > 0 ? (
-                                  <select 
-                                    value={activePrintIdx}
-                                    onChange={(e) => handlePrintChange(c, parseInt(e.target.value))}
-                                    className="table-input set-select"
-                                    style={{ width: "100%", padding: "4px" }}
-                                  >
-                                    {prints.map((p, idx) => (
-                                      <option key={idx} value={idx}>
-                                        {p.set?.toUpperCase()} - {p.set_name} (#{p.collector_number || "?"})
-                                      </option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <span className="loading-label">Loading...</span>
-                                )
+                      return (
+                        <tr key={c.id}>
+                          <td className="col-qty">
+                            <div className="qty-picker-compact">
+                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity - 1 })}>-</button>
+                              <span>{c.quantity}</span>
+                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
+                            </div>
+                          </td>
+                          <td className="col-name font-bold">
+                            {c.card_name}
+                          </td>
+                          <td className="col-print">
+                            {!c.any_printing ? (
+                              prints.length > 0 ? (
+                                <select
+                                  value={activePrintIdx}
+                                  onChange={(e) => handlePrintChange(c, parseInt(e.target.value))}
+                                  className="table-input set-select"
+                                  style={{ width: "100%", padding: "4px" }}
+                                >
+                                  {prints.map((p, idx) => (
+                                    <option key={idx} value={idx}>
+                                      {p.set?.toUpperCase()} - {p.set_name} (#{p.collector_number || "?"})
+                                    </option>
+                                  ))}
+                                </select>
                               ) : (
-                                <span className="sub" style={{ color: "#64748b" }}>Any Printing</span>
+                                <span className="loading-label">Loading...</span>
+                              )
+                            ) : (
+                              <span className="sub" style={{ color: "#64748b" }}>Any Printing</span>
+                            )}
+                          </td>
+                          <td className="col-foil">
+                            <label className="switch-container">
+                              <input
+                                type="checkbox"
+                                checked={!!c.is_foil}
+                                onChange={(e) => updateCardDetails(c, { is_foil: e.target.checked })}
+                              />
+                              <span className="slider round"></span>
+                              <span className="foil-label">{c.is_foil ? "Foil" : "Normal"}</span>
+                            </label>
+                          </td>
+                          <td className="col-any">
+                            <label className="switch-container" title="If unchecked, you will only accept the selected printing in a trade">
+                              <input
+                                type="checkbox"
+                                checked={c.any_printing}
+                                onChange={(e) => {
+                                  const anyPrint = e.target.checked;
+                                  if (anyPrint) {
+                                    updateCardDetails(c, { any_printing: true });
+                                  } else {
+                                    const meta = printsCache[c.card_name];
+                                    if (meta) {
+                                      updateCardDetails(c, {
+                                        any_printing: false,
+                                        set_code: meta.set?.toUpperCase(),
+                                        collector_number: meta.collector_number || ""
+                                      });
+                                      setSelectedPrints(prev => ({ ...prev, [c.card_name]: 0 }));
+                                    } else {
+                                      updateCardDetails(c, { any_printing: false });
+                                    }
+                                  }
+                                }}
+                              />
+                              <span className="slider round"></span>
+                            </label>
+                          </td>
+
+                          {showLotusColumn && (
+                            <td className="col-lotus" style={{ textAlign: "center" }}>
+                              {rData?.lotusInStock ? (
+                                <span style={{ color: "#34d399", fontWeight: "700" }}>
+                                  ${rData.lotusPrice?.toFixed(2)}
+                                </span>
+                              ) : rData ? (
+                                <span style={{ color: "#f87171", fontSize: "0.75rem" }}>Out of Stock</span>
+                              ) : (
+                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
                               )}
                             </td>
-                            <td className="col-foil">
-                              <label className="switch-container">
-                                <input
-                                  type="checkbox"
-                                  checked={!!c.is_foil}
-                                  onChange={(e) => updateCardDetails(c, { is_foil: e.target.checked })}
-                                />
-                                <span className="slider round"></span>
-                                <span className="foil-label">{c.is_foil ? "Foil" : "Normal"}</span>
-                              </label>
-                            </td>
-                            <td className="col-any">
-                                <label className="switch-container" title="If unchecked, you will only accept the selected printing in a trade">
-                                  <input 
-                                    type="checkbox"
-                                    checked={c.any_printing}
-                                    onChange={(e) => {
-                                      const anyPrint = e.target.checked;
-                                      if (anyPrint) {
-                                        updateCardDetails(c, { any_printing: true });
-                                      } else {
-                                        const meta = printsCache[c.card_name];
-                                        if (meta) {
-                                          updateCardDetails(c, { 
-                                            any_printing: false, 
-                                            set_code: meta.set?.toUpperCase(), 
-                                            collector_number: meta.collector_number || "" 
-                                          });
-                                          setSelectedPrints(prev => ({ ...prev, [c.card_name]: 0 }));
-                                        } else {
-                                          updateCardDetails(c, { any_printing: false });
-                                        }
-                                      }
-                                    }}
-                                  />
-                                  <span className="slider round"></span>
-                                </label>
-                              </td>
+                          )}
 
-                            {showLotusColumn && (
-                              <td className="col-lotus" style={{ textAlign: "center" }}>
-                                {rData?.lotusInStock ? (
-                                  <span style={{ color: "#34d399", fontWeight: "700" }}>
-                                    ${rData.lotusPrice?.toFixed(2)}
-                                  </span>
-                                ) : rData ? (
-                                  <span style={{ color: "#f87171", fontSize: "0.75rem" }}>Out of Stock</span>
-                                ) : (
-                                  <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
-                                )}
-                              </td>
-                            )}
-
-                            {showManaPoolColumn && (
-                              <td className="col-manapool" style={{ textAlign: "center" }}>
-                                {rData?.manaPrice !== null && rData?.manaPrice !== undefined ? (
-                                  <span style={{ color: "#818cf8", fontWeight: "700" }}>
-                                    ${rData.manaPrice?.toFixed(2)}
-                                  </span>
-                                ) : (
-                                  <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
-                                )}
-                              </td>
-                            )}
-                            <td className="col-actions">
-                              <button
-                                className="table-action-btn"
-                                style={{ background: "rgba(236,72,153,0.15)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.3)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem", marginRight: "6px", cursor: "pointer" }}
-                                onClick={() => {
-                                  setDrawerCardName(c.card_name);
-                                  setDrawerCardList([]);
-                                  setShowMarketplaceDrawer(true);
-                                }}
-                                title="Check LotusVault stock & ManaPool shipping for this card"
-                              >
-                                🌸 Retail Check
-                              </button>
-                              <button 
-                                className="table-delete-btn"
-                                onClick={() => deleteCard(c)}
-                                title="Remove card"
-                              >
-                                Remove
-                              </button>
+                          {showManaPoolColumn && (
+                            <td className="col-manapool" style={{ textAlign: "center" }}>
+                              {rData?.manaPrice !== null && rData?.manaPrice !== undefined ? (
+                                <span style={{ color: "#818cf8", fontWeight: "700" }}>
+                                  ${rData.manaPrice?.toFixed(2)}
+                                </span>
+                              ) : (
+                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
+                              )}
                             </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                          )}
+                          <td className="col-actions">
+                            <button
+                              className="table-action-btn"
+                              style={{ background: "rgba(236,72,153,0.15)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.3)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem", marginRight: "6px", cursor: "pointer" }}
+                              onClick={() => {
+                                setDrawerCardName(c.card_name);
+                                setDrawerCardList([]);
+                                setShowMarketplaceDrawer(true);
+                              }}
+                              title="Check LotusVault stock & ManaPool shipping for this card"
+                            >
+                              🌸 Retail Check
+                            </button>
+                            <button
+                              className="table-delete-btn"
+                              onClick={() => deleteCard(c)}
+                              title="Remove card"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         </div>
       )}
@@ -1453,15 +1498,15 @@ export default function WishlistHub() {
       {/* VIEW 2: PLAYGROUP NEXUS */}
       {activeTab === "nexus" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          
+
           {/* Active Playgroup selector & join/create actions */}
           <div className="playgroup-setup-grid">
             {/* Selector */}
             <div className="setup-card">
               <label className="playgroup-label">👥 Select Active Playgroup:</label>
               {playgroups.length > 0 ? (
-                <select 
-                  value={activeGroup?.id || ""} 
+                <select
+                  value={activeGroup?.id || ""}
                   onChange={(e) => {
                     const group = playgroups.find(g => g.id === parseInt(e.target.value));
                     setActiveGroup(group);
@@ -1486,8 +1531,8 @@ export default function WishlistHub() {
             {/* Create / Join actions */}
             <div className="setup-card" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", paddingLeft: "1.5rem" }}>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
                   placeholder="New playgroup name..."
@@ -1498,8 +1543,8 @@ export default function WishlistHub() {
               </div>
 
               <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={joinGroupId}
                   onChange={(e) => setJoinGroupId(e.target.value)}
                   placeholder="Playgroup ID to join..."
@@ -1612,16 +1657,16 @@ export default function WishlistHub() {
                         Costs split proportionally according to card count percentage in the active 612 manifest.
                       </p>
                     </div>
-                    
+
                     {/* Cost config */}
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <span style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>Cost per print card:</span>
-                      <input 
-                        type="number" 
-                        step="0.01" 
-                        value={mpcUnitCost} 
-                        onChange={(e) => setMpcUnitCost(parseFloat(e.target.value) || 0)} 
-                        className="setup-input" 
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={mpcUnitCost}
+                        onChange={(e) => setMpcUnitCost(parseFloat(e.target.value) || 0)}
+                        className="setup-input"
                         style={{ width: "70px", padding: "0.3rem" }}
                       />
                     </div>
@@ -1658,7 +1703,7 @@ export default function WishlistHub() {
                     const valueIWant = cardsIWant.reduce((sum, c) => sum + Number(c.market_price || 0), 0) * 0.85;
                     const valuePeerWants = cardsPeerWants.reduce((sum, c) => sum + Number(c.market_price || 0), 0) * 0.85;
                     const tradeDiff = Math.abs(valueIWant - valuePeerWants);
-                    
+
                     return (
                       <div key={peer.id} className="matrix-pair-card">
                         <div className="matrix-pair-header">
@@ -1700,7 +1745,7 @@ export default function WishlistHub() {
                             ⚖️ <strong>Engine:</strong> Recommends trading {cardsPeerWants.length > 0 ? `[${cardsPeerWants[0].card_name}]` : "No cards"} for {cardsIWant.length > 0 ? `[${cardsIWant[0].card_name}]` : "No cards"} to offset balances.
                           </span>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button 
+                            <button
                               className="trade-matrix-btn"
                               onClick={() => window.location.href = `/trade?partner=${peer.id}`}
                             > Build Trade in Hub
@@ -1776,7 +1821,7 @@ export default function WishlistHub() {
       {/* VIEW 3: PROXY SETTINGS */}
       {activeTab === "settings" && (
         <div className="proxy-settings-container">
-          
+
           {/* Card 1: Active Playgroup Selection */}
           <div className="settings-card">
             <div className="settings-card-header">
@@ -1962,7 +2007,7 @@ export default function WishlistHub() {
             </div>
 
             <div className="modal-body">
-              <div 
+              <div
                 className={`import-dropzone ${isDragging ? "dragging" : ""}`}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
@@ -1978,11 +2023,11 @@ export default function WishlistHub() {
                 <span className="dropzone-text">Drag & drop decklist or CSV file here, or</span>
                 <label className="file-browse-btn">
                   Browse File
-                  <input 
-                    type="file" 
-                    accept=".csv,.txt,.json" 
-                    onChange={(e) => e.target.files?.[0] && handleFileRead(e.target.files[0])} 
-                    hidden 
+                  <input
+                    type="file"
+                    accept=".csv,.txt,.json"
+                    onChange={(e) => e.target.files?.[0] && handleFileRead(e.target.files[0])}
+                    hidden
                   />
                 </label>
               </div>
@@ -2042,23 +2087,23 @@ export default function WishlistHub() {
             </div>
 
             <div className="modal-footer">
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 onClick={() => { setImportText(""); setImportStatus(""); }}
                 disabled={importing || !importText}
               >
                 Clear
               </button>
               <div className="right-actions">
-                <button 
-                  className="btn-secondary" 
+                <button
+                  className="btn-secondary"
                   onClick={() => setShowImportModal(false)}
                   disabled={importing}
                 >
                   Cancel
                 </button>
-                <button 
-                  className="btn-primary" 
+                <button
+                  className="btn-primary"
                   onClick={handleImportCards}
                   disabled={importing || parsedPreviewCards.length === 0}
                 >
@@ -2133,7 +2178,7 @@ export default function WishlistHub() {
                     Matches: <strong>{cheapCardsList.length}</strong> of {wishlist.length} unique cards ({cheapCardsList.reduce((s, c) => s + c.quantity, 0)} total copies)
                   </span>
                 </div>
-                
+
                 {cheapCardsList.length > 0 ? (
                   <div className="preview-list-scroll">
                     <table className="preview-table">
@@ -2167,21 +2212,31 @@ export default function WishlistHub() {
               </div>
             </div>
 
-            <div className="modal-footer">
-              <button 
-                className="btn-secondary" 
+            <div className="modal-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button
+                className="btn-secondary"
                 onClick={() => setShowCheapModal(false)}
                 disabled={deletingCheap}
               >
                 Cancel
               </button>
-              <button 
-                className="btn-primary btn-danger-action" 
-                onClick={handleRemoveCheapCards}
-                disabled={deletingCheap || cheapCardsList.length === 0}
-              >
-                {deletingCheap ? "Removing..." : `Purge ${cheapCardsList.length} Cheap Cards`}
-              </button>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  className="btn-primary"
+                  style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+                  onClick={handleBuyCheapCardsOnManaPool}
+                  disabled={cheapCardsList.length === 0}
+                >
+                  ⚡ Bulk Buy {cheapCardsList.length} Cards on ManaPool ↗
+                </button>
+                <button
+                  className="btn-primary btn-danger-action"
+                  onClick={handleRemoveCheapCards}
+                  disabled={deletingCheap || cheapCardsList.length === 0}
+                >
+                  {deletingCheap ? "Removing..." : `Purge ${cheapCardsList.length} Cheap Cards`}
+                </button>
+              </div>
             </div>
           </div>
         </div>
