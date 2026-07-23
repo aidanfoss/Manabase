@@ -1,12 +1,21 @@
-// src/components/WishlistHub.jsx
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
+import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import "../styles/wishlist.css";
 
 export default function WishlistHub() {
   const [activeTab, setActiveTab] = useState("lists"); // "lists", "nexus", "trades"
   const [selectedList, setSelectedList] = useState("proxy_wishlist");
+  const [showMarketplaceDrawer, setShowMarketplaceDrawer] = useState(false);
+  const [drawerCardName, setDrawerCardName] = useState("");
+  const [drawerCardList, setDrawerCardList] = useState([]);
+  
+  // Retail provider toggle states & retail price cache (defaulting to both true)
+  const [showLotusColumn, setShowLotusColumn] = useState(true);
+  const [showManaPoolColumn, setShowManaPoolColumn] = useState(true);
+  const [retailPrices, setRetailPrices] = useState({});
+  const [loadingRetail, setLoadingRetail] = useState(false);
   const [activeTrades, setActiveTrades] = useState([]);
   const [counterTrade, setCounterTrade] = useState(null);
   const [counterOffer, setCounterOffer] = useState([]);
@@ -39,6 +48,11 @@ export default function WishlistHub() {
 
   // Print view state
   const [showPrintMode, setShowPrintMode] = useState(false);
+
+  // Remove Cheap Cards modal states
+  const [showCheapModal, setShowCheapModal] = useState(false);
+  const [cheapThreshold, setCheapThreshold] = useState(1.00);
+  const [deletingCheap, setDeletingCheap] = useState(false);
   
   // Prints resolution cache
   const [printsCache, setPrintsCache] = useState({});
@@ -226,6 +240,7 @@ export default function WishlistHub() {
       
       if (uniqueNames.length > 0) {
         fetchPrintsBatch(uniqueNames, newWishlist);
+        fetchRetailPrices(newWishlist);
       }
       
     } catch (e) {
@@ -438,6 +453,135 @@ export default function WishlistHub() {
       }
     } catch (e) {
       console.error("Failed to delete card:", e);
+    }
+  };
+
+  const fetchRetailPrices = async (cards) => {
+    if (!cards || cards.length === 0) return;
+    const names = [...new Set(cards.map(c => c.card_name).filter(Boolean))];
+    if (names.length === 0) return;
+
+    setLoadingRetail(true);
+    try {
+      const lotusBatch = await api.batchLotusVault(names).catch(() => ({}));
+
+      const manaMap = {};
+      await Promise.all(names.map(async (name) => {
+        try {
+          const res = await api.optimizeManaPool([{ name, quantity: 1, isFoil: false }]);
+          if (res && res.success && res.subtotal) {
+            manaMap[name] = parseFloat(res.subtotal);
+          } else {
+            manaMap[name] = null;
+          }
+        } catch (e) {
+          manaMap[name] = null;
+        }
+      }));
+
+      const newPrices = {};
+      names.forEach(name => {
+        const lotus = lotusBatch[name];
+        newPrices[name] = {
+          lotusPrice: lotus?.cheapestPrice || null,
+          lotusInStock: (lotus?.inStockCount || 0) > 0,
+          manaPrice: manaMap[name] !== undefined ? manaMap[name] : null
+        };
+      });
+
+      setRetailPrices(prev => ({ ...prev, ...newPrices }));
+    } catch (err) {
+      console.error("Failed to fetch retail prices:", err);
+    } finally {
+      setLoadingRetail(false);
+    }
+  };
+
+  // Helper to resolve card price based on finish and print selection
+  const resolveWishlistCardPrice = (c) => {
+    const rData = retailPrices[c.card_name];
+    const availablePrices = [];
+
+    if (showLotusColumn && rData && rData.lotusInStock && rData.lotusPrice !== null) {
+      availablePrices.push(rData.lotusPrice);
+    }
+
+    if (showManaPoolColumn && rData && rData.manaPrice !== null) {
+      availablePrices.push(rData.manaPrice);
+    }
+
+    if (availablePrices.length > 0) {
+      return Math.min(...availablePrices);
+    }
+
+    // Fallback to Scryfall market price if no active retail provider price is available
+    const cardMeta = printsCache[c.card_name];
+    const prints = cardMeta?.prints || [];
+    const activePrintIdx = selectedPrints[c.card_name] || 0;
+    const activePrint = prints[activePrintIdx] || cardMeta;
+
+    let price = 0;
+    if (activePrint && activePrint.prices) {
+      if (c.is_foil) {
+        price = parseFloat(activePrint.prices.usd_foil) || parseFloat(activePrint.prices.usd_etched) || parseFloat(activePrint.prices.usd) || 0;
+      } else {
+        price = parseFloat(activePrint.prices.usd) || parseFloat(activePrint.prices.usd_foil) || 0;
+      }
+    }
+    if (!price && cardMeta && cardMeta.prices) {
+      if (c.is_foil) {
+        price = parseFloat(cardMeta.prices.usd_foil) || parseFloat(cardMeta.prices.usd_etched) || parseFloat(cardMeta.prices.usd) || 0;
+      } else {
+        price = parseFloat(cardMeta.prices.usd) || parseFloat(cardMeta.prices.usd_foil) || 0;
+      }
+    }
+    if (!price) {
+      price = parseFloat(c.market_price) || 0;
+    }
+    return price;
+  };
+
+  // Calculate matching cheap cards based on current threshold
+  const cheapCardsList = useMemo(() => {
+    const thresholdNum = parseFloat(cheapThreshold) || 0;
+    return wishlist.map(c => {
+      const price = resolveWishlistCardPrice(c);
+      return { ...c, price };
+    }).filter(c => c.price > 0 && c.price <= thresholdNum);
+  }, [wishlist, printsCache, selectedPrints, cheapThreshold, retailPrices, showLotusColumn, showManaPoolColumn]);
+
+  // Bulk remove cheap cards handler
+  const handleRemoveCheapCards = async () => {
+    if (cheapCardsList.length === 0) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setDeletingCheap(true);
+    try {
+      const ids = cheapCardsList.map((c) => c.id);
+      const res = await fetch("/api/lists/bulk-delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        alert(`🎉 Successfully removed ${data.count || cheapCardsList.length} cheap cards (≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}) from your Proxy Wishlist!`);
+        setShowCheapModal(false);
+        await loadLists();
+      } else {
+        alert("Failed to remove cheap cards. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to remove cheap cards:", err);
+      alert("An error occurred while removing cheap cards.");
+    } finally {
+      setDeletingCheap(false);
     }
   };
 
@@ -1014,6 +1158,23 @@ export default function WishlistHub() {
             >
               🤝 Go to Trade Hub ↗
             </button>
+            <button 
+              className="sub-tab-btn"
+              style={{
+                background: "linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(99, 102, 241, 0.15))",
+                border: "1px solid rgba(236, 72, 153, 0.4)",
+                color: "#f472b6",
+                fontWeight: "700"
+              }}
+              onClick={() => {
+                setDrawerCardName("");
+                setDrawerCardList(wishlist);
+                setShowMarketplaceDrawer(true);
+              }}
+              title="Compare LotusVault local store stock vs ManaPool live cart shipping estimates"
+            >
+              🌸 Retail Deals & Live Shipping ⚡
+            </button>
 
           </div>
 
@@ -1080,6 +1241,9 @@ export default function WishlistHub() {
                   <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
                     📥 Bulk Import
                   </button>
+                  <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={wishlist.length === 0} title="Purge cards cheap enough to buy directly">
+                    🏷️ Remove Cheap Cards
+                  </button>
                   <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={wishlist.length === 0}>
                     📋 Copy Decklist
                   </button>
@@ -1093,6 +1257,40 @@ export default function WishlistHub() {
                     🔄 Clear Specific Trade Printing Rules
                   </button>
                 </div>
+              </div>
+
+              {/* Retail Provider Toggles Bar */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", background: "rgba(15,23,42,0.7)", padding: "0.6rem 1rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                  <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    Retail Columns & Purge Providers:
+                  </span>
+                  <label style={{ fontSize: "0.85rem", color: "#f472b6", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={showLotusColumn}
+                      onChange={(e) => setShowLotusColumn(e.target.checked)}
+                    />
+                    🌸 LotusVault ($0 Local)
+                  </label>
+                  <label style={{ fontSize: "0.85rem", color: "#818cf8", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={showManaPoolColumn}
+                      onChange={(e) => setShowManaPoolColumn(e.target.checked)}
+                    />
+                    ⚡ ManaPool Market
+                  </label>
+                </div>
+
+                <button
+                  className="proxy-btn"
+                  style={{ background: "rgba(225,29,72,0.15)", borderColor: "rgba(225,29,72,0.3)", color: "#fb7185", padding: "0.4rem 0.85rem", fontSize: "0.8rem", marginLeft: "auto" }}
+                  onClick={() => setShowCheapModal(true)}
+                  disabled={wishlist.length === 0}
+                >
+                  🧹 Purge Cheap Cards (≤ ${parseFloat(cheapThreshold || 0).toFixed(2)})
+                </button>
               </div>
 
               {/* Grid cards */}
@@ -1110,6 +1308,8 @@ export default function WishlistHub() {
                         <th className="col-print">Printing</th>
                         <th className="col-foil">Finish</th>
                         <th className="col-any">Any Print</th>
+                        {showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}>🌸 LotusVault</th>}
+                        {showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}>⚡ ManaPool</th>}
                         <th className="col-actions">Actions</th>
                       </tr>
                     </thead>
@@ -1118,6 +1318,7 @@ export default function WishlistHub() {
                         const cardMeta = printsCache[c.card_name];
                         const prints = cardMeta?.prints || [];
                         const activePrintIdx = selectedPrints[c.card_name] || 0;
+                        const rData = retailPrices[c.card_name];
 
                         return (
                           <tr key={c.id}>
@@ -1191,7 +1392,45 @@ export default function WishlistHub() {
                                   <span className="slider round"></span>
                                 </label>
                               </td>
+
+                            {showLotusColumn && (
+                              <td className="col-lotus" style={{ textAlign: "center" }}>
+                                {rData?.lotusInStock ? (
+                                  <span style={{ color: "#34d399", fontWeight: "700" }}>
+                                    ${rData.lotusPrice?.toFixed(2)}
+                                  </span>
+                                ) : rData ? (
+                                  <span style={{ color: "#f87171", fontSize: "0.75rem" }}>Out of Stock</span>
+                                ) : (
+                                  <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
+                                )}
+                              </td>
+                            )}
+
+                            {showManaPoolColumn && (
+                              <td className="col-manapool" style={{ textAlign: "center" }}>
+                                {rData?.manaPrice !== null && rData?.manaPrice !== undefined ? (
+                                  <span style={{ color: "#818cf8", fontWeight: "700" }}>
+                                    ${rData.manaPrice?.toFixed(2)}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
+                                )}
+                              </td>
+                            )}
                             <td className="col-actions">
+                              <button
+                                className="table-action-btn"
+                                style={{ background: "rgba(236,72,153,0.15)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.3)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem", marginRight: "6px", cursor: "pointer" }}
+                                onClick={() => {
+                                  setDrawerCardName(c.card_name);
+                                  setDrawerCardList([]);
+                                  setShowMarketplaceDrawer(true);
+                                }}
+                                title="Check LotusVault stock & ManaPool shipping for this card"
+                              >
+                                🌸 Retail Check
+                              </button>
                               <button 
                                 className="table-delete-btn"
                                 onClick={() => deleteCard(c)}
@@ -1207,7 +1446,7 @@ export default function WishlistHub() {
                   </table>
                 </div>
               )}
-            </>
+          </>
         </div>
       )}
 
@@ -1830,6 +2069,131 @@ export default function WishlistHub() {
           </div>
         </div>
       )}
+
+      {/* Remove Cheap Cards Modal */}
+      {showCheapModal && (
+        <div className="modal-overlay" onClick={() => !deletingCheap && setShowCheapModal(false)}>
+          <div className="modal-container cheap-cards-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-title">
+                <h2>🏷️ Remove Cheap Cards from Proxy List</h2>
+                <p>Purge cards from your proxy wishlist if their purchase price is at or below your set threshold.</p>
+              </div>
+              <button className="modal-close-btn" onClick={() => !deletingCheap && setShowCheapModal(false)}>✕</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="threshold-setting-box">
+                <label className="input-label">Max Price Threshold ($):</label>
+                <div className="threshold-input-wrapper">
+                  <span className="currency-symbol">$</span>
+                  <input
+                    type="number"
+                    step="0.10"
+                    min="0.01"
+                    value={cheapThreshold}
+                    onChange={(e) => setCheapThreshold(e.target.value)}
+                    className="setup-input threshold-input"
+                    disabled={deletingCheap}
+                  />
+                </div>
+                <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase" }}>
+                    Active Retail Providers:
+                  </span>
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <label style={{ fontSize: "0.85rem", color: "#f472b6", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={showLotusColumn}
+                        onChange={(e) => setShowLotusColumn(e.target.checked)}
+                        disabled={deletingCheap}
+                      />
+                      🌸 LotusVault ($0 Local)
+                    </label>
+                    <label style={{ fontSize: "0.85rem", color: "#818cf8", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={showManaPoolColumn}
+                        onChange={(e) => setShowManaPoolColumn(e.target.checked)}
+                        disabled={deletingCheap}
+                      />
+                      ⚡ ManaPool Market
+                    </label>
+                  </div>
+                </div>
+                <p className="threshold-hint" style={{ marginTop: "0.5rem" }}>
+                  Cards with an active retail price <strong>&le; ${parseFloat(cheapThreshold || 0).toFixed(2)}</strong> across selected providers will be purged.
+                </p>
+              </div>
+
+              <div className="cheap-preview-box">
+                <div className="preview-header">
+                  <span>
+                    Matches: <strong>{cheapCardsList.length}</strong> of {wishlist.length} unique cards ({cheapCardsList.reduce((s, c) => s + c.quantity, 0)} total copies)
+                  </span>
+                </div>
+                
+                {cheapCardsList.length > 0 ? (
+                  <div className="preview-list-scroll">
+                    <table className="preview-table">
+                      <thead>
+                        <tr>
+                          <th>Qty</th>
+                          <th>Card Name</th>
+                          <th>Finish</th>
+                          <th>Retail Price</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cheapCardsList.map((c) => (
+                          <tr key={c.id}>
+                            <td>{c.quantity}x</td>
+                            <td className="font-bold">{c.card_name}</td>
+                            <td>{c.is_foil ? "✨ Foil" : "Normal"}</td>
+                            <td className="cheap-price-tag">${c.price.toFixed(2)}</td>
+                            <td><span className="purge-badge">Purge</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-preview-notice">
+                    No cards in your wishlist match the threshold of &le; ${parseFloat(cheapThreshold || 0).toFixed(2)}.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary" 
+                onClick={() => setShowCheapModal(false)}
+                disabled={deletingCheap}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-primary btn-danger-action" 
+                onClick={handleRemoveCheapCards}
+                disabled={deletingCheap || cheapCardsList.length === 0}
+              >
+                {deletingCheap ? "Removing..." : `Purge ${cheapCardsList.length} Cheap Cards`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LotusVault & ManaPool Price & Shipping Drawer */}
+      <MarketplacePriceDrawer
+        isOpen={showMarketplaceDrawer}
+        onClose={() => setShowMarketplaceDrawer(false)}
+        cardName={drawerCardName}
+        cardList={drawerCardList}
+      />
 
     </div>
   );

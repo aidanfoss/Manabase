@@ -1,10 +1,13 @@
-// src/components/ProxyOrderHub.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
 import { parseImportInput } from "../utils/csvImporter";
+import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import "../styles/proxy-hub.css";
 
 export default function ProxyOrderHub({ data }) {
+  const [showMarketplaceDrawer, setShowMarketplaceDrawer] = useState(false);
+  const [drawerCardName, setDrawerCardName] = useState("");
+  const [drawerCardList, setDrawerCardList] = useState([]);
   // Combine lands and nonlands into a unified array
   const allCards = useMemo(() => {
     const list = [];
@@ -554,6 +557,18 @@ export default function ProxyOrderHub({ data }) {
           <button className="hub-btn print" onClick={togglePrintView} title="Render standard 3x3 layout sheets for printer paper">
             🖨️ Print Sheets
           </button>
+          <button
+            className="hub-btn"
+            style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.2), rgba(99,102,241,0.2))", border: "1px solid rgba(236,72,153,0.5)", color: "#f472b6" }}
+            onClick={() => {
+              setDrawerCardName("");
+              setDrawerCardList(configuredCards.map(c => ({ name: c.name, quantity: c.qty, isFoil: c.finish === "foil" })));
+              setShowMarketplaceDrawer(true);
+            }}
+            title="Compare LotusVault local stock vs ManaPool optimized cart with live shipping cost"
+          >
+            🌸 Retail Deals & Live Shipping ⚡
+          </button>
         </div>
         <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", maxWidth: "500px" }}>
           <label style={{ fontSize: "0.85rem", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
@@ -764,6 +779,13 @@ export default function ProxyOrderHub({ data }) {
           </div>
         </div>
       )}
+      {/* LotusVault & ManaPool Price & Shipping Drawer */}
+      <MarketplacePriceDrawer
+        isOpen={showMarketplaceDrawer}
+        onClose={() => setShowMarketplaceDrawer(false)}
+        cardName={drawerCardName}
+        cardList={drawerCardList}
+      />
     </div>
   );
 }

@@ -32,6 +32,7 @@ import tradeRouter from "./routes/trade.js";
 import playgroupsRouter from "./routes/playgroups.js";
 import listsRouter from "./routes/lists.js";
 import cardbacksRouter from "./routes/cardbacks.js";
+import pricingRouter from "./routes/pricingRoutes.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -84,6 +85,7 @@ app.use("/api/collection/tradelist", tradelistRouter);
 app.use("/api/playgroups", playgroupsRouter);
 app.use("/api/lists", listsRouter);
 app.use("/api/trade", tradeRouter);
+app.use("/api/pricing", pricingRouter);
 
 // ✅ Packages (User-created or public)
 app.use("/api/packages", packagesRouter);

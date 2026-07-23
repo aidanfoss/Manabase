@@ -1330,4 +1330,103 @@
   border-radius: 9999px;
 }
 
+/* Remove Cheap Cards Feature Styles */
+.proxy-btn.remove-cheap {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.proxy-btn.remove-cheap:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.cheap-cards-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.threshold-setting-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.threshold-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 200px;
+}
+
+.currency-symbol {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.threshold-input {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  padding: 0.4rem 0.75rem;
+}
+
+.threshold-hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.cheap-preview-box {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.empty-preview-notice {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.cheap-price-tag {
+  color: #34d399;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.purge-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.btn-danger-action {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-danger-action:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+
 

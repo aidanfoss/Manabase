@@ -199,6 +199,27 @@ router.post("/set-all-any-printing", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/lists/bulk-delete - Delete multiple cards by ID array
+router.post("/bulk-delete", requireAuth, async (req, res) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: "ids array is required" });
+  }
+
+  try {
+    const deletedCount = await db("user_cards")
+      .whereIn("id", ids)
+      .andWhere({ user_id: req.user.id })
+      .delete();
+
+    res.json({ success: true, count: deletedCount, message: `Successfully deleted ${deletedCount} cards` });
+  } catch (err) {
+    console.error("Error bulk deleting cards from list:", err);
+    res.status(500).json({ error: "Failed to bulk delete cards" });
+  }
+});
+
 // DELETE /api/lists/:id - Remove item by ID
 router.delete("/:id", requireAuth, async (req, res) => {
   try {

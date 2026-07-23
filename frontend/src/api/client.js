@@ -170,4 +170,11 @@ export const api = {
   tradeAction: (tradeId, action, offer = null, demand = null) => api.post(`/trade/${tradeId}/action`, { action, offer, demand }),
   getTradeHistory: () => api.json("/trade/history"),
   getTradeLedger: () => api.json("/trade/ledger"),
+
+  // ---------------------------------------
+  // === Marketplace & Retail Pricing ===
+  // ---------------------------------------
+  searchLotusVault: (name) => api.json(`/pricing/lotusvault/search?name=${encodeURIComponent(name)}`),
+  batchLotusVault: (names) => api.post("/pricing/lotusvault/batch", { names }),
+  optimizeManaPool: (items, options) => api.post("/pricing/manapool/optimize", { items, options }),
 };

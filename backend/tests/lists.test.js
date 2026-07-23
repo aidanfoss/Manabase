@@ -43,5 +43,24 @@ describe('Proxy Wishlist & Lists Bulk Import API', () => {
     expect(rift).toBeDefined();
     expect(rift.set_code).toBe('RTR');
     expect(rift.collector_number).toBe('35');
+
+    // 5. Bulk delete request
+    const idsToDelete = [solRing.id, rift.id];
+    const deleteRes = await request(app)
+      .post('/api/lists/bulk-delete')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ids: idsToDelete });
+
+    expect(deleteRes.status).toBe(200);
+    expect(deleteRes.body.count).toBe(2);
+
+    // 6. Verify remaining cards
+    const remainingRes = await request(app)
+      .get('/api/lists/proxy_wishlist')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(remainingRes.status).toBe(200);
+    expect(remainingRes.body.length).toBe(1);
+    expect(remainingRes.body[0].card_name).toBe('Rhystic Study');
   });
 });
