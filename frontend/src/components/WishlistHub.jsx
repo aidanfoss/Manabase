@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
+import { isDoubleFacedCard, getCardFrontName, getCardBackName } from "../utils/cardHelpers";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import { useToast } from "../context/ToastContext";
 import "../styles/wishlist.css";
@@ -823,7 +824,8 @@ export default function WishlistHub() {
     const cardGroups = new Map();
 
     printQueue.forEach((c, slotIndex) => {
-      const name = c.card_name || "Unknown Card";
+      const isDfc = isDoubleFacedCard(c);
+      const name = isDfc ? getCardFrontName(c) : (c.card_name || c.name || "Unknown Card");
       const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}`;
       if (!cardGroups.has(key)) {
         cardGroups.set(key, {
@@ -901,16 +903,33 @@ export default function WishlistHub() {
       return { rawVal, canonicalKey, cardId, queryVal, fileName, matchName: match ? match.name : null, username };
     };
 
-    // 1. Resolve cardback for every slot in the print queue
-    const slotCardbacks = printQueue.map((c, idx) => {
+    // 1. Resolve cardback or DFC status for every slot in the print queue
+    const slotCardbacks = printQueue.map((c) => {
+      if (isDoubleFacedCard(c)) {
+        const backName = getCardBackName(c) || getCardFrontName(c) || "Unknown Card";
+        return {
+          isDfc: true,
+          rawVal: backName,
+          canonicalKey: `dfc:${backName.toLowerCase()}`,
+          cardId: "",
+          queryVal: backName,
+          fileName: `${backName}.png`,
+          matchName: "DFC Back Face",
+          username: c.username
+        };
+      }
       const raw = (c.user_card_back || defaultCardBack || "b:black lotus").trim();
-      return resolveCardbackDetails(raw, c.username);
+      const resolved = resolveCardbackDetails(raw, c.username);
+      return {
+        isDfc: false,
+        ...resolved
+      };
     });
 
-    // 2. Count frequency of canonical cardbacks to determine primary default <cardback>
+    // 2. Count frequency of non-DFC canonical cardbacks to determine primary default <cardback>
     const frequencyMap = new Map(); // canonicalKey -> { count, details }
     slotCardbacks.forEach((cb) => {
-      if (cb) {
+      if (cb && !cb.isDfc) {
         if (!frequencyMap.has(cb.canonicalKey)) {
           frequencyMap.set(cb.canonicalKey, { count: 1, details: cb });
         } else {
@@ -932,13 +951,12 @@ export default function WishlistHub() {
       ? (primaryCardbackDetails.cardId || primaryCardbackDetails.queryVal || primaryCardbackDetails.rawVal)
       : (defaultCardBack || "b:black lotus").trim();
 
-    // 3. Group slots by canonical key for any cardbacks that OVERRIDE the primary <cardback>
+    // 3. Group slots by canonical key for any DFC backs OR cardbacks that OVERRIDE the primary <cardback>
     const overrideBacksMap = new Map(); // canonicalKey -> { ...details, slots: [] }
 
     slotCardbacks.forEach((cb, slotIndex) => {
       if (cb) {
-        const matchesPrimary = primaryCardbackDetails && cb.canonicalKey === primaryCardbackDetails.canonicalKey;
-        if (!matchesPrimary) {
+        if (cb.isDfc) {
           if (!overrideBacksMap.has(cb.canonicalKey)) {
             overrideBacksMap.set(cb.canonicalKey, {
               ...cb,
@@ -947,30 +965,42 @@ export default function WishlistHub() {
           } else {
             overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
           }
+        } else {
+          const matchesPrimary = primaryCardbackDetails && cb.canonicalKey === primaryCardbackDetails.canonicalKey;
+          if (!matchesPrimary) {
+            if (!overrideBacksMap.has(cb.canonicalKey)) {
+              overrideBacksMap.set(cb.canonicalKey, {
+                ...cb,
+                slots: [slotIndex]
+              });
+            } else {
+              overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
+            }
+          }
         }
       }
     });
 
-    // Verbose debug logging for user cardbacks
+    // Verbose debug logging for user cardbacks & DFCs
     console.group("🛠️ [MPCfill XML Generator] Verbose Debug Log");
     console.log(`📦 Active Group: "${activeGroup?.name || "group"}"`);
     console.log(`📋 Total Cards in Print Queue: ${printQueue.length}`);
     printQueue.forEach((c, idx) => {
+      const isDfc = isDoubleFacedCard(c);
       console.log(
-        `  Slot [${idx}]: "${c.card_name}" | Owner="${c.username}" | Cardback="${c.user_card_back || "(none)"}"`
+        `  Slot [${idx}]: "${c.card_name}" | DFC=${isDfc} | Owner="${c.username}" | Cardback="${c.user_card_back || "(none)"}"`
       );
     });
     console.log(`🏆 Primary Default <cardback>: "${globalCardbackVal}" (used by ${maxCount} cards)`);
-    console.log(`🔀 Override Cardbacks Count: ${overrideBacksMap.size}`);
+    console.log(`🔀 Override Cardbacks / DFC Backs Count: ${overrideBacksMap.size}`);
 
     xml += `    </fronts>\n`;
     xml += `    <backs>\n`;
 
     for (const backGroup of overrideBacksMap.values()) {
-      console.log(`🎨 Exporting <backs> override entry for ${backGroup.username}:`, {
+      console.log(`🎨 Exporting <backs> entry (DFC / Override):`, {
         canonicalKey: backGroup.canonicalKey,
-        inputCardbackVal: backGroup.rawVal,
-        matchedPrebuilt: backGroup.matchName || "None",
+        isDfc: backGroup.isDfc,
         resolvedDriveId: backGroup.cardId,
         resolvedQuery: backGroup.queryVal,
         fileName: backGroup.fileName,

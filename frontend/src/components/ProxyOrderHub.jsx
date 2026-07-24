@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
 import { parseImportInput } from "../utils/csvImporter";
+import { isDoubleFacedCard, getCardFrontName, getCardBackName } from "../utils/cardHelpers";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import "../styles/proxy-hub.css";
 
@@ -230,8 +231,12 @@ export default function ProxyOrderHub({ data }) {
       const collector = activePrint.collector_number || c.collector_number || "";
       
       const faces = activePrint.card_faces || c.card_faces || [];
-      const isMDFC = faces.length > 1;
-      const mainFace = isMDFC ? faces[0] : activePrint;
+      const isMDFC = isDoubleFacedCard({
+        ...c,
+        card_faces: faces,
+        layout: activePrint.layout || c.layout
+      });
+      const mainFace = faces.length > 1 ? faces[0] : activePrint;
       
       const image =
         activePrint.image ||
@@ -241,7 +246,7 @@ export default function ProxyOrderHub({ data }) {
         null;
 
       // Resolve back image for MDFC print sheets
-      const backImage = isMDFC ? (faces[1].image_uris?.normal || null) : null;
+      const backImage = faces.length > 1 ? (faces[1].image_uris?.normal || null) : null;
 
       // Resolve price based on finish selection
       let price = 0;
@@ -356,13 +361,15 @@ export default function ProxyOrderHub({ data }) {
     if (flatQueue.length === 0) return;
 
     const cardGroups = new Map();
-    const backCards = [];
+    const backGroups = new Map();
 
     flatQueue.forEach((c, slotIndex) => {
-      const key = `${c.name}__${c.setCode || ""}__${c.collector || ""}`;
+      const isDfc = isDoubleFacedCard(c);
+      const frontName = isDfc ? getCardFrontName(c) : (c.name || "Unknown Card");
+      const key = `${frontName}__${c.setCode || ""}__${c.collector || ""}`;
       if (!cardGroups.has(key)) {
         cardGroups.set(key, {
-          name: c.name,
+          name: frontName,
           setCode: c.setCode || "",
           collector: c.collector || "",
           slots: [slotIndex]
@@ -371,12 +378,18 @@ export default function ProxyOrderHub({ data }) {
         cardGroups.get(key).slots.push(slotIndex);
       }
 
-      if (c.isMDFC && c.backImage) {
-        backCards.push({
-          name: `${c.name} (Back)`,
-          slot: slotIndex,
-          query: `b:${c.name}`
-        });
+      if (isDfc) {
+        const backName = getCardBackName(c) || frontName;
+        const backKey = `dfc__${backName.toLowerCase()}`;
+        if (!backGroups.has(backKey)) {
+          backGroups.set(backKey, {
+            name: backName,
+            query: backName,
+            slots: [slotIndex]
+          });
+        } else {
+          backGroups.get(backKey).slots.push(slotIndex);
+        }
       }
     });
 
@@ -414,14 +427,20 @@ export default function ProxyOrderHub({ data }) {
 
     xml += `    </fronts>\n`;
     xml += `    <backs>\n`;
-    backCards.forEach((bc) => {
+
+    for (const bg of backGroups.values()) {
+      const fileName = bg.name.match(/\.(png|jpg|jpeg)$/i)
+        ? bg.name
+        : `${bg.name}.png`;
+
       xml += `        <card>\n`;
       xml += `            <id></id>\n`;
-      xml += `            <slots>${bc.slot}</slots>\n`;
-      xml += `            <name>${escapeXml(bc.name)}.jpg</name>\n`;
-      xml += `            <query>${escapeXml(bc.query)}</query>\n`;
+      xml += `            <slots>${bg.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(bg.query)}</query>\n`;
       xml += `        </card>\n`;
-    });
+    }
+
     xml += `    </backs>\n`;
     xml += `    <cardback>${escapeXml(defaultCardBack.trim())}</cardback>\n`;
     xml += `</order>\n`;
