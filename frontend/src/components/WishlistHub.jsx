@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
-import { isDoubleFacedCard, getCardFrontName, getCardBackName } from "../utils/cardHelpers";
+import { isDoubleFacedCard, getCardFrontName, getCardBackName, formatMpcTextList } from "../utils/cardHelpers";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import { useToast } from "../context/ToastContext";
 import "../styles/wishlist.css";
@@ -814,18 +814,75 @@ export default function WishlistHub() {
     }
   };
 
-  const handleDownloadMpcXml = () => {
-    if (groupWishlist.length === 0) return;
+  const verifyAndGetManifest = async () => {
+    let latestQueue = groupWishlist;
 
-    // Active print queue (first 612)
-    const printQueue = groupWishlist.slice(0, 612);
+    // 1. Fetch latest wishlist data from server if in an active group
+    if (activeGroup?.id) {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const res = await fetch(`/api/playgroups/${activeGroup.id}/wishlist`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            latestQueue = data;
+            setGroupWishlist(data);
+          }
+        }
+      } catch (e) {
+        console.warn("⚠️ [WishlistHub] Could not fetch latest group wishlist prior to XML export:", e);
+      }
+    }
+
+    const printQueue = latestQueue.slice(0, 612);
+
+    // 2. Fetch/verify printsCache metadata for all cards in the manifest
+    if (printQueue.length > 0) {
+      const cardNames = Array.from(new Set(printQueue.map((c) => c.card_name)));
+      try {
+        await fetchPrintsBatch(cardNames, latestQueue);
+      } catch (e) {
+        console.warn("⚠️ [WishlistHub] Could not refresh prints cache prior to XML export:", e);
+      }
+    }
+
+    return printQueue;
+  };
+
+  const handleCopyMpcTextList = async () => {
+    if (groupWishlist.length === 0) return;
+    showToast("🔄 Verifying latest manifest data...", "info");
+
+    const printQueue = await verifyAndGetManifest();
+    if (printQueue.length === 0) {
+      showToast("No cards in print queue.", "warning");
+      return;
+    }
+
+    const textList = formatMpcTextList(printQueue, printsCache, defaultCardBack);
+    await navigator.clipboard.writeText(textList);
+    showToast("📋 Copied MPCfill formatted card list to clipboard!", "success");
+  };
+
+  const handleDownloadMpcXml = async () => {
+    if (groupWishlist.length === 0) return;
+    showToast("🔄 Verifying latest manifest data...", "info");
+
+    const printQueue = await verifyAndGetManifest();
+    if (printQueue.length === 0) {
+      showToast("No cards in print queue to generate XML.", "warning");
+      return;
+    }
 
     // Group cards by card_name + set_code + collector_number to combine slot indices
     const cardGroups = new Map();
 
     printQueue.forEach((c, slotIndex) => {
-      const isDfc = isDoubleFacedCard(c);
-      const name = isDfc ? getCardFrontName(c) : (c.card_name || c.name || "Unknown Card");
+      const meta = printsCache[c.card_name];
+      const isDfc = isDoubleFacedCard(c, meta);
+      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
       const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}`;
       if (!cardGroups.has(key)) {
         cardGroups.set(key, {
@@ -905,8 +962,9 @@ export default function WishlistHub() {
 
     // 1. Resolve cardback or DFC status for every slot in the print queue
     const slotCardbacks = printQueue.map((c) => {
-      if (isDoubleFacedCard(c)) {
-        const backName = getCardBackName(c) || getCardFrontName(c) || "Unknown Card";
+      const meta = printsCache[c.card_name];
+      if (isDoubleFacedCard(c, meta)) {
+        const backName = getCardBackName(c, meta) || getCardFrontName(c, meta) || "Unknown Card";
         return {
           isDfc: true,
           rawVal: backName,
@@ -1026,6 +1084,7 @@ export default function WishlistHub() {
     link.download = `${activeGroup?.name || "group"}_mpcfill_manifest.xml`;
     link.click();
     URL.revokeObjectURL(url);
+    showToast("✨ Verified manifest data & downloaded XML!", "success");
   };
 
   const handleDownloadMpcCsv = () => {
@@ -1662,9 +1721,18 @@ export default function WishlistHub() {
                 </div>
 
                 {/* Download and actions */}
-                <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                   <button className="setup-btn" onClick={handleDownloadMpcXml} disabled={mpcListCount === 0}>
                     🛠️ Generate MPCfill XML Manifest
+                  </button>
+                  <button
+                    className="setup-btn"
+                    onClick={handleCopyMpcTextList}
+                    disabled={mpcListCount === 0}
+                    style={{ background: "rgba(59, 130, 246, 0.2)", borderColor: "rgba(59, 130, 246, 0.4)", color: "#93c5fd" }}
+                    title="Copy card names in MPCfill text format (e.g. 2x Card Name)"
+                  >
+                    📋 Copy MPCfill Quick List
                   </button>
                 </div>
 

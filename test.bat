@@ -9,7 +9,7 @@ start cmd /k "cd frontend && npm run dev"
 
 timeout /t 20
 
-echo Seeding test data if not present...
-start cmd /k "cd backend && node seed-10-users.js"
+REM echo Seeding test data if not present...
+REM start cmd /k "cd backend && node seed-10-users.js"
 
 echo Both services started!

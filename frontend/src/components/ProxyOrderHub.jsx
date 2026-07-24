@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
 import { parseImportInput } from "../utils/csvImporter";
-import { isDoubleFacedCard, getCardFrontName, getCardBackName } from "../utils/cardHelpers";
+import { isDoubleFacedCard, getCardFrontName, getCardBackName, formatMpcTextList } from "../utils/cardHelpers";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import "../styles/proxy-hub.css";
 
@@ -454,6 +454,23 @@ export default function ProxyOrderHub({ data }) {
     URL.revokeObjectURL(url);
   };
 
+  const copyMpcTextList = () => {
+    const flatQueue = [];
+    configuredCards.forEach((c) => {
+      if (c.qty > 0) {
+        for (let i = 0; i < c.qty; i++) {
+          flatQueue.push(c);
+        }
+      }
+    });
+
+    if (flatQueue.length === 0) return;
+
+    const textList = formatMpcTextList(flatQueue, {}, defaultCardBack);
+    navigator.clipboard.writeText(textList);
+    alert("📋 Copied MPCfill formatted card list to clipboard!");
+  };
+
   // --- Print Sheets View ---
   const [printSheetsActive, setPrintSheetsActive] = useState(false);
 
@@ -572,6 +589,9 @@ export default function ProxyOrderHub({ data }) {
           </button>
           <button className="hub-btn" onClick={downloadMpcXml} title="Download an XML manifest for MPCfill / MPC Autofill">
             🛠️ Download MPC XML
+          </button>
+          <button className="hub-btn" onClick={copyMpcTextList} title="Copy card names in MPCfill text format (e.g. 2x Card Name)">
+            📋 Copy MPC Quick List
           </button>
           <button className="hub-btn print" onClick={togglePrintView} title="Render standard 3x3 layout sheets for printer paper">
             🖨️ Print Sheets
