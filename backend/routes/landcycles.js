@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
@@ -11,7 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const LANDCYCLES_DIR = path.resolve(__dirname, "../data/landcycles");
-const META_INDEX_FILE = path.resolve(__dirname, "../data/landcycles.index.json");
 
 function toId(filename) {
     return filename.replace(/\.json$/i, "");
@@ -102,7 +101,6 @@ router.get("/presets", async (req, res) => {
 router.get("/", async (_req, res) => {
     try {
         const files = await fs.readdir(LANDCYCLES_DIR);
-        const metaIndex = await readJsonSafe(META_INDEX_FILE);
 
         const cycles = [];
 
@@ -120,24 +118,14 @@ router.get("/", async (_req, res) => {
                     : [];
 
             // compute if any are fetchable
-            let fetchable = false;
-            for (const card of cards) {
-                if (!card.name) continue;
-                const data = await fetchCardData(card.name);
-                if (data?.fetchable) {
-                    fetchable = true;
-                    break;
-                }
-            }
+            const fetchable = payload.fetchable || cards.some((c) => c.fetchable);
 
-            // Use the data directly from the JSON file
-            const data = await readJsonSafe(filePath);
             cycles.push({
-                id: data.id || id,
-                name: data.name || toName(id),
-                tier: data.tier || "budget",
-                description: data.description || "",
-                fetchable: data.fetchable || fetchable,
+                id: payload.id || id,
+                name: payload.name || toName(id),
+                tier: payload.tier || "budget",
+                description: payload.description || "",
+                fetchable,
                 cards,
             });
         }

@@ -24,6 +24,8 @@ let dedupedCards = [];
 let fuse;
 let oracleGroups = new Map();
 let nameToOracle = new Map();
+let nameToCardMap = new Map();
+let oracleToPrintingsMap = new Map();
 
 let loadPromise = null;
 
@@ -51,6 +53,8 @@ export async function reloadLocalScryfall(force = false) {
 
     oracleGroups = groups;
     dedupedCards = [];
+    nameToCardMap.clear();
+    oracleToPrintingsMap.clear();
 
     for (const [oracle, cards] of groups.entries()) {
       const filtered = cards.filter((c) => {
@@ -84,7 +88,34 @@ export async function reloadLocalScryfall(force = false) {
         return numB - numA;
       });
 
-      dedupedCards.push(filtered[0]);
+      const canonicalCard = filtered[0];
+      dedupedCards.push(canonicalCard);
+
+      const formattedPrints = cards
+        .slice()
+        .sort((a, b) => new Date(b.released_at || 0) - new Date(a.released_at || 0))
+        .map(p => ({
+          set: p.set,
+          set_name: p.set_name,
+          collector_number: p.collector_number,
+          prices: p.prices,
+          released_at: p.released_at,
+          image_uris: p.image_uris,
+          card_faces: p.card_faces,
+          border_color: p.border_color,
+          frame_effects: p.frame_effects,
+          promo_types: p.promo_types,
+          full_art: p.full_art,
+          finishes: p.finishes,
+        }));
+
+      oracleToPrintingsMap.set(oracle, formattedPrints);
+    }
+
+    for (const card of dedupedCards) {
+      if (card.name) {
+        nameToCardMap.set(card.name.toLowerCase(), card);
+      }
     }
 
     console.log(
@@ -106,10 +137,15 @@ export async function ensureLoaded() {
   if (loadPromise) {
     await loadPromise;
   }
+  if (allCards.length === 0) {
+    await reloadLocalScryfall(true);
+  }
 }
 
-// Initial load
-reloadLocalScryfall();
+// Initial load (deferred via setImmediate to allow server startup and auth requests to complete unblocked)
+setImmediate(() => {
+  reloadLocalScryfall();
+});
 
 // ----------------------------------------------------
 // Helper for substring match (fallback)
@@ -128,33 +164,15 @@ export async function getLocalCardByName(name) {
   await ensureLoaded();
 
   const nameLower = name.toLowerCase();
+  const card = nameToCardMap.get(nameLower);
+  if (!card) return null;
 
-  // Find exact match
-  const exactMatches = dedupedCards.filter(
-    (c) => c.name?.toLowerCase() === nameLower
-  );
-
-  if (exactMatches.length === 0) return null;
-
-  const card = exactMatches[0];
-  const allPrintings = allCards.filter(c =>
-    (c.oracle_id && c.oracle_id === card.oracle_id) ||
-    (c.name?.toLowerCase() === nameLower)
-  );
+  const oracle = card.oracle_id || card.id;
+  const prints = oracleToPrintingsMap.get(oracle) || [];
 
   return {
     ...card,
-    prints: allPrintings
-      .sort((a, b) => new Date(b.released_at || 0) - new Date(a.released_at || 0))
-      .map(p => ({
-        set: p.set,
-        set_name: p.set_name,
-        collector_number: p.collector_number,
-        prices: p.prices,
-        released_at: p.released_at,
-        image_uris: p.image_uris,
-        card_faces: p.card_faces,
-      }))
+    prints
   };
 }
 

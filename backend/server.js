@@ -24,6 +24,7 @@ import usersRouter from "./routes/users.js";
 import packagesRouter from "./routes/packages.js";
 import landcyclesRouter from "./routes/landcycles.js";
 import presetsRouter from "./routes/presets.js";
+import archidektRouter from "./routes/archidekt.js";
 
 import ownedRouter from "./routes/owned.js";
 import wishlistRouter from "./routes/wishlist.js";
@@ -31,6 +32,8 @@ import tradelistRouter from "./routes/tradelist.js";
 import tradeRouter from "./routes/trade.js";
 import playgroupsRouter from "./routes/playgroups.js";
 import listsRouter from "./routes/lists.js";
+import cardbacksRouter from "./routes/cardbacks.js";
+import pricingRouter from "./routes/pricingRoutes.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -48,6 +51,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set("trust proxy", true);
 const PORT = process.env.PORT || 8080;
 
 // ---------------------------------
@@ -82,12 +86,16 @@ app.use("/api/collection/tradelist", tradelistRouter);
 app.use("/api/playgroups", playgroupsRouter);
 app.use("/api/lists", listsRouter);
 app.use("/api/trade", tradeRouter);
+app.use("/api/pricing", pricingRouter);
 
 // ✅ Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
 
 // ✅ Backward compatibility: /api/metas now points to /api/packages
 app.use("/api/metas", packagesRouter);
+
+// ✅ Archidekt integration
+app.use("/api/archidekt", archidektRouter);
 
 // ✅ Simple color endpoint
 app.get("/api/colors", (_req, res) => res.json(colors));
@@ -97,6 +105,10 @@ app.use("/api/landcycles", landcyclesRouter);
 
 // ✅ User presets routes
 app.use("/api/presets", presetsRouter);
+
+// ✅ Prebuilt Cardbacks route & static file serving
+app.use("/api/cardbacks", cardbacksRouter);
+app.use("/cardbacks", express.static(path.join(__dirname, "data/cardbacks")));
 
 /**
  * ✅ Dynamic Landcycle Loader (kept for backward compatibility)
@@ -212,13 +224,16 @@ if (process.env.NODE_ENV !== "test") {
             // Ensure bulk data exists and is up to date (once a week)
             await updateBulkDataIfNeeded();
             const { reloadLocalScryfall } = await import("./routes/scryfallLocal.js");
-            await reloadLocalScryfall();
+            await reloadLocalScryfall(true);
 
             // Refresh old prices (cards not updated in >7 days)
             await refreshOldPrices();
 
             // Schedule regular background tasks
-            setInterval(updateBulkDataIfNeeded, 7 * 24 * 60 * 60 * 1000); // once a week
+            setInterval(async () => {
+                await updateBulkDataIfNeeded();
+                await reloadLocalScryfall(true);
+            }, 7 * 24 * 60 * 60 * 1000); // once a week
             setInterval(refreshOldPrices, 6 * 60 * 60 * 1000);            // every 6 hours
 
             console.log("⏰ Scheduled bulk data (weekly) and price update (6h) tasks initialized.");

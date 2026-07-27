@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "seed:10": "node seed-10-users.js"
   },
   "dependencies": {
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",

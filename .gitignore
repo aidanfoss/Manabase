@@ -142,5 +142,10 @@ vite.config.ts.timestamp-*
 *.db
 /.idea/vcs.xml
 /.idea/modules.xml
+<<<<<<< HEAD
 ManaBox_Collection.csv
 PROXIES.csv
+=======
+
+Giga Boxes.csv
+>>>>>>> 0608813868a1d94539b6f4cda4605467297716a0

@@ -59,47 +59,46 @@ async function seed() {
   // Include DevUser in staples loop later
   dbUsers.push(devUser);
 
-  // Define test cards
+  console.log("Cleaning old seeded cards for test users...");
+  const userIds = dbUsers.map(u => u.id);
+  await db("user_cards").whereIn("user_id", userIds).delete();
+
+  // Define test cards (Shock Lands from Edge of Eternities EOE)
   const cardsDistribution = [
     { 
       user: dbUsers[0], // UserWhite
-      tradelist: ["Plains", "Swords to Plowshares", "Teferi's Protection", "Esper Sentinel"], 
-      wishlist: ["Island", "Counterspell", "Smothering Tithe"] 
+      tradelist: ["Hallowed Fountain", "Godless Shrine", "Sacred Foundry", "Temple Garden"], 
+      wishlist: ["Watery Grave", "Steam Vents", "Breeding Pool"] 
     },
     { 
       user: dbUsers[1], // UserBlue
-      tradelist: ["Island", "Counterspell", "Rhystic Study", "Cyclonic Rift"], 
-      wishlist: ["Swamp", "Dark Ritual", "Fierce Guardianship"] 
+      tradelist: ["Hallowed Fountain", "Watery Grave", "Steam Vents", "Breeding Pool"], 
+      wishlist: ["Blood Crypt", "Overgrown Tomb", "Godless Shrine"] 
     },
     { 
       user: dbUsers[2], // UserBlack
-      tradelist: ["Swamp", "Dark Ritual", "Demonic Tutor", "Vampiric Tutor"], 
-      wishlist: ["Mountain", "Lightning Bolt", "Toxic Deluge"] 
+      tradelist: ["Watery Grave", "Blood Crypt", "Overgrown Tomb", "Godless Shrine"], 
+      wishlist: ["Stomping Ground", "Sacred Foundry", "Temple Garden"] 
     },
     { 
       user: dbUsers[3], // UserRed
-      tradelist: ["Mountain", "Lightning Bolt", "Dockside Extortionist", "Deflecting Swat"], 
-      wishlist: ["Forest", "Llanowar Elves", "Jeska's Will"] 
+      tradelist: ["Blood Crypt", "Stomping Ground", "Sacred Foundry", "Steam Vents"], 
+      wishlist: ["Hallowed Fountain", "Overgrown Tomb", "Breeding Pool"] 
     },
     { 
       user: dbUsers[4], // UserGreen
-      tradelist: ["Forest", "Llanowar Elves", "Sylvan Library", "Craterhoof Behemoth"], 
-      wishlist: ["Plains", "Swords to Plowshares", "The Great Henge"] 
+      tradelist: ["Stomping Ground", "Temple Garden", "Overgrown Tomb", "Breeding Pool"], 
+      wishlist: ["Hallowed Fountain", "Godless Shrine", "Watery Grave"] 
     },
     { 
       user: devUser, 
       tradelist: [
-        "Island", "Counterspell", "Swamp", "Dark Ritual", "Mountain", "Lightning Bolt", "Forest", "Llanowar Elves", "Plains", "Swords to Plowshares",
-        "Smothering Tithe", "Fierce Guardianship", "Toxic Deluge", "Jeska's Will", "The Great Henge",
-        "Mana Crypt", "Jeweled Lotus", "Ancient Tomb", "Blood Crypt", "Breeding Pool", "Overgrown Tomb", "Watery Grave", "Hallowed Fountain", "Temple Garden", "Godless Shrine", "Sacred Foundry", "Stomping Ground", "Steam Vents"
+        "Blood Crypt", "Breeding Pool", "Godless Shrine", "Hallowed Fountain", "Overgrown Tomb", 
+        "Sacred Foundry", "Steam Vents", "Stomping Ground", "Temple Garden", "Watery Grave"
       ], 
       wishlist: [
-        "Plains", "Swords to Plowshares",
-        "Teferi's Protection", "Esper Sentinel",
-        "Rhystic Study", "Cyclonic Rift",
-        "Demonic Tutor", "Vampiric Tutor",
-        "Dockside Extortionist", "Deflecting Swat",
-        "Sylvan Library", "Craterhoof Behemoth"
+        "Blood Crypt", "Breeding Pool", "Godless Shrine", "Hallowed Fountain", "Overgrown Tomb", 
+        "Sacred Foundry", "Steam Vents", "Stomping Ground", "Temple Garden", "Watery Grave"
       ] 
     }
   ];
@@ -114,7 +113,7 @@ async function seed() {
         card_name: cardName,
         list_type: "owned",
         quantity: 1,
-        set_code: "LEA",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
@@ -126,7 +125,7 @@ async function seed() {
         card_name: cardName,
         list_type: "tradelist",
         quantity: 1,
-        set_code: "LEA",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
@@ -140,7 +139,7 @@ async function seed() {
         card_name: cardName,
         list_type: "wishlist",
         quantity: 1,
-        set_code: "LEA",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
@@ -148,15 +147,15 @@ async function seed() {
     }
   }
 
-  // Also give everyone a Sol Ring and Arcane Signet
+  // Also give everyone Shock land staples (Hallowed Fountain and Blood Crypt) with set code EOE
   for (const u of dbUsers) {
-    for (const staple of ["Sol Ring", "Arcane Signet"]) {
+    for (const staple of ["Hallowed Fountain", "Blood Crypt"]) {
       await db("user_cards").insert({
         user_id: u.id,
         card_name: staple,
         list_type: "owned",
         quantity: 1,
-        set_code: "C21",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"
@@ -167,7 +166,7 @@ async function seed() {
         card_name: staple,
         list_type: "tradelist",
         quantity: 1,
-        set_code: "C21",
+        set_code: "EOE",
         is_foil: false,
         card_condition: "NM",
         card_language: "EN"

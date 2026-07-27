@@ -2,10 +2,11 @@
 .top-nav {
     display: flex;
     justify-content: space-between;
-    align-items: stretch;
-    background: #111827;
-    border-bottom: 1px solid #1f2937;
-    padding: 0.8rem 1.5rem;
+    align-items: center;
+    background: #1e3a8a;
+    border-bottom: 1px solid #1e40af;
+    padding: 0 1.5rem;
+    height: 60px;
     color: #f8fafc;
     position: sticky;
     top: 0;
@@ -50,6 +51,27 @@
         color: #f87171;
     }
 
+.cycle-user-btn {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+}
+
+.cycle-user-btn:hover {
+    background: rgba(99, 102, 241, 0.3);
+    border-color: #6366f1;
+    color: #ffffff;
+}
+
 /* === Nav Buttons === */
 .nav-buttons {
     display: flex;
@@ -82,6 +104,19 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
+}
+
+.nav-link {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #ffffff;
 }
 
     .nav-actions button {
@@ -246,6 +281,90 @@
 .toggle-mode span:hover {
     color: #60a5fa;
     text-decoration: underline;
+}
+
+/* === SSO Styling === */
+.sso-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+}
+
+.sso-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.sso-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sso-google {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: #e5e7eb;
+}
+
+.sso-google:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sso-discord {
+    background: #5865F2;
+    color: #ffffff;
+}
+
+.sso-discord:hover:not(:disabled) {
+    background: #4752C4;
+    box-shadow: 0 2px 8px rgba(88, 101, 242, 0.3);
+}
+
+.sso-icon {
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.sso-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0.25rem 0;
+}
+
+.sso-divider::before,
+.sso-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #334155;
+}
+
+.sso-divider span {
+    padding: 0 0.6rem;
+}
+
+.nav-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #3b82f6;
+    object-fit: cover;
 }
 
 /* === Animations === */
@@ -572,4 +691,104 @@
 .sub-btn:active {
     transform: scale(0.98) translateX(4px);
 }
+
+/* === Top Dropdown Alerts / Toast Banners === */
+.top-toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    pointer-events: none;
+    width: 90%;
+    max-width: 500px;
+}
+
+.top-toast-banner {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    font-size: 0.92rem;
+    font-weight: 500;
+    width: 100%;
+    box-sizing: border-box;
+    animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.top-toast-banner:hover {
+    transform: translateY(-2px);
+}
+
+.top-toast-banner.success {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.top-toast-banner.error {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.top-toast-banner.info {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.top-toast-banner.warning {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, rgba(120, 53, 15, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.toast-icon {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-message {
+    flex: 1;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+    color: #ffffff;
+}
+
+@keyframes toastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-24px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 
