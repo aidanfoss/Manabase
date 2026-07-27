@@ -85,6 +85,9 @@ export default function WishlistHub() {
   // MPC print cost config (default $0.25)
   const [mpcUnitCost, setMpcUnitCost] = useState(0.25);
 
+  // Playgroup Decks Resync Lock
+  const [hasResyncedGroupDecks, setHasResyncedGroupDecks] = useState(false);
+  const [resyncingGroupDecks, setResyncingGroupDecks] = useState(false);
   // Live parsed preview of import cards
   const parsedPreviewCards = useMemo(() => {
     if (!importText.trim()) return [];
@@ -786,6 +789,22 @@ export default function WishlistHub() {
     } catch (e) {
       console.error("Failed to generate invite link:", e);
       showToast("Failed to generate invite link.", "error");
+    }
+  };
+
+  const handleResyncGroupDecks = async () => {
+    if (!activeGroup) return;
+    setResyncingGroupDecks(true);
+    try {
+      const res = await api.resyncPlaygroupDecks(activeGroup.id);
+      alert(`✅ ${res.message}\nAdded: ${res.stats.added}, Removed: ${res.stats.removed}, Ignored: ${res.stats.ignored}`);
+      setHasResyncedGroupDecks(true);
+      // Reload wishlist to reflect any changes from synced decks
+      loadPlaygroupDetails(activeGroup.id);
+    } catch (err) {
+      alert("Failed to resync playgroup decks: " + err.message);
+    } finally {
+      setResyncingGroupDecks(false);
     }
   };
 
@@ -1722,6 +1741,14 @@ export default function WishlistHub() {
 
                 {/* Download and actions */}
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <button 
+                    className="setup-btn" 
+                    onClick={handleResyncGroupDecks} 
+                    disabled={resyncingGroupDecks}
+                    style={{ background: "#3b82f6" }}
+                  >
+                    {resyncingGroupDecks ? "Syncing..." : "🔄 Resync All Playgroup Decks"}
+                  </button>
                   <button className="setup-btn" onClick={handleDownloadMpcXml} disabled={mpcListCount === 0}>
                     🛠️ Generate MPCfill XML Manifest
                   </button>

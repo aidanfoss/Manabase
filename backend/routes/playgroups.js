@@ -3,6 +3,7 @@ import express from "express";
 import crypto from "crypto";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { syncDeckInternal } from "../services/archidektSync.js";
 
 const router = express.Router();
 
@@ -308,6 +309,55 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("Error fetching group wishlist:", err);
     res.status(500).json({ error: "Failed to fetch playgroup wishlists." });
+  }
+});
+
+// POST /api/playgroups/:id/resync-decks - Resync all active decks for playgroup members
+router.post("/:id/resync-decks", requireAuth, async (req, res) => {
+  const playgroupId = req.params.id;
+  try {
+    // Verify membership
+    const isMember = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .first();
+    if (!isMember) return res.status(403).json({ error: "Not a member of this playgroup" });
+
+    // Fetch all members
+    const members = await db("playgroup_members").where({ playgroup_id: playgroupId });
+    const userIds = members.map(m => m.user_id);
+
+    // Fetch all active decks for these members
+    const activeDecks = await db("user_archidekt_decks")
+      .whereIn("user_id", userIds)
+      .andWhere("status", "active");
+
+    let totalAdded = 0;
+    let totalRemoved = 0;
+    let totalIgnored = 0;
+    let successCount = 0;
+
+    for (const deck of activeDecks) {
+      try {
+        const result = await syncDeckInternal(deck.deck_id, deck.user_id, null);
+        totalAdded += result.stats.added || 0;
+        totalRemoved += result.stats.removed || 0;
+        totalIgnored += result.stats.ignored || 0;
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to bulk sync deck ${deck.deck_id} for user ${deck.user_id}:`, err.message);
+        // Continue with other decks
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully resynced ${successCount} out of ${activeDecks.length} active decks.`,
+      stats: { added: totalAdded, removed: totalRemoved, ignored: totalIgnored }
+    });
+
+  } catch (err) {
+    console.error("Error bulk resyncing playgroup decks:", err);
+    res.status(500).json({ error: "Failed to resync playgroup decks." });
   }
 });
 

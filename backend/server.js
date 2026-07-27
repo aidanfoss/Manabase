@@ -24,6 +24,7 @@ import usersRouter from "./routes/users.js";
 import packagesRouter from "./routes/packages.js";
 import landcyclesRouter from "./routes/landcycles.js";
 import presetsRouter from "./routes/presets.js";
+import archidektRouter from "./routes/archidekt.js";
 
 import ownedRouter from "./routes/owned.js";
 import wishlistRouter from "./routes/wishlist.js";
@@ -92,6 +93,9 @@ app.use("/api/packages", packagesRouter);
 
 // ✅ Backward compatibility: /api/metas now points to /api/packages
 app.use("/api/metas", packagesRouter);
+
+// ✅ Archidekt integration
+app.use("/api/archidekt", archidektRouter);
 
 // ✅ Simple color endpoint
 app.get("/api/colors", (_req, res) => res.json(colors));

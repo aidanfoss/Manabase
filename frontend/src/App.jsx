@@ -9,6 +9,7 @@ import Presets from "./components/Presets";
 import OwnedCollection from "./components/OwnedCollection";
 import WishlistHub from "./components/WishlistHub";
 import TradelistManager from "./components/TradelistManager";
+import DecksHub from "./components/DecksHub";
 import InviteLanding from "./components/InviteLanding";
 import { ToastProvider } from "./context/ToastContext";
 import { api } from "./api/client";
@@ -125,6 +126,7 @@ function AppContent() {
           <Route path="/collection" element={<OwnedCollection onCollectionChanged={setUserCollection} />} />
           <Route path="/wishlist" element={<WishlistHub />} />
           <Route path="/trade" element={<TradelistManager />} />
+          <Route path="/decks" element={<DecksHub />} />
           <Route path="/invite/:token" element={<InviteLanding onOpenLoginModal={() => setShowLogin(true)} />} />
           <Route path="/presets" element={<Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />} />
           <Route path="/packages" element={<PackageManager ref={packageRef} />} />
@@ -176,6 +178,21 @@ function LandingDashboard() {
             <button className="sub-btn" onClick={() => navigate("/collection")}>🗃️ Collection</button>
             <button className="sub-btn" onClick={() => navigate("/wishlist")}>✨ Proxy Hub</button>
             <button className="sub-btn" onClick={() => navigate("/trade")}>🤝 Trade Hub</button>
+          </div>
+        </div>
+
+        {/* Feature 3: Archidekt Sync */}
+        <div className="feature-card">
+          <div className="card-badge-top">Feature 03</div>
+          <div className="card-icon">🔄</div>
+          <h2 className="card-title-text">Archidekt Sync Hub</h2>
+          <p className="card-description">
+            Maintain synchronized copies of your Archidekt decks. Pull lists dynamically based on custom per-card Color Tags and instantly sort them into your Collection, Tradelist, or Wishlist.
+          </p>
+          
+          <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
+            <button className="sub-btn" onClick={() => navigate("/decks")}>📦 Saved Decks</button>
+            <button className="sub-btn" onClick={() => navigate("/decks")}>➕ Import New</button>
           </div>
         </div>
       </div>

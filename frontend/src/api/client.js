@@ -172,6 +172,20 @@ export const api = {
   getTradeLedger: () => api.json("/trade/ledger"),
 
   // ---------------------------------------
+  // === Archidekt Sync ===
+  // ---------------------------------------
+  updateArchidektConfig: (config) => api.json("/archidekt/config", { method: "PUT", body: JSON.stringify(config) }),
+  getArchidektDeckInfo: (deckId) => api.json(`/archidekt/deck/${deckId}`),
+  syncArchidektDeck: (deckId, mappings) => api.json(`/archidekt/sync/${deckId}`, { method: "POST", body: JSON.stringify({ mappings }) }),
+  getSavedArchidektDecks: () => api.json("/archidekt/decks"),
+  updateArchidektDeckOptions: (deckId, options) => api.json(`/archidekt/decks/${deckId}`, { method: "PUT", body: JSON.stringify(options) }),
+
+  // ---------------------------------------
+  // === Playgroups ===
+  // ---------------------------------------
+  resyncPlaygroupDecks: (playgroupId) => api.json(`/playgroups/${playgroupId}/resync-decks`, { method: "POST" }),
+
+  // ---------------------------------------
   // === Marketplace & Retail Pricing ===
   // ---------------------------------------
   searchLotusVault: (name) => api.json(`/pricing/lotusvault/search?name=${encodeURIComponent(name)}`),
