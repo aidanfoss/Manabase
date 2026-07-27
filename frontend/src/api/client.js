@@ -94,6 +94,9 @@ export const api = {
   // ---------------------------------------
   login: (credentials) => api.post("/auth/login", credentials),
   register: (credentials) => api.post("/auth/register", credentials),
+  getAuthProviders: () => api.json("/auth/providers"),
+  loginWithGoogle: (payload = {}) => api.post("/auth/google", payload),
+  loginWithDiscord: (payload = {}) => api.post("/auth/discord", payload),
 
   // ---------------------------------------
   // === Packages ===
@@ -181,4 +184,11 @@ export const api = {
   // === Playgroups ===
   // ---------------------------------------
   resyncPlaygroupDecks: (playgroupId) => api.json(`/playgroups/${playgroupId}/resync-decks`, { method: "POST" }),
+
+  // ---------------------------------------
+  // === Marketplace & Retail Pricing ===
+  // ---------------------------------------
+  searchLotusVault: (name) => api.json(`/pricing/lotusvault/search?name=${encodeURIComponent(name)}`),
+  batchLotusVault: (names) => api.post("/pricing/lotusvault/batch", { names }),
+  optimizeManaPool: (items, options) => api.post("/pricing/manapool/optimize", { items, options }),
 };

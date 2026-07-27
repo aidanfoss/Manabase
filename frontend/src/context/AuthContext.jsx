@@ -5,7 +5,33 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [ssoError, setSsoError] = useState(null);
   const devLoginAttempted = useRef(false);
+
+  // Check URL parameters for SSO redirect token on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ssoToken = params.get("sso_token");
+    const err = params.get("sso_error");
+
+    if (ssoToken) {
+      console.log("🔑 SSO Login token detected from redirect");
+      localStorage.setItem("token", ssoToken);
+      setToken(ssoToken);
+      
+      // Clean query params from URL without reload
+      params.delete("sso_token");
+      params.delete("sso_error");
+      const newQuery = params.toString() ? `?${params.toString()}` : "";
+      window.history.replaceState({}, document.title, window.location.pathname + newQuery);
+    } else if (err) {
+      console.error("❌ SSO Error from redirect:", err);
+      setSsoError(err);
+      params.delete("sso_error");
+      const newQuery = params.toString() ? `?${params.toString()}` : "";
+      window.history.replaceState({}, document.title, window.location.pathname + newQuery);
+    }
+  }, []);
 
   // On load or token change, validate token and fetch user
   useEffect(() => {
@@ -70,16 +96,18 @@ export function AuthProvider({ children }) {
     localStorage.setItem("token", data.token);
     setUser(data.user);
     setToken(data.token);
+    setSsoError(null);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
+    setSsoError(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, ssoError, setSsoError }}>
       {children}
     </AuthContext.Provider>
   );

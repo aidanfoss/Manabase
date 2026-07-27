@@ -1,9 +1,14 @@
-// src/components/ProxyOrderHub.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { resolveDisplayPrice } from "../utils/pricing";
+import { parseImportInput } from "../utils/csvImporter";
+import { isDoubleFacedCard, getCardFrontName, getCardBackName, formatMpcTextList } from "../utils/cardHelpers";
+import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import "../styles/proxy-hub.css";
 
 export default function ProxyOrderHub({ data }) {
+  const [showMarketplaceDrawer, setShowMarketplaceDrawer] = useState(false);
+  const [drawerCardName, setDrawerCardName] = useState("");
+  const [drawerCardList, setDrawerCardList] = useState([]);
   // Combine lands and nonlands into a unified array
   const allCards = useMemo(() => {
     const list = [];
@@ -21,6 +26,128 @@ export default function ProxyOrderHub({ data }) {
   const [quantities, setQuantities] = useState({});
   const [selectedPrints, setSelectedPrints] = useState({});
   const [finishes, setFinishes] = useState({}); // "nonfoil" or "foil"
+
+  // Default Proxy Card Back preference (defaulting to Black Lotus)
+  const [defaultCardBack, setDefaultCardBack] = useState(() => {
+    return localStorage.getItem("manabase_default_card_back") || "b:black lotus";
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("/api/users/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.default_card_back !== undefined) {
+          const backVal = data.default_card_back || "b:black lotus";
+          setDefaultCardBack(backVal);
+          localStorage.setItem("manabase_default_card_back", backVal);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveCardBack = async (newVal) => {
+    setDefaultCardBack(newVal);
+    localStorage.setItem("manabase_default_card_back", newVal);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await fetch("/api/users/me/card-back", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ default_card_back: newVal })
+      });
+    } catch (e) {
+      console.error("Failed to update card back preference:", e);
+    }
+  };
+
+  // Bulk import states
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
+  const parsedPreviewCards = useMemo(() => {
+    if (!importText.trim()) return [];
+    return parseImportInput(importText);
+  }, [importText]);
+
+  const handleBulkImport = async () => {
+    if (!importText.trim()) return;
+
+    setImporting(true);
+    setImportStatus("Parsing cards...");
+
+    try {
+      const parsed = parseImportInput(importText);
+      if (parsed.length === 0) {
+        alert("No valid cards found in the provided input.");
+        setImporting(false);
+        setImportStatus("");
+        return;
+      }
+
+      // Update local quantities for matching cards in allCards
+      const updatedQuants = { ...quantities };
+      const updatedFinishes = { ...finishes };
+
+      parsed.forEach((c) => {
+        const existingQty = updatedQuants[c.card_name] || 0;
+        updatedQuants[c.card_name] = existingQty + (c.quantity || 1);
+        if (c.is_foil) {
+          updatedFinishes[c.card_name] = "foil";
+        }
+      });
+
+      setQuantities(updatedQuants);
+      setFinishes(updatedFinishes);
+
+      // Save to backend Proxy Wishlist if logged in
+      const token = localStorage.getItem("token");
+      if (token) {
+        setImportStatus(`Saving ${parsed.length} cards to Proxy Hub wishlist...`);
+        const CHUNK_SIZE = 500;
+        for (let i = 0; i < parsed.length; i += CHUNK_SIZE) {
+          const chunk = parsed.slice(i, i + CHUNK_SIZE);
+          await fetch("/api/lists/bulk", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ cards: chunk, list_kind: "proxy_wishlist" }),
+          });
+        }
+      }
+
+      setImportText("");
+      setShowImportModal(false);
+      setImportStatus("");
+      alert(`🎉 Successfully bulk imported ${parsed.reduce((sum, c) => sum + c.quantity, 0)} cards!`);
+    } catch (e) {
+      console.error("Bulk import failed:", e);
+      alert("An error occurred during bulk import.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleFileRead = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImportText(e.target.result || "");
+    };
+    reader.readAsText(file);
+  };
 
   // Initialize state when card list changes
   useEffect(() => {
@@ -104,8 +231,12 @@ export default function ProxyOrderHub({ data }) {
       const collector = activePrint.collector_number || c.collector_number || "";
       
       const faces = activePrint.card_faces || c.card_faces || [];
-      const isMDFC = faces.length > 1;
-      const mainFace = isMDFC ? faces[0] : activePrint;
+      const isMDFC = isDoubleFacedCard({
+        ...c,
+        card_faces: faces,
+        layout: activePrint.layout || c.layout
+      });
+      const mainFace = faces.length > 1 ? faces[0] : activePrint;
       
       const image =
         activePrint.image ||
@@ -115,7 +246,7 @@ export default function ProxyOrderHub({ data }) {
         null;
 
       // Resolve back image for MDFC print sheets
-      const backImage = isMDFC ? (faces[1].image_uris?.normal || null) : null;
+      const backImage = faces.length > 1 ? (faces[1].image_uris?.normal || null) : null;
 
       // Resolve price based on finish selection
       let price = 0;
@@ -215,6 +346,129 @@ export default function ProxyOrderHub({ data }) {
     link.download = `manabase_mpc_order.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadMpcXml = () => {
+    const flatQueue = [];
+    configuredCards.forEach((c) => {
+      if (c.qty > 0) {
+        for (let i = 0; i < c.qty; i++) {
+          flatQueue.push(c);
+        }
+      }
+    });
+
+    if (flatQueue.length === 0) return;
+
+    const cardGroups = new Map();
+    const backGroups = new Map();
+
+    flatQueue.forEach((c, slotIndex) => {
+      const isDfc = isDoubleFacedCard(c);
+      const frontName = isDfc ? getCardFrontName(c) : (c.name || "Unknown Card");
+      const key = `${frontName}__${c.setCode || ""}__${c.collector || ""}`;
+      if (!cardGroups.has(key)) {
+        cardGroups.set(key, {
+          name: frontName,
+          setCode: c.setCode || "",
+          collector: c.collector || "",
+          slots: [slotIndex]
+        });
+      } else {
+        cardGroups.get(key).slots.push(slotIndex);
+      }
+
+      if (isDfc) {
+        const backName = getCardBackName(c) || frontName;
+        const backKey = `dfc__${backName.toLowerCase()}`;
+        if (!backGroups.has(backKey)) {
+          backGroups.set(backKey, {
+            name: backName,
+            query: backName,
+            slots: [slotIndex]
+          });
+        } else {
+          backGroups.get(backKey).slots.push(slotIndex);
+        }
+      }
+    });
+
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    };
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<order>\n`;
+    xml += `    <details>\n`;
+    xml += `        <quantity>${flatQueue.length}</quantity>\n`;
+    xml += `        <stock>(S30) Standard Smooth</stock>\n`;
+    xml += `        <foil>false</foil>\n`;
+    xml += `    </details>\n`;
+    xml += `    <fronts>\n`;
+
+    for (const group of cardGroups.values()) {
+      const fileName = group.name.match(/\.(png|jpg|jpeg)$/i)
+        ? group.name
+        : `${group.name}.png`;
+
+      xml += `        <card>\n`;
+      xml += `            <id></id>\n`;
+      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(group.name)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    xml += `    </fronts>\n`;
+    xml += `    <backs>\n`;
+
+    for (const bg of backGroups.values()) {
+      const fileName = bg.name.match(/\.(png|jpg|jpeg)$/i)
+        ? bg.name
+        : `${bg.name}.png`;
+
+      xml += `        <card>\n`;
+      xml += `            <id></id>\n`;
+      xml += `            <slots>${bg.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(bg.query)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    xml += `    </backs>\n`;
+    xml += `    <cardback>${escapeXml(defaultCardBack.trim())}</cardback>\n`;
+    xml += `</order>\n`;
+
+    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `manabase_mpc_order.xml`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyMpcTextList = () => {
+    const flatQueue = [];
+    configuredCards.forEach((c) => {
+      if (c.qty > 0) {
+        for (let i = 0; i < c.qty; i++) {
+          flatQueue.push(c);
+        }
+      }
+    });
+
+    if (flatQueue.length === 0) return;
+
+    const textList = formatMpcTextList(flatQueue, {}, defaultCardBack);
+    navigator.clipboard.writeText(textList);
+    alert("📋 Copied MPCfill formatted card list to clipboard!");
   };
 
   // --- Print Sheets View ---
@@ -321,18 +575,52 @@ export default function ProxyOrderHub({ data }) {
           <p>Export your tailored list for ordering sites, deckbuilders, or local home printing.</p>
         </div>
         <div className="action-buttons">
+          <button className="hub-btn primary" onClick={() => setShowImportModal(true)} title="Bulk import decklists or CSV files">
+            📥 Bulk Import
+          </button>
           <button className="hub-btn" onClick={copyMoxfield} title="Copy simple 1x Card Name list">
             📋 Copy Moxfield List
           </button>
           <button className="hub-btn" onClick={copyDetailed} title="Copy detailed list with sets">
             📊 Copy Detailed List
           </button>
-          <button className="hub-btn primary" onClick={downloadMpcCsv} title="Download a CSV template for MakePlayingCards">
+          <button className="hub-btn" onClick={downloadMpcCsv} title="Download a CSV template for MakePlayingCards">
             📦 Download MPC CSV
+          </button>
+          <button className="hub-btn" onClick={downloadMpcXml} title="Download an XML manifest for MPCfill / MPC Autofill">
+            🛠️ Download MPC XML
+          </button>
+          <button className="hub-btn" onClick={copyMpcTextList} title="Copy card names in MPCfill text format (e.g. 2x Card Name)">
+            📋 Copy MPC Quick List
           </button>
           <button className="hub-btn print" onClick={togglePrintView} title="Render standard 3x3 layout sheets for printer paper">
             🖨️ Print Sheets
           </button>
+          <button
+            className="hub-btn"
+            style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.2), rgba(99,102,241,0.2))", border: "1px solid rgba(236,72,153,0.5)", color: "#f472b6" }}
+            onClick={() => {
+              setDrawerCardName("");
+              setDrawerCardList(configuredCards.map(c => ({ name: c.name, quantity: c.qty, isFoil: c.finish === "foil" })));
+              setShowMarketplaceDrawer(true);
+            }}
+            title="Compare LotusVault local stock vs ManaPool optimized cart with live shipping cost"
+          >
+            🌸 Retail Deals & Live Shipping ⚡
+          </button>
+        </div>
+        <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", maxWidth: "500px" }}>
+          <label style={{ fontSize: "0.85rem", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
+            🎨 Default Card Back ID / Query:
+          </label>
+          <input
+            type="text"
+            className="setup-input"
+            style={{ flex: 1, fontSize: "0.85rem", padding: "0.35rem 0.6rem" }}
+            placeholder="e.g. Google Drive ID, URL, or cardback search query"
+            value={defaultCardBack}
+            onChange={(e) => handleSaveCardBack(e.target.value)}
+          />
         </div>
       </div>
 
@@ -414,6 +702,129 @@ export default function ProxyOrderHub({ data }) {
           );
         })}
       </div>
+
+      {/* Bulk Import Modal */}
+      {showImportModal && (
+        <div className="modal-overlay" onClick={() => !importing && setShowImportModal(false)}>
+          <div className="modal-container bulk-import-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-title">
+                <h2>📥 Bulk Import Proxies</h2>
+                <p>Upload CSV or paste decklists to add cards to your proxy order</p>
+              </div>
+              <button className="modal-close-btn" onClick={() => !importing && setShowImportModal(false)}>✕</button>
+            </div>
+
+            <div className="modal-body">
+              <div 
+                className={`import-dropzone ${isDragging ? "dragging" : ""}`}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFileRead(e.dataTransfer.files[0]);
+                  }
+                }}
+              >
+                <span className="dropzone-icon">📄</span>
+                <span className="dropzone-text">Drag & drop CSV or decklist file here, or</span>
+                <label className="file-browse-btn">
+                  Browse File
+                  <input 
+                    type="file" 
+                    accept=".csv,.txt,.json" 
+                    onChange={(e) => e.target.files?.[0] && handleFileRead(e.target.files[0])} 
+                    hidden 
+                  />
+                </label>
+              </div>
+
+              <div className="textarea-wrapper">
+                <label className="input-label">Paste Decklist or CSV:</label>
+                <textarea
+                  value={importText}
+                  onChange={(e) => setImportText(e.target.value)}
+                  placeholder={`4 Brainstorm\n1 Sol Ring (C21) 255 *F*\n1 Watery Grave`}
+                  rows={6}
+                  className="import-textarea"
+                  disabled={importing}
+                />
+              </div>
+
+              {parsedPreviewCards.length > 0 && (
+                <div className="import-preview-box">
+                  <div className="preview-header">
+                    <span>✅ Detected <strong>{parsedPreviewCards.length}</strong> unique cards ({parsedPreviewCards.reduce((s, c) => s + c.quantity, 0)} total items)</span>
+                  </div>
+                  <div className="preview-list-scroll">
+                    <table className="preview-table">
+                      <thead>
+                        <tr>
+                          <th>Qty</th>
+                          <th>Card Name</th>
+                          <th>Set</th>
+                          <th>Finish</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {parsedPreviewCards.slice(0, 10).map((c, idx) => (
+                          <tr key={idx}>
+                            <td>{c.quantity}x</td>
+                            <td>{c.card_name}</td>
+                            <td>{c.set_code || "Auto"}</td>
+                            <td>{c.is_foil ? "Foil" : "Normal"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {importStatus && (
+                <div className="import-status-banner">
+                  <span>⏳</span> {importStatus}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary" 
+                onClick={() => { setImportText(""); setImportStatus(""); }}
+                disabled={importing || !importText}
+              >
+                Clear
+              </button>
+              <div className="right-actions">
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => setShowImportModal(false)}
+                  disabled={importing}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleBulkImport}
+                  disabled={importing || parsedPreviewCards.length === 0}
+                >
+                  {importing ? "Importing..." : `Import ${parsedPreviewCards.reduce((s, c) => s + c.quantity, 0)} Cards`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* LotusVault & ManaPool Price & Shipping Drawer */}
+      <MarketplacePriceDrawer
+        isOpen={showMarketplaceDrawer}
+        onClose={() => setShowMarketplaceDrawer(false)}
+        cardName={drawerCardName}
+        cardList={drawerCardList}
+      />
     </div>
   );
 }

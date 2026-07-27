@@ -1,5 +1,6 @@
 // backend/routes/playgroups.js
 import express from "express";
+import crypto from "crypto";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { syncDeckInternal } from "../services/archidektSync.js";
@@ -29,11 +30,19 @@ router.post("/", requireAuth, async (req, res) => {
     const newGroup = await db.transaction(async (trx) => {
       const [inserted] = await trx("playgroups").insert({ name }).returning("*");
       // Knex returns array of inserted objects or IDs
-      const playgroupId = typeof inserted === "object" ? inserted.id : inserted;
+      const playgroupId = typeof inserted === "object" && inserted !== null ? (inserted.id || inserted) : inserted;
       
       await trx("playgroup_members").insert({
         playgroup_id: playgroupId,
         user_id: req.user.id
+      });
+
+      // Auto-create an invite link for the creator
+      const token = crypto.randomBytes(16).toString("hex");
+      await trx("playgroup_invites").insert({
+        playgroup_id: playgroupId,
+        token,
+        created_by: req.user.id
       });
       
       return { id: playgroupId, name };
@@ -46,28 +55,150 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/playgroups/join - Join a playgroup
+// GET /api/playgroups/invites/:token - Fetch details about an invite link
+router.get("/invites/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const invite = await db("playgroup_invites")
+      .join("playgroups", "playgroup_invites.playgroup_id", "playgroups.id")
+      .join("users", "playgroup_invites.created_by", "users.id")
+      .where("playgroup_invites.token", token)
+      .select(
+        "playgroup_invites.token",
+        "playgroup_invites.playgroup_id",
+        "playgroups.name as playgroup_name",
+        "users.username as inviter_username"
+      )
+      .first();
+
+    if (!invite) {
+      return res.status(404).json({ error: "Invalid or expired invite link." });
+    }
+
+    res.json(invite);
+  } catch (err) {
+    console.error("Error fetching invite info:", err);
+    res.status(500).json({ error: "Failed to fetch invite details." });
+  }
+});
+
+// POST /api/playgroups/:id/invite - Generate or retrieve invite link for a playgroup
+router.post("/:id/invite", requireAuth, async (req, res) => {
+  try {
+    const playgroupId = parseInt(req.params.id);
+    if (isNaN(playgroupId)) {
+      return res.status(400).json({ error: "Invalid playgroup ID" });
+    }
+
+    // Verify membership
+    const isMember = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .first();
+    if (!isMember) return res.status(403).json({ error: "Only playgroup members can generate invite links" });
+
+    // Check if an invite token already exists for this group
+    let invite = await db("playgroup_invites")
+      .where({ playgroup_id: playgroupId })
+      .first();
+
+    if (!invite) {
+      const token = crypto.randomBytes(16).toString("hex");
+      const [inserted] = await db("playgroup_invites")
+        .insert({
+          playgroup_id: playgroupId,
+          token,
+          created_by: req.user.id
+        })
+        .returning("*");
+      invite = typeof inserted === "object" ? inserted : { token, playgroup_id: playgroupId };
+    }
+
+    res.json({
+      success: true,
+      token: invite.token,
+      playgroup_id: playgroupId
+    });
+  } catch (err) {
+    console.error("Error generating playgroup invite:", err);
+    res.status(500).json({ error: "Failed to generate invite link." });
+  }
+});
+
+// POST /api/playgroups/join - Join a playgroup via invite token
 router.post("/join", requireAuth, async (req, res) => {
   try {
-    const { playgroup_id } = req.body;
-    if (!playgroup_id) return res.status(400).json({ error: "Playgroup ID is required" });
+    const { invite_token } = req.body;
+    if (!invite_token) {
+      return res.status(400).json({ error: "Playgroups are private. An invite link/token is required to join." });
+    }
 
-    const group = await db("playgroups").where({ id: playgroup_id }).first();
-    if (!group) return res.status(404).json({ error: "Playgroup not found" });
+    const invite = await db("playgroup_invites")
+      .where({ token: invite_token })
+      .first();
+
+    if (!invite) {
+      return res.status(404).json({ error: "Invalid or expired invite token." });
+    }
+
+    const group = await db("playgroups").where({ id: invite.playgroup_id }).first();
+    if (!group) {
+      return res.status(404).json({ error: "Playgroup no longer exists." });
+    }
 
     // Insert user into playgroup
     await db("playgroup_members")
       .insert({
-        playgroup_id: parseInt(playgroup_id),
+        playgroup_id: invite.playgroup_id,
         user_id: req.user.id
       })
       .onConflict(["playgroup_id", "user_id"])
       .ignore();
 
-    res.json({ success: true, message: "Joined playgroup successfully", name: group.name });
+    res.json({ success: true, message: "Joined playgroup successfully", id: group.id, name: group.name });
   } catch (err) {
     console.error("Error joining playgroup:", err);
     res.status(500).json({ error: "Failed to join playgroup." });
+  }
+});
+
+// POST /api/playgroups/:id/leave - Leave a playgroup
+router.post("/:id/leave", requireAuth, async (req, res) => {
+  try {
+    const playgroupId = parseInt(req.params.id);
+    if (isNaN(playgroupId)) {
+      return res.status(400).json({ error: "Invalid playgroup ID" });
+    }
+
+    const group = await db("playgroups").where({ id: playgroupId }).first();
+    if (!group) {
+      return res.status(404).json({ error: "Playgroup not found" });
+    }
+
+    // Delete membership
+    const deletedCount = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .del();
+
+    if (!deletedCount) {
+      return res.status(400).json({ error: "You are not a member of this playgroup" });
+    }
+
+    // Check remaining member count; if 0, delete group and invites
+    const remainingMembers = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId })
+      .count("* as count")
+      .first();
+
+    if (!remainingMembers || parseInt(remainingMembers.count) === 0) {
+      await db("playgroup_invites").where({ playgroup_id: playgroupId }).del();
+      await db("proxy_orders").where({ playgroup_id: playgroupId }).del();
+      await db("playgroups").where({ id: playgroupId }).del();
+    }
+
+    res.json({ success: true, message: `Successfully left playgroup "${group.name}"` });
+  } catch (err) {
+    console.error("Error leaving playgroup:", err);
+    res.status(500).json({ error: "Failed to leave playgroup." });
   }
 });
 
@@ -150,7 +281,8 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
         "user_cards.is_foil",
         "user_cards.quantity",
         "user_cards.created_at",
-        "users.username"
+        "users.username",
+        "users.default_card_back as user_card_back"
       )
       .orderBy("user_cards.created_at", "asc");
 
@@ -166,6 +298,7 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           set_code: item.set_code,
           collector_number: item.collector_number,
           is_foil: item.is_foil,
+          user_card_back: item.user_card_back || "b:black lotus",
           created_at: item.created_at,
           index: i + 1
         });

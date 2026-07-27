@@ -46,10 +46,13 @@ export async function initDB() {
       t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
       t.string("email").unique().notNullable();
       t.string("username").notNullable();
-      t.string("password_hash").notNullable();
+      t.string("password_hash").nullable(); // Changed to nullable from main
       t.string("archidekt_username");
       t.integer("archidekt_id");
       t.json("archidekt_tag_mappings");
+      t.string("google_id").nullable().unique();
+      t.string("discord_id").nullable().unique();
+      t.string("avatar_url").nullable();
       t.timestamps(true, true);
     });
   } else {
@@ -62,6 +65,38 @@ export async function initDB() {
         t.json("archidekt_tag_mappings");
       });
       console.log("✅ Added archidekt columns to users table");
+    }
+
+    const hasGoogleId = await db.schema.hasColumn("users", "google_id");
+    if (!hasGoogleId) {
+      await db.schema.table("users", (t) => {
+        t.string("google_id").nullable().unique();
+      });
+      console.log("✅ Added google_id column to users table");
+    }
+
+    const hasDiscordId = await db.schema.hasColumn("users", "discord_id");
+    if (!hasDiscordId) {
+      await db.schema.table("users", (t) => {
+        t.string("discord_id").nullable().unique();
+      });
+      console.log("✅ Added discord_id column to users table");
+    }
+
+    const hasAvatarUrl = await db.schema.hasColumn("users", "avatar_url");
+    if (!hasAvatarUrl) {
+      await db.schema.table("users", (t) => {
+        t.string("avatar_url").nullable();
+      });
+      console.log("✅ Added avatar_url column to users table");
+    }
+
+    const hasDefaultCardBack = await db.schema.hasColumn("users", "default_card_back");
+    if (!hasDefaultCardBack) {
+      await db.schema.table("users", (t) => {
+        t.string("default_card_back").defaultTo("b:black lotus");
+      });
+      console.log("✅ Added default_card_back column to users table (defaulting to Black Lotus)");
     }
   }
 
@@ -339,6 +374,18 @@ export async function initDB() {
       t.primary(["playgroup_id", "user_id"]);
     });
     console.log("✅ Created playgroup_members table");
+  }
+
+  const hasPlaygroupInvites = await db.schema.hasTable("playgroup_invites");
+  if (!hasPlaygroupInvites) {
+    await db.schema.createTable("playgroup_invites", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups").onDelete("CASCADE");
+      t.string("token").notNullable().unique();
+      t.uuid("created_by").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.timestamps(true, true);
+    });
+    console.log("✅ Created playgroup_invites table");
   }
 
   const hasProxyOrders = await db.schema.hasTable("proxy_orders");

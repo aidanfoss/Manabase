@@ -102,6 +102,11 @@ export async function reloadLocalScryfall(force = false) {
           released_at: p.released_at,
           image_uris: p.image_uris,
           card_faces: p.card_faces,
+          border_color: p.border_color,
+          frame_effects: p.frame_effects,
+          promo_types: p.promo_types,
+          full_art: p.full_art,
+          finishes: p.finishes,
         }));
 
       oracleToPrintingsMap.set(oracle, formattedPrints);
@@ -131,6 +136,9 @@ export async function reloadLocalScryfall(force = false) {
 export async function ensureLoaded() {
   if (loadPromise) {
     await loadPromise;
+  }
+  if (allCards.length === 0) {
+    await reloadLocalScryfall(true);
   }
 }
 

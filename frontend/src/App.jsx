@@ -10,15 +10,19 @@ import OwnedCollection from "./components/OwnedCollection";
 import WishlistHub from "./components/WishlistHub";
 import TradelistManager from "./components/TradelistManager";
 import DecksHub from "./components/DecksHub";
+import InviteLanding from "./components/InviteLanding";
+import { ToastProvider } from "./context/ToastContext";
 import { api } from "./api/client";
 import "./styles/nav-auth.css";
 
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <ToastProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ToastProvider>
     </AuthProvider>
   );
 }
@@ -37,6 +41,31 @@ function AppContent() {
     landcycles: new Set(),
     colors: new Set(),
   });
+
+  // Check for pending invite token upon login
+  React.useEffect(() => {
+    const pendingToken = localStorage.getItem("pending_invite_token");
+    if (user && pendingToken) {
+      const token = localStorage.getItem("token");
+      fetch("/api/playgroups/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ invite_token: pendingToken })
+      })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data && data.success) {
+            localStorage.removeItem("pending_invite_token");
+            alert(`🎉 Success! You joined playgroup "${data.name}"`);
+            navigate("/wishlist");
+          }
+        })
+        .catch(err => console.error("Error redeeming pending invite:", err));
+    }
+  }, [user, navigate]);
 
   // Load landcycles for presets
   React.useEffect(() => {
@@ -98,6 +127,7 @@ function AppContent() {
           <Route path="/wishlist" element={<WishlistHub />} />
           <Route path="/trade" element={<TradelistManager />} />
           <Route path="/decks" element={<DecksHub />} />
+          <Route path="/invite/:token" element={<InviteLanding onOpenLoginModal={() => setShowLogin(true)} />} />
           <Route path="/presets" element={<Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />} />
           <Route path="/packages" element={<PackageManager ref={packageRef} />} />
           <Route path="*" element={<LandingDashboard />} />
@@ -257,7 +287,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
   }, [user]);
 
   const displayName = user?.username || user?.email || "Guest";
-  const avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
+  const avatar = user?.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
 
   return (
     <nav className="top-nav">
