@@ -47,8 +47,67 @@ export async function initDB() {
       t.string("email").unique().notNullable();
       t.string("username").notNullable();
       t.string("password_hash").notNullable();
+      t.string("archidekt_username");
+      t.integer("archidekt_id");
+      t.json("archidekt_tag_mappings");
       t.timestamps(true, true);
     });
+  } else {
+    // Migration for existing users table
+    const hasArchidektUsername = await db.schema.hasColumn("users", "archidekt_username");
+    if (!hasArchidektUsername) {
+      await db.schema.table("users", (t) => {
+        t.string("archidekt_username");
+        t.integer("archidekt_id");
+        t.json("archidekt_tag_mappings");
+      });
+      console.log("✅ Added archidekt columns to users table");
+    }
+  }
+
+  // Create user_archidekt_decks table
+  const hasUserDecks = await db.schema.hasTable("user_archidekt_decks");
+  if (!hasUserDecks) {
+    await db.schema.createTable("user_archidekt_decks", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("deck_id").notNullable();
+      t.string("deck_name").notNullable();
+      t.boolean("is_public").defaultTo(false);
+      t.string("status").defaultTo("active"); // active, disabled, archived
+      t.timestamps(true, true);
+      t.unique(["user_id", "deck_id"]); // One entry per deck per user
+    });
+    console.log("✅ Created user_archidekt_decks table");
+  } else {
+    // Migration: add new columns if they don't exist
+    const hasIsPublic = await db.schema.hasColumn("user_archidekt_decks", "is_public");
+    if (!hasIsPublic) {
+      await db.schema.alterTable("user_archidekt_decks", (t) => {
+        t.boolean("is_public").defaultTo(false);
+        t.string("status").defaultTo("active");
+      });
+      console.log("✅ Added is_public and status to user_archidekt_decks");
+    }
+  }
+
+  // Create user_archidekt_deck_items table for tracking differential syncs
+  const hasDeckItems = await db.schema.hasTable("user_archidekt_deck_items");
+  if (!hasDeckItems) {
+    await db.schema.createTable("user_archidekt_deck_items", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("deck_id").notNullable();
+      t.string("card_name").notNullable();
+      t.string("list_type").notNullable();
+      t.string("set_code").defaultTo("");
+      t.boolean("is_foil").defaultTo(false);
+      t.integer("quantity").defaultTo(1);
+      t.timestamps(true, true);
+      // We aggregate by card, list, set, foil to diff against user_cards
+      t.unique(["user_id", "deck_id", "card_name", "list_type", "set_code", "is_foil"]);
+    });
+    console.log("✅ Created user_archidekt_deck_items table");
   }
 
   const hasPackages = await db.schema.hasTable("packages");

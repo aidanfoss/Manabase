@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "archidekt": "^0.0.14",
+    "axios": "^1.18.1"
+  }
+}

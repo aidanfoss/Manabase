@@ -39,6 +39,10 @@ export default function WishlistHub() {
   // MPC print cost config (default $0.25)
   const [mpcUnitCost, setMpcUnitCost] = useState(0.25);
 
+  // Playgroup Decks Resync Lock
+  const [hasResyncedGroupDecks, setHasResyncedGroupDecks] = useState(false);
+  const [resyncingGroupDecks, setResyncingGroupDecks] = useState(false);
+
   useEffect(() => {
     loadLists();
     loadPlaygroups();
@@ -465,6 +469,22 @@ export default function WishlistHub() {
       }
     } catch (e) {
       console.error("Failed to join playgroup:", e);
+    }
+  };
+
+  const handleResyncGroupDecks = async () => {
+    if (!activeGroup) return;
+    setResyncingGroupDecks(true);
+    try {
+      const res = await api.resyncPlaygroupDecks(activeGroup.id);
+      alert(`✅ ${res.message}\nAdded: ${res.stats.added}, Removed: ${res.stats.removed}, Ignored: ${res.stats.ignored}`);
+      setHasResyncedGroupDecks(true);
+      // Reload wishlist to reflect any changes from synced decks
+      loadPlaygroupDetails(activeGroup.id);
+    } catch (err) {
+      alert("Failed to resync playgroup decks: " + err.message);
+    } finally {
+      setResyncingGroupDecks(false);
     }
   };
 
@@ -989,7 +1009,21 @@ export default function WishlistHub() {
 
                 {/* Download and actions */}
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button className="setup-btn" onClick={handleDownloadMpcJson} disabled={mpcListCount === 0}>
+                  <button 
+                    className="setup-btn" 
+                    onClick={handleResyncGroupDecks} 
+                    disabled={resyncingGroupDecks}
+                    style={{ background: "#3b82f6" }}
+                  >
+                    {resyncingGroupDecks ? "Syncing..." : "🔄 Resync All Playgroup Decks"}
+                  </button>
+
+                  <button 
+                    className="setup-btn" 
+                    onClick={handleDownloadMpcJson} 
+                    disabled={mpcListCount === 0 || !hasResyncedGroupDecks}
+                    title={!hasResyncedGroupDecks ? "You must Resync All Playgroup Decks first!" : ""}
+                  >
                     🛠️ Generate MPCfill JSON Manifest
                   </button>
                 </div>

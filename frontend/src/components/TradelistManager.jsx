@@ -502,7 +502,7 @@ export default function TradelistManager() {
     if (meta && meta.prints && setCode) {
       const print = meta.prints.find(p => p.set?.toUpperCase() === setCode.toUpperCase());
       if (print && (print.image_uris?.normal || print.card_faces?.[0]?.image_uris?.normal)) {
-        return print.image_uris.normal || print.card_faces[0].image_uris.normal;
+        return print.image_uris?.normal || print.card_faces?.[0]?.image_uris?.normal;
       }
     }
     return meta?.image_uris?.normal || meta?.card_faces?.[0]?.image_uris?.normal || "https://cards.scryfall.io/card_back.png";
