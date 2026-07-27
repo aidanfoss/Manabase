@@ -612,6 +612,36 @@ export default function WishlistHub() {
     }
   };
 
+  const handleClearAll = async () => {
+    if (wishlist.length === 0) return;
+    if (!window.confirm("Are you sure you want to clear all cards from your Proxy Wishlist? This action cannot be undone.")) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const ids = wishlist.map((c) => c.id);
+      const res = await fetch("/api/lists/bulk-delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (res.ok) {
+        showToast("Successfully cleared all cards from your Proxy Wishlist!", "success");
+        await loadLists();
+      } else {
+        alert("Failed to clear wishlist. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to clear wishlist:", err);
+      alert("An error occurred while clearing the wishlist.");
+    }
+  };
+
   // Bulk buy cheap cards on ManaPool handler
   const handleBuyCheapCardsOnManaPool = () => {
     if (cheapCardsList.length === 0) {
@@ -1419,6 +1449,9 @@ export default function WishlistHub() {
                 </button>
                 <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={wishlist.length === 0}>
                   🔄 Clear Specific Trade Printing Rules
+                </button>
+                <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={wishlist.length === 0} title="Clear all cards from your proxy wishlist">
+                  🗑️ Clear All
                 </button>
               </div>
             </div>

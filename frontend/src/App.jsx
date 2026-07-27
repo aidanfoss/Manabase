@@ -291,80 +291,77 @@ function TopNav({ user, showLogin, setShowLogin }) {
 
   return (
     <nav className="top-nav">
-      {/* Left: profile / login */}
-      <div className="nav-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        {user ? (
-          <>
-            <div style={{ position: 'relative' }}>
-              <img src={avatar} alt="Profile" className="nav-avatar" />
-              {tradeAlerts > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-5px',
-                  right: '-5px',
-                  background: '#ef4444',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: '18px',
-                  height: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold'
-                }}>
-                  {tradeAlerts}
-                </div>
-              )}
-            </div>
-            <span className="nav-name">{displayName}</span>
-            {isTestUser && (
-              <button
-                className="cycle-user-btn"
-                onClick={handleCycleUser}
-                title={`Cycle to ${nextTestUser.username}`}
-              >
-                🔄 Switch: {nextTestUser.username}
-              </button>
+      {/* Left: Logo + Navigation Links */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        {/* Logo Branding */}
+        <div className="logo-branding" onClick={() => navigate("/")} style={{ color: 'white', background: 'none', WebkitTextFillColor: 'white' }}>
+          <span style={{ fontSize: '1.5rem', marginRight: '4px' }}>⬢</span> Manabase
+        </div>
+
+        {/* Navigation Links */}
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <span className="nav-link" onClick={() => navigate("/wishlist")}>Proxy</span>
+          <span className="nav-link" onClick={() => navigate("/trade")}>Trade</span>
+          <span className="nav-link" onClick={() => navigate("/collection")}>Collection</span>
+          <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
+          <span className="nav-link" onClick={() => navigate("/builder")}>Build</span>
+        </div>
+      </div>
+
+      {/* Right: Icons and Profile */}
+      <div className="nav-controls-right" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+        {/* Icons */}
+        <div style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer' }}>
+          <span title="Toggle Dark Mode">🌙</span>
+          <span title="Pins">📌</span>
+          <div style={{ position: 'relative' }} title="Notifications">
+            <span>🔔</span>
+            {tradeAlerts > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                background: '#ef4444',
+                color: 'white',
+                borderRadius: '50%',
+                width: '16px',
+                height: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.7rem',
+                fontWeight: 'bold'
+              }}>
+                {tradeAlerts}
+              </div>
             )}
-            <button className="logout-btn nav-logout" onClick={logout}>
-              Log out
+          </div>
+        </div>
+
+        {/* Profile / Login */}
+        <div className="nav-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {user ? (
+            <>
+              <img src={avatar} alt="Profile" className="nav-avatar" title={displayName} style={{ cursor: 'pointer' }} onClick={logout} />
+              {isTestUser && (
+                <button
+                  className="cycle-user-btn"
+                  onClick={handleCycleUser}
+                  title={`Cycle to ${nextTestUser.username}`}
+                >
+                  🔄 Switch: {nextTestUser.username}
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              className="login-btn"
+              onClick={() => setShowLogin((v) => !v)}
+            >
+              {showLogin ? "Close Login" : "Log in / Sign up"}
             </button>
-          </>
-        ) : (
-          <button
-            className="login-btn"
-            onClick={() => setShowLogin((v) => !v)}
-          >
-            {showLogin ? "Close Login" : "Log in / Sign up"}
-          </button>
-        )}
-      </div>
-
-      {/* Center: logo branding */}
-      <div className="logo-branding" onClick={() => navigate("/")}>
-        💎 Manabase Hub
-      </div>
-
-      {/* Right: navigation & tools */}
-      <div className="nav-controls-right">
-        {user && tradeAlerts > 0 && (
-          <button
-            className={`home-btn ${location.pathname === "/trade" ? "active" : ""}`}
-            onClick={() => navigate("/trade")}
-            title="View Trades"
-            style={{ color: "#ef4444", fontWeight: "bold" }}
-          >
-            🤝 Trades ({tradeAlerts})
-          </button>
-        )}
-        <button
-          className={`home-btn ${location.pathname === "/" ? "active" : ""}`}
-          onClick={() => navigate("/")}
-          title="Go to Dashboard"
-        >
-          🏠 Home
-        </button>
+          )}
+        </div>
       </div>
     </nav>
   );

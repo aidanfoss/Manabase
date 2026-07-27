@@ -82,6 +82,9 @@ export function parseImportInput(rawText) {
       else if (t === "quantity" || t === "qty" || t === "count") headerMap.quantity = idx;
       else if (t === "condition" || t === "cardcondition") headerMap.card_condition = idx;
       else if (t === "language" || t === "cardlanguage" || t === "lang") headerMap.card_language = idx;
+      else if (t === "bindertype") headerMap.binder_type = idx;
+      else if (t === "altered") headerMap.altered = idx;
+      else if (t === "misprint") headerMap.misprint = idx;
     });
 
     const parsedCards = [];
@@ -101,6 +104,9 @@ export function parseImportInput(rawText) {
       const qtyVal = headerMap.quantity !== undefined ? parseInt(row[headerMap.quantity], 10) : 1;
       const condVal = headerMap.card_condition !== undefined ? row[headerMap.card_condition] : "NM";
       const langVal = headerMap.card_language !== undefined ? (row[headerMap.card_language] || "EN").trim().toUpperCase() : "EN";
+      const binderType = headerMap.binder_type !== undefined ? (row[headerMap.binder_type] || "").trim().toLowerCase() : "";
+      const altered = headerMap.altered !== undefined ? (row[headerMap.altered] || "").trim().toLowerCase() === "true" : false;
+      const misprint = headerMap.misprint !== undefined ? (row[headerMap.misprint] || "").trim().toLowerCase() === "true" : false;
 
       parsedCards.push({
         card_name: cardName,
@@ -109,7 +115,10 @@ export function parseImportInput(rawText) {
         collector_number: collectorNumber,
         is_foil: normalizeFoil(foilVal),
         card_condition: normalizeCondition(condVal),
-        card_language: langVal || "EN"
+        card_language: langVal || "EN",
+        binder_type: binderType,
+        altered: altered,
+        misprint: misprint
       });
     }
     return parsedCards;
