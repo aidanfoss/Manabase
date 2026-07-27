@@ -7,8 +7,9 @@ const router = express.Router();
 // GET /api/collection/owned
 router.get("/", requireAuth, async (req, res) => {
   try {
+    const listType = req.query.list_type || "owned";
     const cards = await db("user_cards")
-      .where({ user_id: req.user.id, list_type: "owned" })
+      .where({ user_id: req.user.id, list_type: listType })
       .orderBy("card_name", "asc");
     res.json(cards);
   } catch (err) {
@@ -19,7 +20,7 @@ router.get("/", requireAuth, async (req, res) => {
 
 // POST /api/collection/owned
 router.post("/", requireAuth, async (req, res) => {
-  const { id, card_name, quantity, set_code, collector_number, is_foil, card_condition, card_language } = req.body;
+  const { id, card_name, quantity, set_code, collector_number, is_foil, card_condition, card_language, list_type } = req.body;
 
   if (!card_name) {
     return res.status(400).json({ error: "card_name is required" });
@@ -30,6 +31,7 @@ router.post("/", requireAuth, async (req, res) => {
   const normFoil = !!is_foil;
   const normCondition = card_condition || "NM";
   const normLanguage = card_language || "EN";
+  const normListType = list_type || "owned";
 
   try {
     if (id) {
@@ -69,7 +71,7 @@ router.post("/", requireAuth, async (req, res) => {
         .where({
           user_id: req.user.id,
           card_name,
-          list_type: "owned",
+          list_type: normListType,
           set_code: normSetCode,
           is_foil: normFoil,
           card_condition: normCondition,
@@ -93,7 +95,7 @@ router.post("/", requireAuth, async (req, res) => {
           .insert({
             user_id: req.user.id,
             card_name,
-            list_type: "owned",
+            list_type: normListType,
             quantity: quantity !== undefined ? Math.max(1, quantity) : 1,
             set_code: normSetCode,
             collector_number: normCollectorNum,
@@ -132,11 +134,13 @@ router.post("/bulk", requireAuth, async (req, res) => {
         const normLanguage = (card.card_language || "EN").toUpperCase();
         const quantity = Math.max(1, parseInt(card.quantity) || 1);
 
+        const listType = card.list_type || "owned";
+
         const existing = await trx("user_cards")
           .where({
             user_id: req.user.id,
             card_name,
-            list_type: "owned",
+            list_type: listType,
             set_code: normSetCode,
             is_foil: normFoil,
             card_condition: normCondition,
@@ -157,7 +161,7 @@ router.post("/bulk", requireAuth, async (req, res) => {
             .insert({
               user_id: req.user.id,
               card_name,
-              list_type: "owned",
+              list_type: listType,
               quantity,
               set_code: normSetCode,
               collector_number: normCollectorNum,
@@ -179,7 +183,9 @@ router.post("/bulk", requireAuth, async (req, res) => {
 
 // DELETE /api/collection/owned
 router.delete("/", requireAuth, async (req, res) => {
-  const { id, card_name, clear_all } = req.body;
+  const { id, card_name, clear_all, list_type } = req.body;
+  
+  const targetListType = list_type || "owned";
 
   if (!id && !card_name && !clear_all) {
     return res.status(400).json({ error: "id, card_name, or clear_all is required" });
@@ -189,15 +195,15 @@ router.delete("/", requireAuth, async (req, res) => {
     let deletedCount = 0;
     if (clear_all) {
       deletedCount = await db("user_cards")
-        .where({ user_id: req.user.id, list_type: "owned" })
+        .where({ user_id: req.user.id, list_type: targetListType })
         .delete();
     } else if (id) {
       deletedCount = await db("user_cards")
-        .where({ id, user_id: req.user.id, list_type: "owned" })
+        .where({ id, user_id: req.user.id, list_type: targetListType })
         .delete();
     } else {
       deletedCount = await db("user_cards")
-        .where({ user_id: req.user.id, card_name, list_type: "owned" })
+        .where({ user_id: req.user.id, card_name, list_type: targetListType })
         .delete();
     }
 

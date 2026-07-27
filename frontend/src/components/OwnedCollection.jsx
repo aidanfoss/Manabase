@@ -467,6 +467,13 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState("");
+
+  const [activeTab, setActiveTab] = useState("owned"); // "owned", "proxy", "deck"
+  const [importDestination, setImportDestination] = useState("auto");
+  const [proxyRuleAltered, setProxyRuleAltered] = useState(false);
+  const [proxyRuleMisprint, setProxyRuleMisprint] = useState(false);
+  const [proxyRulePoor, setProxyRulePoor] = useState(false);
+  const [proxyRuleHP, setProxyRuleHP] = useState(false);
   
   // Cache for card prints: cardName -> Scryfall details or { missing: true, prints: [] }
   const [printsCache, setPrintsCache] = useState({});
@@ -491,7 +498,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
   // Load collection
   useEffect(() => {
     loadCollection();
-  }, []);
+  }, [activeTab]);
 
   const loadCollection = async () => {
     setLoading(true);
@@ -499,7 +506,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch("/api/collection/owned", {
+      const res = await fetch(`/api/collection/owned?list_type=${activeTab}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -842,13 +849,35 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
       setImportStatus(`Found ${parsedCards.length} cards. Starting batch import...`);
 
+      const processedCards = parsedCards.map(c => {
+        if (importDestination !== "auto") {
+          return { ...c, list_type: importDestination };
+        }
+        
+        if (c.binder_type === "deck") {
+          return { ...c, list_type: "deck" };
+        }
+        
+        const rulesActive = proxyRuleAltered || proxyRuleMisprint || proxyRulePoor || proxyRuleHP;
+        let isProxy = false;
+        
+        if (rulesActive) {
+          if (proxyRuleAltered && c.altered) isProxy = true;
+          if (proxyRuleMisprint && c.misprint) isProxy = true;
+          if (proxyRulePoor && c.card_condition === "PO") isProxy = true;
+          if (proxyRuleHP && c.card_condition === "HP") isProxy = true;
+        }
+
+        return { ...c, list_type: isProxy ? "proxy" : "owned" };
+      });
+
       const CHUNK_SIZE = 500;
       let totalAdded = 0;
 
-      for (let i = 0; i < parsedCards.length; i += CHUNK_SIZE) {
-        const chunk = parsedCards.slice(i, i + CHUNK_SIZE);
+      for (let i = 0; i < processedCards.length; i += CHUNK_SIZE) {
+        const chunk = processedCards.slice(i, i + CHUNK_SIZE);
         const batchNum = Math.floor(i / CHUNK_SIZE) + 1;
-        const totalBatches = Math.ceil(parsedCards.length / CHUNK_SIZE);
+        const totalBatches = Math.ceil(processedCards.length / CHUNK_SIZE);
 
         setImportStatus(`Importing batch ${batchNum} of ${totalBatches} (${chunk.length} cards)...`);
 
@@ -1023,6 +1052,31 @@ export default function OwnedCollection({ onCollectionChanged }) {
         </div>
       </div>
 
+      {/* Collection Tabs */}
+      <div className="collection-tabs" style={{ display: 'flex', gap: '1rem', padding: '1rem 2rem', borderBottom: '1px solid #333', background: '#111' }}>
+        <button 
+          className={`tab-btn ${activeTab === 'owned' ? 'active' : ''}`}
+          onClick={() => setActiveTab('owned')}
+          style={{ padding: '0.5rem 1rem', background: activeTab === 'owned' ? '#4CAF50' : '#222', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Collection
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'proxy' ? 'active' : ''}`}
+          onClick={() => setActiveTab('proxy')}
+          style={{ padding: '0.5rem 1rem', background: activeTab === 'proxy' ? '#4CAF50' : '#222', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Extra Proxies
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'deck' ? 'active' : ''}`}
+          onClick={() => setActiveTab('deck')}
+          style={{ padding: '0.5rem 1rem', background: activeTab === 'deck' ? '#4CAF50' : '#222', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          In decks
+        </button>
+      </div>
+
       {/* Global Stats Summary Banner */}
       <div className="collection-stats-banner">
         <div className="stat-box">
@@ -1078,6 +1132,31 @@ export default function OwnedCollection({ onCollectionChanged }) {
               style={{ display: "none" }}
             />
             {importStatus && <span className="import-status-text">{importStatus}</span>}
+          </div>
+
+          <div className="import-settings" style={{ margin: '1rem 0', padding: '1rem', background: '#222', borderRadius: '8px' }}>
+            <h4>Import Settings</h4>
+            <div style={{ marginBottom: '1rem', marginTop: '0.5rem' }}>
+              <label style={{ marginRight: '1rem' }}>Destination:</label>
+              <select value={importDestination} onChange={e => setImportDestination(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', background: '#333', color: 'white', border: '1px solid #444' }}>
+                <option value="auto">Auto-sort</option>
+                <option value="owned">Collection</option>
+                <option value="proxy">Extra Proxies</option>
+                <option value="deck">In decks</option>
+              </select>
+            </div>
+            
+            {importDestination === 'auto' && (
+              <div>
+                <label><strong>Proxy Rules:</strong> Mark as proxy if ANY match:</label>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRuleAltered} onChange={e => setProxyRuleAltered(e.target.checked)} /> Altered</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRuleMisprint} onChange={e => setProxyRuleMisprint(e.target.checked)} /> Misprint</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRulePoor} onChange={e => setProxyRulePoor(e.target.checked)} /> Condition is Poor (PO)</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRuleHP} onChange={e => setProxyRuleHP(e.target.checked)} /> Condition is Heavily Played (HP)</label>
+                </div>
+              </div>
+            )}
           </div>
 
           <textarea

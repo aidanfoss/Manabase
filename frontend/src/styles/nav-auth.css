@@ -2,10 +2,11 @@
 .top-nav {
     display: flex;
     justify-content: space-between;
-    align-items: stretch;
-    background: #111827;
-    border-bottom: 1px solid #1f2937;
-    padding: 0.8rem 1.5rem;
+    align-items: center;
+    background: #1e3a8a;
+    border-bottom: 1px solid #1e40af;
+    padding: 0 1.5rem;
+    height: 60px;
     color: #f8fafc;
     position: sticky;
     top: 0;
@@ -103,6 +104,19 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
+}
+
+.nav-link {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #ffffff;
 }
 
     .nav-actions button {
