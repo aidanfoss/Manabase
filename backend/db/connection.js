@@ -224,6 +224,7 @@ export async function initDB() {
         "any_printing" boolean default '1', 
         "card_condition" varchar(255) default 'NM', 
         "card_language" varchar(255) default 'EN', 
+        "is_proxy" boolean default '0', 
         "market_price" float default '0', 
         "max_price_threshold" float, 
         "target_owner_id" char(36), 
@@ -232,7 +233,7 @@ export async function initDB() {
         foreign key("user_id") references "users"("id") ON DELETE CASCADE, 
         foreign key("target_owner_id") references "users"("id") ON DELETE CASCADE, 
         primary key ("id"),
-        UNIQUE("user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language")
+        UNIQUE("user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language", "is_proxy")
       )
     `);
 // console.log(" Created user_cards table");
@@ -258,11 +259,12 @@ export async function initDB() {
         t.boolean("any_printing").defaultTo(true);
         t.string("card_condition").defaultTo("NM");
         t.string("card_language").defaultTo("EN");
+        t.boolean("is_proxy").defaultTo(false);
         t.decimal("market_price", 10, 2).defaultTo(0);
         t.decimal("max_price_threshold", 10, 2);
         t.uuid("target_owner_id").references("id").inTable("users");
         t.timestamps(true, true);
-        t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language"]);
+        t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language", "is_proxy"]);
       });
       
       // 3. Migrate data
@@ -287,6 +289,7 @@ export async function initDB() {
           any_printing: true,
           card_condition: "NM",
           card_language: "EN",
+          is_proxy: false,
           market_price: hasTempMarketPrice ? (row.market_price || 0) : 0,
           max_price_threshold: hasTempMaxPrice ? (row.max_price_threshold || null) : null,
           target_owner_id: hasTempTargetOwner ? (row.target_owner_id || null) : null,
@@ -323,11 +326,12 @@ export async function initDB() {
           t.boolean("any_printing").defaultTo(true);
           t.string("card_condition").defaultTo("NM");
           t.string("card_language").defaultTo("EN");
+          t.boolean("is_proxy").defaultTo(false);
           t.decimal("market_price", 10, 2).defaultTo(0);
           t.decimal("max_price_threshold", 10, 2);
           t.uuid("target_owner_id").references("id").inTable("users");
           t.timestamps(true, true);
-          t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language"]);
+          t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language", "is_proxy"]);
         });
         
         const oldRows = await db("user_cards_temp");
@@ -346,6 +350,7 @@ export async function initDB() {
             any_printing: true,
             card_condition: row.card_condition || "NM",
             card_language: row.card_language || "EN",
+            is_proxy: false,
             market_price: row.market_price || 0,
             max_price_threshold: row.max_price_threshold || null,
             target_owner_id: row.target_owner_id || null,
@@ -356,6 +361,62 @@ export async function initDB() {
         
         await db.schema.dropTable("user_cards_temp");
 // console.log(" Successfully migrated user_cards for any_printing!");
+      } else {
+        // Check for is_proxy migration
+        const hasIsProxyColumn = await db.schema.hasColumn("user_cards", "is_proxy");
+        if (!hasIsProxyColumn) {
+// console.log(" Migrating user_cards table to add is_proxy...");
+          
+          await db.schema.renameTable("user_cards", "user_cards_temp");
+          
+          await db.schema.createTable("user_cards", (t) => {
+            t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+            t.uuid("user_id").notNullable().references("id").inTable("users");
+            t.string("card_name").notNullable();
+            t.string("list_type").notNullable();
+            t.integer("quantity").defaultTo(1);
+            t.string("set_code").defaultTo("");
+            t.string("collector_number").defaultTo("");
+            t.boolean("is_foil").defaultTo(false);
+            t.boolean("any_printing").defaultTo(true);
+            t.string("card_condition").defaultTo("NM");
+            t.string("card_language").defaultTo("EN");
+            t.boolean("is_proxy").defaultTo(false);
+            t.decimal("market_price", 10, 2).defaultTo(0);
+            t.decimal("max_price_threshold", 10, 2);
+            t.uuid("target_owner_id").references("id").inTable("users");
+            t.timestamps(true, true);
+            t.unique(["user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language", "is_proxy"]);
+          });
+          
+          const oldRows = await db("user_cards_temp");
+// console.log(` Found ${oldRows.length} old user cards to migrate for is_proxy.`);
+          
+          for (const row of oldRows) {
+            await db("user_cards").insert({
+              id: row.id,
+              user_id: row.user_id,
+              card_name: row.card_name,
+              list_type: row.list_type,
+              quantity: row.quantity || 1,
+              set_code: row.set_code || "",
+              collector_number: row.collector_number || "",
+              is_foil: !!row.is_foil,
+              any_printing: !!row.any_printing,
+              card_condition: row.card_condition || "NM",
+              card_language: row.card_language || "EN",
+              is_proxy: false,
+              market_price: row.market_price || 0,
+              max_price_threshold: row.max_price_threshold || null,
+              target_owner_id: row.target_owner_id || null,
+              created_at: row.created_at || db.fn.now(),
+              updated_at: row.updated_at || db.fn.now()
+            });
+          }
+          
+          await db.schema.dropTable("user_cards_temp");
+// console.log(" Successfully migrated user_cards for is_proxy!");
+        }
       }
     }
   }

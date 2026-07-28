@@ -22,6 +22,7 @@ async function fix() {
       "any_printing" boolean default '1', 
       "card_condition" varchar(255) default 'NM', 
       "card_language" varchar(255) default 'EN', 
+      "is_proxy" boolean default '0', 
       "market_price" float default '0', 
       "max_price_threshold" float, 
       "target_owner_id" char(36), 
@@ -30,7 +31,7 @@ async function fix() {
       foreign key("user_id") references "users"("id") ON DELETE CASCADE, 
       foreign key("target_owner_id") references "users"("id") ON DELETE CASCADE, 
       primary key ("id"),
-      UNIQUE("user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language")
+      UNIQUE("user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language", "is_proxy")
     )
   `);
 

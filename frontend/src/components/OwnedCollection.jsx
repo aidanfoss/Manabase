@@ -170,6 +170,11 @@ const CollectionRow = React.memo(({
               <ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Token / Unresolved
             </span>
           )}
+          {card.is_proxy && (
+            <span className="proxy-badge" style={{ backgroundColor: '#ff9800', color: '#fff', fontSize: '0.7em', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', verticalAlign: 'middle' }}>
+              PROXY
+            </span>
+          )}
         </div>
       </td>
 
@@ -340,6 +345,7 @@ const CollectionCardTile = React.memo(({
         )}
         
         {card.is_foil && <div className="tile-foil-badge"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> FOIL</div>}
+        {card.is_proxy && <div className="tile-proxy-badge" style={{ position: 'absolute', top: '8px', left: '8px', background: '#ff9800', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', zIndex: 2 }}>PROXY</div>}
         
         <div className="tile-price-tag">
           {rowPrice > 0 ? `$${rowPrice.toFixed(2)}` : "Price N/A"}
@@ -853,15 +859,9 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
       setImportStatus(`Found ${parsedCards.length} cards. Starting batch import...`);
 
-      const processedCards = parsedCards.map(c => {
-        if (importDestination !== "auto") {
-          return { ...c, list_type: importDestination };
-        }
-        
-        if (c.binder_type === "deck") {
-          return { ...c, list_type: "deck" };
-        }
-        
+      const processedCards = parsedCards
+        .filter(c => c.binder_type !== "list")
+        .map(c => {
         const rulesActive = proxyRuleAltered || proxyRuleMisprint || proxyRulePoor || proxyRuleHP;
         let isProxy = false;
         
@@ -872,7 +872,15 @@ export default function OwnedCollection({ onCollectionChanged }) {
           if (proxyRuleHP && c.card_condition === "HP") isProxy = true;
         }
 
-        return { ...c, list_type: isProxy ? "proxy" : "owned" };
+        if (importDestination !== "auto") {
+          return { ...c, list_type: importDestination, is_proxy: isProxy };
+        }
+        
+        if (c.binder_type === "deck") {
+          return { ...c, list_type: "deck", is_proxy: isProxy };
+        }
+        
+        return { ...c, list_type: isProxy ? "proxy" : "owned", is_proxy: isProxy };
       });
 
       const CHUNK_SIZE = 500;

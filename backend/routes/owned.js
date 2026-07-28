@@ -20,7 +20,7 @@ router.get("/", requireAuth, async (req, res) => {
 
 // POST /api/collection/owned
 router.post("/", requireAuth, async (req, res) => {
-  const { id, card_name, quantity, set_code, collector_number, is_foil, card_condition, card_language, list_type } = req.body;
+  const { id, card_name, quantity, set_code, collector_number, is_foil, card_condition, card_language, list_type, is_proxy } = req.body;
 
   if (!card_name) {
     return res.status(400).json({ error: "card_name is required" });
@@ -29,6 +29,7 @@ router.post("/", requireAuth, async (req, res) => {
   const normSetCode = (set_code || "").trim().toUpperCase();
   const normCollectorNum = (collector_number || "").trim();
   const normFoil = !!is_foil;
+  const normProxy = !!is_proxy;
   const normCondition = card_condition || "NM";
   const normLanguage = card_language || "EN";
   const normListType = list_type || "owned";
@@ -58,6 +59,7 @@ router.post("/", requireAuth, async (req, res) => {
           set_code: normSetCode,
           collector_number: normCollectorNum,
           is_foil: normFoil,
+          is_proxy: normProxy,
           card_condition: normCondition,
           card_language: normLanguage,
           updated_at: db.fn.now()
@@ -74,6 +76,7 @@ router.post("/", requireAuth, async (req, res) => {
           list_type: normListType,
           set_code: normSetCode,
           is_foil: normFoil,
+          is_proxy: normProxy,
           card_condition: normCondition,
           card_language: normLanguage
         })
@@ -100,6 +103,7 @@ router.post("/", requireAuth, async (req, res) => {
             set_code: normSetCode,
             collector_number: normCollectorNum,
             is_foil: normFoil,
+            is_proxy: normProxy,
             card_condition: normCondition,
             card_language: normLanguage
           })
@@ -130,6 +134,7 @@ router.post("/bulk", requireAuth, async (req, res) => {
         const normSetCode = (card.set_code || "").trim().toUpperCase();
         const normCollectorNum = (card.collector_number || "").trim();
         const normFoil = !!card.is_foil;
+        const normProxy = !!card.is_proxy;
         const normCondition = card.card_condition || "NM";
         const normLanguage = (card.card_language || "EN").toUpperCase();
         const quantity = Math.max(1, parseInt(card.quantity) || 1);
@@ -143,6 +148,7 @@ router.post("/bulk", requireAuth, async (req, res) => {
             list_type: listType,
             set_code: normSetCode,
             is_foil: normFoil,
+            is_proxy: normProxy,
             card_condition: normCondition,
             card_language: normLanguage
           })
@@ -166,6 +172,7 @@ router.post("/bulk", requireAuth, async (req, res) => {
               set_code: normSetCode,
               collector_number: normCollectorNum,
               is_foil: normFoil,
+              is_proxy: normProxy,
               card_condition: normCondition,
               card_language: normLanguage
             });
