@@ -202,8 +202,9 @@ export default function TradelistManager() {
         setTradelist(tradeData || []);
       }
       if (resOwned.ok) {
-        ownedData = await resOwned.json();
-        setMyOwnedCollection(ownedData || []);
+        const ownedRes = await resOwned.json();
+        ownedData = ownedRes.cards || (Array.isArray(ownedRes) ? ownedRes : []);
+        setMyOwnedCollection(ownedData);
       }
 
       const allCards = [...(tradeData || []), ...(ownedData || [])];
