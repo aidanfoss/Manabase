@@ -16,7 +16,6 @@ export default function TradelistManager() {
   const [tradelist, setTradelist] = useState([]);
   const [myOwnedCollection, setMyOwnedCollection] = useState([]);
   const [proxyCollection, setProxyCollection] = useState([]);
-  const [myWishlist, setMyWishlist] = useState([]);
   const [loadingMyTrade, setLoadingMyTrade] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
