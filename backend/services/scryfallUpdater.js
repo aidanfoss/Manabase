@@ -148,17 +148,15 @@ export async function loadCardData() {
 
         pipeline.on("end", () => {
             console.log(`📚 Streamed ${cards.length.toLocaleString()} cards. Saving fast cache...`);
-            try {
-                fs.writeFileSync(PARSED_CACHE_PATH, JSON.stringify(cards));
+            writeStream.write('\n]');
+            writeStream.end(() => {
                 console.log("💾 Saved pre-parsed cache for instant future startups.");
-            } catch (err) {
-                console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
-            }
-            resolve(cards);
+                resolve(cards);
+            });
         });
 
         pipeline.on("error", (err) => {
-            console.error("️ Failed to load bulk data:", err);
+            console.error("⚠️ Failed to load bulk data:", err);
             resolve([]); // fallback
         });
         
