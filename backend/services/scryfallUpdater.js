@@ -61,10 +61,6 @@ import { chain } from "stream-chain";
 import { parser } from "stream-json";
 import { streamArray } from "stream-json/streamers/stream-array.js";
 
-/**
- *  Load all cards from the bulk data file into memory.
- * Uses fast pre-parsed cache file if available, or streams raw bulk data to generate cache.
- */
 export async function loadCardData() {
     //  Fast path: load pre-parsed stripped cache in ~150ms if it exists
     if (fs.existsSync(PARSED_CACHE_PATH)) {
@@ -80,24 +76,25 @@ export async function loadCardData() {
 
     //  Slow path: stream 557MB raw bulk data file and generate fast cache
     return new Promise((resolve, reject) => {
-        const cards = [];
         if (!fs.existsSync(BULK_PATH)) {
 // console.log("️ No bulk data found to load.");
             return resolve([]);
         }
 
 // console.log(" Building fast pre-parsed cache from raw bulk data (this happens once)...");
-        const pipeline = chain([
-            fs.createReadStream(BULK_PATH),
-            parser(),
-            streamArray()
-        ]);
+        const fileStream = fs.createReadStream(BULK_PATH);
+        const jsonParser = parser();
+        const arrayStream = streamArray();
+        
+        fileStream.pipe(jsonParser).pipe(arrayStream);
 
-        const writeStream = fs.createWriteStream(PARSED_CACHE_PATH);
+        const TEMP_CACHE_PATH = PARSED_CACHE_PATH + ".tmp";
+        const writeStream = fs.createWriteStream(TEMP_CACHE_PATH);
         writeStream.write('[\n');
         let isFirst = true;
+        let count = 0;
 
-        pipeline.on("data", (data) => {
+        arrayStream.on("data", (data) => {
             const c = data.value;
             // Only keep fields needed by scryfallLocal.js to prevent OOM
             const stripped = {
@@ -132,37 +129,44 @@ export async function loadCardData() {
                     image_uris: f.image_uris ? { normal: f.image_uris.normal } : null
                 }));
             }
-            
-            cards.push(stripped);
 
+            count++;
             const prefix = isFirst ? "" : ",\n";
             isFirst = false;
             
             // Write directly to file stream to avoid generating a massive JSON string in memory
             const canWrite = writeStream.write(prefix + JSON.stringify(stripped));
             if (!canWrite) {
-                pipeline.pause();
-                writeStream.once("drain", () => pipeline.resume());
+                arrayStream.pause();
+                writeStream.once("drain", () => arrayStream.resume());
             }
         });
 
-        pipeline.on("end", () => {
-            console.log(`📚 Streamed ${cards.length.toLocaleString()} cards. Saving fast cache...`);
+        arrayStream.on("end", () => {
+            console.log(`📚 Streamed ${count.toLocaleString()} cards. Saving fast cache...`);
             writeStream.write('\n]');
             writeStream.end(() => {
+                // Atomic rename so cache is never malformed
+                fs.renameSync(TEMP_CACHE_PATH, PARSED_CACHE_PATH);
                 console.log("💾 Saved pre-parsed cache for instant future startups.");
-                resolve(cards);
+                try {
+                    const parsedCards = JSON.parse(fs.readFileSync(PARSED_CACHE_PATH, "utf8"));
+                    resolve(parsedCards);
+                } catch (err) {
+                    console.error("⚠️ Failed to parse newly created cache:", err);
+                    resolve([]);
+                }
             });
         });
 
-        pipeline.on("error", (err) => {
+        arrayStream.on("error", (err) => {
             console.error("⚠️ Failed to load bulk data:", err);
             resolve([]); // fallback
         });
         
         writeStream.on("error", (err) => {
             console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
-            resolve(cards);
+            resolve([]);
         });
     });
 }
