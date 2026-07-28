@@ -1,3 +1,5 @@
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+
 ﻿import { api } from "./client";
 
 export const packageAPI = {
@@ -11,7 +13,7 @@ export const packageAPI = {
     return api.post("/packages", data);
   },
 
-  // ✅ Update existing package
+  // <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Update existing package
   async update(packageId, data) {
     return api.json(`/packages/${packageId}`, {
       method: "PUT",

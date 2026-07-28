@@ -8,18 +8,18 @@ async function findCategories() {
     });
 
     const html = await res.text();
-    console.log("HTML length:", html.length);
+// console.log("HTML length:", html.length);
 
     // Look for category select or category options
     const optionRegex = /<option[^>]*value=["']([0-9]+)["'][^>]*>([\s\S]*?)<\/option>/gi;
     const matches = [...html.matchAll(optionRegex)];
 
-    console.log("Categories found:");
+// console.log("Categories found:");
     matches.forEach(m => {
         const val = m[1];
         const text = m[2].replace(/&nbsp;/g, ' ').trim();
         if (text.toLowerCase().includes("magic") || text.toLowerCase().includes("singles") || text.toLowerCase().includes("card")) {
-            console.log(`  ID: ${val} -> ${text}`);
+// console.log(`  ID: ${val} -> ${text}`);
         }
     });
 }

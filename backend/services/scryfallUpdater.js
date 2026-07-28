@@ -20,7 +20,7 @@ function readJsonSafe(file, fallback) {
 const PARSED_CACHE_PATH = path.join(DATA_DIR, "scryfall-parsed-cache.json");
 
 /**
- * ✅ Update bulk data if missing or older than 7 days.
+ *  Update bulk data if missing or older than 7 days.
  * Downloads and saves the latest Scryfall "default-cards" dataset.
  */
 export async function updateBulkDataIfNeeded() {
@@ -32,14 +32,14 @@ export async function updateBulkDataIfNeeded() {
         const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 days
 
         if (Date.now() - lastModified.getTime() < oneWeek) {
-            console.log("🗂️ Bulk data already up to date (checked within 7 days).");
+// console.log("️ Bulk data already up to date (checked within 7 days).");
             return;
         }
 
-        console.log("⬇️  Downloading new Scryfall bulk data metadata...");
+// console.log("️  Downloading new Scryfall bulk data metadata...");
         const meta = await fetch("https://api.scryfall.com/bulk-data/default-cards", { headers: { "User-Agent": "Manabase/1.0" } }).then(r => r.json());
         const url = meta.download_uri;
-        console.log("📦 Downloading cards from:", url);
+// console.log(" Downloading cards from:", url);
 
         const { pipeline } = await import("stream/promises");
         const res = await fetch(url, { headers: { "User-Agent": "Manabase/1.0" } });
@@ -51,9 +51,9 @@ export async function updateBulkDataIfNeeded() {
             fs.unlinkSync(PARSED_CACHE_PATH);
         }
 
-        console.log("✅ Scryfall bulk data updated successfully.");
+// console.log(" Scryfall bulk data updated successfully.");
     } catch (err) {
-        console.error("❌ Failed to update Scryfall bulk data:", err);
+        console.error(" Failed to update Scryfall bulk data:", err);
     }
 }
 
@@ -62,31 +62,31 @@ import { parser } from "stream-json";
 import { streamArray } from "stream-json/streamers/stream-array.js";
 
 /**
- * ✅ Load all cards from the bulk data file into memory.
+ *  Load all cards from the bulk data file into memory.
  * Uses fast pre-parsed cache file if available, or streams raw bulk data to generate cache.
  */
 export async function loadCardData() {
-    // ⚡ Fast path: load pre-parsed stripped cache in ~150ms if it exists
+    //  Fast path: load pre-parsed stripped cache in ~150ms if it exists
     if (fs.existsSync(PARSED_CACHE_PATH)) {
         try {
-            console.log("⚡ Loading cards from fast pre-parsed cache...");
+// console.log(" Loading cards from fast pre-parsed cache...");
             const data = JSON.parse(fs.readFileSync(PARSED_CACHE_PATH, "utf8"));
-            console.log(`📚 Loaded ${data.length.toLocaleString()} cards instantly from cache.`);
+// console.log(` Loaded ${data.length.toLocaleString()} cards instantly from cache.`);
             return data;
         } catch (err) {
-            console.warn("⚠️ Fast cache read failed, falling back to raw stream:", err.message);
+            console.warn("️ Fast cache read failed, falling back to raw stream:", err.message);
         }
     }
 
-    // 🐢 Slow path: stream 557MB raw bulk data file and generate fast cache
+    //  Slow path: stream 557MB raw bulk data file and generate fast cache
     return new Promise((resolve, reject) => {
         const cards = [];
         if (!fs.existsSync(BULK_PATH)) {
-            console.log("⚠️ No bulk data found to load.");
+// console.log("️ No bulk data found to load.");
             return resolve([]);
         }
 
-        console.log("⏳ Building fast pre-parsed cache from raw bulk data (this happens once)...");
+// console.log(" Building fast pre-parsed cache from raw bulk data (this happens once)...");
         const pipeline = chain([
             fs.createReadStream(BULK_PATH),
             parser(),
@@ -148,15 +148,17 @@ export async function loadCardData() {
 
         pipeline.on("end", () => {
             console.log(`📚 Streamed ${cards.length.toLocaleString()} cards. Saving fast cache...`);
-            writeStream.write('\n]');
-            writeStream.end(() => {
+            try {
+                fs.writeFileSync(PARSED_CACHE_PATH, JSON.stringify(cards));
                 console.log("💾 Saved pre-parsed cache for instant future startups.");
-                resolve(cards);
-            });
+            } catch (err) {
+                console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
+            }
+            resolve(cards);
         });
 
         pipeline.on("error", (err) => {
-            console.error("⚠️ Failed to load bulk data:", err);
+            console.error("️ Failed to load bulk data:", err);
             resolve([]); // fallback
         });
         
@@ -168,7 +170,7 @@ export async function loadCardData() {
 }
 
 /**
- * ✅ Refresh prices for any cards older than 7 days in the cache.
+ *  Refresh prices for any cards older than 7 days in the cache.
  */
 export async function refreshOldPrices() {
     const priceCache = readJsonSafe(PRICE_PATH, {});
@@ -180,11 +182,11 @@ export async function refreshOldPrices() {
         .map(([id]) => id);
 
     if (needsUpdate.length === 0) {
-        console.log("💰 All prices up-to-date.");
+// console.log(" All prices up-to-date.");
         return;
     }
 
-    console.log(`💰 Updating prices for ${needsUpdate.length} cards...`);
+// console.log(` Updating prices for ${needsUpdate.length} cards...`);
 
     for (const id of needsUpdate.slice(0, 200)) { // limit batch
         try {
@@ -195,13 +197,13 @@ export async function refreshOldPrices() {
                     price,
                     lastUpdated: now,
                 };
-                console.log(`🪙 ${card.name}: $${price}`);
+// console.log(` ${card.name}: $${price}`);
             }
         } catch (err) {
-            console.warn(`⚠️ Failed to update price for ${id}: ${err.message}`);
+            console.warn(`️ Failed to update price for ${id}: ${err.message}`);
         }
     }
 
     fs.writeFileSync(PRICE_PATH, JSON.stringify(priceCache, null, 2));
-    console.log("✅ Price cache updated.");
+// console.log(" Price cache updated.");
 }

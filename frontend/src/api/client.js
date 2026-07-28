@@ -1,3 +1,5 @@
+import { GlobeAltIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+
 // frontend/src/api/client.js
 const BASE = "/api";
 
@@ -20,7 +22,7 @@ export const api = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
-    console.log(`🌐 [API Request] ${method} ${url}`, options.body ? JSON.parse(options.body) : "");
+    console.log(`[API Request] ${method} ${url}`, options.body ? JSON.parse(options.body) : "");
 
     const response = await fetch(url, {
       method,
@@ -29,12 +31,12 @@ export const api = {
     });
 
     if (!response.ok) {
-      console.error(`❌ [API Error] ${method} ${url} status: ${response.status}`);
+      console.error(`[API Error] ${method} ${url} status: ${response.status}`);
       throw new Error(`HTTP ${response.status}`);
     }
     const text = await response.text();
     const data = text ? JSON.parse(text.replace(/^\uFEFF/, "")) : {};
-    console.log(`✅ [API Response] ${method} ${url}`, Array.isArray(data) ? `Array(${data.length})` : typeof data === "object" ? `Keys: [${Object.keys(data).join(", ")}]` : data);
+    console.log(`[API Response] ${method} ${url}`, Array.isArray(data) ? `Array(${data.length})` : typeof data === "object" ? `Keys: [${Object.keys(data).join(", ")}]` : data);
     return data;
   },
 

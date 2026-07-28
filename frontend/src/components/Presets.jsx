@@ -6,11 +6,11 @@ import PackageSelector from "./PackageSelector";
 import PresetEditor from "./PresetEditor";
 import "../styles/presets.css";
 
-export default function Presets({ currentSelection, onApplyPreset, landcycles }) {
+export default function Presets({ currentSelection, onApplyPreset, landcycles, asModal, onCloseModal }) {
   const { user } = useAuth();
   const [presets, setPresets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("your"); // "your" or "community"
+  const [activeTab, setActiveTab] = useState("your"); // "your" or "default"
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
 
@@ -33,14 +33,21 @@ export default function Presets({ currentSelection, onApplyPreset, landcycles })
   };
 
   const yourPresets = presets.filter(p => p.isUserPreset || p.userId);
-  const communityPresets = presets.filter(p => p.isDefaultPreset || !p.userId);
+  const defaultPresets = presets.filter(p => p.isDefaultPreset || !p.userId);
 
-  const filteredPresets = activeTab === "your" ? yourPresets : communityPresets;
+  const filteredPresets = activeTab === "your" ? yourPresets : defaultPresets;
 
   return (
     <div className="presets-screen">
       <div className="presets-header">
-        <h1>Presets</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h1>Presets</h1>
+          {asModal && (
+            <button className="btn-secondary" onClick={onCloseModal} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+               Close
+            </button>
+          )}
+        </div>
         <button
           className="btn-primary"
           onClick={() => setShowCreateModal(true)}
@@ -58,10 +65,10 @@ export default function Presets({ currentSelection, onApplyPreset, landcycles })
           Your Presets
         </button>
         <button
-          className={activeTab === "community" ? "active" : ""}
-          onClick={() => setActiveTab("community")}
+          className={activeTab === "default" ? "active" : ""}
+          onClick={() => setActiveTab("default")}
         >
-          Community Presets
+          Default Presets
         </button>
       </div>
 
@@ -80,7 +87,7 @@ export default function Presets({ currentSelection, onApplyPreset, landcycles })
             ))}
             {filteredPresets.length === 0 && (
               <div className="empty-state">
-                {activeTab === "your" ? "You haven't created any presets yet." : "No community presets available."}
+                {activeTab === "your" ? "You haven't created any presets yet." : "No default presets available."}
               </div>
             )}
           </div>
@@ -142,7 +149,7 @@ function PresetCard({ preset, onEdit, onDelete }) {
   );
 }
 
-function CreatePresetModal({ onClose, onSave, currentSelection }) {
+export function CreatePresetModal({ onClose, onSave, currentSelection }) {
   const [form, setForm] = useState({
     name: "",
     description: "",

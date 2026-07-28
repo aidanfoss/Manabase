@@ -1,4 +1,8 @@
 import React from "react";
+import { ClipboardDocumentListIcon } from "@heroicons/react/24/solid";
+
+
+
 import Card from "./Card";
 
 export default function MainContent({ data, status, error, userCollection = [] }) {
@@ -32,7 +36,7 @@ export default function MainContent({ data, status, error, userCollection = [] }
             })
             .join("\n");
         navigator.clipboard.writeText(text);
-        alert(`📋 Copied ${name} list to clipboard!`);
+        alert(`Copied ${name} list to clipboard!`);
     }
 
     if (status === "loading") return <div className="status">Loading cards…</div>;

@@ -1,5 +1,8 @@
 // src/App.jsx
 import React, { useState, useRef } from "react";
+import { CubeIcon, FolderIcon, ArrowPathIcon, MoonIcon, MapPinIcon, BellIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/24/solid";
+
+
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
@@ -59,7 +62,7 @@ function AppContent() {
         .then(data => {
           if (data && data.success) {
             localStorage.removeItem("pending_invite_token");
-            alert(`🎉 Success! You joined playgroup "${data.name}"`);
+            alert(`Success! You joined playgroup "${data.name}"`);
             navigate("/wishlist");
           }
         })
@@ -105,7 +108,7 @@ function AppContent() {
       {showLogin && !user && (
         <div className="login-modal-overlay" onClick={() => setShowLogin(false)}>
           <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="login-modal-close" onClick={() => setShowLogin(false)} title="Close">✕</button>
+            <button className="login-modal-close" onClick={() => setShowLogin(false)} title="Close"></button>
             <LoginForm onSuccess={() => setShowLogin(false)} />
           </div>
         </div>
@@ -152,47 +155,53 @@ function LandingDashboard() {
         {/* Feature 1: Manabase Deckbuilder */}
         <div className="feature-card">
           <div className="card-badge-top">Feature 01</div>
-          <div className="card-icon">🧱</div>
+          <div className="card-icon">
+            <CubeIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
+          </div>
           <h2 className="card-title-text">Manabase Deckbuilder</h2>
           <p className="card-description">
             Build optimal land bases for your Commander decks. Configure color identities, apply curated land cycle presets, load card packages, and view live price rankings.
           </p>
           
           <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
-            <button className="sub-btn" onClick={() => navigate("/builder")}>🧱 Launch Builder</button>
-            <button className="sub-btn" onClick={() => navigate("/presets")}>🎯 Land Presets</button>
-            <button className="sub-btn" onClick={() => navigate("/packages")}>📦 Custom Packages</button>
+            <button className="sub-btn" onClick={() => navigate("/builder")}>Launch Builder</button>
+            <button className="sub-btn" onClick={() => navigate("/presets")}>Land Presets</button>
+            <button className="sub-btn" onClick={() => navigate("/packages")}>Custom Packages</button>
           </div>
         </div>
 
         {/* Feature 2: Collection & Lists Manager */}
         <div className="feature-card">
           <div className="card-badge-top">Feature 02</div>
-          <div className="card-icon">🗂️</div>
+          <div className="card-icon">
+            <FolderIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
+          </div>
           <h2 className="card-title-text">Collection & Lists Hub</h2>
           <p className="card-description">
             Manage your physical owned inventory, organize print set details, configure playgroup proxy rules compliance, and track cards you would like to trade.
           </p>
           
           <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
-            <button className="sub-btn" onClick={() => navigate("/collection")}>🗃️ Collection</button>
-            <button className="sub-btn" onClick={() => navigate("/wishlist")}>✨ Proxy Hub</button>
-            <button className="sub-btn" onClick={() => navigate("/trade")}>🤝 Trade Hub</button>
+            <button className="sub-btn" onClick={() => navigate("/collection")}>Collection</button>
+            <button className="sub-btn" onClick={() => navigate("/wishlist")}>Proxy Hub</button>
+            <button className="sub-btn" onClick={() => navigate("/trade")}>Trade Hub</button>
           </div>
         </div>
 
         {/* Feature 3: Archidekt Sync */}
         <div className="feature-card">
           <div className="card-badge-top">Feature 03</div>
-          <div className="card-icon">🔄</div>
+          <div className="card-icon">
+            <ArrowPathIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
+          </div>
           <h2 className="card-title-text">Archidekt Sync Hub</h2>
           <p className="card-description">
             Maintain synchronized copies of your Archidekt decks. Pull lists dynamically based on custom per-card Color Tags and instantly sort them into your Collection, Tradelist, or Wishlist.
           </p>
           
           <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
-            <button className="sub-btn" onClick={() => navigate("/decks")}>📦 Saved Decks</button>
-            <button className="sub-btn" onClick={() => navigate("/decks")}>➕ Import New</button>
+            <button className="sub-btn" onClick={() => navigate("/decks")}>Saved Decks</button>
+            <button className="sub-btn" onClick={() => navigate("/decks")}>Import New</button>
           </div>
         </div>
       </div>
@@ -299,23 +308,39 @@ function TopNav({ user, showLogin, setShowLogin }) {
         </div>
 
         {/* Navigation Links */}
-        <div style={{ display: 'flex', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
           <span className="nav-link" onClick={() => navigate("/wishlist")}>Proxy</span>
           <span className="nav-link" onClick={() => navigate("/trade")}>Trade</span>
           <span className="nav-link" onClick={() => navigate("/collection")}>Collection</span>
           <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
-          <span className="nav-link" onClick={() => navigate("/builder")}>Build</span>
+          
+          <div className="nav-dropdown-container">
+            <span className="nav-link dropdown-trigger">
+              Build <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>▼</span>
+            </span>
+            <div className="nav-dropdown-menu">
+              <div className="nav-dropdown-item" onClick={() => navigate("/builder")}>
+                <CubeIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Deckbuilder
+              </div>
+              <div className="nav-dropdown-item" onClick={() => navigate("/presets")}>
+                <MapPinIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Land Presets
+              </div>
+              <div className="nav-dropdown-item" onClick={() => navigate("/packages")}>
+                <FolderIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Custom Packages
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Right: Icons and Profile */}
       <div className="nav-controls-right" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         {/* Icons */}
-        <div style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer' }}>
-          <span title="Toggle Dark Mode">🌙</span>
-          <span title="Pins">📌</span>
+        <div style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer', alignItems: 'center' }}>
+          <MoonIcon title="Toggle Dark Mode" style={{ width: '1.2em', height: '1.2em' }} />
+          <MapPinIcon title="Pins" style={{ width: '1.2em', height: '1.2em' }} />
           <div style={{ position: 'relative' }} title="Notifications">
-            <span>🔔</span>
+            <BellIcon style={{ width: '1.2em', height: '1.2em' }} />
             {tradeAlerts > 0 && (
               <div style={{
                 position: 'absolute',
@@ -349,7 +374,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
                   onClick={handleCycleUser}
                   title={`Cycle to ${nextTestUser.username}`}
                 >
-                  🔄 Switch: {nextTestUser.username}
+                  <ArrowPathRoundedSquareIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Switch: {nextTestUser.username}
                 </button>
               )}
             </>

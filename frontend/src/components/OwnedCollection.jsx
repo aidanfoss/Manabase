@@ -1,5 +1,9 @@
 // src/components/OwnedCollection.jsx
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { ExclamationTriangleIcon, RectangleGroupIcon, SparklesIcon, XMarkIcon, ChevronUpIcon, ChevronDownIcon, ArchiveBoxIcon, InboxIcon, ArrowUpTrayIcon, TrashIcon, FolderIcon, MagnifyingGlassIcon, PhotoIcon, ChartBarIcon } from "@heroicons/react/24/solid";
+
+
+
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
 import "../styles/owned.css";
@@ -163,7 +167,7 @@ const CollectionRow = React.memo(({
           <span>{card.card_name}</span>
           {isUnresolved && (
             <span className="unresolved-badge" title="Card printing not found in database. Token or malformed import.">
-              ⚠️ Token / Unresolved
+              <ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Token / Unresolved
             </span>
           )}
         </div>
@@ -329,13 +333,13 @@ const CollectionCardTile = React.memo(({
           <img src={imageUrl} alt={card.card_name} className="tile-art-img" loading="lazy" />
         ) : (
           <div className="tile-art-placeholder">
-            <span className="placeholder-icon">🎴</span>
+            <span className="placeholder-icon"><RectangleGroupIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
             <span className="placeholder-name">{card.card_name}</span>
-            {isUnresolved && <span className="unresolved-badge">⚠️ Token / Unresolved</span>}
+            {isUnresolved && <span className="unresolved-badge"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Token / Unresolved</span>}
           </div>
         )}
         
-        {card.is_foil && <div className="tile-foil-badge">✨ FOIL</div>}
+        {card.is_foil && <div className="tile-foil-badge"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> FOIL</div>}
         
         <div className="tile-price-tag">
           {rowPrice > 0 ? `$${rowPrice.toFixed(2)}` : "Price N/A"}
@@ -346,11 +350,11 @@ const CollectionCardTile = React.memo(({
       <div className="tile-content">
         <div className="tile-header">
           <span className="tile-title" title={card.card_name}>{card.card_name}</span>
-          <button className="tile-delete-btn" onClick={() => onDelete(card)} title="Remove card">✕</button>
+          <button className="tile-delete-btn" onClick={() => onDelete(card)} title="Remove card"></button>
         </div>
 
         {isUnresolved && (
-          <div className="tile-unresolved-alert">⚠️ Unresolved / Token</div>
+          <div className="tile-unresolved-alert"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Unresolved / Token</div>
         )}
 
         <div className="tile-controls-grid">
@@ -547,14 +551,14 @@ export default function OwnedCollection({ onCollectionChanged }) {
           if (batchResult && batchResult[name]) {
             next[name] = batchResult[name];
           } else {
-            console.warn(`⚠️ [OwnedCollection] Missing card details for "${name}" in batch result!`);
+            console.warn(`️ [OwnedCollection] Missing card details for "${name}" in batch result!`);
             next[name] = { missing: true, prints: [] };
           }
         });
         return next;
       });
     } catch (err) {
-      console.error("❌ [OwnedCollection] Failed to fetch prints batch", err);
+      console.error("[OwnedCollection] Failed to fetch prints batch", err);
       setPrintsCache(prev => {
         const next = { ...prev };
         namesToFetch.forEach(name => {
@@ -723,7 +727,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
     const unresolvedCards = collection.filter(c => isCardUnresolved(c, printsCache));
     if (unresolvedCards.length === 0) return;
 
-    if (!window.confirm(`⚠️ Are you sure you want to delete all ${unresolvedCards.length} unresolved token/malformed cards?`)) return;
+    if (!window.confirm(`️ Are you sure you want to delete all ${unresolvedCards.length} unresolved token/malformed cards?`)) return;
 
     setLoading(true);
     try {
@@ -748,7 +752,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   // Bulk clear collection
   const handleClearCollection = async () => {
-    if (!window.confirm("⚠️ Are you sure you want to clear your entire collection? This cannot be undone.")) return;
+    if (!window.confirm("️ Are you sure you want to clear your entire collection? This cannot be undone.")) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -900,7 +904,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
       setShowImport(false);
       setImportStatus("");
       await loadCollection();
-      alert(`🎉 Successfully imported ${totalAdded} cards into your collection!`);
+      alert(` Successfully imported ${totalAdded} cards into your collection!`);
     } catch (err) {
       console.error("Failed importing cards:", err);
       alert("An error occurred during import. Please try again.");
@@ -1027,7 +1031,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   const getSortIndicator = (field) => {
     if (sortField !== field) return "";
-    return sortOrder === "asc" ? " 🔼" : " 🔽";
+    return sortOrder === "asc" ? " " : " ";
   };
 
   return (
@@ -1035,19 +1039,19 @@ export default function OwnedCollection({ onCollectionChanged }) {
       {/* Header Area */}
       <div className="collection-header">
         <div>
-          <h1 className="collection-title">🗃️ Card Inventory Manager</h1>
+          <h1 className="collection-title"><ArchiveBoxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Card Inventory Manager</h1>
           <p className="collection-subtitle">Cardsphere-style tracking of condition, language, sets, and real-time market value.</p>
         </div>
         
         <div className="collection-actions">
           <button className="csv-btn export" onClick={handleExportCSV} disabled={collection.length === 0}>
-            📥 Export CSV
+            <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Export CSV
           </button>
           <button className="csv-btn import" onClick={() => setShowImport(!showImport)}>
-            📤 Bulk Import
+            <ArrowUpTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
           </button>
           <button className="csv-btn delete-all-btn" onClick={handleClearCollection} disabled={collection.length === 0}>
-            🗑️ Clear Collection
+            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Clear Collection
           </button>
         </div>
       </div>
@@ -1101,28 +1105,28 @@ export default function OwnedCollection({ onCollectionChanged }) {
       {unresolvedList.length > 0 && (
         <div className="unresolved-warning-banner">
           <div className="banner-left">
-            <span className="banner-icon">⚠️</span>
+            <span className="banner-icon"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️</span>
             <div>
               <strong>{unresolvedList.length} unresolved token/malformed cards found in your collection</strong>
               <p>Items like "{unresolvedList.slice(0, 3).map(c => c.card_name).join('", "')}" could not be matched to official Scryfall prints. They are floating at the top of your list.</p>
             </div>
           </div>
           <button className="delete-unresolved-btn" onClick={handleDeleteAllUnresolved}>
-            🗑️ Delete All {unresolvedList.length} Unresolved Cards
+            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Delete All {unresolvedList.length} Unresolved Cards
           </button>
         </div>
       )}
 
       {showImport && (
         <div className="bulk-import-panel">
-          <h3>📤 Bulk Collection Importer</h3>
+          <h3><ArrowUpTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Collection Importer</h3>
           <p className="import-help">
             Supports <strong>ManaBox CSV files</strong> (e.g., <code>Giga Boxes.csv</code>), Scryfall/Cardsphere CSVs, or standard decklists (<code>4 Hallowed Fountain</code>).
           </p>
           
           <div className="import-file-section">
             <label htmlFor="csv-file-input" className="file-upload-btn">
-              📁 Choose CSV or Text File
+              <FolderIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Choose CSV or Text File
             </label>
             <input
               id="csv-file-input"
@@ -1181,7 +1185,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
       {/* Autocomplete Quick Search */}
       <div className="search-bar-row">
         <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
           <input
             type="text"
             value={searchQuery}
@@ -1290,14 +1294,14 @@ export default function OwnedCollection({ onCollectionChanged }) {
                 onClick={() => setViewMode("grid")}
                 title="Switch to Card Art Grid View (ideal for confirming visual artwork)"
               >
-                🖼️ Card Art
+                <PhotoIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Card Art
               </button>
               <button
                 className={`view-toggle-btn ${!isCardArtView ? "active" : ""}`}
                 onClick={() => setViewMode("table")}
                 title="Switch to Spreadsheet Table View"
               >
-                📊 Table
+                <ChartBarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Table
               </button>
             </div>
 

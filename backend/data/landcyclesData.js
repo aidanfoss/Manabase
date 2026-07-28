@@ -1,4 +1,4 @@
-﻿import fs from "fs";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readJsonSafe } from "../utils/safeJson.js";
@@ -6,40 +6,19 @@ import { readJsonSafe } from "../utils/safeJson.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dir = path.join(__dirname, "landcycles");
+const jsonPath = path.join(__dirname, "landcycles.json");
 
-const landcycles = [];
+const landcycles = readJsonSafe(jsonPath, []);
 const masterLands = new Set();
 
-if (fs.existsSync(dir)) {
-  const files = fs.readdirSync(dir).filter(f => f.endsWith(".json"));
-  for (const file of files) {
-    const jsonPath = path.join(dir, file);
-    const data = readJsonSafe(jsonPath, {});
-    const base = file.replace(/\.json$/i, "");
-    const normalized = base.toLowerCase().replace(/_/g, "");
-
-    const id = data.id || normalized;
-    const name =
-      data.name ||
-      normalized.charAt(0).toUpperCase() + normalized.slice(1);
-
-    // Build master list of land names for exclusion / extras
-    const cards = Array.isArray(data.cards) ? data.cards : [];
-    for (const c of cards) {
-      if (c?.name) masterLands.add(c.name);
+for (const lc of landcycles) {
+  for (const c of lc.cards) {
+    if (typeof c === 'string') {
+        masterLands.add(c);
+    } else if (c?.name) {
+        masterLands.add(c.name);
     }
-
-    landcycles.push({
-      id,
-      name,
-      file,
-      cards,
-      ...data
-    });
   }
-} else {
-  console.warn(`⚠️ landcycles folder not found: ${dir}`);
 }
 
 // Default preset structure for EDH mana bases
@@ -48,7 +27,7 @@ export const createPreset = (name, description, landCycles, userId = null) => ({
   name,
   description,
   userId, // null for built-in presets
-  landCycles, // object like { shocklands: 4, painlands: 8, basic: 24 }
+  landCycles, // object like { "cycle-shock-land": 4, "cycle-pain-land": 8 }
   packages: [], // Future: selected packages that could affect pricing/cost
   colorRequirements: [],
   createdAt: new Date().toISOString(),

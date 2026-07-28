@@ -5,7 +5,8 @@ import { encodeSelection, decodeSelection } from "../utils/hashState";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import BottomBar from "./BottomBar";
-import "../styles/builder.css"; // ⬅️ builder-specific styles
+import Presets, { CreatePresetModal } from "./Presets";
+import "../styles/builder.css"; // ️ builder-specific styles
 
 export default function BuilderView({ selected, setSelected, onDataLoaded, userCollection = [] }) {
   const [packages, setPackages] = useState([]);
@@ -14,6 +15,8 @@ export default function BuilderView({ selected, setSelected, onDataLoaded, userC
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
+  const [showManagePresets, setShowManagePresets] = useState(false);
+  const [showCreatePreset, setShowCreatePreset] = useState(false);
 
   // restore hash
   useEffect(() => {
@@ -21,7 +24,7 @@ export default function BuilderView({ selected, setSelected, onDataLoaded, userC
       const decoded = decodeSelection(window.location.hash.substring(1));
       if (decoded && decoded.version >= 1) {
         setSelected({
-          packages: new Set(decoded.packages || decoded.metas || []),
+          packages: new Set(decoded.packages || []),
           landcycles: new Set(decoded.landcycles || []),
           colors: new Set(decoded.colors || []),
         });
@@ -115,16 +118,17 @@ export default function BuilderView({ selected, setSelected, onDataLoaded, userC
 
   return (
     <div className={`app ${collapsed ? "" : "sidebar-open"}`}>
-      <button
-        className={`sidebar-toggle-btn ${collapsed ? "" : "open"}`}
-        onClick={() => setCollapsed((c) => !c)}
-        title={collapsed ? "Open setup menu" : "Close menu"}
-      >
-        {collapsed ? "🛠️ Setup Manabase" : "✕ Close Menu"}
-      </button>
-
-      {!collapsed && (
-        <div className="drawer-backdrop" onClick={() => setCollapsed(true)} />
+      {collapsed && (
+        <div
+          className="sidebar-hover-zone"
+          onMouseEnter={() => setCollapsed((c) => !c)}
+        >
+          <div className="sidebar-hover-indicator">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
       )}
 
       <Sidebar
@@ -134,10 +138,57 @@ export default function BuilderView({ selected, setSelected, onDataLoaded, userC
         toggle={toggle}
         collapsed={collapsed}
         setCollapsed={setCollapsed}
+        onShowManagePresets={() => setShowManagePresets(true)}
+        onShowCreatePreset={() => setShowCreatePreset(true)}
+        onMouseLeave={() => setCollapsed(true)}
       />
 
       <MainContent data={data} status={status} error={error} userCollection={userCollection} />
       <BottomBar data={data} />
+
+      {showManagePresets && (
+        <div className="modal-overlay" onClick={() => setShowManagePresets(false)} style={{ zIndex: 1000 }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '1000px', height: '85vh', overflow: 'hidden', padding: 0 }}>
+            <Presets 
+              currentSelection={{
+                packages: Array.from(selected.packages),
+                landcycles: Array.from(selected.landcycles),
+                colors: Array.from(selected.colors)
+              }}
+              landcycles={landcycles}
+              asModal={true}
+              onCloseModal={() => setShowManagePresets(false)}
+              onApplyPreset={(preset) => {
+                // Apply the preset
+                const newLandcycles = new Set(Object.keys(preset.landCycles || {}));
+                const newPackages = new Set(Array.isArray(preset.packages) ? preset.packages : []);
+                
+                setSelected(prev => ({
+                  ...prev,
+                  landcycles: newLandcycles,
+                  packages: newPackages
+                }));
+                
+                setShowManagePresets(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {showCreatePreset && (
+        <CreatePresetModal
+          currentSelection={{
+            packages: Array.from(selected.packages),
+            landcycles: Array.from(selected.landcycles).reduce((acc, curr) => ({ ...acc, [curr]: true }), {})
+          }}
+          onClose={() => setShowCreatePreset(false)}
+          onSave={() => {
+            setShowCreatePreset(false);
+            // Optionally show a success toast or reload presets
+          }}
+        />
+      )}
     </div>
   );
 }

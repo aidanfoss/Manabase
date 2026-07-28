@@ -24,7 +24,7 @@ router.get("/me", requireAuth, async (req, res) => {
       default_card_back: user.default_card_back || "b:black lotus"
     });
   } catch (err) {
-    console.error("❌ Error fetching current user:", err.message);
+    console.error(" Error fetching current user:", err.message);
     res.status(404).json({ error: "User profile not found" });
   }
 });
@@ -44,7 +44,7 @@ router.put("/me/card-back", requireAuth, async (req, res) => {
 
     res.json({ success: true, default_card_back: cardBackVal });
   } catch (err) {
-    console.error("❌ Error updating default card back:", err.message);
+    console.error(" Error updating default card back:", err.message);
     res.status(500).json({ error: "Failed to update default card back" });
   }
 });

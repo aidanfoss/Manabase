@@ -1,7 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { Cog6ToothIcon } from "@heroicons/react/24/solid";
+
+
+
 import { api } from "../api/client";
 
-const LandPresetSelector = ({ selectedPackages, selectedColors, selectedLandcycles, onPresetSelect }) => {
+const LandPresetSelector = ({ selectedPackages, selectedColors, selectedLandcycles, onPresetSelect, onManagePresets }) => {
   const [presets, setPresets] = useState([]);
   const [selectedPreset, setSelectedPreset] = useState(null);
   const [open, setOpen] = useState(false);
@@ -72,28 +76,53 @@ const LandPresetSelector = ({ selectedPackages, selectedColors, selectedLandcycl
 
   return (
     <div className="section">
-      <h3
-        className="dropdown-header"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          cursor: "pointer",
-          userSelect: "none",
-        }}
-        onClick={() => setOpen((o) => !o)}
-      >
-        <span>Presets</span>
-        <span
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+        <h3
+          className="dropdown-header"
           style={{
-            fontSize: "0.8em",
-            transform: open ? "rotate(0deg)" : "rotate(-90deg)",
-            transition: "transform 0.2s ease",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            cursor: "pointer",
+            userSelect: "none",
+            margin: 0
           }}
+          onClick={() => setOpen((o) => !o)}
         >
-          ▼
-        </span>
-      </h3>
+          <span>Presets</span>
+          <span
+            style={{
+              fontSize: "0.8em",
+              transform: open ? "rotate(0deg)" : "rotate(-90deg)",
+              transition: "transform 0.2s ease",
+            }}
+          >
+            ▼
+          </span>
+        </h3>
+        {onManagePresets && (
+          <button 
+            onClick={onManagePresets}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#94a3b8",
+              cursor: "pointer",
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              padding: "0.2rem 0.4rem",
+              borderRadius: "4px"
+            }}
+            title="Manage Presets"
+            onMouseEnter={(e) => { e.target.style.color = "#f8fafc"; e.target.style.background = "rgba(255,255,255,0.1)"; }}
+            onMouseLeave={(e) => { e.target.style.color = "#94a3b8"; e.target.style.background = "transparent"; }}
+          >
+            <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Manage
+          </button>
+        )}
+      </div>
 
       {open && (
         <>

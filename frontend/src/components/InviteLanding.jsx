@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { EnvelopeIcon, ExclamationTriangleIcon, UserGroupIcon, CheckCircleIcon, LockClosedIcon, GlobeAltIcon, ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid";
+
+
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -62,7 +66,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
       if (res.ok) {
         const data = await res.json();
         localStorage.removeItem("pending_invite_token");
-        showToast(`🎉 Success! You joined "${data.name}"`, "success");
+        showToast(` Success! You joined "${data.name}"`, "success");
         navigate("/wishlist");
       } else {
         const data = await res.json();
@@ -88,7 +92,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
         borderRadius: "12px",
         border: "1px solid rgba(255,255,255,0.08)"
       }}>
-        <h2>📩 Checking Invite Link...</h2>
+        <h2 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><EnvelopeIcon style={{ width: "1.5em", height: "1.5em" }} /> Checking Invite Link...</h2>
       </div>
     );
   }
@@ -106,7 +110,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
         boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
         color: "#f87171"
       }}>
-        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><ExclamationTriangleIcon style={{ width: "3rem", height: "3rem" }} /></div>
         <h2 style={{ color: "#f87171", margin: "0 0 0.5rem 0" }}>Invalid Invite Link</h2>
         <p style={{ color: "#94a3b8", marginBottom: "1.5rem" }}>{error}</p>
         <button
@@ -139,7 +143,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
       color: "#f8fafc",
       textAlign: "center"
     }}>
-      <div style={{ fontSize: "3.5rem", marginBottom: "0.5rem" }}>👥</div>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}><UserGroupIcon style={{ width: "3.5rem", height: "3.5rem" }} /></div>
       <span style={{
         background: "rgba(59, 130, 246, 0.2)",
         color: "#60a5fa",
@@ -183,7 +187,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
               transition: "all 0.2s ease"
             }}
           >
-            {joining ? "Joining Playgroup..." : "🎉 Accept & Join Playgroup"}
+            {joining ? "Joining Playgroup..." : <><CheckCircleIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "6px" }} /> Accept & Join Playgroup</>}
           </button>
         </div>
       ) : (
@@ -208,7 +212,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
                 boxShadow: "0 4px 14px rgba(59, 130, 246, 0.4)"
               }}
             >
-              {showInlineLogin ? "Hide Login Form" : "🔐 Log In / Create Account"}
+              {showInlineLogin ? "Hide Login Form" : <><LockClosedIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "6px" }} /> Log In / Create Account</>}
             </button>
 
             <a
@@ -230,7 +234,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
                 boxSizing: "border-box"
               }}
             >
-              🌐 Sign in with Google
+              <GlobeAltIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "6px" }} /> Sign in with Google
             </a>
 
             <a
@@ -252,7 +256,7 @@ export default function InviteLanding({ onOpenLoginModal }) {
                 boxSizing: "border-box"
               }}
             >
-              💬 Sign in with Discord
+              <ChatBubbleOvalLeftEllipsisIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "6px" }} /> Sign in with Discord
             </a>
           </div>
 
