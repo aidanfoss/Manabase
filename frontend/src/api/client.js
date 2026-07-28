@@ -35,6 +35,11 @@ export const api = {
       throw new Error(`HTTP ${response.status}`);
     }
     const text = await response.text();
+    const contentType = response.headers.get("content-type");
+    if (contentType && !contentType.includes("application/json")) {
+      console.warn(`[API Response] ${method} ${url} returned non-JSON content (likely dev-server restart fallback).`);
+      throw new Error("Received non-JSON response from server");
+    }
     const data = text ? JSON.parse(text.replace(/^\uFEFF/, "")) : {};
     console.log(`[API Response] ${method} ${url}`, Array.isArray(data) ? `Array(${data.length})` : typeof data === "object" ? `Keys: [${Object.keys(data).join(", ")}]` : data);
     return data;

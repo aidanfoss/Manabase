@@ -529,6 +529,8 @@ export default function TradelistManager() {
   // Helper to calculate lowest market price among all printings (Market Low / Red)
   const getMarketLowPrice = (cardItem) => {
     if (!cardItem) return 0;
+    if (cardItem.is_proxy || cardItem.list_type === 'proxy') return 0.25;
+
     const cardName = cardItem.card_name || cardItem.name;
 
     // 1. Direct market_low property on card item
@@ -556,6 +558,8 @@ export default function TradelistManager() {
   // Helper to calculate exact printing price (Printing Specific / Green) with fallback to Market Low if unpriced
   const getCardPrice = (cardItem) => {
     if (!cardItem) return 0;
+    if (cardItem.is_proxy || cardItem.list_type === 'proxy') return 0.25;
+
     const cardName = cardItem.card_name || cardItem.name;
 
     // 1. Direct market_price or price on card item

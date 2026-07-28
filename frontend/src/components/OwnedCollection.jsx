@@ -478,6 +478,14 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState("");
 
+  const [globalStats, setGlobalStats] = useState({
+    totalCollectionValue: 0,
+    totalItems: 0,
+    uniqueCardsCount: 0,
+    totalFilteredCount: 0,
+    unresolvedCount: 0
+  });
+
   const [activeTab, setActiveTab] = useState("owned"); // "owned", "proxy", "deck"
   const [importDestination, setImportDestination] = useState("auto");
   const [proxyRuleAltered, setProxyRuleAltered] = useState(false);
@@ -505,24 +513,39 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [pageSize, setPageSize] = useState(20);
   const [viewMode, setViewMode] = useState("auto");
 
-  // Load collection
-  useEffect(() => {
-    loadCollection();
-  }, [activeTab]);
-
   const loadCollection = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch(`/api/collection/owned?list_type=${activeTab}`, {
+      const params = new URLSearchParams({
+        list_type: activeTab,
+        page: currentPage,
+        limit: pageSize,
+        sortField,
+        sortOrder,
+        filterName,
+        filterSet,
+        filterCondition,
+        filterLanguage,
+        filterFinish
+      });
+
+      const res = await fetch(`/api/collection/owned?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        const cardsList = data || [];
+        const cardsList = data.cards || [];
         setCollection(cardsList);
+        setGlobalStats(data.stats || {
+          totalCollectionValue: 0,
+          totalItems: 0,
+          uniqueCardsCount: 0,
+          totalFilteredCount: 0,
+          unresolvedCount: 0
+        });
         if (onCollectionChanged) {
           onCollectionChanged(cardsList);
         }
@@ -538,6 +561,26 @@ export default function OwnedCollection({ onCollectionChanged }) {
       setLoading(false);
     }
   };
+
+  const prevTabRef = useRef(activeTab);
+  const debounceRef = useRef(null);
+
+  // Load collection when parameters change
+  useEffect(() => {
+    const isTabChange = prevTabRef.current !== activeTab;
+    if (isTabChange) {
+      setCollection([]);
+      setCurrentPage(1);
+      prevTabRef.current = activeTab;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadCollection();
+    }, 200);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [activeTab, currentPage, pageSize, sortField, sortOrder, filterName, filterSet, filterCondition, filterLanguage, filterFinish]);
 
   const triggerFetchPrintsBatch = async (cardNames) => {
     const namesToFetch = cardNames.filter(name => !printsCache[name] && printsCache[name] !== "loading");
@@ -557,7 +600,6 @@ export default function OwnedCollection({ onCollectionChanged }) {
           if (batchResult && batchResult[name]) {
             next[name] = batchResult[name];
           } else {
-            console.warn(`️ [OwnedCollection] Missing card details for "${name}" in batch result!`);
             next[name] = { missing: true, prints: [] };
           }
         });
@@ -618,7 +660,9 @@ export default function OwnedCollection({ onCollectionChanged }) {
         collector_number: card.collector_number || "",
         is_foil: false,
         card_condition: "NM",
-        card_language: "EN"
+        card_language: "EN",
+        list_type: activeTab,
+        is_proxy: activeTab === "proxy"
       };
 
       const res = await fetch("/api/collection/owned", {
@@ -717,7 +761,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ id: card.id }),
+        body: JSON.stringify({ id: card.id, list_type: activeTab }),
       });
 
       if (res.ok) {
@@ -745,7 +789,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ id: card.id }),
+          body: JSON.stringify({ id: card.id, list_type: activeTab }),
         });
       }
       loadCollection();
@@ -758,7 +802,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   // Bulk clear collection
   const handleClearCollection = async () => {
-    if (!window.confirm("️ Are you sure you want to clear your entire collection? This cannot be undone.")) return;
+    if (!window.confirm("️ Are you sure you want to clear your ENTIRE collection across ALL tabs (Owned, Proxies, Decks)? This cannot be undone.")) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -770,7 +814,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ clear_all: true }),
+        body: JSON.stringify({ clear_all: true, list_type: activeTab }),
       });
 
       if (res.ok) {
@@ -784,6 +828,8 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   // Price helper for single card
   const getRowPrice = useCallback((card) => {
+    if (card.is_proxy) return 0;
+    
     const cached = printsCache[card.card_name];
     if (!cached || cached === "loading" || cached.missing || !cached.prints || cached.prints.length === 0) return 0;
 
@@ -873,7 +919,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
         }
 
         if (importDestination !== "auto") {
-          return { ...c, list_type: importDestination, is_proxy: isProxy };
+          return { ...c, list_type: importDestination, is_proxy: importDestination === "proxy" ? true : isProxy };
         }
         
         if (c.binder_type === "deck") {
@@ -943,99 +989,13 @@ export default function OwnedCollection({ onCollectionChanged }) {
     setCurrentPage(1);
   };
 
-  // Calculate filtered, sorted, and unresolved-prioritized list
-  const filteredAndSortedList = useMemo(() => {
-    let result = [...collection];
-
-    // Filters
-    if (filterName.trim()) {
-      const q = filterName.toLowerCase();
-      result = result.filter(c => c.card_name.toLowerCase().includes(q));
-    }
-    if (filterSet.trim()) {
-      const q = filterSet.toLowerCase();
-      result = result.filter(c => (c.set_code || "").toLowerCase().includes(q));
-    }
-    if (filterCondition !== "all") {
-      result = result.filter(c => (c.card_condition || "NM") === filterCondition);
-    }
-    if (filterLanguage !== "all") {
-      result = result.filter(c => (c.card_language || "EN") === filterLanguage);
-    }
-    if (filterFinish !== "all") {
-      const isFoilFilter = filterFinish === "foil";
-      result = result.filter(c => !!c.is_foil === isFoilFilter);
-    }
-
-    // Sort: Unresolved / Tokens float to top first
-    result.sort((a, b) => {
-      const unresA = isCardUnresolved(a, printsCache);
-      const unresB = isCardUnresolved(b, printsCache);
-
-      if (unresA !== unresB) {
-        return unresA ? -1 : 1;
-      }
-
-      let valA, valB;
-      if (sortField === "price") {
-        valA = getRowPrice(a) * a.quantity;
-        valB = getRowPrice(b) * b.quantity;
-      } else if (sortField === "quantity") {
-        valA = a.quantity;
-        valB = b.quantity;
-      } else if (sortField === "set_code") {
-        valA = a.set_code || "";
-        valB = b.set_code || "";
-      } else if (sortField === "card_condition") {
-        valA = a.card_condition || "NM";
-        valB = b.card_condition || "NM";
-      } else if (sortField === "card_language") {
-        valA = a.card_language || "EN";
-        valB = b.card_language || "EN";
-      } else {
-        valA = a.card_name || "";
-        valB = b.card_name || "";
-      }
-
-      if (typeof valA === "string") {
-        return sortOrder === "asc"
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA);
-      } else {
-        return sortOrder === "asc"
-          ? valA - valB
-          : valB - valA;
-      }
-    });
-
-    return result;
-  }, [collection, filterName, filterSet, filterCondition, filterLanguage, filterFinish, sortField, sortOrder, printsCache, getRowPrice]);
-
-  // Unresolved count
-  const unresolvedList = useMemo(() => {
-    return collection.filter(c => isCardUnresolved(c, printsCache));
-  }, [collection, printsCache]);
-
   // Pagination calculation
-  const totalFilteredCount = filteredAndSortedList.length;
-  const effectivePageSize = pageSize === "all" ? totalFilteredCount || 1 : pageSize;
-  const totalPages = Math.ceil(totalFilteredCount / effectivePageSize) || 1;
-
-  const displayedList = useMemo(() => {
-    if (pageSize === "all") return filteredAndSortedList;
-    const startIdx = (currentPage - 1) * pageSize;
-    return filteredAndSortedList.slice(startIdx, startIdx + pageSize);
-  }, [filteredAndSortedList, currentPage, pageSize]);
+  const { totalFilteredCount, totalItems, uniqueCardsCount, totalCollectionValue, unresolvedCount } = globalStats;
+  const totalPages = Math.ceil(totalFilteredCount / pageSize) || 1;
+  const displayedList = collection;
 
   // Determine whether to show Visual Card Art Grid mode or Spreadsheet Table mode
   const isCardArtView = viewMode === "grid" || (viewMode === "auto" && typeof pageSize === "number" && pageSize <= 20);
-
-  // Global totals
-  const totalItems = collection.reduce((sum, c) => sum + c.quantity, 0);
-  const uniqueCardsCount = new Set(collection.map(c => c.card_name)).size;
-  const totalCollectionValue = useMemo(() => {
-    return collection.reduce((sum, c) => sum + (getRowPrice(c) * c.quantity), 0);
-  }, [collection, getRowPrice]);
 
   const getSortIndicator = (field) => {
     if (sortField !== field) return "";
@@ -1110,17 +1070,17 @@ export default function OwnedCollection({ onCollectionChanged }) {
       </div>
 
       {/* Unresolved / Token Imports Warning Banner */}
-      {unresolvedList.length > 0 && (
+      {unresolvedCount > 0 && (
         <div className="unresolved-warning-banner">
           <div className="banner-left">
             <span className="banner-icon"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️</span>
             <div>
-              <strong>{unresolvedList.length} unresolved token/malformed cards found in your collection</strong>
-              <p>Items like "{unresolvedList.slice(0, 3).map(c => c.card_name).join('", "')}" could not be matched to official Scryfall prints. They are floating at the top of your list.</p>
+              <strong>{unresolvedCount} unresolved token/malformed cards found in your collection</strong>
+              <p>These items could not be matched to official Scryfall prints. They are floating at the top of your list.</p>
             </div>
           </div>
           <button className="delete-unresolved-btn" onClick={handleDeleteAllUnresolved}>
-            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Delete All {unresolvedList.length} Unresolved Cards
+            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Delete All {unresolvedCount} Unresolved Cards
           </button>
         </div>
       )}
@@ -1291,7 +1251,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
       {totalFilteredCount > 0 && (
         <div className="pagination-bar">
           <div className="pagination-info">
-            Showing <strong>{totalFilteredCount === 0 ? 0 : (currentPage - 1) * (pageSize === "all" ? totalFilteredCount : pageSize) + 1} - {Math.min(currentPage * (pageSize === "all" ? totalFilteredCount : pageSize), totalFilteredCount)}</strong> of <strong>{totalFilteredCount}</strong> cards
+            Showing <strong>{totalFilteredCount === 0 ? 0 : (currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, totalFilteredCount)}</strong> of <strong>{totalFilteredCount}</strong> cards
           </div>
           
           <div className="pagination-controls">
@@ -1319,7 +1279,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
               <select
                 value={pageSize}
                 onChange={(e) => {
-                  const val = e.target.value === "all" ? "all" : parseInt(e.target.value);
+                  const val = parseInt(e.target.value);
                   setPageSize(val);
                   setCurrentPage(1);
                 }}
@@ -1329,12 +1289,10 @@ export default function OwnedCollection({ onCollectionChanged }) {
                 <option value={20}>20 (Visual Art)</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
-                <option value={250}>250</option>
-                <option value="all">All</option>
               </select>
             </label>
 
-            {pageSize !== "all" && totalPages > 1 && (
+            {totalPages > 1 && (
               <div className="page-buttons">
                 <button
                   className="page-nav-btn"
@@ -1386,7 +1344,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
         <div className="table-empty">
           Your collection is empty. Search above or bulk import to get started!
         </div>
-      ) : filteredAndSortedList.length === 0 ? (
+      ) : globalStats.totalFilteredCount === 0 ? (
         <div className="table-empty">
           No cards match the active filters.
         </div>
@@ -1447,7 +1405,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
       )}
 
       {/* Bottom Pagination Controls */}
-      {totalFilteredCount > 0 && pageSize !== "all" && totalPages > 1 && (
+      {totalFilteredCount > 0 && totalPages > 1 && (
         <div className="pagination-bar bottom">
           <div className="pagination-info">
             Page {currentPage} of {totalPages}

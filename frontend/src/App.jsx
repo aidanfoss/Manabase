@@ -75,9 +75,12 @@ function AppContent() {
     const loadLandcycles = async () => {
       try {
         const res = await fetch('/api/landcycles');
-        if (res.ok) {
+        const contentType = res.headers.get("content-type");
+        if (res.ok && contentType && contentType.includes("application/json")) {
           const data = await res.json();
           setLandcycles(data || []);
+        } else if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
         }
       } catch (error) {
         console.error('Failed to load landcycles:', error);

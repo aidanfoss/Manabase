@@ -291,6 +291,12 @@ export async function fetchBatchPricesFromScryfall(items = []) {
             marketLow = price;
         }
 
+        // Apply proxy override for trades and price fetching
+        if (item.is_proxy || item.list_type === 'proxy') {
+            price = 0.25;
+            marketLow = 0.25;
+        }
+
         return {
             ...item,
             set_code: resolvedSetCode,
