@@ -15,6 +15,8 @@ export default function TradelistManager() {
   // State for Manage My Tradelist
   const [tradelist, setTradelist] = useState([]);
   const [myOwnedCollection, setMyOwnedCollection] = useState([]);
+  const [proxyCollection, setProxyCollection] = useState([]);
+  const [myWishlist, setMyWishlist] = useState([]);
   const [loadingMyTrade, setLoadingMyTrade] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -189,13 +191,15 @@ export default function TradelistManager() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const [resTrade, resOwned] = await Promise.all([
+      const [resTrade, resOwned, resProxy] = await Promise.all([
         fetch("/api/collection/tradelist", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/collection/owned", { headers: { Authorization: `Bearer ${token}` } })
+        fetch("/api/collection/owned?limit=-1", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/collection/owned?list_type=proxy&limit=-1", { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
       let tradeData = [];
       let ownedData = [];
+      let proxyData = [];
 
       if (resTrade.ok) {
         tradeData = await resTrade.json();
@@ -206,8 +210,13 @@ export default function TradelistManager() {
         ownedData = ownedRes.cards || (Array.isArray(ownedRes) ? ownedRes : []);
         setMyOwnedCollection(ownedData);
       }
+      if (resProxy.ok) {
+        const proxyRes = await resProxy.json();
+        proxyData = proxyRes.cards || (Array.isArray(proxyRes) ? proxyRes : []);
+        setProxyCollection(proxyData);
+      }
 
-      const allCards = [...(tradeData || []), ...(ownedData || [])];
+      const allCards = [...(tradeData || []), ...(ownedData || []), ...(proxyData || [])];
       fetchCardMetadataBatch(allCards.map(c => c.card_name));
     } catch (e) {
       console.error("Failed to load tradelist/owned collection:", e);
@@ -654,20 +663,23 @@ export default function TradelistManager() {
   };
 
   // Filters for Inventories (Collection = Owned cards available to give)
-  const filteredMyTradelist = (myOwnedCollection.length > 0 ? myOwnedCollection : tradelist).filter(item => {
+  const myCombinedInventory = [...myOwnedCollection, ...proxyCollection];
+  const filteredMyTradelist = myCombinedInventory.filter(item => {
     if (activePartner && filterPartnerWishlist) {
       const partnerWishNames = partnerInventory
-        .filter(c => c.list_type === "wishlist")
+        .filter(c => c.list_type === "wishlist" || (c.list_type === "tradelist" && item.list_type !== "proxy"))
         .map(c => c.card_name.toLowerCase());
       return partnerWishNames.includes(item.card_name.toLowerCase());
     }
     return true;
   });
 
-  const partnerCollection = partnerInventory.filter(c => c.list_type === "owned");
-  const filteredPartnerTradelist = (partnerCollection.length > 0 ? partnerCollection : partnerInventory.filter(c => c.list_type === "tradelist")).filter(item => {
+  const partnerCollection = partnerInventory.filter(c => c.list_type === "owned" || c.list_type === "proxy");
+  const filteredPartnerTradelist = partnerCollection.filter(item => {
     if (filterMyWishlist) {
-      const myWantNames = myWishlist.map(c => c.card_name.toLowerCase());
+      const myWantNames = [...myWishlist, ...tradelist]
+        .filter(c => !(item.list_type === "proxy" && c.list_type === "tradelist"))
+        .map(c => c.card_name.toLowerCase());
       return myWantNames.includes(item.card_name.toLowerCase());
     }
     return true;
@@ -1096,7 +1108,7 @@ export default function TradelistManager() {
                             }}
                           >
                             <option value="">+ Add card from your inventory...</option>
-                            {(myOwnedCollection.length > 0 ? myOwnedCollection : tradelist).map((c, i) => (
+                            {myCombinedInventory.map((c, i) => (
                               <option key={i} value={JSON.stringify(c)}>{c.card_name} ({c.set_code ? c.set_code.toUpperCase() : "N/A"}) - {formatPrice(getCardPrice(c))}</option>
                             ))}
                           </select>
