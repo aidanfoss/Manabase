@@ -493,6 +493,69 @@ export default function TradelistManager() {
     }).filter(d => d.quantity > 0));
   };
 
+  const handleAutoFill = () => {
+    let currentOffer = [...offer];
+    let currentDemand = [...demand];
+    let currentOfferValue = currentOffer.reduce((sum, o) => sum + getCardPrice(o) * o.quantity, 0);
+    let currentDemandValue = currentDemand.reduce((sum, d) => sum + getCardPrice(d) * d.quantity, 0);
+    
+    // 1. If we are offering more than we are demanding, pull from their collection
+    if (currentOfferValue > currentDemandValue) {
+      let deficit = currentOfferValue - currentDemandValue;
+      const partnerAvailable = partnerInventory
+        .filter(c => c.list_type === "owned" || c.list_type === "proxy")
+        .map(c => {
+          const added = currentDemand.find(d => d.id === c.id);
+          const remQty = c.quantity - (added ? added.quantity : 0);
+          return { ...c, remaining: remQty, price: getCardPrice(c) };
+        })
+        .filter(c => c.remaining > 0 && c.price > 0)
+        .sort((a, b) => b.price - a.price);
+
+      for (const c of partnerAvailable) {
+        while (c.remaining > 0 && deficit > 0) {
+          const existing = currentDemand.find(d => d.id === c.id);
+          if (existing) existing.quantity++;
+          else currentDemand.push({ ...c, quantity: 1 });
+          
+          c.remaining--;
+          deficit -= c.price;
+          currentDemandValue += c.price;
+        }
+        if (deficit <= 0) break;
+      }
+    }
+
+    // 2. If we are demanding more than we are offering (initially or due to an overshoot), pull from our collection
+    if (currentDemandValue > currentOfferValue) {
+      let deficit = currentDemandValue - currentOfferValue;
+      const myAvailable = myCombinedInventory
+        .map(c => {
+          const added = currentOffer.find(o => o.id === c.id);
+          const remQty = c.quantity - (added ? added.quantity : 0);
+          return { ...c, remaining: remQty, price: getCardPrice(c) };
+        })
+        .filter(c => c.remaining > 0 && c.price > 0)
+        .sort((a, b) => b.price - a.price);
+
+      for (const c of myAvailable) {
+        while (c.remaining > 0 && deficit > 0) {
+          const existing = currentOffer.find(o => o.id === c.id);
+          if (existing) existing.quantity++;
+          else currentOffer.push({ ...c, quantity: 1 });
+          
+          c.remaining--;
+          deficit -= c.price;
+          currentOfferValue += c.price;
+        }
+        if (deficit <= 0) break;
+      }
+    }
+
+    setOffer(currentOffer);
+    setDemand(currentDemand);
+  };
+
   const handleExecuteTrade = async () => {
     if (offer.length === 0 && demand.length === 0) {
       setTradeMessage("️ Cannot execute an empty trade!");
@@ -1886,6 +1949,15 @@ export default function TradelistManager() {
                           })()}
                         </div>
                       </div>
+                    )}
+                    {Math.abs(demandValue - offerValue) > 0.01 && (
+                      <button 
+                        className="steam-btn secondary compact" 
+                        style={{ marginTop: '0.5rem', width: 'auto', alignSelf: 'center', borderColor: '#d97706', color: '#f59e0b' }} 
+                        onClick={handleAutoFill}
+                      >
+                        ⚡ Auto-Fill Deficit
+                      </button>
                     )}
 
                     {tradeMessage && (
