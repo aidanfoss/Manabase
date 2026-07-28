@@ -502,6 +502,8 @@ export default function TradelistManager() {
     // 1. If we are offering more than we are demanding, pull from their collection
     if (currentOfferValue > currentDemandValue) {
       let deficit = currentOfferValue - currentDemandValue;
+      const maxOvershoot = Math.max(5, currentOfferValue * 0.15); // Cap overshoot at 15% or $5
+
       const partnerAvailable = partnerInventory
         .filter(c => c.list_type === "owned" || c.list_type === "proxy")
         .map(c => {
@@ -509,11 +511,12 @@ export default function TradelistManager() {
           const remQty = c.quantity - (added ? added.quantity : 0);
           return { ...c, remaining: remQty, price: getCardPrice(c) };
         })
-        .filter(c => c.remaining > 0 && c.price > 0)
-        .sort((a, b) => b.price - a.price);
+        .filter(c => c.remaining > 0 && c.price > 0);
 
+      // Pass 1: Greedily add cards that do not overshoot (largest first)
+      partnerAvailable.sort((a, b) => b.price - a.price);
       for (const c of partnerAvailable) {
-        while (c.remaining > 0 && deficit > 0) {
+        while (c.remaining > 0 && deficit > 0 && c.price <= deficit) {
           const existing = currentDemand.find(d => d.id === c.id);
           if (existing) existing.quantity++;
           else currentDemand.push({ ...c, quantity: 1 });
@@ -522,24 +525,43 @@ export default function TradelistManager() {
           deficit -= c.price;
           currentDemandValue += c.price;
         }
-        if (deficit <= 0) break;
+      }
+
+      // Pass 2: If still deficient, find the SMALLEST card that overshoots within limits
+      if (deficit > 0) {
+        partnerAvailable.sort((a, b) => a.price - b.price);
+        for (const c of partnerAvailable) {
+          if (c.remaining > 0 && c.price > deficit && (c.price - deficit) <= maxOvershoot) {
+            const existing = currentDemand.find(d => d.id === c.id);
+            if (existing) existing.quantity++;
+            else currentDemand.push({ ...c, quantity: 1 });
+            
+            c.remaining--;
+            deficit -= c.price;
+            currentDemandValue += c.price;
+            break;
+          }
+        }
       }
     }
 
     // 2. If we are demanding more than we are offering (initially or due to an overshoot), pull from our collection
     if (currentDemandValue > currentOfferValue) {
       let deficit = currentDemandValue - currentOfferValue;
+      const maxOvershoot = Math.max(5, currentDemandValue * 0.15); // Cap overshoot at 15% or $5
+
       const myAvailable = myCombinedInventory
         .map(c => {
           const added = currentOffer.find(o => o.id === c.id);
           const remQty = c.quantity - (added ? added.quantity : 0);
           return { ...c, remaining: remQty, price: getCardPrice(c) };
         })
-        .filter(c => c.remaining > 0 && c.price > 0)
-        .sort((a, b) => b.price - a.price);
+        .filter(c => c.remaining > 0 && c.price > 0);
 
+      // Pass 1: Greedily add cards that do not overshoot (largest first)
+      myAvailable.sort((a, b) => b.price - a.price);
       for (const c of myAvailable) {
-        while (c.remaining > 0 && deficit > 0) {
+        while (c.remaining > 0 && deficit > 0 && c.price <= deficit) {
           const existing = currentOffer.find(o => o.id === c.id);
           if (existing) existing.quantity++;
           else currentOffer.push({ ...c, quantity: 1 });
@@ -548,7 +570,23 @@ export default function TradelistManager() {
           deficit -= c.price;
           currentOfferValue += c.price;
         }
-        if (deficit <= 0) break;
+      }
+
+      // Pass 2: If still deficient, find the SMALLEST card that overshoots within limits
+      if (deficit > 0) {
+        myAvailable.sort((a, b) => a.price - b.price);
+        for (const c of myAvailable) {
+          if (c.remaining > 0 && c.price > deficit && (c.price - deficit) <= maxOvershoot) {
+            const existing = currentOffer.find(o => o.id === c.id);
+            if (existing) existing.quantity++;
+            else currentOffer.push({ ...c, quantity: 1 });
+            
+            c.remaining--;
+            deficit -= c.price;
+            currentOfferValue += c.price;
+            break;
+          }
+        }
       }
     }
 
@@ -1953,10 +1991,10 @@ export default function TradelistManager() {
                     {Math.abs(demandValue - offerValue) > 0.01 && (
                       <button 
                         className="steam-btn secondary compact" 
-                        style={{ marginTop: '0.5rem', width: 'auto', alignSelf: 'center', borderColor: '#d97706', color: '#f59e0b' }} 
+                        style={{ marginTop: '0.75rem', width: '100%', maxWidth: '200px', alignSelf: 'center' }} 
                         onClick={handleAutoFill}
                       >
-                        ⚡ Auto-Fill Deficit
+                        Auto-Fill Deficit
                       </button>
                     )}
 
