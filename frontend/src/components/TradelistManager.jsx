@@ -452,12 +452,12 @@ export default function TradelistManager() {
 
   // Trade Builder Operations
   const handleAddToOffer = (card) => {
-    const existing = offer.find(o => o.card_name === card.card_name);
+    const existing = offer.find(o => o.id === card.id);
     const maxQty = card.quantity;
 
     if (existing) {
       if (existing.quantity >= maxQty) return; // Can't add more than owned
-      setOffer(prev => prev.map(o => o.card_name === card.card_name ? { ...o, quantity: o.quantity + 1 } : o));
+      setOffer(prev => prev.map(o => o.id === card.id ? { ...o, quantity: o.quantity + 1 } : o));
     } else {
       setOffer(prev => [...prev, { ...card, quantity: 1 }]);
     }
@@ -465,7 +465,7 @@ export default function TradelistManager() {
 
   const handleRemoveFromOffer = (card) => {
     setOffer(prev => prev.map(o => {
-      if (o.card_name === card.card_name) {
+      if (o.id === card.id) {
         return { ...o, quantity: o.quantity - 1 };
       }
       return o;
@@ -473,12 +473,12 @@ export default function TradelistManager() {
   };
 
   const handleAddToDemand = (card) => {
-    const existing = demand.find(d => d.card_name === card.card_name);
+    const existing = demand.find(d => d.id === card.id);
     const maxQty = card.quantity;
 
     if (existing) {
       if (existing.quantity >= maxQty) return;
-      setDemand(prev => prev.map(d => d.card_name === card.card_name ? { ...d, quantity: d.quantity + 1 } : d));
+      setDemand(prev => prev.map(d => d.id === card.id ? { ...d, quantity: d.quantity + 1 } : d));
     } else {
       setDemand(prev => [...prev, { ...card, quantity: 1 }]);
     }
@@ -486,7 +486,7 @@ export default function TradelistManager() {
 
   const handleRemoveFromDemand = (card) => {
     setDemand(prev => prev.map(d => {
-      if (d.card_name === card.card_name) {
+      if (d.id === card.id) {
         return { ...d, quantity: d.quantity - 1 };
       }
       return d;
@@ -1810,6 +1810,37 @@ export default function TradelistManager() {
                       <p className="subtitle">
                         Cards you are giving {offerValue > 0 && <span className="offer-total-txt">• Total: {formatPrice(offerValue)}</span>}
                       </p>
+                      {(() => {
+                        const offerQtyByName = {};
+                        offer.forEach(o => {
+                          const name = o.card_name.toLowerCase();
+                          offerQtyByName[name] = (offerQtyByName[name] || 0) + o.quantity;
+                        });
+                        
+                        const partnerDemandQtyByName = {};
+                        partnerInventory
+                          .filter(c => c.list_type === "wishlist" || c.list_type === "tradelist")
+                          .forEach(c => {
+                            const name = c.card_name.toLowerCase();
+                            partnerDemandQtyByName[name] = (partnerDemandQtyByName[name] || 0) + c.quantity;
+                          });
+
+                        const warnings = [];
+                        for (const name in offerQtyByName) {
+                          if (partnerDemandQtyByName[name] && offerQtyByName[name] > partnerDemandQtyByName[name]) {
+                            warnings.push(`You are offering ${offerQtyByName[name]}x ${offer.find(o => o.card_name.toLowerCase() === name).card_name}, but they only want ${partnerDemandQtyByName[name]}.`);
+                          }
+                        }
+
+                        if (warnings.length > 0) {
+                          return (
+                            <div className="trade-overlap-warning" style={{ background: "rgba(239,68,68,0.15)", borderLeft: "4px solid #ef4444", padding: "0.5rem 0.75rem", margin: "0.5rem 0", borderRadius: "0 4px 4px 0", color: "#fca5a5", fontSize: "0.85rem" }}>
+                              {warnings.map((msg, idx) => <div key={idx}>⚠️ {msg}</div>)}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       <div className="slots-grid">
                         {renderSteamSlots(offer, handleRemoveFromOffer, true)}
                       </div>
@@ -1926,7 +1957,7 @@ export default function TradelistManager() {
                             <div className="steam-inv-grid">
                               {filteredPartnerTradelist.map((card) => {
                                 const image = getCardImage(card.card_name, card.set_code);
-                                const isAdded = demand.find(d => d.card_name === card.card_name);
+                                const isAdded = demand.find(d => d.id === card.id);
                                 const currentQty = isAdded ? isAdded.quantity : 0;
                                 const remainingQty = card.quantity - currentQty;
                                 const cardPrice = getCardPrice(card);
@@ -1977,7 +2008,7 @@ export default function TradelistManager() {
                             <div className="steam-inv-grid">
                               {filteredMyTradelist.map((card) => {
                                 const image = getCardImage(card.card_name, card.set_code);
-                                const isAdded = offer.find(o => o.card_name === card.card_name);
+                                const isAdded = offer.find(o => o.id === card.id);
                                 const currentQty = isAdded ? isAdded.quantity : 0;
                                 const remainingQty = card.quantity - currentQty;
                                 const cardPrice = getCardPrice(card);
