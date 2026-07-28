@@ -500,9 +500,9 @@ export default function TradelistManager() {
     let currentDemandValue = currentDemand.reduce((sum, d) => sum + getCardPrice(d) * d.quantity, 0);
     
     // 1. If we are offering more than we are demanding, pull from their collection
-    if (currentOfferValue > currentDemandValue) {
+    if (currentOfferValue > currentDemandValue + 0.01) {
       let deficit = currentOfferValue - currentDemandValue;
-      const maxOvershoot = Math.max(5, currentOfferValue * 0.15); // Cap overshoot at 15% or $5
+      const maxOvershoot = Math.max(2, currentOfferValue * 0.10); // Cap overshoot at 10% or $2
 
       const partnerAvailable = partnerInventory
         .filter(c => c.list_type === "owned" || c.list_type === "proxy")
@@ -544,11 +544,10 @@ export default function TradelistManager() {
         }
       }
     }
-
-    // 2. If we are demanding more than we are offering (initially or due to an overshoot), pull from our collection
-    if (currentDemandValue > currentOfferValue) {
+    // 2. If we are demanding more than we are offering, pull from our collection
+    else if (currentDemandValue > currentOfferValue + 0.01) {
       let deficit = currentDemandValue - currentOfferValue;
-      const maxOvershoot = Math.max(5, currentDemandValue * 0.15); // Cap overshoot at 15% or $5
+      const maxOvershoot = Math.max(2, currentDemandValue * 0.10); // Cap overshoot at 10% or $2
 
       const myAvailable = myCombinedInventory
         .map(c => {
