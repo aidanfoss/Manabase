@@ -13,8 +13,7 @@ import cors from "cors";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-
-
+import { exec } from "child_process";
 
 // --- Routes ---
 import cardsRouter from "./routes/cards.js";
@@ -222,6 +221,16 @@ if (process.env.NODE_ENV !== "test") {
 
             // Refresh old prices (cards not updated in >7 days)
             await refreshOldPrices();
+            
+            // Update land cycles dynamically on boot
+            console.log("Starting background land cycles update...");
+            exec("npm run update-cycles", { cwd: __dirname }, (error, stdout, stderr) => {
+                if (error) {
+                    console.error("Error updating land cycles:", error.message);
+                } else {
+                    console.log("Land cycles updated successfully on boot.");
+                }
+            });
 
             // Schedule regular background tasks
             setInterval(async () => {
