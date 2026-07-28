@@ -42,7 +42,7 @@ export default function TradelistManager() {
   // Card Metadata / Artwork Cache
   const [printsCache, setPrintsCache] = useState({});
   const [inspectedCard, setInspectedCard] = useState(null); // Active card details in sidebar inspector
-  const [activeInventoryTab, setActiveInventoryTab] = useState("partner"); // "partner" or "mine"
+  const [activeInventoryTab, setActiveInventoryTab] = useState("mine_owned"); // "partner_owned", "partner_proxy", "mine_owned", "mine_proxy"
 
   // State for Trade History & Ledger
   const [ledgerData, setLedgerData] = useState([]);
@@ -763,26 +763,40 @@ export default function TradelistManager() {
 
   // Filters for Inventories (Collection = Owned cards available to give)
   const myCombinedInventory = [...myOwnedCollection, ...proxyCollection];
-  const filteredMyTradelist = myCombinedInventory.filter(item => {
-    if (activePartner && filterPartnerWishlist) {
-      const partnerWishNames = partnerInventory
-        .filter(c => c.list_type === "wishlist" || (c.list_type === "tradelist" && item.list_type !== "proxy"))
-        .map(c => c.card_name.toLowerCase());
-      return partnerWishNames.includes(item.card_name.toLowerCase());
-    }
-    return true;
-  });
-
   const partnerCollection = partnerInventory.filter(c => c.list_type === "owned" || c.list_type === "proxy");
-  const filteredPartnerTradelist = partnerCollection.filter(item => {
-    if (filterMyWishlist) {
-      const myWantNames = [...myWishlist, ...tradelist]
-        .filter(c => !(item.list_type === "proxy" && c.list_type === "tradelist"))
-        .map(c => c.card_name.toLowerCase());
-      return myWantNames.includes(item.card_name.toLowerCase());
+
+  const activeDisplayedInventory = (() => {
+    let baseList = [];
+    if (activeInventoryTab === "partner_owned") {
+      baseList = partnerInventory.filter(c => c.list_type === "owned");
+    } else if (activeInventoryTab === "partner_proxy") {
+      baseList = partnerInventory.filter(c => c.list_type === "proxy");
+    } else if (activeInventoryTab === "mine_owned") {
+      baseList = myOwnedCollection;
+    } else if (activeInventoryTab === "mine_proxy") {
+      baseList = proxyCollection;
     }
-    return true;
-  });
+
+    return baseList.filter(item => {
+      if (activeInventoryTab.startsWith("mine")) {
+        if (activePartner && filterPartnerWishlist) {
+          const partnerWishNames = partnerInventory
+            .filter(c => c.list_type === "wishlist" || (c.list_type === "tradelist" && item.list_type !== "proxy"))
+            .map(c => c.card_name.toLowerCase());
+          return partnerWishNames.includes(item.card_name.toLowerCase());
+        }
+        return true;
+      } else {
+        if (filterMyWishlist) {
+          const myWantNames = [...myWishlist, ...tradelist]
+            .filter(c => !(item.list_type === "proxy" && c.list_type === "tradelist"))
+            .map(c => c.card_name.toLowerCase());
+          return myWantNames.includes(item.card_name.toLowerCase());
+        }
+        return true;
+      }
+    });
+  })();
 
   const filteredTradeHistory = tradeHistory.filter(t => {
     if (historyPartnerFilter !== "all" && String(t.partner_id) !== String(historyPartnerFilter)) {
@@ -2027,125 +2041,98 @@ export default function TradelistManager() {
                   <div className="steam-inventories-section">
                     <div className="steam-inventory-tabs">
                       <button 
-                        className={`steam-inv-tab ${activeInventoryTab === "partner" ? "active" : ""}`}
-                        onClick={() => setActiveInventoryTab("partner")}
+                        className={`steam-inv-tab ${activeInventoryTab === "mine_owned" ? "active" : ""}`}
+                        onClick={() => setActiveInventoryTab("mine_owned")}
                       >
-                        <UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {activePartner.username}'s Collection Inventory
+                        <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Inventory
                       </button>
                       <button 
-                        className={`steam-inv-tab ${activeInventoryTab === "mine" ? "active" : ""}`}
-                        onClick={() => setActiveInventoryTab("mine")}
+                        className={`steam-inv-tab ${activeInventoryTab === "mine_proxy" ? "active" : ""}`}
+                        onClick={() => setActiveInventoryTab("mine_proxy")}
                       >
-                        <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Collection Inventory
+                        <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Proxies
+                      </button>
+                      <button 
+                        className={`steam-inv-tab ${activeInventoryTab === "partner_owned" ? "active" : ""}`}
+                        onClick={() => setActiveInventoryTab("partner_owned")}
+                      >
+                        <UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Their Inventory
+                      </button>
+                      <button 
+                        className={`steam-inv-tab ${activeInventoryTab === "partner_proxy" ? "active" : ""}`}
+                        onClick={() => setActiveInventoryTab("partner_proxy")}
+                      >
+                        <UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Their Proxies
                       </button>
                     </div>
 
                     <div className="steam-inventory-pane">
-                      {activeInventoryTab === "partner" ? (
-                        /* Partner Inventory View */
-                        <div className="inventory-pane-content">
-                          <div className="filter-row">
-                            <label className="checkbox-label">
-                              <input 
-                                type="checkbox" 
-                                checked={filterMyWishlist}
-                                onChange={(e) => setFilterMyWishlist(e.target.checked)}
-                              />
-                              <span>Only show cards that match my Wishlist</span>
-                            </label>
-                            <span className="count-label">{filteredPartnerTradelist.length} cards found</span>
-                          </div>
-
-                          {loadingPartner ? (
-                            <div className="steam-loader">Loading partner inventory...</div>
-                          ) : filteredPartnerTradelist.length === 0 ? (
-                            <div className="steam-empty-box py-6">
-                              No cards found. {filterMyWishlist && "Try unchecking the wishlist filter to see their entire collection!"}
-                            </div>
-                          ) : (
-                            <div className="steam-inv-grid">
-                              {filteredPartnerTradelist.map((card) => {
-                                const image = getCardImage(card.card_name, card.set_code);
-                                const isAdded = demand.find(d => d.id === card.id);
-                                const currentQty = isAdded ? isAdded.quantity : 0;
-                                const remainingQty = card.quantity - currentQty;
-                                const cardPrice = getCardPrice(card);
-
-                                return (
-                                  <div 
-                                    key={card.id} 
-                                    className={`steam-inv-card ${card.is_foil ? "foil-rainbow" : ""} ${remainingQty <= 0 ? "depleted" : ""}`}
-                                    onClick={() => remainingQty > 0 && handleAddToDemand(card)}
-                                    onMouseEnter={() => setInspectedCard(card)}
-                                  >
-                                    <div className="inv-img-wrap">
-                                      <img src={image} alt={card.card_name} className="inv-card-img" />
-                                      {card.is_foil && <span className="foil-pill">Foil</span>}
-                                      {card.set_code && <span className="set-badge">{card.set_code.toUpperCase()}</span>}
-                                      {cardPrice > 0 && (
-                                        <span className="inv-price-badge">{formatPrice(cardPrice)}</span>
-                                      )}
-                                    </div>
-                                    <div className="inv-quantity-badge">Qty: {card.quantity}</div>
-                                    {currentQty > 0 && <div className="added-overlay">In Trade: {currentQty}</div>}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                      <div className="inventory-pane-content">
+                        <div className="filter-row">
+                          <label className="checkbox-label">
+                            {activeInventoryTab.startsWith("mine") ? (
+                              <>
+                                <input 
+                                  type="checkbox" 
+                                  checked={filterPartnerWishlist}
+                                  onChange={(e) => setFilterPartnerWishlist(e.target.checked)}
+                                />
+                                <span>Only show cards matching {activePartner.username}'s Wishlist</span>
+                              </>
+                            ) : (
+                              <>
+                                <input 
+                                  type="checkbox" 
+                                  checked={filterMyWishlist}
+                                  onChange={(e) => setFilterMyWishlist(e.target.checked)}
+                                />
+                                <span>Only show cards that match my Wishlist</span>
+                              </>
+                            )}
+                          </label>
+                          <span className="count-label">{activeDisplayedInventory.length} cards found</span>
                         </div>
-                      ) : (
-                        /* My Inventory View */
-                        <div className="inventory-pane-content">
-                          <div className="filter-row">
-                            <label className="checkbox-label">
-                              <input 
-                                type="checkbox" 
-                                checked={filterPartnerWishlist}
-                                onChange={(e) => setFilterPartnerWishlist(e.target.checked)}
-                              />
-                              <span>Only show cards matching {activePartner.username}'s Wishlist</span>
-                            </label>
-                            <span className="count-label">{filteredMyTradelist.length} cards found</span>
+
+                        {activeInventoryTab.startsWith("partner") && loadingPartner ? (
+                          <div className="steam-loader">Loading partner inventory...</div>
+                        ) : activeDisplayedInventory.length === 0 ? (
+                          <div className="steam-empty-box py-6">
+                            No cards found. Try unchecking the wishlist filter!
                           </div>
+                        ) : (
+                          <div className="steam-inv-grid">
+                            {activeDisplayedInventory.map((card) => {
+                              const image = getCardImage(card.card_name, card.set_code);
+                              const isMine = activeInventoryTab.startsWith("mine");
+                              const tradeList = isMine ? offer : demand;
+                              const isAdded = tradeList.find(c => c.id === card.id);
+                              const currentQty = isAdded ? isAdded.quantity : 0;
+                              const remainingQty = card.quantity - currentQty;
+                              const cardPrice = getCardPrice(card);
 
-                          {filteredMyTradelist.length === 0 ? (
-                            <div className="steam-empty-box py-6">
-                              No cards found. {filterPartnerWishlist && "Try unchecking the wishlist filter to see your entire tradelist!"}
-                            </div>
-                          ) : (
-                            <div className="steam-inv-grid">
-                              {filteredMyTradelist.map((card) => {
-                                const image = getCardImage(card.card_name, card.set_code);
-                                const isAdded = offer.find(o => o.id === card.id);
-                                const currentQty = isAdded ? isAdded.quantity : 0;
-                                const remainingQty = card.quantity - currentQty;
-                                const cardPrice = getCardPrice(card);
-
-                                return (
-                                  <div 
-                                    key={card.id} 
-                                    className={`steam-inv-card ${card.is_foil ? "foil-rainbow" : ""} ${remainingQty <= 0 ? "depleted" : ""}`}
-                                    onClick={() => remainingQty > 0 && handleAddToOffer(card)}
-                                    onMouseEnter={() => setInspectedCard(card)}
-                                  >
-                                    <div className="inv-img-wrap">
-                                      <img src={image} alt={card.card_name} className="inv-card-img" />
-                                      {card.is_foil && <span className="foil-pill">Foil</span>}
-                                      {card.set_code && <span className="set-badge">{card.set_code.toUpperCase()}</span>}
-                                      {cardPrice > 0 && (
-                                        <span className="inv-price-badge">{formatPrice(cardPrice)}</span>
-                                      )}
-                                    </div>
-                                    <div className="inv-quantity-badge">Qty: {card.quantity}</div>
-                                    {currentQty > 0 && <div className="added-overlay">In Trade: {currentQty}</div>}
+                              return (
+                                <div 
+                                  key={card.id} 
+                                  className={`steam-inv-card ${card.is_foil ? "foil-rainbow" : ""} ${remainingQty <= 0 ? "depleted" : ""}`}
+                                  onClick={() => remainingQty > 0 && (isMine ? handleAddToOffer(card) : handleAddToDemand(card))}
+                                  onMouseEnter={() => setInspectedCard(card)}
+                                >
+                                  <div className="inv-img-wrap">
+                                    <img src={image} alt={card.card_name} className="inv-card-img" />
+                                    {card.is_foil && <span className="foil-pill">Foil</span>}
+                                    {card.set_code && <span className="set-badge">{card.set_code.toUpperCase()}</span>}
+                                    {cardPrice > 0 && (
+                                      <span className="inv-price-badge">{formatPrice(cardPrice)}</span>
+                                    )}
                                   </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                                  <div className="inv-quantity-badge">Qty: {card.quantity}</div>
+                                  {currentQty > 0 && <div className="added-overlay">In Trade: {currentQty}</div>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
