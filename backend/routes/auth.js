@@ -68,7 +68,7 @@ export async function findOrCreateSSOUser({ email, username, providerId, provide
 // Standard Register & Login
 // ------------------------------------
 router.post("/register", async (req, res) => {
-  console.log("📩 Register body:", req.body);
+// console.log(" Register body:", req.body);
   const { email, username, password } = req.body;
   if (!email || !username || !password)
     return res.status(400).json({ error: "Missing required fields" });
@@ -146,7 +146,7 @@ router.post("/dev-login", async (req, res) => {
       user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },
     });
   } catch (err) {
-    console.error("❌ Dev login error:", err);
+    console.error(" Dev login error:", err);
     res.status(500).json({ error: "Dev login failed" });
   }
 });
@@ -198,7 +198,7 @@ router.get("/google/dev-callback", async (req, res) => {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
-    console.error("❌ Google dev SSO error:", err);
+    console.error(" Google dev SSO error:", err);
     res.redirect(`/?sso_error=${encodeURIComponent("Google dev login failed")}`);
   }
 });
@@ -252,7 +252,7 @@ router.get("/google/callback", async (req, res) => {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
-    console.error("❌ Google callback error:", err);
+    console.error(" Google callback error:", err);
     res.redirect(`/?sso_error=${encodeURIComponent("Google login failed")}`);
   }
 });
@@ -327,7 +327,7 @@ router.post("/google", async (req, res) => {
       user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },
     });
   } catch (err) {
-    console.error("❌ Google POST auth error:", err);
+    console.error(" Google POST auth error:", err);
     res.status(500).json({ error: "Google authentication failed" });
   }
 });
@@ -368,7 +368,7 @@ router.get("/discord/dev-callback", async (req, res) => {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
-    console.error("❌ Discord dev SSO error:", err);
+    console.error(" Discord dev SSO error:", err);
     res.redirect(`/?sso_error=${encodeURIComponent("Discord dev login failed")}`);
   }
 });
@@ -426,7 +426,7 @@ router.get("/discord/callback", async (req, res) => {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
-    console.error("❌ Discord callback error:", err);
+    console.error(" Discord callback error:", err);
     res.redirect(`/?sso_error=${encodeURIComponent("Discord login failed")}`);
   }
 });
@@ -504,7 +504,7 @@ router.post("/discord", async (req, res) => {
       user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },
     });
   } catch (err) {
-    console.error("❌ Discord POST auth error:", err);
+    console.error(" Discord POST auth error:", err);
     res.status(500).json({ error: "Discord authentication failed" });
   }
 });

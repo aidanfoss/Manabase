@@ -1,18 +1,18 @@
-﻿import express from "express";
+import express from "express";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { readJsonSafe } from "../utils/safeJson.js";
 import { fetchCardData as getCardWithDetails } from "../services/scryfall.js";
-import { db } from "../db/connection.js"; // ✅ new import for DB packages
+import { db } from "../db/connection.js";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 router.get("/", async (req, res) => {
-  console.log("==========================================");
-  console.log(`🧠 /api/cards request →`, req.query);
+// console.log("==========================================");
+// console.log(` /api/cards request →`, req.query);
 
   try {
     let { colors, packages, landcycles } = req.query;
@@ -22,9 +22,9 @@ router.get("/", async (req, res) => {
     if (!Array.isArray(landcycles)) landcycles = landcycles ? [landcycles] : [];
 
     if (colors.length === 0) colors = ["C"];
-    console.log(`🎨 Colors: ${colors.join(", ")}`);
-    console.log(`📦 Packages: ${packages.join(", ")}`);
-    console.log(`🌍 Landcycles: ${landcycles.join(", ")}`);
+// console.log(` Colors: ${colors.join(", ")}`);
+// console.log(` Packages: ${packages.join(", ")}`);
+// console.log(` Landcycles: ${landcycles.join(", ")}`);
 
     const allCards = [];
     const cardToCycles = {};
@@ -33,14 +33,14 @@ router.get("/", async (req, res) => {
     // 1️⃣ Packages (replace metas)
     // -----------------------------------------
     for (const pkgId of packages) {
-      console.log(`📂 Loading package: ${pkgId}`);
+// console.log(` Loading package: ${pkgId}`);
       try {
         // Try DB first
         const pkg = await db("packages").where({ id: pkgId }).first();
         let cards = [];
 
         if (pkg) {
-          console.log(`   → Found package in DB (${pkg.name})`);
+// console.log(`   → Found package in DB (${pkg.name})`);
           try {
             cards =
               typeof pkg.cards === "string"
@@ -62,10 +62,10 @@ router.get("/", async (req, res) => {
           else if (Array.isArray(pkgData)) cards = pkgData;
         }
 
-        console.log(`   ➕ ${cards.length} cards from package "${pkgId}"`);
+// console.log(`    ${cards.length} cards from package "${pkgId}"`);
         allCards.push(...cards);
       } catch (err) {
-        console.warn(`⚠️ Failed to load package ${pkgId}:`, err.message);
+        console.warn(`️ Failed to load package ${pkgId}:`, err.message);
       }
     }
 
@@ -73,39 +73,21 @@ router.get("/", async (req, res) => {
     // 2️⃣ Landcycles
     // -----------------------------------------
     const cycleFetchables = {}; // id -> boolean
+    const landcyclesPath = path.resolve(__dirname, "../data/landcycles.json");
+    const currentLandcyclesData = await readJsonSafe(landcyclesPath, []);
 
     for (const cycle of landcycles) {
-      const normalized = cycle.toLowerCase().replace(/[\s_]+/g, "");
-      let cycleFile = path.resolve(__dirname, `../data/landcycles/${normalized}.json`);
-
-      try {
-        await fs.access(cycleFile);
-      } catch {
-        const underscoreAlt = path.resolve(
-          __dirname,
-          `../data/landcycles/${cycle.toLowerCase().replace(/\s+/g, "_")}.json`
-        );
-        try {
-          await fs.access(underscoreAlt);
-          cycleFile = underscoreAlt;
-        } catch {
-          console.warn(`⚠️ Neither ${cycleFile} nor ${underscoreAlt} exists.`);
-        }
+// console.log(` Processing landcycle: ${cycle}`);
+      const cycleData = currentLandcyclesData.find(lc => lc.id === cycle);
+      
+      if (!cycleData) {
+        console.warn(`️ Land cycle ${cycle} not found in landcycles.json`);
+        continue;
       }
 
-      console.log(`📂 Loading landcycle file: ${cycleFile}`);
-      const cycleData = await readJsonSafe(cycleFile);
-      let names = [];
-
-      if (Array.isArray(cycleData)) {
-        console.log(`   ➕ ${cycleData.length} lands`);
-        names = cycleData.map((c) => (typeof c === "string" ? c : c.name));
-        allCards.push(...cycleData);
-      } else if (cycleData?.cards) {
-        console.log(`   ➕ ${cycleData.cards.length} lands`);
-        names = cycleData.cards.map((c) => (typeof c === "string" ? c : c.name));
-        allCards.push(...cycleData.cards);
-      }
+      let names = cycleData.cards || [];
+// console.log(`    ${names.length} lands`);
+      allCards.push(...names);
 
       for (const n of names) {
         const k = (typeof n === "string" ? n : n?.name) || "";
@@ -118,28 +100,11 @@ router.get("/", async (req, res) => {
     }
 
     // -----------------------------------------
-    // 3️⃣ Color staples
+    // 3️⃣ Color staples (Removed per user request to remove default nonland cards)
     // -----------------------------------------
-    const colorDir = path.resolve(__dirname, "../data/colors");
-    const colorFiles = await fs.readdir(colorDir).catch(() => []);
-    for (const f of colorFiles) {
-      if (f.endsWith(".json")) {
-        const colorName = f.replace(".json", "").toUpperCase();
-        if (colors.includes(colorName)) {
-          const colorData = await readJsonSafe(path.join(colorDir, f));
-          let staples = [];
-          if (Array.isArray(colorData)) {
-            staples = colorData;
-          } else if (colorData?.staples && Array.isArray(colorData.staples)) {
-            staples = colorData.staples;
-          }
-          console.log(`🎨 Loaded ${staples.length} ${colorName} staples`);
-          allCards.push(...staples);
-        }
-      }
-    }
 
-    console.log(`📦 Total combined cards before deduping: ${allCards.length}`);
+
+// console.log(` Total combined cards before deduping: ${allCards.length}`);
 
     // -----------------------------------------
     // Dedup
@@ -147,7 +112,7 @@ router.get("/", async (req, res) => {
     const uniqueNames = [
       ...new Set(allCards.map((c) => (typeof c === "string" ? c : c.name))),
     ];
-    console.log(`🧩 Unique cards: ${uniqueNames.length}`);
+// console.log(` Unique cards: ${uniqueNames.length}`);
 
     // -----------------------------------------
     // Fetch details
@@ -155,7 +120,7 @@ router.get("/", async (req, res) => {
     const detailedCards = [];
     for (const name of uniqueNames) {
       try {
-        console.log(`🌍 Fetching details for "${name}"`);
+// console.log(` Fetching details for "${name}"`);
         const details = await getCardWithDetails(name);
         if (!details) continue;
 
@@ -173,11 +138,11 @@ router.get("/", async (req, res) => {
           }
         }
       } catch (err) {
-        console.error(`⚠️ Failed to fetch "${name}":`, err.message);
+        console.error(`️ Failed to fetch "${name}":`, err.message);
       }
     }
 
-    console.log(`✅ Detailed cards fetched: ${detailedCards.length}`);
+// console.log(` Detailed cards fetched: ${detailedCards.length}`);
 
     // -----------------------------------------
     // Split lands / nonlands
@@ -213,9 +178,9 @@ router.get("/", async (req, res) => {
     const filteredLands = lands.filter(passesColorFilter);
     const filteredNonlands = nonlands.filter(passesColorFilter);
 
-    console.log(
-      `🎯 Filtered → lands:${filteredLands.length} nonlands:${filteredNonlands.length}`
-    );
+// console.log(
+//       ` Filtered → lands:${filteredLands.length} nonlands:${filteredNonlands.length}`
+//     );
 
     const fetchableSummary = Object.entries(cycleFetchables).map(([id, value]) => ({
       id,
@@ -228,7 +193,7 @@ router.get("/", async (req, res) => {
       fetchableSummary,
     });
   } catch (err) {
-    console.error("❌ Error in /api/cards:", err);
+    console.error(" Error in /api/cards:", err);
     res.status(500).json({ error: "Failed to fetch cards." });
   }
 });

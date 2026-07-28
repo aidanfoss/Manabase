@@ -77,7 +77,7 @@ router.post("/", requireAuth, async (req, res) => {
             : (parseFloat(cardData.prices.usd) || parseFloat(cardData.prices.usd_foil) || cardData.prices.latest || cardData.prices.lowest || 0.10);
         }
       } catch (e) {
-        console.warn("⚠️ Failed to fetch initial card price on insert:", e.message);
+        console.warn("️ Failed to fetch initial card price on insert:", e.message);
       }
 
       const [inserted] = await db("user_cards")
@@ -158,7 +158,7 @@ router.post("/bulk", requireAuth, async (req, res) => {
                 : (parseFloat(cardData.prices.usd) || parseFloat(cardData.prices.usd_foil) || cardData.prices.latest || cardData.prices.lowest || 0.10);
             }
           } catch (e) {
-            console.warn("⚠️ Failed to fetch initial card price on bulk insert:", e.message);
+            console.warn("️ Failed to fetch initial card price on bulk insert:", e.message);
           }
 
           await trx("user_cards").insert({

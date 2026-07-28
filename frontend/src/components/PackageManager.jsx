@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import PackageEditor from "./PackageEditor";
@@ -9,7 +9,8 @@ export default function PackageManager({ onApplyPackage }) {
   const { user } = useAuth();
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("your"); // "your" or "community"
+  const [activeTab, setActiveTab] = useState("your"); // "your", "playgroups", or "users"
+  const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingPackage, setEditingPackage] = useState(null);
@@ -29,10 +30,20 @@ export default function PackageManager({ onApplyPackage }) {
     }
   };
 
-  const yourPackages = packages.filter(p => p.userId || p.isUserPackage);
-  const communityPackages = packages.filter(p => p.isDefaultPackage || !p.userId);
+  const yourPackages = packages.filter(p => p.user_id === user?.id || p.userId === user?.id || (p.isUserPackage && p.visibility !== 'everyone' && p.visibility !== 'playgroups'));
+  const playgroupPackages = packages.filter(p => p.user_id !== user?.id && p.visibility === 'playgroups');
+  const userPackages = packages.filter(p => 
+    p.visibility === 'everyone' && 
+    p.user_id !== user?.id && 
+    (!searchQuery || 
+     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+     (p.username && p.username.toLowerCase().includes(searchQuery.toLowerCase())))
+  );
 
-  const filteredPackages = activeTab === "your" ? yourPackages : communityPackages;
+  let filteredPackages = [];
+  if (activeTab === "your") filteredPackages = yourPackages;
+  else if (activeTab === "playgroups") filteredPackages = playgroupPackages;
+  else filteredPackages = userPackages;
 
   const handleEditPackage = (pkg) => {
     setEditingPackage(pkg);
@@ -117,14 +128,32 @@ export default function PackageManager({ onApplyPackage }) {
           Your Packages
         </button>
         <button
-          className={activeTab === "community" ? "active" : ""}
-          onClick={() => setActiveTab("community")}
+          className={activeTab === "playgroups" ? "active" : ""}
+          onClick={() => setActiveTab("playgroups")}
         >
-          Community Packages
+          Playgroup Packages
+        </button>
+        <button
+          className={activeTab === "users" ? "active" : ""}
+          onClick={() => setActiveTab("users")}
+        >
+          Other Users
         </button>
       </div>
 
       <div className="packages-content">
+        {activeTab === "users" && (
+          <div className="packages-search-bar" style={{ marginBottom: "1rem" }}>
+            <input
+              type="text"
+              placeholder="Search by package or user name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="package-search-input"
+              style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid #333", backgroundColor: "#1e1e1e", color: "white" }}
+            />
+          </div>
+        )}
         {loading ? (
           <div className="loading">Loading packages...</div>
         ) : (
@@ -140,7 +169,9 @@ export default function PackageManager({ onApplyPackage }) {
             ))}
             {filteredPackages.length === 0 && (
               <div className="empty-state">
-                {activeTab === "your" ? "You haven't created any packages yet." : "No community packages available."}
+                {activeTab === "your" ? "You haven't created any packages yet." : 
+                 activeTab === "playgroups" ? "No playgroup packages available." : 
+                 "No packages found."}
               </div>
             )}
           </div>
@@ -247,7 +278,7 @@ function PackageCard({ package: pkg, onEdit, onDelete, onUpdatePackage }) {
           </span>
         )}
         <span className="package-cards-count">{pkg.cards?.length || 0} cards</span>
-        <span className="package-author">{pkg.userId ? "User" : "Community"}</span>
+        <span className="package-author">{pkg.username || (pkg.userId || pkg.user_id ? "User" : "System")}</span>
       </div>
       <div className="package-list-actions">
         <button
@@ -333,6 +364,7 @@ function CreatePackageModal({ onClose, onSave }) {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    visibility: "me",
     cards: []
   });
   const [loading, setLoading] = useState(false);
@@ -372,6 +404,17 @@ function CreatePackageModal({ onClose, onSave }) {
               rows={3}
               placeholder="Describe what this package contains..."
             />
+          </div>
+          <div className="form-group">
+            <label>Visibility</label>
+            <select
+              value={form.visibility}
+              onChange={(e) => setForm(prev => ({ ...prev, visibility: e.target.value }))}
+            >
+              <option value="me">Me</option>
+              <option value="playgroups">Playgroup(s)</option>
+              <option value="everyone">Everyone</option>
+            </select>
           </div>
           <div className="modal-actions">
             <button type="button" onClick={onClose}>Cancel</button>

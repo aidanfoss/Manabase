@@ -15,7 +15,7 @@ router.get("/users", requireAuth, async (req, res) => {
       .orderBy("username", "asc");
     res.json(users);
   } catch (err) {
-    console.error("❌ Failed to fetch playgroup users:", err);
+    console.error(" Failed to fetch playgroup users:", err);
     res.status(500).json({ error: "Failed to fetch playgroup users" });
   }
 });
@@ -45,7 +45,7 @@ router.get("/pending-count", requireAuth, async (req, res) => {
 
     res.json({ count });
   } catch (err) {
-    console.error("❌ Failed to fetch trade alerts:", err);
+    console.error(" Failed to fetch trade alerts:", err);
     res.status(500).json({ error: "Failed to fetch trade alerts" });
   }
 });
@@ -118,7 +118,7 @@ router.get("/active", requireAuth, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error("❌ Failed to fetch active trades:", err);
+    console.error(" Failed to fetch active trades:", err);
     res.status(500).json({ error: "Failed to fetch active trades" });
   }
 });
@@ -168,7 +168,7 @@ router.get("/history", requireAuth, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error("❌ Failed to fetch trade history:", err);
+    console.error(" Failed to fetch trade history:", err);
     res.status(500).json({ error: "Failed to fetch trade history" });
   }
 });
@@ -278,7 +278,7 @@ router.get("/ledger", requireAuth, async (req, res) => {
 
     res.json(ledger);
   } catch (err) {
-    console.error("❌ Failed to fetch trade ledger:", err);
+    console.error(" Failed to fetch trade ledger:", err);
     res.status(500).json({ error: "Failed to fetch trade ledger" });
   }
 });
@@ -387,7 +387,7 @@ router.get("/matches", requireAuth, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error("❌ Failed to fetch trade matches:", err);
+    console.error(" Failed to fetch trade matches:", err);
     res.status(500).json({ error: "Failed to fetch trade matches" });
   }
 });
@@ -402,7 +402,7 @@ router.get("/inventory/:userId", requireAuth, async (req, res) => {
       .orderBy("card_name", "asc");
     res.json(cards);
   } catch (err) {
-    console.error("❌ Failed to fetch user inventory:", err);
+    console.error(" Failed to fetch user inventory:", err);
     res.status(500).json({ error: "Failed to fetch user inventory" });
   }
 });
@@ -459,7 +459,7 @@ router.post("/propose", requireAuth, async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ Failed to propose trade:", err);
+    console.error(" Failed to propose trade:", err);
     res.status(500).json({ error: "Failed to propose trade" });
   }
 });
@@ -601,7 +601,7 @@ router.post("/:id/action", requireAuth, async (req, res) => {
 
     res.status(400).json({ error: "Invalid action" });
   } catch (err) {
-    console.error("❌ Failed to process trade action:", err);
+    console.error(" Failed to process trade action:", err);
     res.status(500).json({ error: "Failed to process trade action" });
   }
 });

@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { ArrowPathIcon, DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+
+
+
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 import "../styles.css";
@@ -150,7 +154,7 @@ export default function DecksManager() {
               onClick={handleSaveConfig}
               style={{ padding: '0.4rem 0.8rem', background: '#2c2c2c', color: 'white', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
-              💾 Save Defaults
+              <DocumentArrowDownIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Save Defaults
             </button>
           </div>
           <p style={{ color: '#888', marginBottom: '1rem', fontSize: '0.9rem' }}>
@@ -191,7 +195,7 @@ export default function DecksManager() {
                 disabled={loading}
                 style={{ width: '100%', padding: '0.75rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
               >
-                {loading ? "Syncing..." : "🔄 Sync Deck to Manabase"}
+                {loading ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Sync Deck to Manabase</>}
               </button>
             </div>
           )}

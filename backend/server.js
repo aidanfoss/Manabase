@@ -4,7 +4,7 @@
  * Handles all cached card, price, and art API requests for the frontend.
  * Now includes user accounts (auth), user packages, land cycles, and colors.
  * 
- * 🔄 Metas have been fully replaced by Packages.
+ *  Metas have been fully replaced by Packages.
  *     → /api/metas now proxies to /api/packages for backward compatibility.
  */
 
@@ -14,8 +14,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// --- Local Data Imports ---
-import colors from "./data/colors.js";
+
 
 // --- Routes ---
 import cardsRouter from "./routes/cards.js";
@@ -63,7 +62,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Logging middleware
 app.use((req, _res, next) => {
-    console.log(`→ ${req.method} ${req.originalUrl}`);
+// console.log(`→ ${req.method} ${req.originalUrl}`);
     next();
 });
 
@@ -71,12 +70,12 @@ app.use((req, _res, next) => {
 // API Routes
 // ---------------------------------
 
-// ✅ Health check
+//  Health check
 app.get("/api/health", (_req, res) => {
     res.json({ ok: true, time: new Date().toISOString() });
 });
 
-// ✅ Authentication & User routes
+//  Authentication & User routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 
@@ -88,30 +87,25 @@ app.use("/api/lists", listsRouter);
 app.use("/api/trade", tradeRouter);
 app.use("/api/pricing", pricingRouter);
 
-// ✅ Packages (User-created or public)
+//  Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
 
-// ✅ Backward compatibility: /api/metas now points to /api/packages
-app.use("/api/metas", packagesRouter);
-
-// ✅ Archidekt integration
+//  Archidekt integration
 app.use("/api/archidekt", archidektRouter);
 
-// ✅ Simple color endpoint
-app.get("/api/colors", (_req, res) => res.json(colors));
 
-// ✅ Land cycle routes
+//  Land cycle routes
 app.use("/api/landcycles", landcyclesRouter);
 
-// ✅ User presets routes
+//  User presets routes
 app.use("/api/presets", presetsRouter);
 
-// ✅ Prebuilt Cardbacks route & static file serving
+//  Prebuilt Cardbacks route & static file serving
 app.use("/api/cardbacks", cardbacksRouter);
 app.use("/cardbacks", express.static(path.join(__dirname, "data/cardbacks")));
 
 /**
- * ✅ Dynamic Landcycle Loader (kept for backward compatibility)
+ *  Dynamic Landcycle Loader (kept for backward compatibility)
  * Reads all JSON files in /data/landcycles/
  * Returns an array of landcycle objects with tier & untapQuality metadata
  */
@@ -133,7 +127,7 @@ app.get("/api/landcycles-old", async (_req, res) => {
                         : { name: c.name ?? "", fetchable: c.fetchable ?? false }
                 );
 
-                // 🔍 Check Scryfall data to determine if ANY card is fetchable
+                //  Check Scryfall data to determine if ANY card is fetchable
                 let cycleFetchable = false;
                 for (const card of cards) {
                     const data = await fetchCardData(card.name);
@@ -166,32 +160,32 @@ app.get("/api/landcycles-old", async (_req, res) => {
 
         res.json(cycles);
     } catch (err) {
-        console.error("❌ Failed to load landcycles:", err);
+        console.error(" Failed to load landcycles:", err);
         res.status(500).json({ error: "Failed to load landcycles." });
     }
 });
 
-// ✅ Cards route (handles fetchable detection internally)
+//  Cards route (handles fetchable detection internally)
 app.use("/api/cards", cardsRouter);
 
-// ✅ Local Scryfall bulk data route (always loaded from local bulk JSON)
+//  Local Scryfall bulk data route (always loaded from local bulk JSON)
 app.use("/api/scryfall", scryfallLocal);
 
 // ---------------------------------
-// 🧱 Static Frontend Serving (React build)
+//  Static Frontend Serving (React build)
 // ---------------------------------
 const frontendPath = path.join(__dirname, "frontend/dist");
 app.use(express.static(frontendPath));
 
-// ✅ Fallback route for SPA (React)
+//  Fallback route for SPA (React)
 app.get(/.*/, (req, res) => {
     const indexFile = path.join(frontendPath, "index.html");
-    console.log(`🧱 Attempting to serve frontend from: ${indexFile}`);
+// console.log(` Attempting to serve frontend from: ${indexFile}`);
 
     if (fs.existsSync(indexFile)) {
         res.sendFile(indexFile);
     } else {
-        console.error("❌ Frontend build not found at", indexFile);
+        console.error(" Frontend build not found at", indexFile);
         res.status(404).send("Frontend build not found.");
     }
 });
@@ -202,23 +196,23 @@ app.get(/.*/, (req, res) => {
 if (process.env.NODE_ENV !== "test") {
     await initDB();
 
-    // ✅ Start Express server first (non-blocking)
+    //  Start Express server first (non-blocking)
     app.listen(PORT, () => {
-        console.log(`✅ Server running on port ${PORT}`);
-        console.log(`📦 Routes available:`);
-        console.log(`   → /api/health`);
-        console.log(`   → /api/auth`);
-        console.log(`   → /api/users`);
-        console.log(`   → /api/packages`);
-        console.log(`   → /api/metas (alias)`);
-        console.log(`   → /api/colors`);
-        console.log(`   → /api/landcycles`);
-        console.log(`   → /api/cards`);
-        console.log(`   → /api/scryfall (bulk data search)`);
-        console.log(`🌐 Serving frontend from: ${frontendPath}`);
+// console.log(` Server running on port ${PORT}`);
+// console.log(` Routes available:`);
+// console.log(`   → /api/health`);
+// console.log(`   → /api/auth`);
+// console.log(`   → /api/users`);
+// console.log(`   → /api/packages`);
+
+
+// console.log(`   → /api/landcycles`);
+// console.log(`   → /api/cards`);
+// console.log(`   → /api/scryfall (bulk data search)`);
+// console.log(` Serving frontend from: ${frontendPath}`);
     });
 
-    // ✅ Background bulk data + price updates
+    //  Background bulk data + price updates
     (async () => {
         try {
             // Ensure bulk data exists and is up to date (once a week)
@@ -236,9 +230,9 @@ if (process.env.NODE_ENV !== "test") {
             }, 7 * 24 * 60 * 60 * 1000); // once a week
             setInterval(refreshOldPrices, 6 * 60 * 60 * 1000);            // every 6 hours
 
-            console.log("⏰ Scheduled bulk data (weekly) and price update (6h) tasks initialized.");
+// console.log(" Scheduled bulk data (weekly) and price update (6h) tasks initialized.");
         } catch (err) {
-            console.error("⚠️ Failed to initialize Scryfall background updates:", err);
+            console.error("️ Failed to initialize Scryfall background updates:", err);
         }
     })();
 }

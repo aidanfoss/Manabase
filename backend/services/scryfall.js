@@ -79,7 +79,7 @@ export async function fetchCardData(name) {
         if (!localCard) return null;
         return formatCard(localCard);
     } catch (err) {
-        console.warn(`⚠️ Failed to fetch local card "${name}": ${err.message}`);
+        console.warn(`️ Failed to fetch local card "${name}": ${err.message}`);
         return null;
     }
 }
@@ -114,7 +114,7 @@ export async function fetchBatchPricesFromScryfall(items = []) {
     try {
         localBatch = await getLocalCardsBatch(cardNames);
     } catch (err) {
-        console.warn("⚠️ Failed to load local batch for fallback:", err.message);
+        console.warn("️ Failed to load local batch for fallback:", err.message);
     }
 
     const scryfallResultsMap = new Map(); // key -> scryfall card object
@@ -177,7 +177,7 @@ export async function fetchBatchPricesFromScryfall(items = []) {
                     }
                 }
             } catch (err) {
-                console.warn(`⚠️ Scryfall API batch collection query failed: ${err.message}`);
+                console.warn(`️ Scryfall API batch collection query failed: ${err.message}`);
             }
         }
         return notFoundList;
@@ -194,7 +194,7 @@ export async function fetchBatchPricesFromScryfall(items = []) {
             await executeQuery(nameIdentifiersToQuery);
         }
     } catch (err) {
-        console.warn(`⚠️ Scryfall API batch price check failed: ${err.message}`);
+        console.warn(`️ Scryfall API batch price check failed: ${err.message}`);
     }
 
     // Attach prices to each item (printing-specific and market-low)

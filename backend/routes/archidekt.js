@@ -20,7 +20,7 @@ router.put("/config", requireAuth, async (req, res) => {
     
     res.json({ message: "Config updated successfully" });
   } catch (err) {
-    console.error("❌ Failed to update archidekt config:", err);
+    console.error(" Failed to update archidekt config:", err);
     res.status(500).json({ error: "Failed to update config" });
   }
 });
@@ -33,7 +33,7 @@ router.get("/deck/:id", requireAuth, async (req, res) => {
     const response = await axios.get(`https://archidekt.com/api/decks/${id}/`);
     res.json(response.data);
   } catch (err) {
-    console.error("❌ Failed to fetch archidekt deck:", err.message);
+    console.error(" Failed to fetch archidekt deck:", err.message);
     res.status(err.response?.status || 500).json({ error: "Failed to fetch deck from Archidekt" });
   }
 });
@@ -48,7 +48,7 @@ router.post("/sync/:id", requireAuth, async (req, res) => {
     const result = await syncDeckInternal(id, req.user.id, mappings);
     res.json({ message: "Sync successful", stats: result.stats });
   } catch (err) {
-    console.error("❌ Failed to sync archidekt deck:", err.message);
+    console.error(" Failed to sync archidekt deck:", err.message);
     res.status(err.response?.status || 500).json({ error: "Failed to sync deck from Archidekt" });
   }
 });

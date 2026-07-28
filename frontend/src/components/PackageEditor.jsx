@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+
+
+
 import { api } from "../api/client";
 import "../styles/packageManager.css";
 
@@ -166,7 +170,7 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button type="submit">🔍</button>
+            <button type="submit"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></button>
           </form>
 
           <div className="pm-grid">
@@ -205,7 +209,7 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
               onChange={(e) => setPackageSearch(e.target.value)}
             />
             <button type="button" disabled>
-              🔍
+              <MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
             </button>
           </form>
 
@@ -252,6 +256,29 @@ export default function PackageEditor({ package: pkg, onClose, onApply, onSave }
                 <span className="stat-value">You</span>
               </div>
             )}
+            <div className="stat-item" style={{ marginLeft: '1rem' }}>
+              <span className="stat-label">Visibility:</span>
+              <select
+                className="package-visibility-select"
+                value={currentPackage.visibility || 'me'}
+                onChange={(e) => {
+                  setCurrentPackage({ ...currentPackage, visibility: e.target.value });
+                  setHasUnsavedChanges(true);
+                }}
+                style={{
+                  background: '#1f2937',
+                  color: '#f8fafc',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.9rem'
+                }}
+              >
+                <option value="me">Me</option>
+                <option value="playgroups">Playgroup(s)</option>
+                <option value="everyone">Everyone</option>
+              </select>
+            </div>
           </div>
         </div>
 

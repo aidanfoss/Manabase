@@ -1,13 +1,12 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 
 export default function LandCycleSelector({ groupedLandcycles, selected, toggle, moveDown }) {
     const [open, setOpen] = useState(true); // dropdown open by default
 
     const tiers = [
-        ["premium", "🟩 Premium (Untapped)"],
-        ["playable", "🟨 Playable (Conditional)"],
-        ["budget", "🟥 Budget / Slow"],
-        ["terrible", "⬛ Terrible (Actively Bad)"],
+        ["top", "Top Tier (Always Enter Untapped)"],
+        ["mid", "Mid Tier (Sometimes Enter Untapped)"],
+        ["bottom", "Bottom Tier (Always Enter Tapped)"],
     ];
 
     return (
@@ -41,7 +40,7 @@ export default function LandCycleSelector({ groupedLandcycles, selected, toggle,
                         <div key={tier} className={`tier-group ${tier}`}>
                             <div className="tier-label">{label}</div>
                             <div className="taglist">
-                                {groupedLandcycles[tier].map((lc) => (
+                                {(groupedLandcycles[tier] || []).map((lc) => (
                                     <button
                                         key={lc.id ?? lc.name}
                                         onClick={() =>

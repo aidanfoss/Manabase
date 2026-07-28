@@ -1,4 +1,8 @@
-﻿import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { LinkIcon, DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+
+
+
 import ColorSelector from "./ColorSelector";
 import PackageSelector from "./PackageSelector";
 import LandPresetSelector from "./LandPresetSelector";
@@ -12,16 +16,19 @@ export default function Sidebar({
   selected,
   toggle,
   collapsed,
+  onShowManagePresets,
+  onShowCreatePreset,
+  onMouseLeave,
 }) {
   const { user } = useAuth();
 
 
   // --- Group land cycles by tier ---
   const groupedLandcycles = useMemo(() => {
-    const groups = { premium: [], playable: [], budget: [], terrible: [] };
+    const groups = { top: [], mid: [], bottom: [] };
     for (const lc of landcycles) {
-      const tier = lc.tier?.toLowerCase() || "budget";
-      (groups[tier] ?? groups.budget).push(lc);
+      const tier = lc.tier?.toLowerCase() || "bottom";
+      (groups[tier] ?? groups.bottom).push(lc);
     }
     for (const tier in groups) {
       groups[tier].sort((a, b) => a.name.localeCompare(b.name));
@@ -30,34 +37,39 @@ export default function Sidebar({
   }, [landcycles]);
 
   const handleSavePreset = () => {
-    const name = prompt('Enter a name for your preset:');
-    if (!name || !name.trim()) return;
+    if (onShowCreatePreset) {
+      onShowCreatePreset();
+    } else {
+      const name = prompt('Enter a name for your preset:');
+      if (!name || !name.trim()) return;
 
-    const presetData = {
-      name: name.trim(),
-      description: `Custom preset with ${[...selected.colors].length} colors`,
-      landCycles: selected.landcycles,
-      packages: selected.packages
-    };
+      const presetData = {
+        name: name.trim(),
+        description: `Custom preset with ${[...selected.colors].length} colors`,
+        landCycles: selected.landcycles,
+        packages: selected.packages
+      };
 
-    api.savePreset(presetData)
-      .then(newPreset => {
-        // Trigger a re-render by updating some state - this is a bit hacky
-        // For a better solution, we might want to use context or Redux
-        window.location.reload(); // Temporary solution
-      })
-      .catch(error => {
-        alert(`Failed to save preset: ${error.message || 'Unknown error'}`);
-      });
+      api.savePreset(presetData)
+        .then(newPreset => {
+          window.location.reload(); // Temporary solution
+        })
+        .catch(error => {
+          alert(`Failed to save preset: ${error.message || 'Unknown error'}`);
+        });
+    }
   };
 
   function copyShareLink() {
     navigator.clipboard.writeText(window.location.href);
-    alert("🔗 Share link copied to clipboard!");
+    alert("Share link copied to clipboard!");
   }
 
   return (
-    <aside className={`aside ${collapsed ? "hidden" : ""}`}>
+    <aside 
+      className={`aside ${collapsed ? "hidden" : ""}`}
+      onMouseLeave={onMouseLeave}
+    >
       <div className="section">
         <ColorSelector selected={selected} toggle={toggle} />
       </div>
@@ -114,6 +126,7 @@ export default function Sidebar({
               console.warn('[FRONTEND PRESET] Invalid preset data:', preset);
             }
           }}
+          onManagePresets={onShowManagePresets}
         />
       </div>
 
@@ -162,7 +175,7 @@ export default function Sidebar({
             onClick={handleSavePreset}
             style={{ width: "100%", marginBottom: "0.5rem" }}
           >
-            💾 Save Preset
+            <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Save Preset
           </button>
         </div>
       )}

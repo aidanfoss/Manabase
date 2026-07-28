@@ -1,4 +1,8 @@
 ﻿import React from "react";
+import { LinkIcon } from "@heroicons/react/24/solid";
+
+
+
 
 export default function ShareLink() {
     return (
@@ -8,7 +12,7 @@ export default function ShareLink() {
                 className="tag active"
                 onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
-                    alert("🔗 Link copied to clipboard!");
+                    alert("Link copied to clipboard!");
                 }}
             >
                 Copy Share Link

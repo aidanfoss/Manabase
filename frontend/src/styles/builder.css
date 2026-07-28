@@ -16,11 +16,11 @@ body {
     background-color: #111827;
     padding: 1.25rem;
     width: 280px;
-    height: calc(100vh - 4.5rem);
+    height: calc(100vh - 60px);
     overflow-y: auto;
     border-right: 1px solid #1f2937;
     position: fixed;
-    top: 4.5rem;
+    top: 60px;
     left: 0;
     z-index: 90;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -36,7 +36,8 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
-    padding-top: 4.5rem; /* leaves room for the setup button */
+    padding-top: 2rem; /* reduced from 4.5rem since nav is outside */
+    padding-bottom: calc(var(--bottom-bar-height, 60px) + 1.5rem);
 }
 
 /* === Sidebar === */
@@ -272,20 +273,6 @@ h2 {
     }
 
 /* === Bottom Bar === */
-.bottom-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #0f172a;
-    border-top: 1px solid #1e293b;
-    color: #e2e8f0;
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    z-index: 50;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
-}
 
 .bottom-bar-content {
     display: flex;
@@ -300,49 +287,38 @@ h2 {
     font-weight: 600;
 }
 
-/* === Sidebar Toggle === */
-.sidebar-toggle-btn {
+/* === Sidebar Hover Zone === */
+.sidebar-hover-zone {
     position: fixed;
-    top: 5.5rem;
-    left: 1.5rem;
+    top: 60px;
+    left: 0;
+    width: 30px;
+    height: calc(100vh - 60px);
     z-index: 95;
-    background-color: #2563eb;
-    border: 1px solid #3b82f6;
-    color: #ffffff;
-    border-radius: 20px;
-    padding: 0.5rem 1.1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
+    cursor: e-resize;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: flex-start;
 }
 
-.sidebar-toggle-btn:hover {
-    background-color: #1d4ed8;
-    border-color: #2563eb;
-    transform: translateY(-1px);
+.sidebar-hover-indicator {
+    background-color: #2563eb;
+    color: #ffffff;
+    width: 24px;
+    height: 80px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
+    transition: width 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
 }
 
-.sidebar-toggle-btn.open {
-    left: 300px;
-    background-color: #374151;
-    border-color: #4b5563;
-}
-
-.drawer-backdrop {
-    position: fixed;
-    top: 4.5rem;
-    left: 0;
-    width: 100vw;
-    height: calc(100vh - 4.5rem);
-    background-color: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(2px);
-    z-index: 85;
-    transition: opacity 0.25s ease;
+.sidebar-hover-zone:hover .sidebar-hover-indicator {
+    background-color: #3b82f6;
+    width: 28px;
 }
 
 /* === Fetchable Highlight === */

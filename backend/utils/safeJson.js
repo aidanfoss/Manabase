@@ -17,7 +17,7 @@ export function safeJsonParse(text, filePath) {
         const clean = text.replace(/^\uFEFF/, ""); // remove BOM if present
         return JSON.parse(clean);
     } catch (e) {
-        console.error(`⚠️ safeJsonParse: Failed to parse JSON${filePath ? ` for file: ${filePath}` : ''}:`, e.message);
+        console.error(`️ safeJsonParse: Failed to parse JSON${filePath ? ` for file: ${filePath}` : ''}:`, e.message);
         return null;
     }
 }
@@ -32,14 +32,14 @@ export function safeJsonParse(text, filePath) {
 export function readJsonSafe(filePath, fallback = {}) {
     try {
         if (!fs.existsSync(filePath)) {
-            console.warn(`⚠️ readJsonSafe: File not found: ${filePath}`);
+            console.warn(`️ readJsonSafe: File not found: ${filePath}`);
             return fallback;
         }
         const raw = fs.readFileSync(filePath, "utf8");
         const parsed = safeJsonParse(raw, filePath);
         return parsed ?? fallback;
     } catch (e) {
-        console.error(`⚠️ readJsonSafe error for file: ${filePath}:`, e.message);
+        console.error(`️ readJsonSafe error for file: ${filePath}:`, e.message);
         return fallback;
     }
 }

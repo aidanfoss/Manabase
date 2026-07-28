@@ -1,5 +1,11 @@
 // src/components/TradelistManager.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { MagnifyingGlassIcon, ExclamationTriangleIcon, XMarkIcon, HandRaisedIcon, BoltIcon, PrinterIcon, ArrowUpTrayIcon, InboxIcon, PencilIcon, BriefcaseIcon, StarIcon, GiftIcon, RocketLaunchIcon, CheckCircleIcon, NoSymbolIcon, ArrowPathIcon, ChartBarIcon, XCircleIcon, MinusCircleIcon, UserIcon, SparklesIcon, ChevronDownIcon, TagIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
+
+
+
+
+
 import { api } from "../api/client";
 import "../styles/tradelist.css";
 
@@ -67,7 +73,7 @@ export default function TradelistManager() {
 
   const handleTradeAction = async (tradeId, action, counterOff = null, counterDem = null) => {
     if (action === "counter") {
-      setTradeMessage("🔍 Querying Scryfall API for live card prices...");
+      setTradeMessage("Querying Scryfall API for live card prices...");
       setExecutingTrade(true);
     }
     try {
@@ -480,15 +486,15 @@ export default function TradelistManager() {
 
   const handleExecuteTrade = async () => {
     if (offer.length === 0 && demand.length === 0) {
-      setTradeMessage("⚠️ Cannot execute an empty trade!");
+      setTradeMessage("️ Cannot execute an empty trade!");
       return;
     }
     setExecutingTrade(true);
-    setTradeMessage("🔍 Querying Scryfall API for live card prices...");
+    setTradeMessage("Querying Scryfall API for live card prices...");
     try {
       const res = await api.executeTrade(activePartner.id, offer, demand);
       if (res.success) {
-        setTradeMessage("🎉 Trade proposed successfully with fresh Scryfall prices!");
+        setTradeMessage(" Trade proposed successfully with fresh Scryfall prices!");
         setOffer([]);
         setDemand([]);
         // Reload inventories
@@ -499,10 +505,10 @@ export default function TradelistManager() {
         loadMatches();
         loadActiveTrades();
       } else {
-        setTradeMessage(`❌ Error: ${res.error || "Trade failed"}`);
+        setTradeMessage(`Error: ${res.error || "Trade failed"}`);
       }
     } catch (e) {
-      setTradeMessage("❌ Network error executing trade. Please try again.");
+      setTradeMessage("Network error executing trade. Please try again.");
     } finally {
       setExecutingTrade(false);
     }
@@ -687,25 +693,25 @@ export default function TradelistManager() {
           className={`steam-tab-btn ${activeTab === "trading" ? "active" : ""}`}
           onClick={() => setActiveTab("trading")}
         >
-          🤝 Playgroup Trading
+          <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Trading
         </button>
         <button 
           className={`steam-tab-btn ${activeTab === "active" ? "active" : ""}`}
           onClick={() => { setActiveTab("active"); loadActiveTrades(); }}
         >
-          ⚡ Active Trades {activeTrades.length > 0 && <span style={{ marginLeft: "0.4rem", background: "rgba(59,130,246,0.3)", color: "#93c5fd", borderRadius: "10px", padding: "2px 8px", fontSize: "0.75rem", fontWeight: 700 }}>{activeTrades.length}</span>}
+          <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Active Trades {activeTrades.length > 0 && <span style={{ marginLeft: "0.4rem", background: "rgba(59,130,246,0.3)", color: "#93c5fd", borderRadius: "10px", padding: "2px 8px", fontSize: "0.75rem", fontWeight: 700 }}>{activeTrades.length}</span>}
         </button>
         <button 
           className={`steam-tab-btn ${activeTab === "manage" ? "active" : ""}`}
           onClick={() => setActiveTab("manage")}
         >
-          ⚙️ Manage My Tradelist
+          <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Manage My Tradelist
         </button>
         <button 
           className={`steam-tab-btn ${activeTab === "history" ? "active" : ""}`}
           onClick={() => setActiveTab("history")}
         >
-          📜 Trade History & Ledger
+           Trade History & Ledger
         </button>
       </div>
 
@@ -714,7 +720,7 @@ export default function TradelistManager() {
         <>
           <div className="collection-header">
             <div>
-              <h1 className="collection-title">🤝 Tradelist Manager</h1>
+              <h1 className="collection-title"><HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Tradelist Manager</h1>
               <p className="collection-subtitle">
                 Track cards you do not need for proxy orders but would like to trade.
                 {totalTradelistValue > 0 && (
@@ -727,7 +733,7 @@ export default function TradelistManager() {
           <div style={{ marginBottom: "1rem" }}>
             <details style={{ background: "rgba(30,41,59,0.5)", borderRadius: "8px", padding: "0.5rem 1rem", border: "1px solid rgba(255,255,255,0.1)" }}>
               <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.1rem" }}>
-                🖨️ Proxy Wishlist Drawer ({myWishlist.length} {totalWishlistValue > 0 ? `• Est. Total: ${formatPrice(totalWishlistValue)}` : ""})
+                <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist Drawer ({myWishlist.length} {totalWishlistValue > 0 ? `• Est. Total: ${formatPrice(totalWishlistValue)}` : ""})
               </summary>
               <div className="csv-table-wrapper" style={{ marginTop: "1rem" }}>
                 {myWishlist.length === 0 ? (
@@ -833,7 +839,7 @@ export default function TradelistManager() {
 
           <div className="search-bar-row">
             <div className="search-input-wrapper">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
               <input
                 type="text"
                 value={searchQuery}
@@ -970,7 +976,7 @@ export default function TradelistManager() {
           {/* Header & Filter Row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <h1 className="collection-title">⚡ Active Trades</h1>
+              <h1 className="collection-title"><BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Active Trades</h1>
               <p className="collection-subtitle">
                 Review inbound trade proposals, track outbound proposals, and complete accepted physical exchanges.
               </p>
@@ -990,21 +996,21 @@ export default function TradelistManager() {
                 style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
                 onClick={() => setActiveTradeFilter("outbound")}
               >
-                📤 Outbound ({activeTrades.filter(t => t.is_outbound && t.status !== "accepted").length})
+                <ArrowUpTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Outbound ({activeTrades.filter(t => t.is_outbound && t.status !== "accepted").length})
               </button>
               <button
                 className={`steam-tab-btn ${activeTradeFilter === "inbound" ? "active" : ""}`}
                 style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
                 onClick={() => setActiveTradeFilter("inbound")}
               >
-                📥 Inbound ({activeTrades.filter(t => !t.is_outbound && t.status !== "accepted").length})
+                <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Inbound ({activeTrades.filter(t => !t.is_outbound && t.status !== "accepted").length})
               </button>
               <button
                 className={`steam-tab-btn ${activeTradeFilter === "accepted" ? "active" : ""}`}
                 style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
                 onClick={() => setActiveTradeFilter("accepted")}
               >
-                🤝 Accepted ({activeTrades.filter(t => t.status === "accepted").length})
+                <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Accepted ({activeTrades.filter(t => t.status === "accepted").length})
               </button>
             </div>
           </div>
@@ -1013,7 +1019,7 @@ export default function TradelistManager() {
           {counterTrade ? (
             <div className="setup-card" style={{ padding: "1.5rem", background: "rgba(30, 41, 59, 0.6)", borderRadius: "12px", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                <h3 style={{ margin: 0, color: "#60a5fa" }}>✏️ Construct Counter Offer for {counterTrade.partner_username}</h3>
+                <h3 style={{ margin: 0, color: "#60a5fa" }}><PencilIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Construct Counter Offer for {counterTrade.partner_username}</h3>
                 <button className="steam-btn secondary compact" onClick={() => setCounterTrade(null)}>Cancel</button>
               </div>
               <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
@@ -1031,7 +1037,7 @@ export default function TradelistManager() {
                       {/* Your Offer Column */}
                       <div className="matrix-sub-column" style={{ background: "rgba(15, 23, 42, 0.4)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.06)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                          <h4 style={{ margin: 0, color: "#f8fafc" }}>🎒 What You Give (Offer)</h4>
+                          <h4 style={{ margin: 0, color: "#f8fafc" }}><BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> What You Give (Offer)</h4>
                           <span style={{ fontSize: "0.85rem", color: "#38bdf8", fontWeight: 600 }}>{formatPrice(counterOfferTotal)}</span>
                         </div>
                         {counterOffer.length === 0 ? (
@@ -1050,7 +1056,7 @@ export default function TradelistManager() {
                                       <span style={{ fontWeight: 600, color: "#fff", fontSize: "0.9rem" }}>{item.card_name}</span>
                                       {item.quantity > 1 && <span style={{ color: "#94a3b8", fontSize: "0.8rem", fontWeight: 700 }}>x{item.quantity}</span>}
                                       {item.set_code && <span className="set-badge" style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem" }}>{item.set_code.toUpperCase()}</span>}
-                                      {Boolean(item.is_foil) && <span style={{ color: "#f59e0b", fontSize: "0.75rem" }}>★ Foil</span>}
+                                      {Boolean(item.is_foil) && <span style={{ color: "#f59e0b", fontSize: "0.75rem" }}><StarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Foil</span>}
                                     </div>
                                     <div style={{ fontSize: "0.78rem", color: "#38bdf8", marginTop: "2px" }}>
                                       {formatPrice(cardPrice * (item.quantity || 1))} {item.quantity > 1 ? `(${formatPrice(cardPrice)} ea)` : ""}
@@ -1066,7 +1072,7 @@ export default function TradelistManager() {
                                   }}
                                   title="Remove card"
                                 >
-                                  ✕
+                                  
                                 </button>
                               </div>
                             );
@@ -1095,7 +1101,7 @@ export default function TradelistManager() {
                       {/* Your Demand Column */}
                       <div className="matrix-sub-column" style={{ background: "rgba(15, 23, 42, 0.4)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.06)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                          <h4 style={{ margin: 0, color: "#f8fafc" }}>🎁 What You Receive (Demand)</h4>
+                          <h4 style={{ margin: 0, color: "#f8fafc" }}><GiftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> What You Receive (Demand)</h4>
                           <span style={{ fontSize: "0.85rem", color: "#38bdf8", fontWeight: 600 }}>{formatPrice(counterDemandTotal)}</span>
                         </div>
                         {counterDemand.length === 0 ? (
@@ -1114,7 +1120,7 @@ export default function TradelistManager() {
                                       <span style={{ fontWeight: 600, color: "#fff", fontSize: "0.9rem" }}>{item.card_name}</span>
                                       {item.quantity > 1 && <span style={{ color: "#94a3b8", fontSize: "0.8rem", fontWeight: 700 }}>x{item.quantity}</span>}
                                       {item.set_code && <span className="set-badge" style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem" }}>{item.set_code.toUpperCase()}</span>}
-                                      {Boolean(item.is_foil) && <span style={{ color: "#f59e0b", fontSize: "0.75rem" }}>★ Foil</span>}
+                                      {Boolean(item.is_foil) && <span style={{ color: "#f59e0b", fontSize: "0.75rem" }}><StarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Foil</span>}
                                     </div>
                                     <div style={{ fontSize: "0.78rem", color: "#38bdf8", marginTop: "2px" }}>
                                       {formatPrice(cardPrice * (item.quantity || 1))} {item.quantity > 1 ? `(${formatPrice(cardPrice)} ea)` : ""}
@@ -1130,7 +1136,7 @@ export default function TradelistManager() {
                                   }}
                                   title="Remove card"
                                 >
-                                  ✕
+                                  
                                 </button>
                               </div>
                             );
@@ -1166,7 +1172,7 @@ export default function TradelistManager() {
                           className="steam-btn primary"
                           onClick={() => handleTradeAction(counterTrade.id, "counter", counterOffer, counterDemand)}
                         >
-                          🚀 Send Counter Proposal
+                          <RocketLaunchIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Send Counter Proposal
                         </button>
                         <button className="steam-btn secondary" onClick={() => setCounterTrade(null)}>
                           Cancel
@@ -1191,7 +1197,7 @@ export default function TradelistManager() {
                     Use the Playgroup Trading tab to find matches and propose a new trade.
                   </p>
                   <button className="steam-btn primary" style={{ marginTop: "1rem", display: "inline-block" }} onClick={() => setActiveTab("trading")}>
-                    🤝 Find Trade Matches
+                    <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Find Trade Matches
                   </button>
                 </div>
               ) : (
@@ -1207,15 +1213,15 @@ export default function TradelistManager() {
                   if (trade.status === "accepted") {
                     badgeBg = "rgba(16, 185, 129, 0.15)";
                     badgeColor = "#34d399";
-                    badgeText = "🤝 Accepted • Awaiting Physical Completion";
+                    badgeText = "Accepted • Awaiting Physical Completion";
                   } else if (trade.is_outbound) {
                     badgeBg = "rgba(245, 158, 11, 0.15)";
                     badgeColor = "#fbbf24";
-                    badgeText = trade.status === "countered" ? "📤 Counter Offered • Waiting for Partner" : "📤 Outbound Proposal • Pending Response";
+                    badgeText = trade.status === "countered" ? "Counter Offered • Waiting for Partner" : "Outbound Proposal • Pending Response";
                   } else {
                     badgeBg = "rgba(99, 102, 241, 0.2)";
                     badgeColor = "#818cf8";
-                    badgeText = trade.status === "countered" ? "📥 Counter Offer Received • Action Needed" : "📥 Inbound Proposal • Action Needed";
+                    badgeText = trade.status === "countered" ? "Counter Offer Received • Action Needed" : "Inbound Proposal • Action Needed";
                   }
 
                   return (
@@ -1261,7 +1267,7 @@ export default function TradelistManager() {
                         <div style={{ background: "rgba(15, 23, 42, 0.5)", padding: "0.85rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.04)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                             <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#f8fafc", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                              🎒 You Give ({trade.offer.length})
+                              <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> You Give ({trade.offer.length})
                             </span>
                             <span style={{ fontSize: "0.82rem", color: "#38bdf8", fontWeight: 600 }}>
                               {formatPrice(offerTotal)}
@@ -1273,7 +1279,7 @@ export default function TradelistManager() {
                           ) : (
                             trade.offer.map((item, idx) => (
                               <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "#cbd5e1", padding: "0.25rem 0", borderBottom: idx < trade.offer.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}>
-                                <span>{item.card_name} {item.quantity > 1 ? `x${item.quantity}` : ""} {item.is_foil ? "★" : ""}</span>
+                                <span>{item.card_name} {item.quantity > 1 ? `x${item.quantity}` : ""} {item.is_foil ? "" : ""}</span>
                                 <span style={{ color: "#94a3b8" }}>{formatPrice((item.market_price || 0) * (item.quantity || 1))}</span>
                               </div>
                             ))
@@ -1284,7 +1290,7 @@ export default function TradelistManager() {
                         <div style={{ background: "rgba(15, 23, 42, 0.5)", padding: "0.85rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.04)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                             <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#f8fafc", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                              🎁 You Receive ({trade.demand.length})
+                              <GiftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> You Receive ({trade.demand.length})
                             </span>
                             <span style={{ fontSize: "0.82rem", color: "#38bdf8", fontWeight: 600 }}>
                               {formatPrice(demandTotal)}
@@ -1296,7 +1302,7 @@ export default function TradelistManager() {
                           ) : (
                             trade.demand.map((item, idx) => (
                               <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "#cbd5e1", padding: "0.25rem 0", borderBottom: idx < trade.demand.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}>
-                                <span>{item.card_name} {item.quantity > 1 ? `x${item.quantity}` : ""} {item.is_foil ? "★" : ""}</span>
+                                <span>{item.card_name} {item.quantity > 1 ? `x${item.quantity}` : ""} {item.is_foil ? "" : ""}</span>
                                 <span style={{ color: "#94a3b8" }}>{formatPrice((item.market_price || 0) * (item.quantity || 1))}</span>
                               </div>
                             ))
@@ -1317,7 +1323,7 @@ export default function TradelistManager() {
                                 className="steam-btn primary compact"
                                 onClick={() => handleTradeAction(trade.id, "complete")}
                               >
-                                🎉 Mark as Completed
+                                 Mark as Completed
                               </button>
                               <button
                                 className="steam-btn secondary compact"
@@ -1334,7 +1340,7 @@ export default function TradelistManager() {
                                 style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}
                                 onClick={() => handleTradeAction(trade.id, "accept")}
                               >
-                                ✅ Accept Trade
+                                <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Accept Trade
                               </button>
                               <button
                                 className="steam-btn secondary compact"
@@ -1346,14 +1352,14 @@ export default function TradelistManager() {
                                   if (trade.partner_id) loadPartnerInventory(trade.partner_id);
                                 }}
                               >
-                                ✏️ Counter Offer
+                                <PencilIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Counter Offer
                               </button>
                               <button
                                 className="steam-btn secondary compact"
                                 style={{ borderColor: "#ef4444", color: "#f87171" }}
                                 onClick={() => handleTradeAction(trade.id, "decline")}
                               >
-                                ❌ Decline
+                                <XMarkIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Decline
                               </button>
                             </>
                           ) : (
@@ -1369,14 +1375,14 @@ export default function TradelistManager() {
                                   if (trade.partner_id) loadPartnerInventory(trade.partner_id);
                                 }}
                               >
-                                ✏️ Revise Offer
+                                <PencilIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Revise Offer
                               </button>
                               <button
                                 className="steam-btn secondary compact"
                                 style={{ borderColor: "#ef4444", color: "#f87171" }}
                                 onClick={() => handleTradeAction(trade.id, "decline")}
                               >
-                                🚫 Withdraw Proposal
+                                <NoSymbolIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Withdraw Proposal
                               </button>
                             </>
                           )}
@@ -1394,7 +1400,7 @@ export default function TradelistManager() {
         <div className="trade-history-wrapper">
           <div className="collection-header">
             <div>
-              <h1 className="collection-title">📜 Trade History & Per-User Ledger</h1>
+              <h1 className="collection-title"> Trade History & Per-User Ledger</h1>
               <p className="collection-subtitle">
                 View your per-user card balance ledger and track all historical playgroup trades.
               </p>
@@ -1404,14 +1410,14 @@ export default function TradelistManager() {
               onClick={loadHistoryAndLedger}
               disabled={loadingHistory}
             >
-              {loadingHistory ? "🔄 Refreshing..." : "🔄 Refresh History"}
+              {loadingHistory ? "Refreshing..." : "Refresh History"}
             </button>
           </div>
 
           {/* Section 1: Per-User Ledger */}
           <div className="ledger-section">
             <div className="steam-section-header">
-              <h2>📊 Per-User Debt & Credit Ledger</h2>
+              <h2><ChartBarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Per-User Debt & Credit Ledger</h2>
               <p>Net card value balances calculated from completed and accepted trades.</p>
             </div>
 
@@ -1443,9 +1449,9 @@ export default function TradelistManager() {
                         </div>
 
                         <div className={`ledger-status-badge ${owesYou ? "credit" : youOwe ? "debt" : "even"}`}>
-                          {owesYou && `🟢 ${userLedger.partner_username} owes you ${formatPrice(net)} in cards`}
-                          {youOwe && `🔴 You owe ${userLedger.partner_username} ${formatPrice(Math.abs(net))} in cards`}
-                          {!owesYou && !youOwe && `⚪ Settled / Even ($0.00)`}
+                          {owesYou && `${userLedger.partner_username} owes you ${formatPrice(net)} in cards`}
+                          {youOwe && `You owe ${userLedger.partner_username} ${formatPrice(Math.abs(net))} in cards`}
+                          {!owesYou && !youOwe && `Settled / Even ($0.00)`}
                         </div>
                       </div>
 
@@ -1469,7 +1475,7 @@ export default function TradelistManager() {
                             setActiveTab("trading");
                           }}
                         >
-                          🤝 Trade with {userLedger.partner_username}
+                          <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Trade with {userLedger.partner_username}
                         </button>
                         <button
                           className="steam-btn secondary compact flex-1"
@@ -1477,7 +1483,7 @@ export default function TradelistManager() {
                             setHistoryPartnerFilter(String(userLedger.partner_id));
                           }}
                         >
-                          🔍 Filter History
+                          <MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Filter History
                         </button>
                       </div>
                     </div>
@@ -1491,7 +1497,7 @@ export default function TradelistManager() {
           <div className="history-log-section" style={{ marginTop: "2.5rem" }}>
             <div className="history-log-header">
               <div className="steam-section-header" style={{ marginBottom: 0 }}>
-                <h2>📜 All Trades Log ({filteredTradeHistory.length})</h2>
+                <h2> All Trades Log ({filteredTradeHistory.length})</h2>
                 <p>Complete history of proposed, accepted, counter-offered, and completed trades.</p>
               </div>
 
@@ -1640,7 +1646,7 @@ export default function TradelistManager() {
             /* WISH LIST MATCHMAKER SCREEN */
             <div className="steam-matchmaker-container">
               <div className="steam-section-header">
-                <h2>🤝 Playgroup Wishlist Matches</h2>
+                <h2><HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Wishlist Matches</h2>
                 <p>These are cards on your wishlist that members in your playgroup currently have in their collection.</p>
               </div>
 
@@ -1681,7 +1687,7 @@ export default function TradelistManager() {
                       <div key={user.id} className="steam-user-match-row">
                         <div className="user-match-header">
                           <div>
-                            <h3>👤 {user.username}</h3>
+                            <h3><UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {user.username}</h3>
                             {(theyWantValue > 0 || youWantValue > 0) && (
                               <span className={`match-value-balance ${matchDiff > 0 ? "positive" : matchDiff < 0 ? "negative" : "even"}`}>
                                 {matchDiff === 0
@@ -1836,7 +1842,7 @@ export default function TradelistManager() {
                     )}
 
                     {tradeMessage && (
-                      <div className={`trade-status-message ${tradeMessage.includes("success") || tradeMessage.includes("🎉") ? "success" : tradeMessage.includes("Querying") ? "info" : "error"}`}>
+                      <div className={`trade-status-message ${tradeMessage.includes("success") || tradeMessage.includes("") ? "success" : tradeMessage.includes("Querying") ? "info" : "error"}`}>
                         {tradeMessage}
                       </div>
                     )}
@@ -1846,7 +1852,7 @@ export default function TradelistManager() {
                         onClick={handleExecuteTrade}
                         disabled={executingTrade || (offer.length === 0 && demand.length === 0)}
                       >
-                        {executingTrade ? "🔍 Querying Scryfall Prices..." : "Propose & Execute Trade"}
+                        {executingTrade ? "Querying Scryfall Prices..." : "Propose & Execute Trade"}
                       </button>
                       <button 
                         className="cancel-trade-btn"
@@ -1868,13 +1874,13 @@ export default function TradelistManager() {
                         className={`steam-inv-tab ${activeInventoryTab === "partner" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("partner")}
                       >
-                        👤 {activePartner.username}'s Collection Inventory
+                        <UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {activePartner.username}'s Collection Inventory
                       </button>
                       <button 
                         className={`steam-inv-tab ${activeInventoryTab === "mine" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("mine")}
                       >
-                        🎒 Your Collection Inventory
+                        <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Collection Inventory
                       </button>
                     </div>
 
@@ -2012,7 +2018,7 @@ export default function TradelistManager() {
                         <div className="detail-item">
                           <span className="lbl">Finish:</span>
                           <span className={`val ${inspectedCard.is_foil ? "text-emerald-400 font-bold" : ""}`}>
-                            {inspectedCard.is_foil ? "✨ Foil Printing" : "Normal Non-Foil"}
+                            {inspectedCard.is_foil ? "Foil Printing" : "Normal Non-Foil"}
                           </span>
                         </div>
                         {/* Price breakdown: Market Low (Red) & Printing Specific (Green) */}
@@ -2022,12 +2028,12 @@ export default function TradelistManager() {
                           return (
                             <div className="inspector-price-section">
                               <div className="detail-item price-row low-price-row">
-                                <span className="lbl" style={{ color: "#94a3b8", fontWeight: 600 }}>🔻 Market Low:</span>
+                                <span className="lbl" style={{ color: "#94a3b8", fontWeight: 600 }}><ChevronDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Market Low:</span>
                                 <span className="val price-red">{formatPrice(marketLow)}</span>
                               </div>
 
                               <div className="detail-item price-row printing-price-row">
-                                <span className="lbl" style={{ color: "#94a3b8", fontWeight: 600 }}>🏷️ Printing Specific:</span>
+                                <span className="lbl" style={{ color: "#94a3b8", fontWeight: 600 }}><TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Printing Specific:</span>
                                 <span className="val price-green">{formatPrice(printingPrice)}</span>
                               </div>
 
@@ -2043,7 +2049,7 @@ export default function TradelistManager() {
                     </div>
                   ) : (
                     <div className="inspector-placeholder">
-                      <div className="placeholder-icon">🔍</div>
+                      <div className="placeholder-icon"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></div>
                       <p>Hover or click a card in the grids to inspect details, price rankings, and set printing metadata.</p>
                     </div>
                   )}

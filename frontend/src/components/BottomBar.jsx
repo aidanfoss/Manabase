@@ -1,5 +1,8 @@
 import React, { useMemo } from "react";
+import { CurrencyDollarIcon, GlobeAmericasIcon, PuzzlePieceIcon, ArchiveBoxIcon, ClipboardDocumentIcon, DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+
 import { resolveDisplayPrice } from "../utils/pricing";
+
 
 export default function BottomBar({ data }) {
   const [adding, setAdding] = React.useState(false);
@@ -25,56 +28,20 @@ export default function BottomBar({ data }) {
   function copyShareLink() {
     const shareUrl = window.location.href;
     navigator.clipboard.writeText(shareUrl);
-    alert("🔗 Share link copied to clipboard!");
+    alert("Share link copied to clipboard!");
   }
 
-  async function addLandsToWishlist() {
-    if (!data.lands || data.lands.length === 0) return;
-    setAdding(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please log in to add lands to your wishlist.");
-        setAdding(false);
-        return;
-      }
-
-      let addedCount = 0;
-      for (const card of data.lands) {
-        await fetch("/api/collection/wishlist", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            card_name: card.name,
-            quantity: 1,
-            set_code: (card.set || "").toUpperCase(),
-            collector_number: card.collector_number || "",
-          }),
-        });
-        addedCount++;
-      }
-      alert(`✨ Added ${addedCount} lands to your proxy Wishlist!`);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to add lands to wishlist.");
-    } finally {
-      setAdding(false);
-    }
-  }
 
   return (
     <div className="bottom-bar">
       <div className="bottom-bar-content">
-        <span>💰 <b>Total Value:</b> ${totals.totalValue.toFixed(2)}</span>
+        <span><CurrencyDollarIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> <b>Total Value:</b> ${totals.totalValue.toFixed(2)}</span>
         <span></span>
-        <span>🌍 <b>Lands:</b> {totals.landCount}</span>
+        <span><GlobeAmericasIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> <b>Lands:</b> {totals.landCount}</span>
         <span></span>
-        <span>🧩 <b>Non-Lands:</b> {totals.nonLandCount}</span>
+        <span><PuzzlePieceIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> <b>Non-Lands:</b> {totals.nonLandCount}</span>
         <span></span>
-        <span>📦 <b>Total:</b> {totals.totalCount}</span>
+        <span><ArchiveBoxIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> <b>Total:</b> {totals.totalCount}</span>
 
         {/* Inline Share button directly after totals */}
         <button
@@ -95,16 +62,52 @@ export default function BottomBar({ data }) {
           </svg>
         </button>
 
-        {data.lands?.length > 0 && (
-          <button
-            className="add-wishlist-bar-btn"
-            onClick={addLandsToWishlist}
-            disabled={adding}
-            title="Add all recommended lands to Wishlist"
-          >
-            {adding ? "Adding..." : "✨ Add Lands to Wishlist"}
-          </button>
-        )}
+        <button
+          className="copy-btn"
+          onClick={() => {
+            if (!all.length) return;
+            const text = all.map(c => {
+              const setCode = (c.set || c.prints?.[0]?.set || "").toUpperCase();
+              const collector = c.collector_number || c.prints?.[0]?.collector_number || "";
+              if (setCode && collector) return `1 ${c.name} (${setCode}) ${collector}`;
+              if (setCode) return `1 ${c.name} (${setCode})`;
+              return `1 ${c.name}`;
+            }).join('\n');
+            navigator.clipboard.writeText(text);
+            alert("Copied entire decklist to clipboard!");
+          }}
+          title="Copy entire decklist to clipboard"
+          aria-label="Copy All"
+        >
+          <ClipboardDocumentIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy
+        </button>
+
+        <button
+          className="export-btn"
+          onClick={() => {
+            if (!all.length) return;
+            const text = all.map(c => {
+              const setCode = (c.set || c.prints?.[0]?.set || "").toUpperCase();
+              const collector = c.collector_number || c.prints?.[0]?.collector_number || "";
+              if (setCode && collector) return `1 ${c.name} (${setCode}) ${collector}`;
+              if (setCode) return `1 ${c.name} (${setCode})`;
+              return `1 ${c.name}`;
+            }).join('\n');
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Manabase-Deck.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+          }}
+          title="Export entire decklist as a text file"
+          aria-label="Export All"
+        >
+          <DocumentArrowDownIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Export
+        </button>
+
+
       </div>
     </div>
   );

@@ -25,10 +25,10 @@ if (isTest) {
 try {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 } catch (err) {
-  console.warn("⚠️ Could not ensure DB directory:", err.message);
+  console.warn("️ Could not ensure DB directory:", err.message);
 }
 
-console.log(`📦 Using database at: ${dbPath}`);
+// console.log(` Using database at: ${dbPath}`);
 
 export const db = knex({
   client: "sqlite3",
@@ -64,7 +64,7 @@ export async function initDB() {
         t.integer("archidekt_id");
         t.json("archidekt_tag_mappings");
       });
-      console.log("✅ Added archidekt columns to users table");
+// console.log(" Added archidekt columns to users table");
     }
 
     const hasGoogleId = await db.schema.hasColumn("users", "google_id");
@@ -72,7 +72,7 @@ export async function initDB() {
       await db.schema.table("users", (t) => {
         t.string("google_id").nullable().unique();
       });
-      console.log("✅ Added google_id column to users table");
+// console.log(" Added google_id column to users table");
     }
 
     const hasDiscordId = await db.schema.hasColumn("users", "discord_id");
@@ -80,7 +80,7 @@ export async function initDB() {
       await db.schema.table("users", (t) => {
         t.string("discord_id").nullable().unique();
       });
-      console.log("✅ Added discord_id column to users table");
+// console.log(" Added discord_id column to users table");
     }
 
     const hasAvatarUrl = await db.schema.hasColumn("users", "avatar_url");
@@ -88,7 +88,7 @@ export async function initDB() {
       await db.schema.table("users", (t) => {
         t.string("avatar_url").nullable();
       });
-      console.log("✅ Added avatar_url column to users table");
+// console.log(" Added avatar_url column to users table");
     }
 
     const hasDefaultCardBack = await db.schema.hasColumn("users", "default_card_back");
@@ -96,7 +96,7 @@ export async function initDB() {
       await db.schema.table("users", (t) => {
         t.string("default_card_back").defaultTo("b:black lotus");
       });
-      console.log("✅ Added default_card_back column to users table (defaulting to Black Lotus)");
+// console.log(" Added default_card_back column to users table (defaulting to Black Lotus)");
     }
   }
 
@@ -113,7 +113,7 @@ export async function initDB() {
       t.timestamps(true, true);
       t.unique(["user_id", "deck_id"]); // One entry per deck per user
     });
-    console.log("✅ Created user_archidekt_decks table");
+// console.log(" Created user_archidekt_decks table");
   } else {
     // Migration: add new columns if they don't exist
     const hasIsPublic = await db.schema.hasColumn("user_archidekt_decks", "is_public");
@@ -122,7 +122,7 @@ export async function initDB() {
         t.boolean("is_public").defaultTo(false);
         t.string("status").defaultTo("active");
       });
-      console.log("✅ Added is_public and status to user_archidekt_decks");
+// console.log(" Added is_public and status to user_archidekt_decks");
     }
   }
 
@@ -142,7 +142,7 @@ export async function initDB() {
       // We aggregate by card, list, set, foil to diff against user_cards
       t.unique(["user_id", "deck_id", "card_name", "list_type", "set_code", "is_foil"]);
     });
-    console.log("✅ Created user_archidekt_deck_items table");
+// console.log(" Created user_archidekt_deck_items table");
   }
 
   const hasPackages = await db.schema.hasTable("packages");
@@ -153,8 +153,21 @@ export async function initDB() {
       t.string("name").notNullable();
       t.json("cards");
       t.boolean("is_public").defaultTo(false);
+      t.string("visibility").defaultTo("me"); // 'me', 'playgroups', 'everyone'
       t.timestamps(true, true);
     });
+// console.log(" Created packages table");
+  } else {
+    // Migration for visibility column
+    const hasVisibility = await db.schema.hasColumn("packages", "visibility");
+    if (!hasVisibility) {
+      await db.schema.table("packages", (t) => {
+        t.string("visibility").defaultTo("me");
+      });
+      // Migrate existing public packages to 'everyone'
+      await db("packages").where({ is_public: true }).update({ visibility: "everyone" });
+// console.log(" Added visibility column to packages table");
+    }
   }
 
   const hasUserPresets = await db.schema.hasTable("user_presets");
@@ -178,7 +191,7 @@ export async function initDB() {
     await db.schema.table("user_presets", (t) => {
       t.json("cards");
     });
-    console.log("✅ Added cards column to user_presets table");
+// console.log(" Added cards column to user_presets table");
   }
 
   // Create default presets table for built-in presets visible to all users
@@ -222,12 +235,12 @@ export async function initDB() {
         UNIQUE("user_id", "card_name", "list_type", "set_code", "is_foil", "card_condition", "card_language")
       )
     `);
-    console.log("✅ Created user_cards table");
+// console.log(" Created user_cards table");
   } else {
     // Run schema migration if card_condition column is missing
     const hasConditionColumn = await db.schema.hasColumn("user_cards", "card_condition");
     if (!hasConditionColumn) {
-      console.log("🔄 Migrating user_cards table to add Cardsphere features (condition, language)...");
+// console.log(" Migrating user_cards table to add Cardsphere features (condition, language)...");
       
       // 1. Rename old table
       await db.schema.renameTable("user_cards", "user_cards_temp");
@@ -254,7 +267,7 @@ export async function initDB() {
       
       // 3. Migrate data
       const oldRows = await db("user_cards_temp");
-      console.log(`📦 Found ${oldRows.length} old user cards to migrate.`);
+// console.log(` Found ${oldRows.length} old user cards to migrate.`);
       
       // Check which columns actually existed in temp table to avoid select errors
       const hasTempMarketPrice = await db.schema.hasColumn("user_cards_temp", "market_price");
@@ -284,12 +297,12 @@ export async function initDB() {
       
       // 4. Drop temp table
       await db.schema.dropTable("user_cards_temp");
-      console.log("✅ Successfully migrated user_cards schema!");
+// console.log(" Successfully migrated user_cards schema!");
     } else {
       // Check for any_printing migration specifically
       const hasAnyPrintingColumn = await db.schema.hasColumn("user_cards", "any_printing");
       if (!hasAnyPrintingColumn) {
-        console.log("🔄 Migrating user_cards table to add any_printing...");
+// console.log(" Migrating user_cards table to add any_printing...");
         
         // Drop the old unique index to prevent name collision when recreating the table
         await db.schema.alterTable("user_cards", (t) => {
@@ -318,7 +331,7 @@ export async function initDB() {
         });
         
         const oldRows = await db("user_cards_temp");
-        console.log(`📦 Found ${oldRows.length} old user cards to migrate for any_printing.`);
+// console.log(` Found ${oldRows.length} old user cards to migrate for any_printing.`);
         
         for (const row of oldRows) {
           await db("user_cards").insert({
@@ -342,7 +355,7 @@ export async function initDB() {
         }
         
         await db.schema.dropTable("user_cards_temp");
-        console.log("✅ Successfully migrated user_cards for any_printing!");
+// console.log(" Successfully migrated user_cards for any_printing!");
       }
     }
   }
@@ -352,7 +365,7 @@ export async function initDB() {
     await db.raw('CREATE INDEX IF NOT EXISTS idx_user_cards_user_list ON user_cards (user_id, list_type);');
     await db.raw('CREATE INDEX IF NOT EXISTS idx_user_cards_list_name ON user_cards (list_type, card_name);');
   } catch (e) {
-    console.warn("⚠️ Could not create user_cards indexes:", e.message);
+    console.warn("️ Could not create user_cards indexes:", e.message);
   }
 
   // Create playgroups tables
@@ -363,7 +376,7 @@ export async function initDB() {
       t.string("name").notNullable();
       t.timestamps(true, true);
     });
-    console.log("✅ Created playgroups table");
+// console.log(" Created playgroups table");
   }
 
   const hasPlaygroupMembers = await db.schema.hasTable("playgroup_members");
@@ -373,7 +386,7 @@ export async function initDB() {
       t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
       t.primary(["playgroup_id", "user_id"]);
     });
-    console.log("✅ Created playgroup_members table");
+// console.log(" Created playgroup_members table");
   }
 
   const hasPlaygroupInvites = await db.schema.hasTable("playgroup_invites");
@@ -385,7 +398,7 @@ export async function initDB() {
       t.uuid("created_by").notNullable().references("id").inTable("users").onDelete("CASCADE");
       t.timestamps(true, true);
     });
-    console.log("✅ Created playgroup_invites table");
+// console.log(" Created playgroup_invites table");
   }
 
   const hasProxyOrders = await db.schema.hasTable("proxy_orders");
@@ -396,7 +409,7 @@ export async function initDB() {
       t.string("status").defaultTo("open"); // 'open', 'locked', 'ordered'
       t.timestamps(true, true);
     });
-    console.log("✅ Created proxy_orders table");
+// console.log(" Created proxy_orders table");
   }
 
   // Trades system
@@ -409,7 +422,7 @@ export async function initDB() {
       t.string("status").defaultTo("proposed"); // 'proposed', 'countered', 'accepted', 'completed', 'cancelled', 'declined'
       t.timestamps(true, true);
     });
-    console.log("✅ Created trades table");
+// console.log(" Created trades table");
   }
 
   const hasTradeItems = await db.schema.hasTable("trade_items");
@@ -426,14 +439,14 @@ export async function initDB() {
       t.decimal("price", 10, 2).defaultTo(0);
       t.timestamps(true, true);
     });
-    console.log("✅ Created trade_items table");
+// console.log(" Created trade_items table");
   } else {
     const hasPriceColumn = await db.schema.hasColumn("trade_items", "price");
     if (!hasPriceColumn) {
       await db.schema.alterTable("trade_items", (t) => {
         t.decimal("price", 10, 2).defaultTo(0);
       });
-      console.log("✅ Added price column to trade_items table");
+// console.log(" Added price column to trade_items table");
     }
   }
 }

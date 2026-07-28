@@ -8,9 +8,9 @@ let cache = {};
 if (fs.existsSync(cacheFile)) {
     try {
         cache = JSON.parse(fs.readFileSync(cacheFile));
-        console.log("🗃️  Cache loaded from file.");
+// console.log("️  Cache loaded from file.");
     } catch (err) {
-        console.error("⚠️ Failed to parse cache file:", err);
+        console.error("️ Failed to parse cache file:", err);
     }
 }
 

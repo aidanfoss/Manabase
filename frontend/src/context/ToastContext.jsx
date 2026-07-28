@@ -1,4 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { CheckCircleIcon, ExclamationTriangleIcon, BoltIcon } from "@heroicons/react/24/solid";
+
+
+
 
 const ToastContext = createContext(null);
 
@@ -27,7 +31,7 @@ export function ToastProvider({ children }) {
       if (!msg) return;
       const strMsg = String(msg);
       let type = "info";
-      if (strMsg.includes("Success") || strMsg.includes("🎉") || strMsg.includes("copied") || strMsg.includes("joined")) {
+      if (strMsg.includes("Success") || strMsg.includes("") || strMsg.includes("copied") || strMsg.includes("joined")) {
         type = "success";
       } else if (strMsg.includes("Failed") || strMsg.includes("Error") || strMsg.includes("error") || strMsg.includes("Invalid")) {
         type = "error";
@@ -47,13 +51,13 @@ export function ToastProvider({ children }) {
         {toasts.map((t) => (
           <div key={t.id} className={`top-toast-banner ${t.type}`} onClick={() => removeToast(t.id)}>
             <div className="toast-icon">
-              {t.type === "success" && "✅"}
-              {t.type === "error" && "⚠️"}
-              {t.type === "warning" && "⚡"}
+              {t.type === "success" && ""}
+              {t.type === "error" && "️"}
+              {t.type === "warning" && ""}
               {t.type === "info" && "ℹ️"}
             </div>
             <div className="toast-message">{t.message}</div>
-            <button className="toast-close" onClick={(e) => { e.stopPropagation(); removeToast(t.id); }}>✕</button>
+            <button className="toast-close" onClick={(e) => { e.stopPropagation(); removeToast(t.id); }}></button>
           </div>
         ))}
       </div>
