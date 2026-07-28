@@ -656,7 +656,7 @@ export default function TradelistManager() {
   const filteredMyTradelist = (myOwnedCollection.length > 0 ? myOwnedCollection : tradelist).filter(item => {
     if (activePartner && filterPartnerWishlist) {
       const partnerWishNames = partnerInventory
-        .filter(c => c.list_type === "wishlist" || c.list_type === "tradelist")
+        .filter(c => c.list_type === "wishlist")
         .map(c => c.card_name.toLowerCase());
       return partnerWishNames.includes(item.card_name.toLowerCase());
     }
@@ -666,7 +666,7 @@ export default function TradelistManager() {
   const partnerCollection = partnerInventory.filter(c => c.list_type === "owned");
   const filteredPartnerTradelist = (partnerCollection.length > 0 ? partnerCollection : partnerInventory.filter(c => c.list_type === "tradelist")).filter(item => {
     if (filterMyWishlist) {
-      const myWantNames = [...myWishlist, ...tradelist].map(c => c.card_name.toLowerCase());
+      const myWantNames = myWishlist.map(c => c.card_name.toLowerCase());
       return myWantNames.includes(item.card_name.toLowerCase());
     }
     return true;

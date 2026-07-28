@@ -293,8 +293,8 @@ router.get("/matches", requireAuth, async (req, res) => {
       .where("user_id", me)
       .whereIn("list_type", ["wishlist", "tradelist", "owned", "proxy"]);
       
-    const myWants = myCards.filter(c => c.list_type === "wishlist" || c.list_type === "tradelist");
-    const myCollection = myCards.filter(c => c.list_type === "owned" || c.list_type === "proxy");
+    const myWants = myCards.filter(c => c.list_type === "wishlist");
+    const myCollection = myCards.filter(c => c.list_type === "owned" || c.list_type === "proxy" || c.list_type === "tradelist");
 
     // 2. Fetch peers
     const peers = await db("users").whereNot("id", me).select("id", "username", "email");
@@ -355,14 +355,14 @@ router.get("/matches", requireAuth, async (req, res) => {
       }
       
       const seenTheyWantKeys = new Set();
-      // My collection cards (owned, proxy) that match peer's wants (wishlist or tradelist)
+      // My collection cards (owned, proxy, tradelist) that match peer's wants (wishlist)
       for (const mCard of myCollectionAdjusted) {
         if (mCard.quantity <= 0) continue;
         const key = `${mCard.card_name.toLowerCase()}_${(mCard.set_code || "").toUpperCase()}_${!!mCard.is_foil}`;
         if (seenTheyWantKeys.has(key)) continue;
 
         const peerWants = pCards.find(c => {
-          if ((c.list_type !== "wishlist" && c.list_type !== "tradelist") || c.card_name.toLowerCase() !== mCard.card_name.toLowerCase()) return false;
+          if (c.list_type !== "wishlist" || c.card_name.toLowerCase() !== mCard.card_name.toLowerCase()) return false;
           if (mCard.list_type === "proxy" && c.list_type !== "wishlist") return false;
           if (c.any_printing === false && c.set_code && mCard.set_code && c.set_code.toUpperCase() !== mCard.set_code.toUpperCase()) return false;
           return true;
