@@ -93,6 +93,10 @@ export async function loadCardData() {
             streamArray()
         ]);
 
+        const writeStream = fs.createWriteStream(PARSED_CACHE_PATH);
+        writeStream.write('[\n');
+        let isFirst = true;
+
         pipeline.on("data", (data) => {
             const c = data.value;
             // Only keep fields needed by scryfallLocal.js to prevent OOM
@@ -130,22 +134,35 @@ export async function loadCardData() {
             }
             
             cards.push(stripped);
+
+            const prefix = isFirst ? "" : ",\n";
+            isFirst = false;
+            
+            // Write directly to file stream to avoid generating a massive JSON string in memory
+            const canWrite = writeStream.write(prefix + JSON.stringify(stripped));
+            if (!canWrite) {
+                pipeline.pause();
+                writeStream.once("drain", () => pipeline.resume());
+            }
         });
 
         pipeline.on("end", () => {
             console.log(`📚 Streamed ${cards.length.toLocaleString()} cards. Saving fast cache...`);
-            try {
-                fs.writeFileSync(PARSED_CACHE_PATH, JSON.stringify(cards));
+            writeStream.write('\n]');
+            writeStream.end(() => {
                 console.log("💾 Saved pre-parsed cache for instant future startups.");
-            } catch (err) {
-                console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
-            }
-            resolve(cards);
+                resolve(cards);
+            });
         });
 
         pipeline.on("error", (err) => {
             console.error("⚠️ Failed to load bulk data:", err);
             resolve([]); // fallback
+        });
+        
+        writeStream.on("error", (err) => {
+            console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
+            resolve(cards);
         });
     });
 }
