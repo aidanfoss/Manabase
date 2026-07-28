@@ -170,7 +170,7 @@ const CollectionRow = React.memo(({
               <ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Token / Unresolved
             </span>
           )}
-          {card.is_proxy && (
+          {!!card.is_proxy && (
             <span className="proxy-badge" style={{ backgroundColor: '#ff9800', color: '#fff', fontSize: '0.7em', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', verticalAlign: 'middle' }}>
               PROXY
             </span>
@@ -331,7 +331,7 @@ const CollectionCardTile = React.memo(({
   const rowTotal = rowPrice * card.quantity;
 
   return (
-    <div className={`card-tile ${isUnresolved ? "tile-unresolved" : ""} ${card.is_foil ? "tile-foil" : ""}`}>
+    <div className={`card-tile ${isUnresolved ? "tile-unresolved" : ""} ${!!card.is_foil ? "tile-foil" : ""}`}>
       {/* Visual Card Image */}
       <div className="tile-art-wrapper">
         {imageUrl ? (
@@ -344,8 +344,8 @@ const CollectionCardTile = React.memo(({
           </div>
         )}
         
-        {card.is_foil && <div className="tile-foil-badge"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> FOIL</div>}
-        {card.is_proxy && <div className="tile-proxy-badge" style={{ position: 'absolute', top: '8px', left: '8px', background: '#ff9800', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', zIndex: 2 }}>PROXY</div>}
+        {!!card.is_foil && <div className="tile-foil-badge"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> FOIL</div>}
+        {!!card.is_proxy && <div className="tile-proxy-badge" style={{ position: 'absolute', top: '8px', left: '8px', background: '#ff9800', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', zIndex: 2 }}>PROXY</div>}
         
         <div className="tile-price-tag">
           {rowPrice > 0 ? `$${rowPrice.toFixed(2)}` : "Price N/A"}
