@@ -82,11 +82,11 @@ export async function loadCardData() {
         }
 
 // console.log(" Building fast pre-parsed cache from raw bulk data (this happens once)...");
-        const fileStream = fs.createReadStream(BULK_PATH);
-        const jsonParser = parser();
-        const arrayStream = streamArray();
-        
-        fileStream.pipe(jsonParser).pipe(arrayStream);
+        const pipeline = chain([
+            fs.createReadStream(BULK_PATH),
+            parser(),
+            streamArray()
+        ]);
 
         const TEMP_CACHE_PATH = PARSED_CACHE_PATH + ".tmp";
         const writeStream = fs.createWriteStream(TEMP_CACHE_PATH);
@@ -94,7 +94,7 @@ export async function loadCardData() {
         let isFirst = true;
         let count = 0;
 
-        arrayStream.on("data", (data) => {
+        pipeline.on("data", (data) => {
             const c = data.value;
             // Only keep fields needed by scryfallLocal.js to prevent OOM
             const stripped = {
@@ -137,12 +137,12 @@ export async function loadCardData() {
             // Write directly to file stream to avoid generating a massive JSON string in memory
             const canWrite = writeStream.write(prefix + JSON.stringify(stripped));
             if (!canWrite) {
-                arrayStream.pause();
-                writeStream.once("drain", () => arrayStream.resume());
+                pipeline.pause();
+                writeStream.once("drain", () => pipeline.resume());
             }
         });
 
-        arrayStream.on("end", () => {
+        pipeline.on("end", () => {
             console.log(`📚 Streamed ${count.toLocaleString()} cards. Saving fast cache...`);
             writeStream.write('\n]');
             writeStream.end(() => {
@@ -159,7 +159,7 @@ export async function loadCardData() {
             });
         });
 
-        arrayStream.on("error", (err) => {
+        pipeline.on("error", (err) => {
             console.error("⚠️ Failed to load bulk data:", err);
             resolve([]); // fallback
         });
