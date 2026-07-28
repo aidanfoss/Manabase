@@ -8,21 +8,24 @@ import { requireAuth } from "../middleware/auth.js";
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 
-// 🧱 Create a new package
+//  Create a new package
 router.post("/", requireAuth, async (req, res) => {
-  const { name, cards, is_public } = req.body;
+  const { name, cards, is_public, visibility } = req.body;
   if (!name) return res.status(400).json({ error: "Name required" });
+
+  let actualVisibility = visibility || (is_public ? 'everyone' : 'me');
 
   const [pkg] = await db("packages")
     .insert({
       user_id: req.user.id,
       name,
       cards: JSON.stringify(cards || []),
-      is_public: !!is_public,
+      is_public: actualVisibility === 'everyone',
+      visibility: actualVisibility
     })
     .returning("*");
 
-  res.json(pkg);
+  res.json(parseCards(pkg));
 });
 
 // GET all
@@ -40,20 +43,31 @@ router.get("/", async (req, res) => {
     let packages;
     if (userId) {
       packages = await db("packages")
-        .where({ user_id: userId })
-        .orWhere({ is_public: true })
-        .orderBy("updated_at", "desc");
+        .leftJoin("users", "packages.user_id", "users.id")
+        .select("packages.*", "users.username")
+        .where({ "packages.user_id": userId })
+        .orWhere({ "packages.visibility": 'everyone' })
+        .orWhere(function() {
+          this.where({ "packages.visibility": 'playgroups' }).whereIn('packages.user_id', function() {
+            this.select('user_id').from('playgroup_members').whereIn('playgroup_id', function() {
+              this.select('playgroup_id').from('playgroup_members').where({ user_id: userId });
+            });
+          });
+        })
+        .orderBy("packages.updated_at", "desc");
     } else {
       packages = await db("packages")
-        .where({ is_public: true })
-        .orderBy("updated_at", "desc");
+        .leftJoin("users", "packages.user_id", "users.id")
+        .select("packages.*", "users.username")
+        .where({ "packages.visibility": 'everyone' })
+        .orderBy("packages.updated_at", "desc");
     }
 
-    // ✅ Parse cards for every package
+    //  Parse cards for every package
     const parsed = packages.map(parseCards);
     res.json(parsed);
   } catch (err) {
-    console.error("❌ Error in GET /api/packages:", err);
+    console.error(" Error in GET /api/packages:", err);
     res.status(500).json({ error: "Failed to load packages." });
   }
 });
@@ -62,32 +76,43 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const pkg = await db("packages").where({ id: req.params.id }).first();
   if (!pkg) return res.status(404).json({ error: "Not found" });
-  res.json(parseCards(pkg)); // ✅
+  res.json(parseCards(pkg)); // 
 });
 
 
-// 🧱 Update package
+//  Update package
 router.put("/:id", requireAuth, async (req, res) => {
   const pkg = await db("packages").where({ id: req.params.id }).first();
   if (!pkg) return res.status(404).json({ error: "Not found" });
   if (pkg.user_id !== req.user.id)
     return res.status(403).json({ error: "Forbidden" });
 
-  const { name, cards, is_public } = req.body;
+  const { name, cards, is_public, visibility } = req.body;
+  
+  let actualVisibility = visibility;
+  if (actualVisibility === undefined) {
+    if (is_public !== undefined) {
+      actualVisibility = is_public ? 'everyone' : 'me';
+    } else {
+      actualVisibility = pkg.visibility;
+    }
+  }
+
   const updated = await db("packages")
     .where({ id: req.params.id })
     .update({
       name: name ?? pkg.name,
-      cards: JSON.stringify(cards ?? pkg.cards),
-      is_public: is_public ?? pkg.is_public,
+      cards: cards !== undefined ? JSON.stringify(cards) : pkg.cards,
+      is_public: actualVisibility === 'everyone',
+      visibility: actualVisibility,
       updated_at: db.fn.now(),
     })
     .returning("*");
 
-  res.json(updated[0]);
+  res.json(parseCards(updated[0]));
 });
 
-// 🧱 Delete package
+//  Delete package
 router.delete("/:id", requireAuth, async (req, res) => {
   const pkg = await db("packages").where({ id: req.params.id }).first();
   if (!pkg) return res.status(404).json({ error: "Not found" });
@@ -98,15 +123,15 @@ router.delete("/:id", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// 🔄 Import from Moxfield
+//  Import from Moxfield
 router.post("/import/moxfield", requireAuth, async (req, res) => {
-  console.log('[Backend] Moxfield import route called');
-  console.log('[Backend] Request body:', JSON.stringify(req.body));
-  console.log('[Backend] User ID:', req.user?.id);
+// console.log('[Backend] Moxfield import route called');
+// console.log('[Backend] Request body:', JSON.stringify(req.body));
+// console.log('[Backend] User ID:', req.user?.id);
 
   try {
     const { url } = req.body;
-    console.log('[Backend] Received URL:', url);
+// console.log('[Backend] Received URL:', url);
 
     if (!url) {
       console.error('[Backend] No URL provided in request');
@@ -114,7 +139,7 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
     }
 
     // Extract deck ID from Moxfield URL
-    console.log('[Backend] Attempting to extract deck ID from URL');
+// console.log('[Backend] Attempting to extract deck ID from URL');
     const deckIdMatch = url.match(/\/decks\/([a-zA-Z0-9_-]+)/);
     if (!deckIdMatch) {
       console.error('[Backend] Invalid Moxfield URL format:', url);
@@ -122,14 +147,14 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
     }
 
     const deckId = deckIdMatch[1];
-    console.log('[Backend] Successfully extracted deck ID:', deckId);
+// console.log('[Backend] Successfully extracted deck ID:', deckId);
 
     // Fetch deck data from Moxfield API
     const apiUrl = `https://api.moxfield.com/v3/decks/all/${deckId}`;
-    console.log('[Backend] Making API request to:', apiUrl);
+// console.log('[Backend] Making API request to:', apiUrl);
 
     const response = await fetch(apiUrl);
-    console.log('[Backend] API response status:', response.status, response.statusText);
+// console.log('[Backend] API response status:', response.status, response.statusText);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -141,11 +166,11 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
     }
 
     const deckData = await response.json();
-    console.log('[Backend] Successfully parsed JSON response');
-    console.log('[Backend] Response structure:');
-    console.log('[Backend] - Has boards:', !!deckData?.boards);
-    console.log('[Backend] - Has sections:', !!deckData?.sections);
-    console.log('[Backend] - Response has name:', !!deckData?.name);
+// console.log('[Backend] Successfully parsed JSON response');
+// console.log('[Backend] Response structure:');
+// console.log('[Backend] - Has boards:', !!deckData?.boards);
+// console.log('[Backend] - Has sections:', !!deckData?.sections);
+// console.log('[Backend] - Response has name:', !!deckData?.name);
 
     // Check if the response uses the new 'boards' structure or old 'sections' structure
     if (!deckData || (!deckData.boards && !deckData.sections)) {
@@ -154,35 +179,35 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
     }
 
     // Parse cards from Moxfield format
-    console.log('[Backend] Starting card parsing process');
+// console.log('[Backend] Starting card parsing process');
     const cards = [];
 
     // Handle new 'boards' structure (boards.mainboard.cards, boards.sideboard.cards)
     if (deckData.boards) {
-      console.log('[Backend] Using new boards structure');
+// console.log('[Backend] Using new boards structure');
 
       const mainboardCards = deckData.boards.mainboard?.cards || {};
       const sideboardCards = deckData.boards.sideboard?.cards || {};
 
-      console.log('[Backend] Mainboard cards count:', Object.keys(mainboardCards).length);
-      console.log('[Backend] Sideboard cards count:', Object.keys(sideboardCards).length);
+// console.log('[Backend] Mainboard cards count:', Object.keys(mainboardCards).length);
+// console.log('[Backend] Sideboard cards count:', Object.keys(sideboardCards).length);
 
       // Process mainboard cards
       if (Object.keys(mainboardCards).length > 0) {
-        console.log('[Backend] Processing mainboard section');
+// console.log('[Backend] Processing mainboard section');
         for (const [cardId, cardData] of Object.entries(mainboardCards)) {
-          console.log('[Backend] Processing mainboard card:', cardId, 'data:', cardData);
+// console.log('[Backend] Processing mainboard card:', cardId, 'data:', cardData);
 
           if (cardData && cardData.quantity > 0 && cardData.card) {
             const cardName = cardData.card.name;
-            console.log('[Backend] Extracted card name:', cardName);
+// console.log('[Backend] Extracted card name:', cardName);
 
             const card = {
               name: cardName,
               quantity: cardData.quantity,
               id: cardId,
             };
-            console.log('[Backend] Added mainboard card:', card);
+// console.log('[Backend] Added mainboard card:', card);
             cards.push(card);
           } else {
             console.warn('[Backend] Skipping invalid mainboard card:', cardId, cardData);
@@ -192,20 +217,20 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
 
       // Process sideboard cards
       if (Object.keys(sideboardCards).length > 0) {
-        console.log('[Backend] Processing sideboard section');
+// console.log('[Backend] Processing sideboard section');
         for (const [cardId, cardData] of Object.entries(sideboardCards)) {
-          console.log('[Backend] Processing sideboard card:', cardId, 'data:', cardData);
+// console.log('[Backend] Processing sideboard card:', cardId, 'data:', cardData);
 
           if (cardData && cardData.quantity > 0 && cardData.card) {
             const cardName = cardData.card.name;
-            console.log('[Backend] Extracted card name:', cardName);
+// console.log('[Backend] Extracted card name:', cardName);
 
             const card = {
               name: cardName,
               quantity: cardData.quantity,
               id: cardId,
             };
-            console.log('[Backend] Added sideboard card:', card);
+// console.log('[Backend] Added sideboard card:', card);
             cards.push(card);
           } else {
             console.warn('[Backend] Skipping invalid sideboard card:', cardId, cardData);
@@ -215,16 +240,16 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
     }
     // Fallback to old 'sections' structure for backward compatibility
     else if (deckData.sections) {
-      console.log('[Backend] Using legacy sections structure');
+// console.log('[Backend] Using legacy sections structure');
 
       // Process mainboard cards
       if (deckData.sections.main) {
-        console.log('[Backend] Processing mainboard section');
+// console.log('[Backend] Processing mainboard section');
         const mainCardCount = Object.keys(deckData.sections.main).length;
-        console.log('[Backend] Main section contains', mainCardCount, 'cards');
+// console.log('[Backend] Main section contains', mainCardCount, 'cards');
 
         for (const [cardName, cardData] of Object.entries(deckData.sections.main)) {
-          console.log('[Backend] Processing main card:', cardName, 'data:', cardData);
+// console.log('[Backend] Processing main card:', cardName, 'data:', cardData);
 
           if (cardData && cardData.quantity > 0) {
             const card = {
@@ -232,7 +257,7 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
               quantity: cardData.quantity,
               id: cardName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
             };
-            console.log('[Backend] Added main card:', card);
+// console.log('[Backend] Added main card:', card);
             cards.push(card);
           } else {
             console.warn('[Backend] Skipping invalid main card:', cardName, cardData);
@@ -242,12 +267,12 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
 
       // Process sideboard cards
       if (deckData.sections.sideboard) {
-        console.log('[Backend] Processing sideboard section');
+// console.log('[Backend] Processing sideboard section');
         const sideboardCardCount = Object.keys(deckData.sections.sideboard).length;
-        console.log('[Backend] Sideboard section contains', sideboardCardCount, 'cards');
+// console.log('[Backend] Sideboard section contains', sideboardCardCount, 'cards');
 
         for (const [cardName, cardData] of Object.entries(deckData.sections.sideboard)) {
-          console.log('[Backend] Processing sideboard card:', cardName, 'data:', cardData);
+// console.log('[Backend] Processing sideboard card:', cardName, 'data:', cardData);
 
           if (cardData && cardData.quantity > 0) {
             const card = {
@@ -255,7 +280,7 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
               quantity: cardData.quantity,
               id: cardName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
             };
-            console.log('[Backend] Added sideboard card:', card);
+// console.log('[Backend] Added sideboard card:', card);
             cards.push(card);
           } else {
             console.warn('[Backend] Skipping invalid sideboard card:', cardName, cardData);
@@ -264,7 +289,7 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
       }
     }
 
-    console.log('[Backend] Total cards parsed:', cards.length);
+// console.log('[Backend] Total cards parsed:', cards.length);
 
     if (cards.length === 0) {
       console.error('[Backend] No valid cards found in deck');
@@ -272,13 +297,13 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
     }
 
     // Enhance cards with detailed Scryfall information for printing selection
-    console.log('[Backend] Enhancing cards with detailed Scryfall information');
+// console.log('[Backend] Enhancing cards with detailed Scryfall information');
     const enhancedCards = await enhanceCardsWithDetails(cards);
-    console.log('[Backend] Enhanced cards with detailed information:', enhancedCards.length);
+// console.log('[Backend] Enhanced cards with detailed information:', enhancedCards.length);
 
     // Extract deck name
     const deckName = deckData.name || `Imported Deck ${deckId.substring(0, 8)}`;
-    console.log('[Backend] Using deck name:', deckName);
+// console.log('[Backend] Using deck name:', deckName);
 
     const result = {
       name: deckName,
@@ -286,8 +311,8 @@ router.post("/import/moxfield", requireAuth, async (req, res) => {
       sourceUrl: url
     };
 
-    console.log('[Backend] Import completed successfully');
-    console.log('[Backend] Final result - name:', result.name, 'cards:', result.cards.length, 'sourceUrl:', result.sourceUrl);
+// console.log('[Backend] Import completed successfully');
+// console.log('[Backend] Final result - name:', result.name, 'cards:', result.cards.length, 'sourceUrl:', result.sourceUrl);
 
     res.json(result);
 
@@ -302,18 +327,18 @@ export default router;
 
 // Helper function to enhance cards with detailed Scryfall information
 async function enhanceCardsWithDetails(cards) {
-  console.log('[Backend] enhanceCardsWithDetails called with', cards.length, 'cards');
+// console.log('[Backend] enhanceCardsWithDetails called with', cards.length, 'cards');
 
   const enhancedCards = [];
   const uniqueCardNames = [...new Set(cards.map(card => card.name))];
-  console.log('[Backend] Unique card names to fetch:', uniqueCardNames.length);
+// console.log('[Backend] Unique card names to fetch:', uniqueCardNames.length);
 
   const { getLocalCardByName } = await import("./scryfallLocal.js");
 
   // Fetch detailed information for each unique card name
   for (const cardName of uniqueCardNames) {
     try {
-      console.log('[Backend] Fetching details for card:', cardName);
+// console.log('[Backend] Fetching details for card:', cardName);
 
       const card = await getLocalCardByName(cardName);
 
@@ -353,16 +378,16 @@ async function enhanceCardsWithDetails(cards) {
     }
   }
 
-  console.log('[Backend] Enhanced', enhancedCards.length, 'card instances with details');
+// console.log('[Backend] Enhanced', enhancedCards.length, 'card instances with details');
   return enhancedCards;
 }
 
 // Helper function to select optimal printing for a card
 function selectOptimalPrinting(card, allPrintings) {
-  console.log('[Backend] Selecting optimal printing for:', card.name);
+// console.log('[Backend] Selecting optimal printing for:', card.name);
 
   if (!allPrintings || allPrintings.length === 0) {
-    console.log('[Backend] No printings available, using default');
+// console.log('[Backend] No printings available, using default');
     return {
       set: card.set,
       set_name: card.set_name,
@@ -388,7 +413,7 @@ function selectOptimalPrinting(card, allPrintings) {
   }
 
   if (cheapestPrinting) {
-    console.log('[Backend] Selected cheapest printing:', cheapestPrinting.set_name, '($' + cheapestPrice + ')');
+// console.log('[Backend] Selected cheapest printing:', cheapestPrinting.set_name, '($' + cheapestPrice + ')');
     return cheapestPrinting;
   }
 
@@ -397,7 +422,7 @@ function selectOptimalPrinting(card, allPrintings) {
     new Date(b.released_at) - new Date(a.released_at)
   );
 
-  console.log('[Backend] Selected most recent printing:', sortedPrintings[0].set_name);
+// console.log('[Backend] Selected most recent printing:', sortedPrintings[0].set_name);
   return sortedPrintings[0];
 }
 

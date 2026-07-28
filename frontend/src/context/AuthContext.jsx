@@ -1,4 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { KeyIcon, XMarkIcon, WrenchScrewdriverIcon, BoltIcon } from "@heroicons/react/24/solid";
+
+
+
 
 const AuthContext = createContext();
 
@@ -15,7 +19,7 @@ export function AuthProvider({ children }) {
     const err = params.get("sso_error");
 
     if (ssoToken) {
-      console.log("🔑 SSO Login token detected from redirect");
+      console.log("SSO Login token detected from redirect");
       localStorage.setItem("token", ssoToken);
       setToken(ssoToken);
       
@@ -25,7 +29,7 @@ export function AuthProvider({ children }) {
       const newQuery = params.toString() ? `?${params.toString()}` : "";
       window.history.replaceState({}, document.title, window.location.pathname + newQuery);
     } else if (err) {
-      console.error("❌ SSO Error from redirect:", err);
+      console.error("SSO Error from redirect:", err);
       setSsoError(err);
       params.delete("sso_error");
       const newQuery = params.toString() ? `?${params.toString()}` : "";
@@ -45,7 +49,7 @@ export function AuthProvider({ children }) {
 
         (async () => {
           try {
-            console.log("🛠️ Dev environment detected. Attempting auto-login...");
+            console.log("️ Dev environment detected. Attempting auto-login...");
             const res = await fetch("/api/auth/dev-login", {
               method: "POST",
               headers: { "Content-Type": "application/json" }
@@ -56,11 +60,11 @@ export function AuthProvider({ children }) {
                 localStorage.setItem("token", data.token);
                 setUser(data.user);
                 setToken(data.token);
-                console.log("⚡ Dev auto-login successful:", data.user.username);
+                console.log("Dev auto-login successful:", data.user.username);
               }
             }
           } catch (e) {
-            console.error("❌ Dev auto-login failed:", e);
+            console.error("Dev auto-login failed:", e);
           } finally {
             devLoginAttempted.current = false;
           }

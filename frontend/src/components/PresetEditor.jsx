@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { ClipboardDocumentListIcon, Cog6ToothIcon, DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+
+
+
 import { PresetsService } from "../services/presetsService";
 import PackageSelector from "./PackageSelector";
 import LandCycleSelector from "./LandCycleSelector";
@@ -23,10 +27,10 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
 
   // Group land cycles by tier for selector
   const groupedLandcycles = useMemo(() => {
-    const groups = { premium: [], playable: [], budget: [], terrible: [] };
+    const groups = { top: [], mid: [], bottom: [] };
     for (const lc of landcycles) {
-      const tier = lc.tier?.toLowerCase() || "budget";
-      (groups[tier] ?? groups.budget).push(lc);
+      const tier = lc.tier?.toLowerCase() || "bottom";
+      (groups[tier] ?? groups.bottom).push(lc);
     }
     for (const tier in groups) {
       groups[tier].sort((a, b) => a.name.localeCompare(b.name));
@@ -171,7 +175,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
               className={`nav-item ${activeSection === "overview" ? "active" : ""}`}
               onClick={() => setActiveSection("overview")}
             >
-              <span className="nav-icon">📋</span>
+              <span className="nav-icon"><ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
               <span className="nav-label">Overview</span>
             </button>
 
@@ -179,7 +183,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
               className={`nav-item ${activeSection === "landcycles" ? "active" : ""}`}
               onClick={() => setActiveSection("landcycles")}
             >
-              <span className="nav-icon">🌍</span>
+              <span className="nav-icon"></span>
               <span className="nav-label">Land Cycles</span>
               {summaryStats.landCycles > 0 && (
                 <span className="nav-badge">{summaryStats.landCycles}</span>
@@ -190,7 +194,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
               className={`nav-item ${activeSection === "packages" ? "active" : ""}`}
               onClick={() => setActiveSection("packages")}
             >
-              <span className="nav-icon">📦</span>
+              <span className="nav-icon"></span>
               <span className="nav-label">Packages</span>
               {summaryStats.packages > 0 && (
                 <span className="nav-badge">{summaryStats.packages}</span>
@@ -212,7 +216,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
               className={`nav-item ${activeSection === "settings" ? "active" : ""}`}
               onClick={() => setActiveSection("settings")}
             >
-              <span className="nav-icon">⚙️</span>
+              <span className="nav-icon"><Cog6ToothIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️</span>
               <span className="nav-label">Settings</span>
             </button>
           </nav>
@@ -229,7 +233,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
 
               <div className="overview-grid">
                 <div className="overview-card">
-                  <div className="overview-icon">🌍</div>
+                  <div className="overview-icon"></div>
                   <div className="overview-info">
                     <h4>Land Cycles</h4>
                     <p className="overview-count">{summaryStats.landCycles} selected</p>
@@ -243,7 +247,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
                 </div>
 
                 <div className="overview-card">
-                  <div className="overview-icon">📦</div>
+                  <div className="overview-icon"></div>
                   <div className="overview-info">
                     <h4>Packages</h4>
                     <p className="overview-count">{summaryStats.packages} selected</p>
@@ -368,7 +372,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
                                     className="result-card-image"
                                   />
                                   <div className="result-card-name">{card.name}</div>
-                                  {isAdded && <div className="added-indicator">✓</div>}
+                                  {isAdded && <div className="added-indicator"></div>}
                                 </div>
                               );
                             })}
@@ -512,7 +516,7 @@ export default function PresetEditor({ preset, onClose, onApply, onSave, landcyc
             Apply to Builder
           </button>
           <button className="btn-primary btn-save" onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "💾 Save Preset"}
+            {loading ? "Saving..." : "Save Preset"}
           </button>
         </div>
       </div>

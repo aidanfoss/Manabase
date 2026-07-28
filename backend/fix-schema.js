@@ -3,7 +3,7 @@ import { db, initDB } from "./db/connection.js";
 async function fix() {
   await initDB();
   
-  console.log("Fixing user_cards schema...");
+// console.log("Fixing user_cards schema...");
   
   // 1. Rename current table
   await db.schema.renameTable("user_cards", "user_cards_broken");
@@ -36,21 +36,21 @@ async function fix() {
 
   // 3. Migrate data over
   const oldRows = await db("user_cards_broken");
-  console.log(`Migrating ${oldRows.length} rows...`);
+// console.log(`Migrating ${oldRows.length} rows...`);
   
   // Insert in batches or individually, ignoring conflicts if duplicates exist
   for (const row of oldRows) {
     try {
       await db("user_cards").insert(row);
     } catch (e) {
-      console.log(`Skipping duplicate row id ${row.id}`);
+// console.log(`Skipping duplicate row id ${row.id}`);
     }
   }
   
   // 4. Drop old table
   await db.schema.dropTable("user_cards_broken");
   
-  console.log("Done fixing schema!");
+// console.log("Done fixing schema!");
   process.exit(0);
 }
 

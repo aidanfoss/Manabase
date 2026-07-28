@@ -77,7 +77,7 @@ router.get("/", (_req, res) => {
     const list = getCardbacks();
     res.json(list);
   } catch (err) {
-    console.error("❌ Error loading cardbacks:", err);
+    console.error(" Error loading cardbacks:", err);
     res.status(500).json({ error: "Failed to load cardbacks list" });
   }
 });
@@ -117,7 +117,7 @@ router.post("/", (req, res) => {
     fs.writeFileSync(cardbacksFilePath, JSON.stringify(current, null, 2), "utf8");
     res.json({ success: true, cardback: newItem, total: current.length });
   } catch (err) {
-    console.error("❌ Error adding cardback:", err);
+    console.error(" Error adding cardback:", err);
     res.status(500).json({ error: "Failed to save cardback" });
   }
 });

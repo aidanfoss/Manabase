@@ -5,9 +5,9 @@
  * Uses Fuse.js for fuzzy name matching.
  * Deduplicates by oracle_id (so each unique card text appears only once).
  * 
- * ✅ Exact name match prioritized
- * ✅ Avoids Secret Lair / promo / alt-art printings
- * ✅ Only returns one canonical version per oracle_id
+ *  Exact name match prioritized
+ *  Avoids Secret Lair / promo / alt-art printings
+ *  Only returns one canonical version per oracle_id
  */
 
 import express from "express";
@@ -35,7 +35,7 @@ export async function reloadLocalScryfall(force = false) {
   }
   loadPromise = (async () => {
     allCards = await loadCardData();
-    console.log(`🧠 ScryfallLocal loaded ${allCards.length.toLocaleString()} cards from bulk data.`);
+// console.log(` ScryfallLocal loaded ${allCards.length.toLocaleString()} cards from bulk data.`);
 
     const groups = new Map();
     nameToOracle.clear();
@@ -118,9 +118,9 @@ export async function reloadLocalScryfall(force = false) {
       }
     }
 
-    console.log(
-      `🧹 Deduplicated ${allCards.length.toLocaleString()} → ${dedupedCards.length.toLocaleString()} unique cards.`
-    );
+// console.log(
+//       ` Deduplicated ${allCards.length.toLocaleString()} → ${dedupedCards.length.toLocaleString()} unique cards.`
+//     );
 
     fuse = new Fuse(dedupedCards, {
       keys: ["name"],
@@ -232,11 +232,11 @@ router.get("/card", async (req, res) => {
   const enhancedCard = await getLocalCardByName(name);
 
   if (enhancedCard) {
-    console.log(`✅ Exact card match for "${name}"`);
+// console.log(` Exact card match for "${name}"`);
     return res.json(enhancedCard);
   }
 
-  console.log(`❌ No exact match found for "${name}"`);
+// console.log(` No exact match found for "${name}"`);
   res.status(404).json({ error: "Card not found" });
 });
 
@@ -245,13 +245,13 @@ router.get("/card", async (req, res) => {
 // ----------------------------------------------------
 router.post("/batch", async (req, res) => {
   const names = req.body.names || [];
-  console.log(`📦 [Backend /api/scryfall/batch] Received batch request for ${names.length} names:`, names);
+// console.log(` [Backend /api/scryfall/batch] Received batch request for ${names.length} names:`, names);
   if (!Array.isArray(names)) return res.status(400).json({ error: "names array required" });
   
   const start = Date.now();
   const result = await getLocalCardsBatch(names);
   const matchedKeys = Object.keys(result);
-  console.log(`✅ [Backend /api/scryfall/batch] Done in ${Date.now() - start}ms. Found ${matchedKeys.length}/${names.length} cards:`, matchedKeys);
+// console.log(` [Backend /api/scryfall/batch] Done in ${Date.now() - start}ms. Found ${matchedKeys.length}/${names.length} cards:`, matchedKeys);
   res.json(result);
 });
 
@@ -265,9 +265,9 @@ router.get("/", async (req, res) => {
   const results = await searchLocalCards(q);
   
   if (results.length > 0 && results[0].name?.toLowerCase() === q.toLowerCase()) {
-     console.log(`✅ Exact match for "${q}" → 1`);
+// console.log(` Exact match for "${q}" → 1`);
   } else {
-     console.log(`🔎 Search "${q}" → ${results.length} results`);
+// console.log(` Search "${q}" → ${results.length} results`);
   }
 
   res.json(results);

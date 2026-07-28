@@ -12,7 +12,7 @@ router.get("/", requireAuth, async (req, res) => {
       .orderBy("card_name", "asc");
     res.json(cards);
   } catch (err) {
-    console.error("❌ Failed to fetch wishlist cards:", err);
+    console.error(" Failed to fetch wishlist cards:", err);
     res.status(500).json({ error: "Failed to fetch wishlist cards" });
   }
 });
@@ -106,7 +106,7 @@ router.post("/", requireAuth, async (req, res) => {
       }
     }
   } catch (err) {
-    console.error("❌ Failed to add/update wishlist card:", err);
+    console.error(" Failed to add/update wishlist card:", err);
     res.status(500).json({ error: "Failed to save card details" });
   }
 });
@@ -141,7 +141,7 @@ router.delete("/", requireAuth, async (req, res) => {
 
     res.json({ message: "Card(s) deleted successfully", deleted: true, count: deletedCount });
   } catch (err) {
-    console.error("❌ Failed to delete wishlist card:", err);
+    console.error(" Failed to delete wishlist card:", err);
     res.status(500).json({ error: "Failed to delete card" });
   }
 });

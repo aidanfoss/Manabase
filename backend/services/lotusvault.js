@@ -16,10 +16,10 @@ export async function scrapeLotusCard(cardName) {
         return cached.data;
     }
 
-    console.log(`🌸 [LotusVault Scraper] Initiating paginated scrape for card: "${trimmedName}"`);
+// console.log(` [LotusVault Scraper] Initiating paginated scrape for card: "${trimmedName}"`);
     try {
         const url = `https://www.lotusvault.com/ProductList.aspx?CategoryID=11&SearchText=${encodeURIComponent(trimmedName)}`;
-        console.log(`🌸 [LotusVault Scraper] GET Page 1 URL: ${url}`);
+// console.log(` [LotusVault Scraper] GET Page 1 URL: ${url}`);
 
         const res = await fetch(url, {
             headers: {
@@ -29,7 +29,7 @@ export async function scrapeLotusCard(cardName) {
         });
 
         if (!res.ok) {
-            console.error(`❌ [LotusVault Scraper] HTTP error ${res.status} for "${trimmedName}"`);
+            console.error(` [LotusVault Scraper] HTTP error ${res.status} for "${trimmedName}"`);
             return { cardName: trimmedName, totalFound: 0, items: [], error: `HTTP ${res.status}` };
         }
 
@@ -41,7 +41,7 @@ export async function scrapeLotusCard(cardName) {
         for (let pageNum = 1; pageNum <= maxPagesToScrape; pageNum++) {
             const titleRegex = /<a[^>]*class=["']ProductTitleLink["'][^>]*title=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
             const matches = [...currentPageHtml.matchAll(titleRegex)];
-            console.log(`🌸 [LotusVault Scraper] Page ${pageNum}: Found ${matches.length} items`);
+// console.log(` [LotusVault Scraper] Page ${pageNum}: Found ${matches.length} items`);
 
             for (let i = 0; i < matches.length; i++) {
                 const rawTitle = matches[i][1] || matches[i][2].replace(/&nbsp;/g, ' ').trim();
@@ -70,8 +70,8 @@ export async function scrapeLotusCard(cardName) {
                 const imgMatch = block.match(/src=["'](https:\/\/lvcdn\.azureedge\.net\/ProductImages\/[^"']+)["']/i);
                 const image = imgMatch ? imgMatch[1] : "";
 
-                console.log(`   [Pg ${pageNum} Item ${i + 1}/${matches.length}] "${rawTitle}"`);
-                console.log(`      Price: ${price !== null ? '$' + price.toFixed(2) : 'N/A'} | InStock: ${inStock} | Foil: ${isFoil}`);
+// console.log(`   [Pg ${pageNum} Item ${i + 1}/${matches.length}] "${rawTitle}"`);
+// console.log(`      Price: ${price !== null ? '$' + price.toFixed(2) : 'N/A'} | InStock: ${inStock} | Foil: ${isFoil}`);
 
                 items.push({
                     title: rawTitle,
@@ -117,11 +117,11 @@ export async function scrapeLotusCard(cardName) {
         const cheapestFoil = inStockItems.filter(it => it.isFoil).sort((a, b) => a.price - b.price)[0] || null;
         const cheapestOverall = inStockItems.sort((a, b) => a.price - b.price)[0] || null;
 
-        console.log(`🌸 [LotusVault Scraper] Summary for "${trimmedName}":`);
-        console.log(`   Parsed items: ${items.length} | In-stock: ${inStockItems.length}`);
-        console.log(`   Cheapest overall: ${cheapestOverall ? '$' + cheapestOverall.price.toFixed(2) + ' (' + cheapestOverall.title + ')' : 'None (Out of Stock)'}`);
-        console.log(`   Cheapest non-foil: ${cheapestNonFoil ? '$' + cheapestNonFoil.price.toFixed(2) + ' (' + cheapestNonFoil.title + ')' : 'None'}`);
-        console.log(`   Cheapest foil: ${cheapestFoil ? '$' + cheapestFoil.price.toFixed(2) + ' (' + cheapestFoil.title + ')' : 'None'}`);
+// console.log(` [LotusVault Scraper] Summary for "${trimmedName}":`);
+// console.log(`   Parsed items: ${items.length} | In-stock: ${inStockItems.length}`);
+// console.log(`   Cheapest overall: ${cheapestOverall ? '$' + cheapestOverall.price.toFixed(2) + ' (' + cheapestOverall.title + ')' : 'None (Out of Stock)'}`);
+// console.log(`   Cheapest non-foil: ${cheapestNonFoil ? '$' + cheapestNonFoil.price.toFixed(2) + ' (' + cheapestNonFoil.title + ')' : 'None'}`);
+// console.log(`   Cheapest foil: ${cheapestFoil ? '$' + cheapestFoil.price.toFixed(2) + ' (' + cheapestFoil.title + ')' : 'None'}`);
 
         const resultData = {
             cardName: trimmedName,
@@ -138,7 +138,7 @@ export async function scrapeLotusCard(cardName) {
         return resultData;
 
     } catch (err) {
-        console.error(`❌ [LotusVault Scraper] Error scraping LotusVault for "${trimmedName}":`, err.message);
+        console.error(` [LotusVault Scraper] Error scraping LotusVault for "${trimmedName}":`, err.message);
         return { cardName: trimmedName, totalFound: 0, items: [], error: err.message };
     }
 }

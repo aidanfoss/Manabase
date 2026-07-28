@@ -1,5 +1,8 @@
 import React, { useState, useMemo } from "react";
+import { ArrowPathIcon, ClipboardDocumentIcon } from "@heroicons/react/24/solid";
+
 import { resolveDisplayPrice } from "../utils/pricing";
+
 
 export default function Card({ item, userCollection = [] }) {
     const [showPrices, setShowPrices] = useState(false);
@@ -105,7 +108,7 @@ export default function Card({ item, userCollection = [] }) {
         >
             <div className="card-image">
                 {isOwned && (
-                    <span className="owned-card-badge">✓ Owned</span>
+                    <span className="owned-card-badge"> Owned</span>
                 )}
                 {image ? (
                     <img
@@ -135,7 +138,7 @@ export default function Card({ item, userCollection = [] }) {
                             setShowBack(!showBack);
                         }}
                     >
-                        🔄
+                        <ArrowPathIcon style={{ width: '1.2em', height: '1.2em' }} />
                     </button>
                 )}
             </div>
@@ -171,7 +174,7 @@ export default function Card({ item, userCollection = [] }) {
                     </div>
                     <div className="popup-body">{printList}</div>
                     <button className="copy-btn" onClick={copyPrintList}>
-                        📄 Copy List
+                        <ClipboardDocumentIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy List
                     </button>
                 </div>
             )}

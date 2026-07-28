@@ -1,3 +1,5 @@
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 
@@ -39,7 +41,7 @@ async function getCheapestFor(name) {
       cheapest = valid[0].price
     }
 
-    // ✅ fallback: no valid prices at all
+    // <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> fallback: no valid prices at all
     if (!cheapestCard) {
       const card = await api.getCardByName(name)
       const price = pickPrice(card?.prices || {})
@@ -54,7 +56,7 @@ async function getCheapestFor(name) {
       }
     }
 
-    // ✅ normal return: cheapest valid printing
+    // <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> normal return: cheapest valid printing
     return {
       price: cheapest,
       image:

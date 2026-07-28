@@ -6,7 +6,7 @@ async function seed() {
 
   const passwordHash = await bcrypt.hash("password", 10);
 
-  console.log("Seeding test users...");
+// console.log("Seeding test users...");
 
   const usersData = [
     { username: "UserWhite", email: "white@example.com" },
@@ -59,7 +59,7 @@ async function seed() {
   // Include DevUser in staples loop later
   dbUsers.push(devUser);
 
-  console.log("Cleaning old seeded cards for test users...");
+// console.log("Cleaning old seeded cards for test users...");
   const userIds = dbUsers.map(u => u.id);
   await db("user_cards").whereIn("user_id", userIds).delete();
 
@@ -103,7 +103,7 @@ async function seed() {
     }
   ];
 
-  console.log("Adding cards to tradelists, owned, and wishlists...");
+// console.log("Adding cards to tradelists, owned, and wishlists...");
   
   for (const dist of cardsDistribution) {
     for (const cardName of dist.tradelist) {
@@ -174,7 +174,7 @@ async function seed() {
     }
   }
 
-  console.log("Done seeding trade test data!");
+// console.log("Done seeding trade test data!");
   process.exit(0);
 }
 

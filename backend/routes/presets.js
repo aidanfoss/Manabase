@@ -48,7 +48,7 @@ async function seedDefaultPresets() {
     const existingCount = await db("default_presets").count("id as count");
     if (existingCount[0].count > 0) return; // Already seeded
 
-    console.log("🌱 Seeding default presets...");
+// console.log(" Seeding default presets...");
 
     // Insert all built-in presets as read-only defaults
     for (const preset of landCyclePresets) {
@@ -62,7 +62,7 @@ async function seedDefaultPresets() {
       });
     }
 
-    console.log("✅ Default presets seeded successfully");
+// console.log(" Default presets seeded successfully");
   } catch (error) {
     console.error('Error seeding default presets:', error);
   }

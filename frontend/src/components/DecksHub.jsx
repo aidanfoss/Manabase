@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { ArrowPathIcon, PlusIcon, ArchiveBoxIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
+
+
+
 import { api } from "../api/client";
 import DeckImporter from "./DeckImporter";
 import "../styles.css";
@@ -134,7 +138,7 @@ export default function DecksHub() {
               disabled={syncingAll || syncingId !== null}
               style={{ padding: '0.75rem 1.5rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
             >
-              {syncingAll ? "Syncing..." : "🔄 Resync All"}
+              {syncingAll ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Resync All</>}
             </button>
           )}
           <button 
@@ -142,7 +146,7 @@ export default function DecksHub() {
             disabled={syncingAll || syncingId !== null}
             style={{ padding: '0.75rem 1.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
           >
-            ➕ Import New Deck
+            <PlusIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Import New Deck
           </button>
         </div>
       </div>
@@ -153,7 +157,7 @@ export default function DecksHub() {
         <div style={{ color: '#ef4444' }}>{error}</div>
       ) : decks.length === 0 ? (
         <div style={{ background: '#1c1c1c', padding: '3rem', borderRadius: '8px', border: '1px solid #333', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><ArchiveBoxIcon style={{ width: "3rem", height: "3rem" }} /></div>
           <h3 style={{ marginBottom: '0.5rem' }}>No Decks Synced Yet</h3>
           <p style={{ color: '#888', marginBottom: '1.5rem' }}>
             Import your first deck from Archidekt to manage your collection and wishlist dynamically.
@@ -189,14 +193,14 @@ export default function DecksHub() {
                   style={{ flex: 1, padding: '0.5rem', background: '#2c2c2c', color: 'white', border: '1px solid #444', borderRadius: '4px', cursor: (syncingAll || syncingId === deck.deck_id || deck.status === 'disabled') ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
                   title={deck.status === 'disabled' ? "Disabled decks cannot be quick-resynced." : ""}
                 >
-                  <span>🔄</span> {(syncingAll || syncingId === deck.deck_id) ? "Syncing..." : "Resync"}
+                  <span><ArrowPathIcon style={{ width: "1.2em", height: "1.2em" }} /></span> {(syncingAll || syncingId === deck.deck_id) ? "Syncing..." : "Resync"}
                 </button>
                 <button 
                   onClick={() => handleOpenImporter(deck)}
                   disabled={syncingAll || syncingId !== null}
                   style={{ flex: 1, padding: '0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null) ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
                 >
-                  ⚙️ Edit Options
+                  <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Edit Options
                 </button>
               </div>
             </div>
@@ -229,7 +233,7 @@ export default function DecksHub() {
                       onClick={() => handleOpenImporter(deck)}
                       style={{ flex: 1, padding: '0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
                     >
-                      ⚙️ Edit Options
+                      <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Edit Options
                     </button>
                   </div>
                 </div>
@@ -260,7 +264,7 @@ export default function DecksHub() {
               onClick={() => setPopupStats(null)} 
               style={{ background: 'transparent', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1.2rem', padding: 0 }}
             >
-              ✕
+              
             </button>
           </div>
           <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#cbd5e1' }}>{popupStats.message}</p>

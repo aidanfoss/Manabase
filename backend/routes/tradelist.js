@@ -13,7 +13,7 @@ router.get("/", requireAuth, async (req, res) => {
       .orderBy("card_name", "asc");
     res.json(cards);
   } catch (err) {
-    console.error("❌ Failed to fetch tradelist cards:", err);
+    console.error(" Failed to fetch tradelist cards:", err);
     res.status(500).json({ error: "Failed to fetch tradelist cards" });
   }
 });
@@ -99,7 +99,7 @@ router.post("/", requireAuth, async (req, res) => {
               : (parseFloat(cardData.prices.usd) || parseFloat(cardData.prices.usd_foil) || cardData.prices.latest || cardData.prices.lowest || 0.10);
           }
         } catch (e) {
-          console.warn("⚠️ Failed to fetch initial card price on insert:", e.message);
+          console.warn("️ Failed to fetch initial card price on insert:", e.message);
         }
 
         const [inserted] = await db("user_cards")
@@ -120,7 +120,7 @@ router.post("/", requireAuth, async (req, res) => {
       }
     }
   } catch (err) {
-    console.error("❌ Failed to add/update tradelist card:", err);
+    console.error(" Failed to add/update tradelist card:", err);
     res.status(500).json({ error: "Failed to save card details" });
   }
 });
@@ -155,7 +155,7 @@ router.delete("/", requireAuth, async (req, res) => {
 
     res.json({ message: "Card(s) deleted successfully", deleted: true, count: deletedCount });
   } catch (err) {
-    console.error("❌ Failed to delete tradelist card:", err);
+    console.error(" Failed to delete tradelist card:", err);
     res.status(500).json({ error: "Failed to delete card" });
   }
 });

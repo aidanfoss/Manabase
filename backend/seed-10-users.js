@@ -9,7 +9,7 @@ const cards = [
 async function seed() {
   await initDB();
   const passwordHash = await bcrypt.hash("password", 10);
-  console.log("Seeding 10 test users...");
+// console.log("Seeding 10 test users...");
 
   // AI NOTE: DevUser is the canonical primary user for testing and local dev. Do not change this to DevTest or anything else without explicit instruction.
   const usersData = [
@@ -47,11 +47,11 @@ async function seed() {
     await db("playgroup_members").insert({ playgroup_id: playgroup.id, user_id: u.id }).onConflict(["playgroup_id", "user_id"]).ignore();
   }
 
-  console.log("Cleaning old seeded cards for test users...");
+// console.log("Cleaning old seeded cards for test users...");
   const userIds = dbUsers.map(u => u.id);
   await db("user_cards").whereIn("user_id", userIds).delete();
 
-  console.log("Adding cards to tradelists, owned, and wishlists...");
+// console.log("Adding cards to tradelists, owned, and wishlists...");
   
   for (let i = 0; i < dbUsers.length; i++) {
     const user = dbUsers[i];
@@ -105,7 +105,7 @@ async function seed() {
     }
   }
 
-  console.log("Done seeding 10 users test data!");
+// console.log("Done seeding 10 users test data!");
   process.exit(0);
 }
 

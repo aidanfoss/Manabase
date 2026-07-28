@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { ClipboardDocumentListIcon, PrinterIcon, LightBulbIcon, GlobeAmericasIcon, ShieldExclamationIcon, InboxIcon, ChartBarIcon, WrenchScrewdriverIcon, SparklesIcon, BoltIcon, PaintBrushIcon, DocumentTextIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+
+
+
 import { resolveDisplayPrice } from "../utils/pricing";
 import { parseImportInput } from "../utils/csvImporter";
 import { isDoubleFacedCard, getCardFrontName, getCardBackName, formatMpcTextList } from "../utils/cardHelpers";
@@ -131,7 +135,7 @@ export default function ProxyOrderHub({ data }) {
       setImportText("");
       setShowImportModal(false);
       setImportStatus("");
-      alert(`🎉 Successfully bulk imported ${parsed.reduce((sum, c) => sum + c.quantity, 0)} cards!`);
+      alert(` Successfully bulk imported ${parsed.reduce((sum, c) => sum + c.quantity, 0)} cards!`);
     } catch (e) {
       console.error("Bulk import failed:", e);
       alert("An error occurred during bulk import.");
@@ -308,7 +312,7 @@ export default function ProxyOrderHub({ data }) {
       .map((c) => `${c.qty} ${c.name}`)
       .join("\n");
     navigator.clipboard.writeText(text);
-    alert("📋 Copied Moxfield-compatible decklist to clipboard!");
+    alert("Copied Moxfield-compatible decklist to clipboard!");
   };
 
   const copyDetailed = () => {
@@ -325,7 +329,7 @@ export default function ProxyOrderHub({ data }) {
       })
       .join("\n");
     navigator.clipboard.writeText(text);
-    alert("📋 Copied detailed decklist with set codes to clipboard!");
+    alert("Copied detailed decklist with set codes to clipboard!");
   };
 
   const downloadMpcCsv = () => {
@@ -468,7 +472,7 @@ export default function ProxyOrderHub({ data }) {
 
     const textList = formatMpcTextList(flatQueue, {}, defaultCardBack);
     navigator.clipboard.writeText(textList);
-    alert("📋 Copied MPCfill formatted card list to clipboard!");
+    alert("Copied MPCfill formatted card list to clipboard!");
   };
 
   // --- Print Sheets View ---
@@ -501,13 +505,13 @@ export default function ProxyOrderHub({ data }) {
       <div className="print-sheets-overlay">
         <div className="print-header no-print">
           <div className="print-header-info">
-            <h2>🖨️ Printable PDF Sheet Layout</h2>
+            <h2><PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Printable PDF Sheet Layout</h2>
             <p>
               Cards are sized to standard MTG proportions (<strong>63mm x 88mm</strong> / 2.5" x 3.5"). 
               Ready to print directly from your browser.
             </p>
             <p className="hint">
-              💡 <em>Tip: Set margins to "None", layout to "Portrait", and scale to "100%" (or default) in the print dialog.</em>
+              <LightBulbIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> <em>Tip: Set margins to "None", layout to "Portrait", and scale to "100%" (or default) in the print dialog.</em>
             </p>
           </div>
           <div className="print-actions">
@@ -563,7 +567,7 @@ export default function ProxyOrderHub({ data }) {
         <div className="overview-card">
           <span className="label">Build Breakdown</span>
           <span className="value sub">
-            🌳 {stats.lands} Lands / ⚔️ {stats.nonlands} Non-Lands
+            <GlobeAmericasIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {stats.lands} Lands / <ShieldExclamationIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ {stats.nonlands} Non-Lands
           </span>
         </div>
       </div>
@@ -576,25 +580,25 @@ export default function ProxyOrderHub({ data }) {
         </div>
         <div className="action-buttons">
           <button className="hub-btn primary" onClick={() => setShowImportModal(true)} title="Bulk import decklists or CSV files">
-            📥 Bulk Import
+            <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
           </button>
           <button className="hub-btn" onClick={copyMoxfield} title="Copy simple 1x Card Name list">
-            📋 Copy Moxfield List
+            <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Moxfield List
           </button>
           <button className="hub-btn" onClick={copyDetailed} title="Copy detailed list with sets">
-            📊 Copy Detailed List
+            <ChartBarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Detailed List
           </button>
           <button className="hub-btn" onClick={downloadMpcCsv} title="Download a CSV template for MakePlayingCards">
-            📦 Download MPC CSV
+             Download MPC CSV
           </button>
           <button className="hub-btn" onClick={downloadMpcXml} title="Download an XML manifest for MPCfill / MPC Autofill">
-            🛠️ Download MPC XML
+            <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Download MPC XML
           </button>
           <button className="hub-btn" onClick={copyMpcTextList} title="Copy card names in MPCfill text format (e.g. 2x Card Name)">
-            📋 Copy MPC Quick List
+            <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy MPC Quick List
           </button>
           <button className="hub-btn print" onClick={togglePrintView} title="Render standard 3x3 layout sheets for printer paper">
-            🖨️ Print Sheets
+            <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Print Sheets
           </button>
           <button
             className="hub-btn"
@@ -606,12 +610,12 @@ export default function ProxyOrderHub({ data }) {
             }}
             title="Compare LotusVault local stock vs ManaPool optimized cart with live shipping cost"
           >
-            🌸 Retail Deals & Live Shipping ⚡
+            <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Retail Deals & Live Shipping <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
           </button>
         </div>
         <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", maxWidth: "500px" }}>
           <label style={{ fontSize: "0.85rem", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
-            🎨 Default Card Back ID / Query:
+            <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Default Card Back ID / Query:
           </label>
           <input
             type="text"
@@ -709,10 +713,10 @@ export default function ProxyOrderHub({ data }) {
           <div className="modal-container bulk-import-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-header-title">
-                <h2>📥 Bulk Import Proxies</h2>
+                <h2><InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import Proxies</h2>
                 <p>Upload CSV or paste decklists to add cards to your proxy order</p>
               </div>
-              <button className="modal-close-btn" onClick={() => !importing && setShowImportModal(false)}>✕</button>
+              <button className="modal-close-btn" onClick={() => !importing && setShowImportModal(false)}></button>
             </div>
 
             <div className="modal-body">
@@ -728,7 +732,7 @@ export default function ProxyOrderHub({ data }) {
                   }
                 }}
               >
-                <span className="dropzone-icon">📄</span>
+                <span className="dropzone-icon"><DocumentTextIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
                 <span className="dropzone-text">Drag & drop CSV or decklist file here, or</span>
                 <label className="file-browse-btn">
                   Browse File
@@ -756,7 +760,7 @@ export default function ProxyOrderHub({ data }) {
               {parsedPreviewCards.length > 0 && (
                 <div className="import-preview-box">
                   <div className="preview-header">
-                    <span>✅ Detected <strong>{parsedPreviewCards.length}</strong> unique cards ({parsedPreviewCards.reduce((s, c) => s + c.quantity, 0)} total items)</span>
+                    <span><CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Detected <strong>{parsedPreviewCards.length}</strong> unique cards ({parsedPreviewCards.reduce((s, c) => s + c.quantity, 0)} total items)</span>
                   </div>
                   <div className="preview-list-scroll">
                     <table className="preview-table">

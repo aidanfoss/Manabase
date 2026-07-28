@@ -13,7 +13,7 @@ function base64urlDecode(str) {
 
 /**
  * Create a hash string from a selection object.
- * Example: { version:1, metas:["Fog Meta"], landcycles:["Shocklands"], colors:["W","U"] }
+ * Example: { version:1, packages:["Fog Meta"], landcycles:["Shocklands"], colors:["W","U"] }
  */
 export function encodeSelection(selection) {
     try {

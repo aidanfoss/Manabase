@@ -80,7 +80,7 @@ export async function optimizeManaPoolCart(cardItems = [], options = {}) {
         };
 
     } catch (err) {
-        console.error("⚠️ Error calling ManaPool optimizer:", err.message);
+        console.error("️ Error calling ManaPool optimizer:", err.message);
         return { error: err.message, totals: null };
     }
 }

@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { MagnifyingGlassIcon, SparklesIcon, BoltIcon, LightBulbIcon } from "@heroicons/react/24/solid";
+
+
+
 import { api } from "../api/client";
 
 function generateManaPoolCheckoutUrl(items) {
@@ -142,7 +146,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
               Compare <strong style={{ color: "#ec4899" }}>LotusVault.com</strong> ($0 Local Pickup) vs <strong style={{ color: "#818cf8" }}>ManaPool API</strong> (Cart Optimizer).
             </p>
           </div>
-          <button style={closeBtnStyle} onClick={onClose} title="Close drawer">✕</button>
+          <button style={closeBtnStyle} onClick={onClose} title="Close drawer"></button>
         </div>
 
         {/* Single Card Search Bar */}
@@ -157,7 +161,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
               onKeyDown={(e) => e.key === "Enter" && fetchCardData(searchTerm)}
             />
             <button style={searchBtnStyle} onClick={() => fetchCardData(searchTerm)}>
-              🔍 Search
+              <MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Search
             </button>
           </div>
         )}
@@ -173,7 +177,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
               background: activeTab === "lotus" ? "rgba(236, 72, 153, 0.1)" : "transparent"
             }}
           >
-            🌸 LotusVault Local ($0 Shipping)
+            <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault Local ($0 Shipping)
           </button>
           <button
             onClick={() => setActiveTab("manapool")}
@@ -184,7 +188,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
               background: activeTab === "manapool" ? "rgba(99, 102, 241, 0.1)" : "transparent"
             }}
           >
-            ⚡ ManaPool Cart & Shipping
+            <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool Cart & Shipping
           </button>
         </div>
 
@@ -218,7 +222,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
                     <div style={{ textAlign: "right" }}>
                       <div style={summaryLabelStyle}>Local Pickup (MN Store)</div>
                       <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "#34d399", marginTop: "2px" }}>
-                        🚚 $0.00 Shipping
+                         $0.00 Shipping
                       </div>
                     </div>
                   </div>
@@ -339,7 +343,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
                         </div>
                       </div>
                       <div style={packageBadgeStyle}>
-                        📦 {manaPoolResult.sellerCount} {manaPoolResult.sellerCount === 1 ? "Package" : "Packages"}
+                         {manaPoolResult.sellerCount} {manaPoolResult.sellerCount === 1 ? "Package" : "Packages"}
                       </div>
                     </div>
 
@@ -370,7 +374,7 @@ export default function MarketplacePriceDrawer({ isOpen, onClose, cardName = "",
 
                   {/* Information Box */}
                   <div style={infoBannerStyle}>
-                    <p style={{ fontWeight: "700", color: "#818cf8", margin: "0 0 0.25rem 0" }}>💡 How ManaPool Cart Optimization Works:</p>
+                    <p style={{ fontWeight: "700", color: "#818cf8", margin: "0 0 0.25rem 0" }}><LightBulbIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> How ManaPool Cart Optimization Works:</p>
                     <ul style={{ margin: 0, paddingLeft: "1.25rem", color: "#94a3b8", fontSize: "0.8rem", lineHeight: "1.4" }}>
                       <li>Uses live market optimization algorithms across ManaPool sellers.</li>
                       <li>Minimizes total price by balancing item costs against package shipping thresholds.</li>
