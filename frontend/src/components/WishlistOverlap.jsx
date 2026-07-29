@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import CardGrid from "./CardGrid";
+import Card from "./Card";
 import { api } from "../api/client";
 
 export default function WishlistOverlap() {
@@ -41,11 +41,13 @@ export default function WishlistOverlap() {
         const names = data.cards.map(c => c.name);
         const fullCardsMap = await api.getCardDetailsBatch(names);
         
-        // Combine the objects for the CardGrid
-        const fullCards = names.map(name => {
-          const details = fullCardsMap[name] || {};
+        // Combine the objects for the UI
+        const fullCards = data.cards.map(backendCard => {
+          const details = fullCardsMap[backendCard.name] || {};
           return {
-            name: name,
+            name: backendCard.name,
+            wishlist_qty: backendCard.wishlist_qty,
+            owned_qty: backendCard.owned_qty,
             ...details
           };
         });
@@ -87,7 +89,37 @@ export default function WishlistOverlap() {
       ) : overlappingCards.length === 0 ? (
         <div>Great job! You have no cards on your wishlist that are already in your collection.</div>
       ) : (
-        <CardGrid items={overlappingCards} />
+        <div className="grid">
+          {overlappingCards.map((it) => (
+            <div key={it.name}>
+              <Card item={it} imageOverlay={
+                <div style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(15, 23, 42, 0.85)', 
+                  backdropFilter: 'blur(4px)',
+                  padding: '4px 12px', 
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  color: '#f8fafc',
+                  textAlign: 'center',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  gap: '8px',
+                  zIndex: 10
+                }}>
+                  <span><strong>Wishlist:</strong> {it.wishlist_qty}</span>
+                  <span style={{ color: '#475569' }}>|</span>
+                  <span><strong>Owned:</strong> {it.owned_qty}</span>
+                </div>
+              } />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

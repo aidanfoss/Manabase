@@ -4,7 +4,7 @@ import { ArrowPathIcon, ClipboardDocumentIcon } from "@heroicons/react/24/solid"
 import { resolveDisplayPrice } from "../utils/pricing";
 
 
-export default function Card({ item, userCollection = [] }) {
+export default function Card({ item, userCollection = [], imageOverlay }) {
     const [showPrices, setShowPrices] = useState(false);
     const [hovering, setHovering] = useState(false);
     const [showBack, setShowBack] = useState(false);
@@ -141,6 +141,8 @@ export default function Card({ item, userCollection = [] }) {
                         <ArrowPathIcon style={{ width: '1.2em', height: '1.2em' }} />
                     </button>
                 )}
+                {/* Custom Overlay (e.g. badges, quantities) */}
+                {imageOverlay}
             </div>
 
             <div className="card-title">

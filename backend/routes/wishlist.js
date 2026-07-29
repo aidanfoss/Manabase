@@ -150,16 +150,23 @@ router.delete("/", requireAuth, async (req, res) => {
 router.get("/overlap", requireAuth, async (req, res) => {
   try {
     const overlaps = await db.raw(`
-      SELECT DISTINCT w.card_name 
+      SELECT 
+        w.card_name,
+        (SELECT SUM(quantity) FROM user_cards WHERE user_id = ? AND list_type = 'wishlist' AND card_name = w.card_name) as wishlist_qty,
+        (SELECT SUM(quantity) FROM user_cards WHERE user_id = ? AND list_type = 'owned' AND card_name = w.card_name) as owned_qty
       FROM user_cards w
-      JOIN user_cards o ON w.user_id = o.user_id AND w.card_name = o.card_name
-      WHERE w.user_id = ? AND w.list_type = 'wishlist' AND o.list_type = 'owned'
-    `, [req.user.id]);
+      WHERE w.user_id = ? AND w.list_type = 'wishlist'
+      AND EXISTS (SELECT 1 FROM user_cards WHERE user_id = ? AND list_type = 'owned' AND card_name = w.card_name)
+      GROUP BY w.card_name
+    `, [req.user.id, req.user.id, req.user.id, req.user.id]);
     
-    // SQLite db.raw returns an array of row objects directly in overlaps
     res.json({
       count: overlaps.length,
-      cards: overlaps.map(r => ({ name: r.card_name }))
+      cards: overlaps.map(r => ({
+        name: r.card_name,
+        wishlist_qty: r.wishlist_qty,
+        owned_qty: r.owned_qty
+      }))
     });
   } catch (err) {
     console.error(" Failed to fetch wishlist overlap:", err);
