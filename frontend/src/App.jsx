@@ -11,6 +11,7 @@ import PackageManager from "./components/PackageManager";
 import Presets from "./components/Presets";
 import OwnedCollection from "./components/OwnedCollection";
 import WishlistHub from "./components/WishlistHub";
+import WishlistOverlap from "./components/WishlistOverlap";
 import TradelistManager from "./components/TradelistManager";
 import DecksHub from "./components/DecksHub";
 import InviteLanding from "./components/InviteLanding";
@@ -131,6 +132,7 @@ function AppContent() {
           } />
           <Route path="/collection" element={<OwnedCollection onCollectionChanged={setUserCollection} />} />
           <Route path="/wishlist" element={<WishlistHub />} />
+          <Route path="/alerts/wishlist-overlap" element={<WishlistOverlap />} />
           <Route path="/trade" element={<TradelistManager />} />
           <Route path="/decks" element={<DecksHub />} />
           <Route path="/invite/:token" element={<InviteLanding onOpenLoginModal={() => setShowLogin(true)} />} />
@@ -230,6 +232,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [tradeAlerts, setTradeAlerts] = useState(0);
+  const [wishlistAlerts, setWishlistAlerts] = useState(0);
 
   const isTestUser = user && /^(DevUser|TestUser\d*)$/i.test(user.username);
 
@@ -271,6 +274,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
   React.useEffect(() => {
     if (!user) {
       setTradeAlerts(0);
+      setWishlistAlerts(0);
       return;
     }
     const token = localStorage.getItem("token");
@@ -291,11 +295,31 @@ function TopNav({ user, showLogin, setShowLogin }) {
             console.error('Error fetching trade alerts:', err);
           }
         });
+
+      fetch("/api/collection/wishlist/overlap", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && typeof data.count === 'number') {
+            setWishlistAlerts(data.count);
+          }
+        })
+        .catch(err => {
+          if (err.name !== 'TypeError') {
+            console.error('Error fetching wishlist alerts:', err);
+          }
+        });
     };
 
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 30000);
-    return () => clearInterval(interval);
+    window.addEventListener("refreshAlerts", fetchAlerts);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("refreshAlerts", fetchAlerts);
+    };
   }, [user]);
 
   const displayName = user?.username || user?.email || "Guest";
@@ -342,27 +366,46 @@ function TopNav({ user, showLogin, setShowLogin }) {
         <div style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer', alignItems: 'center' }}>
           <MoonIcon title="Toggle Dark Mode" style={{ width: '1.2em', height: '1.2em' }} />
           <MapPinIcon title="Pins" style={{ width: '1.2em', height: '1.2em' }} />
-          <div style={{ position: 'relative' }} title="Notifications">
-            <BellIcon style={{ width: '1.2em', height: '1.2em' }} />
-            {tradeAlerts > 0 && (
-              <div style={{
-                position: 'absolute',
-                top: '-5px',
-                right: '-5px',
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '50%',
-                width: '16px',
-                height: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.7rem',
-                fontWeight: 'bold'
-              }}>
-                {tradeAlerts}
-              </div>
-            )}
+          <div className="nav-dropdown-container">
+            <span className="nav-link dropdown-trigger" style={{ position: 'relative', display: 'flex', alignItems: 'center' }} title="Notifications">
+              <BellIcon style={{ width: '1.2em', height: '1.2em', color: '#cbd5e1' }} />
+              {(tradeAlerts + wishlistAlerts) > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  right: '-10px',
+                  background: '#ef4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '18px',
+                  height: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 'bold'
+                }}>
+                  {tradeAlerts + wishlistAlerts}
+                </div>
+              )}
+            </span>
+            <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '220px', top: '100%' }}>
+              {tradeAlerts > 0 && (
+                <div className="nav-dropdown-item" onClick={() => navigate("/trade")}>
+                  You have {tradeAlerts} pending trade{tradeAlerts !== 1 ? 's' : ''}
+                </div>
+              )}
+              {wishlistAlerts > 0 && (
+                <div className="nav-dropdown-item" onClick={() => navigate("/alerts/wishlist-overlap")}>
+                  {wishlistAlerts} wishlist card{wishlistAlerts !== 1 ? 's' : ''} in your collection!
+                </div>
+              )}
+              {(tradeAlerts + wishlistAlerts) === 0 && (
+                <div className="nav-dropdown-item" style={{ color: '#94a3b8', cursor: 'default' }}>
+                  No new notifications
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -146,4 +146,25 @@ router.delete("/", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/collection/wishlist/overlap
+router.get("/overlap", requireAuth, async (req, res) => {
+  try {
+    const overlaps = await db.raw(`
+      SELECT DISTINCT w.card_name 
+      FROM user_cards w
+      JOIN user_cards o ON w.user_id = o.user_id AND w.card_name = o.card_name
+      WHERE w.user_id = ? AND w.list_type = 'wishlist' AND o.list_type = 'owned'
+    `, [req.user.id]);
+    
+    // SQLite db.raw returns an array of row objects directly in overlaps
+    res.json({
+      count: overlaps.length,
+      cards: overlaps.map(r => ({ name: r.card_name }))
+    });
+  } catch (err) {
+    console.error(" Failed to fetch wishlist overlap:", err);
+    res.status(500).json({ error: "Failed to fetch wishlist overlap" });
+  }
+});
+
 export default router;

@@ -157,6 +157,7 @@ export default function WishlistHub() {
 
       const uniqueNames = [...new Set(parsedCards.map((c) => c.card_name))];
       fetchPrintsBatch(uniqueNames);
+      window.dispatchEvent(new Event("refreshAlerts"));
 
       alert(` Successfully imported ${totalAdded} total cards into your Proxy Wishlist!`);
     } catch (err) {
@@ -260,6 +261,7 @@ export default function WishlistHub() {
       if (resWish.ok) {
         newWishlist = await resWish.json() || [];
         setWishlist(newWishlist);
+        window.dispatchEvent(new Event("refreshAlerts"));
       }
 
       // Fetch Trade List (removed)
@@ -385,6 +387,7 @@ export default function WishlistHub() {
         setSearchQuery("");
         setSearchResults([]);
         loadLists();
+        window.dispatchEvent(new Event("refreshAlerts"));
       }
     } catch (e) {
       console.error("Failed to add card:", e);
@@ -419,6 +422,7 @@ export default function WishlistHub() {
 
       if (res.ok) {
         loadLists();
+        window.dispatchEvent(new Event("refreshAlerts"));
       }
     } catch (e) {
       console.error("Failed to update list item:", e);
@@ -463,6 +467,7 @@ export default function WishlistHub() {
       });
 
       loadLists();
+      window.dispatchEvent(new Event("refreshAlerts"));
     } catch (e) {
       console.error(e);
     }
@@ -481,6 +486,7 @@ export default function WishlistHub() {
 
       if (res.ok) {
         loadLists();
+        window.dispatchEvent(new Event("refreshAlerts"));
       }
     } catch (e) {
       console.error("Failed to delete card:", e);
@@ -605,6 +611,7 @@ export default function WishlistHub() {
         alert(` Successfully removed ${data.count || cheapCardsList.length} cheap cards (≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}) from your Proxy Wishlist!`);
         setShowCheapModal(false);
         await loadLists();
+        window.dispatchEvent(new Event("refreshAlerts"));
       } else {
         alert("Failed to remove cheap cards. Please try again.");
       }
