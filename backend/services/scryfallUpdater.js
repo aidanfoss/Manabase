@@ -3,7 +3,7 @@ import path from "path";
 import fetch from "node-fetch";
 
 const DATA_DIR = path.resolve("data");
-const BULK_PATH = path.join(DATA_DIR, "scryfall-default-cards.json");
+const BULK_PATH = path.join(DATA_DIR, "scryfall-default-cards.jsonl.gz");
 const PRICE_PATH = path.join(DATA_DIR, "cardPrices.json");
 
 // Helper to safely read JSON from disk
@@ -38,7 +38,7 @@ export async function updateBulkDataIfNeeded() {
 
 // console.log("️  Downloading new Scryfall bulk data metadata...");
         const meta = await fetch("https://api.scryfall.com/bulk-data/default-cards", { headers: { "User-Agent": "Manabase/1.0" } }).then(r => r.json());
-        const url = meta.download_uri;
+        const url = meta.jsonl_download_uri;
 // console.log(" Downloading cards from:", url);
 
         const { pipeline } = await import("stream/promises");
@@ -57,9 +57,8 @@ export async function updateBulkDataIfNeeded() {
     }
 }
 
-import { chain } from "stream-chain";
-import { parser } from "stream-json";
-import { streamArray } from "stream-json/streamers/stream-array.js";
+import zlib from "zlib";
+import readline from "readline";
 
 export async function loadCardData() {
     //  Fast path: load pre-parsed stripped cache in ~150ms if it exists
@@ -82,11 +81,12 @@ export async function loadCardData() {
         }
 
 // console.log(" Building fast pre-parsed cache from raw bulk data (this happens once)...");
-        const pipeline = chain([
-            fs.createReadStream(BULK_PATH),
-            parser(),
-            streamArray()
-        ]);
+        const readStream = fs.createReadStream(BULK_PATH);
+        const gunzip = zlib.createGunzip();
+        const rl = readline.createInterface({
+            input: readStream.pipe(gunzip),
+            crlfDelay: Infinity
+        });
 
         const TEMP_CACHE_PATH = PARSED_CACHE_PATH + ".tmp";
         const writeStream = fs.createWriteStream(TEMP_CACHE_PATH);
@@ -94,8 +94,9 @@ export async function loadCardData() {
         let isFirst = true;
         let count = 0;
 
-        pipeline.on("data", (data) => {
-            const c = data.value;
+        rl.on("line", (line) => {
+            if (!line.trim()) return;
+            const c = JSON.parse(line);
             // Only keep fields needed by scryfallLocal.js to prevent OOM
             const stripped = {
                 id: c.id,
@@ -137,12 +138,12 @@ export async function loadCardData() {
             // Write directly to file stream to avoid generating a massive JSON string in memory
             const canWrite = writeStream.write(prefix + JSON.stringify(stripped));
             if (!canWrite) {
-                pipeline.pause();
-                writeStream.once("drain", () => pipeline.resume());
+                rl.pause();
+                writeStream.once("drain", () => rl.resume());
             }
         });
 
-        pipeline.on("end", () => {
+        rl.on("close", () => {
             console.log(`📚 Streamed ${count.toLocaleString()} cards. Saving fast cache...`);
             writeStream.write('\n]');
             writeStream.end(() => {
@@ -159,8 +160,13 @@ export async function loadCardData() {
             });
         });
 
-        pipeline.on("error", (err) => {
-            console.error("⚠️ Failed to load bulk data:", err);
+        readStream.on("error", (err) => {
+            console.error("⚠️ Failed to read raw bulk data:", err);
+            resolve([]); // fallback
+        });
+
+        gunzip.on("error", (err) => {
+            console.error("⚠️ Failed to decompress bulk data:", err);
             resolve([]); // fallback
         });
         
