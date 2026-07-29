@@ -9,35 +9,36 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 const tiers = {
   top: [
-    'otag:cycle-abu-dual-land',
-    'otag:cycle-fetchland',
-    'otag:cycle-rav-shockland',
-    'otag:cycle-painland',
-    'otag:cycle-horizon-land',
-    'otag:cycle-bondland'
+    'otag:cycle-fetchland', //always untapped (S TIER)
+    'otag:cycle-abu-dual-land', //always untapped (S TIER)
+    'otag:cycle-mh3-landscape', //always untapped
+    'otag:cycle-rav-shockland', //can always be untapped
+    'otag:cycle-painland', //always untapped
+    'otag:cycle-hybrid-filterland', //always untapped
+    'otag:cycle-horizon-land', //always untapped
+    'otag:cycle-verge', //always untapped
+    'otag:cycle-mrd-artifact-land', //always untapped
+    'otag:cycle-ala-panorama', //always untapped
+    'otag:cycle-dka-enemy-utilityland', //always untapped
+    'otag:cycle-lrw-vivid-land', //always untapped
+    'otag:cycle-isd-allied-utilityland', //always untapped
+    'otag:cycle-pathway' //always untapped
   ],
   mid: [
-    'otag:cycle-fastland',
-    'otag:cycle-slowland',
-    'otag:cycle-checkland',
+    'otag:cycle-fastland', //sometimes untapped
+    'otag:cycle-bondland', //often untapped
+    'otag:cycle-slowland', //often untapped
+    'otag:cycle-checkland', //sometimes untapped
     'otag:cycle-reveal-land',
-    'otag:cycle-pathway',
     'otag:cycle-tangoland',
-    'otag:cycle-hybrid-filterland',
     'otag:cycle-ody-filterland',
-    'otag:cycle-rav-bounceland',
     'otag:cycle-dual-surveil-land',
-    'otag:cycle-dual-creatureland',
     'otag:cycle-restless-land',
-    'otag:cycle-verge',
     'otag:cycle-tor-tainted-land',
-    'otag:cycle-isd-allied-utilityland',
-    'otag:cycle-dka-enemy-utilityland',
-    'otag:cycle-mrd-artifact-land',
-    'otag:cycle-mh2-bridge',
-    'otag:cycle-mh3-landscape'
   ],
   bottom: [
+    'otag:cycle-mh2-bridge', //always tapped
+    'otag:cycle-rav-bounceland', //always tapped
     'otag:tricycle-land',
     'otag:cycle-triland',
     'otag:cycle-block-ths-scry-land',
@@ -54,11 +55,10 @@ const tiers = {
     'otag:cycle-snc-c-tapland',
     'otag:cycle-khm-snow-tapland',
     'otag:cycle-csp-snow-tapland',
-    'otag:cycle-stx-campus',
-    'otag:cycle-ala-panorama',
-    'otag:cycle-lrw-vivid-land',
+    'otag:cycle-stx-campus', //always tapped
     'otag:cycle-zen-refugeland',
-    'otag:cycle-otj-pingland'
+    'otag:cycle-otj-pingland',
+    'otag:cycle-dual-creatureland' //always tapped
   ]
 };
 

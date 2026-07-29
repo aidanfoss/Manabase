@@ -45,6 +45,14 @@ router.post("/sync/:id", requireAuth, async (req, res) => {
   const { mappings } = req.body; // allows overriding saved mappings for this specific sync
 
   try {
+    if (mappings !== undefined) {
+      await db("users")
+        .where({ id: req.user.id })
+        .update({
+          archidekt_tag_mappings: typeof mappings === 'object' ? JSON.stringify(mappings) : mappings
+        });
+    }
+
     const result = await syncDeckInternal(id, req.user.id, mappings);
     res.json({ message: "Sync successful", stats: result.stats });
   } catch (err) {
