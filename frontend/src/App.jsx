@@ -1,7 +1,6 @@
 // src/App.jsx
 import React, { useState, useRef } from "react";
-import { CubeIcon, FolderIcon, ArrowPathIcon, MoonIcon, MapPinIcon, BellIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/24/solid";
-
+import { CubeIcon, FolderIcon, ArrowPathIcon, MoonIcon, MapPinIcon, BellIcon, ArrowPathRoundedSquareIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -233,6 +232,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
   const location = useLocation();
   const [tradeAlerts, setTradeAlerts] = useState(0);
   const [wishlistAlerts, setWishlistAlerts] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isTestUser = user && /^(DevUser|TestUser\d*)$/i.test(user.username);
 
@@ -326,114 +326,151 @@ function TopNav({ user, showLogin, setShowLogin }) {
   const avatar = user?.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${displayName}`;
 
   return (
-    <nav className="top-nav">
-      {/* Left: Logo + Navigation Links */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        {/* Logo Branding */}
-        <div className="logo-branding" onClick={() => navigate("/")} style={{ color: 'white', background: 'none', WebkitTextFillColor: 'white' }}>
-          <span style={{ fontSize: '1.5rem', marginRight: '4px' }}>⬢</span> Manabase
+    <>
+      <nav className="top-nav">
+        {/* Left: Logo + Navigation Links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          {/* Logo Branding */}
+          <div className="logo-branding" onClick={() => navigate("/")} style={{ color: 'white', background: 'none', WebkitTextFillColor: 'white', cursor: 'pointer' }}>
+            <span style={{ fontSize: '1.5rem', marginRight: '4px' }}>⬢</span> Manabase
+          </div>
+
+          {/* Desktop Navigation Links */}
+          <div className="desktop-nav-links" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <span className="nav-link" onClick={() => navigate("/wishlist")}>Proxy</span>
+            <span className="nav-link" onClick={() => navigate("/trade")}>Trade</span>
+            <span className="nav-link" onClick={() => navigate("/collection")}>Collection</span>
+            <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
+            
+            <div className="nav-dropdown-container">
+              <span className="nav-link dropdown-trigger">
+                Build <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>▼</span>
+              </span>
+              <div className="nav-dropdown-menu">
+                <div className="nav-dropdown-item" onClick={() => navigate("/builder")}>
+                  <CubeIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Deckbuilder
+                </div>
+                <div className="nav-dropdown-item" onClick={() => navigate("/presets")}>
+                  <MapPinIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Land Presets
+                </div>
+                <div className="nav-dropdown-item" onClick={() => navigate("/packages")}>
+                  <FolderIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Custom Packages
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Navigation Links */}
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <span className="nav-link" onClick={() => navigate("/wishlist")}>Proxy</span>
-          <span className="nav-link" onClick={() => navigate("/trade")}>Trade</span>
-          <span className="nav-link" onClick={() => navigate("/collection")}>Collection</span>
-          <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
+        {/* Right: Icons and Profile */}
+        <div className="nav-controls-right" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          {/* Desktop Icons */}
+          <div className="desktop-icons" style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer', alignItems: 'center' }}>
+            <MoonIcon title="Toggle Dark Mode" style={{ width: '1.2em', height: '1.2em' }} />
+            <MapPinIcon title="Pins" style={{ width: '1.2em', height: '1.2em' }} />
+            <div className="nav-dropdown-container">
+              <span className="nav-link dropdown-trigger" style={{ position: 'relative', display: 'flex', alignItems: 'center' }} title="Notifications">
+                <BellIcon style={{ width: '1.2em', height: '1.2em', color: '#cbd5e1' }} />
+                {(tradeAlerts + wishlistAlerts) > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '-10px',
+                    background: '#ef4444',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {tradeAlerts + wishlistAlerts}
+                  </div>
+                )}
+              </span>
+              <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '220px', top: '100%' }}>
+                {tradeAlerts > 0 && (
+                  <div className="nav-dropdown-item" onClick={() => navigate("/trade")}>
+                    You have {tradeAlerts} pending trade{tradeAlerts !== 1 ? 's' : ''}
+                  </div>
+                )}
+                {wishlistAlerts > 0 && (
+                  <div className="nav-dropdown-item" onClick={() => navigate("/alerts/wishlist-overlap")}>
+                    {wishlistAlerts} wishlist card{wishlistAlerts !== 1 ? 's' : ''} in your collection!
+                  </div>
+                )}
+                {(tradeAlerts + wishlistAlerts) === 0 && (
+                  <div className="nav-dropdown-item" style={{ color: '#94a3b8', cursor: 'default' }}>
+                    No new notifications
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Profile / Login (Desktop) */}
+          <div className="nav-profile desktop-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {user ? (
+              <>
+                <img src={avatar} alt="Profile" className="nav-avatar" title={displayName} style={{ cursor: 'pointer' }} onClick={logout} />
+                {isTestUser && (
+                  <button
+                    className="cycle-user-btn"
+                    onClick={handleCycleUser}
+                    title={`Cycle to ${nextTestUser.username}`}
+                  >
+                    <ArrowPathRoundedSquareIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Switch: {nextTestUser.username}
+                  </button>
+                )}
+              </>
+            ) : (
+              <button
+                className="login-btn"
+                onClick={() => setShowLogin((v) => !v)}
+              >
+                {showLogin ? "Close Login" : "Log in / Sign up"}
+              </button>
+            )}
+          </div>
           
-          <div className="nav-dropdown-container">
-            <span className="nav-link dropdown-trigger">
-              Build <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>▼</span>
-            </span>
-            <div className="nav-dropdown-menu">
-              <div className="nav-dropdown-item" onClick={() => navigate("/builder")}>
-                <CubeIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Deckbuilder
-              </div>
-              <div className="nav-dropdown-item" onClick={() => navigate("/presets")}>
-                <MapPinIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Land Presets
-              </div>
-              <div className="nav-dropdown-item" onClick={() => navigate("/packages")}>
-                <FolderIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Custom Packages
-              </div>
-            </div>
+          {/* Mobile Hamburger Menu Toggle */}
+          <div className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ cursor: 'pointer', color: 'white', display: 'none' }}>
+            {mobileMenuOpen ? <XMarkIcon style={{ width: '2rem', height: '2rem' }} /> : <Bars3Icon style={{ width: '2rem', height: '2rem' }} />}
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Right: Icons and Profile */}
-      <div className="nav-controls-right" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-        {/* Icons */}
-        <div style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer', alignItems: 'center' }}>
-          <MoonIcon title="Toggle Dark Mode" style={{ width: '1.2em', height: '1.2em' }} />
-          <MapPinIcon title="Pins" style={{ width: '1.2em', height: '1.2em' }} />
-          <div className="nav-dropdown-container">
-            <span className="nav-link dropdown-trigger" style={{ position: 'relative', display: 'flex', alignItems: 'center' }} title="Notifications">
-              <BellIcon style={{ width: '1.2em', height: '1.2em', color: '#cbd5e1' }} />
-              {(tradeAlerts + wishlistAlerts) > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '-10px',
-                  background: '#ef4444',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: '18px',
-                  height: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold'
-                }}>
-                  {tradeAlerts + wishlistAlerts}
+      {/* Mobile Fullscreen Overlay */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu-overlay">
+          <div className="mobile-menu-content">
+            <span className="mobile-nav-link" onClick={() => { navigate("/"); setMobileMenuOpen(false); }}>Home</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/wishlist"); setMobileMenuOpen(false); }}>Proxy</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/trade"); setMobileMenuOpen(false); }}>Trade</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/collection"); setMobileMenuOpen(false); }}>Collection</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/decks"); setMobileMenuOpen(false); }}>Decks</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/builder"); setMobileMenuOpen(false); }}>Deckbuilder</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/presets"); setMobileMenuOpen(false); }}>Land Presets</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/packages"); setMobileMenuOpen(false); }}>Custom Packages</span>
+            
+            <div className="mobile-nav-divider"></div>
+            
+            {user ? (
+              <>
+                <div className="mobile-profile-section">
+                  <img src={avatar} alt="Profile" className="nav-avatar" />
+                  <span className="mobile-nav-name">{displayName}</span>
                 </div>
-              )}
-            </span>
-            <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '220px', top: '100%' }}>
-              {tradeAlerts > 0 && (
-                <div className="nav-dropdown-item" onClick={() => navigate("/trade")}>
-                  You have {tradeAlerts} pending trade{tradeAlerts !== 1 ? 's' : ''}
-                </div>
-              )}
-              {wishlistAlerts > 0 && (
-                <div className="nav-dropdown-item" onClick={() => navigate("/alerts/wishlist-overlap")}>
-                  {wishlistAlerts} wishlist card{wishlistAlerts !== 1 ? 's' : ''} in your collection!
-                </div>
-              )}
-              {(tradeAlerts + wishlistAlerts) === 0 && (
-                <div className="nav-dropdown-item" style={{ color: '#94a3b8', cursor: 'default' }}>
-                  No new notifications
-                </div>
-              )}
-            </div>
+                <button className="mobile-action-btn" onClick={() => { logout(); setMobileMenuOpen(false); }}>Log out</button>
+              </>
+            ) : (
+              <button className="mobile-action-btn" onClick={() => { setShowLogin(true); setMobileMenuOpen(false); }}>Log in / Sign up</button>
+            )}
           </div>
         </div>
-
-        {/* Profile / Login */}
-        <div className="nav-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {user ? (
-            <>
-              <img src={avatar} alt="Profile" className="nav-avatar" title={displayName} style={{ cursor: 'pointer' }} onClick={logout} />
-              {isTestUser && (
-                <button
-                  className="cycle-user-btn"
-                  onClick={handleCycleUser}
-                  title={`Cycle to ${nextTestUser.username}`}
-                >
-                  <ArrowPathRoundedSquareIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Switch: {nextTestUser.username}
-                </button>
-              )}
-            </>
-          ) : (
-            <button
-              className="login-btn"
-              onClick={() => setShowLogin((v) => !v)}
-            >
-              {showLogin ? "Close Login" : "Log in / Sign up"}
-            </button>
-          )}
-        </div>
-      </div>
-    </nav>
+      )}
+    </>
   );
 }

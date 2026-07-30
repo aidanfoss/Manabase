@@ -492,6 +492,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [proxyRuleMisprint, setProxyRuleMisprint] = useState(false);
   const [proxyRulePoor, setProxyRulePoor] = useState(false);
   const [proxyRuleHP, setProxyRuleHP] = useState(false);
+  const [proxyRuleMatchAll, setProxyRuleMatchAll] = useState(false);
   
   // Cache for card prints: cardName -> Scryfall details or { missing: true, prints: [] }
   const [printsCache, setPrintsCache] = useState({});
@@ -581,6 +582,18 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
     return () => clearTimeout(debounceRef.current);
   }, [activeTab, currentPage, pageSize, sortField, sortOrder, filterName, filterSet, filterCondition, filterLanguage, filterFinish]);
+
+  // Prevent background scrolling when import modal is open
+  useEffect(() => {
+    if (showImport) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showImport]);
 
   const triggerFetchPrintsBatch = async (cardNames) => {
     const namesToFetch = cardNames.filter(name => !printsCache[name] && printsCache[name] !== "loading");
@@ -912,10 +925,25 @@ export default function OwnedCollection({ onCollectionChanged }) {
         let isProxy = false;
         
         if (rulesActive) {
-          if (proxyRuleAltered && c.altered) isProxy = true;
-          if (proxyRuleMisprint && c.misprint) isProxy = true;
-          if (proxyRulePoor && c.card_condition === "PO") isProxy = true;
-          if (proxyRuleHP && c.card_condition === "HP") isProxy = true;
+          const activeRules = [];
+          if (proxyRuleAltered) activeRules.push('altered');
+          if (proxyRuleMisprint) activeRules.push('misprint');
+          if (proxyRulePoor) activeRules.push('poor');
+          if (proxyRuleHP) activeRules.push('hp');
+
+          const checkRule = (rule) => {
+            if (rule === 'altered') return !!c.altered;
+            if (rule === 'misprint') return !!c.misprint;
+            if (rule === 'poor') return c.card_condition === "PO";
+            if (rule === 'hp') return c.card_condition === "HP";
+            return false;
+          };
+
+          if (proxyRuleMatchAll) {
+            isProxy = activeRules.every(checkRule);
+          } else {
+            isProxy = activeRules.some(checkRule);
+          }
         }
 
         if (importDestination !== "auto") {
@@ -1120,12 +1148,31 @@ export default function OwnedCollection({ onCollectionChanged }) {
             
             {importDestination === 'auto' && (
               <div>
-                <label><strong>Proxy Rules:</strong> Mark as proxy if ANY match:</label>
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRuleAltered} onChange={e => setProxyRuleAltered(e.target.checked)} /> Altered</label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRuleMisprint} onChange={e => setProxyRuleMisprint(e.target.checked)} /> Misprint</label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRulePoor} onChange={e => setProxyRulePoor(e.target.checked)} /> Condition is Poor (PO)</label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={proxyRuleHP} onChange={e => setProxyRuleHP(e.target.checked)} /> Condition is Heavily Played (HP)</label>
+                <label>
+                  <strong>Proxy Rules:</strong> Mark as proxy if 
+                  <select 
+                    className="proxy-match-select" 
+                    value={proxyRuleMatchAll ? "all" : "any"} 
+                    onChange={e => setProxyRuleMatchAll(e.target.value === "all")}
+                  >
+                    <option value="any">ANY</option>
+                    <option value="all">ALL</option>
+                  </select> 
+                  match:
+                </label>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                  <div className={`proxy-rule-pill ${proxyRuleAltered ? 'active' : ''}`} onClick={() => setProxyRuleAltered(!proxyRuleAltered)}>
+                    Altered
+                  </div>
+                  <div className={`proxy-rule-pill ${proxyRuleMisprint ? 'active' : ''}`} onClick={() => setProxyRuleMisprint(!proxyRuleMisprint)}>
+                    Misprint
+                  </div>
+                  <div className={`proxy-rule-pill ${proxyRulePoor ? 'active' : ''}`} onClick={() => setProxyRulePoor(!proxyRulePoor)}>
+                    Condition: Poor (PO)
+                  </div>
+                  <div className={`proxy-rule-pill ${proxyRuleHP ? 'active' : ''}`} onClick={() => setProxyRuleHP(!proxyRuleHP)}>
+                    Condition: Heavily Played (HP)
+                  </div>
                 </div>
               </div>
             )}

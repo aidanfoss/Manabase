@@ -949,3 +949,153 @@ h2 {
     background-color: rgba(107, 114, 128, 0.2); /* gray fallback */
     border: 1px solid rgba(107, 114, 128, 0.6);
 }
+
+/* =========================================================================
+   MOBILE RESPONSIVENESS (@media max-width: 768px)
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    /* 1. Global & Utilities */
+    .main {
+        padding: 1rem;
+    }
+
+    /* 2. Top Navigation */
+    .desktop-nav-links,
+    .desktop-profile,
+    .desktop-icons {
+        display: none !important;
+    }
+
+    .mobile-menu-toggle {
+        display: block !important;
+    }
+
+    /* 3. Mobile Menu Overlay */
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.98);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(10px);
+    }
+    
+    .mobile-menu-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center;
+        width: 100%;
+        padding: 2rem;
+    }
+
+    .mobile-nav-link {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #f8fafc;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .mobile-nav-link:hover {
+        color: #60a5fa;
+    }
+
+    .mobile-nav-divider {
+        width: 80%;
+        height: 1px;
+        background: #334155;
+        margin: 1rem 0;
+    }
+
+    .mobile-profile-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .mobile-nav-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .mobile-action-btn {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* 4. Card Grids */
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+        gap: 0.5rem;
+    }
+    
+    .package-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    }
+
+    /* 5. Modals and Popups */
+    .login-form {
+        width: 90vw;
+        padding: 1.5rem;
+    }
+
+    .popup {
+        width: 85vw;
+        max-width: 320px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    /* 6. Deckbuilder Sidebar (.aside-slide) */
+    .app.sidebar-open .aside-slide {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        z-index: 1000;
+    }
+
+    .sidebar-toggle {
+        top: auto;
+        bottom: 5rem;
+        left: 1rem;
+        z-index: 1001; /* Above sidebar */
+    }
+
+    .sidebar-toggle.open {
+        left: 1rem; /* don't move it right on mobile */
+    }
+
+    /* 7. Bottom Bar */
+    .bottom-bar {
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-radius: 0;
+        bottom: 0;
+        padding: 0.5rem;
+    }
+
+    .bottom-bar-content {
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .aside-slide .export-btn {
+        position: relative;
+        bottom: 0;
+        margin: 1rem auto;
+    }
+}
