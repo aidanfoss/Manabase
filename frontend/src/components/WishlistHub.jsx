@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { ClipboardDocumentListIcon, ExclamationTriangleIcon, CheckCircleIcon, XMarkIcon, LinkIcon, ArrowPathIcon, WrenchScrewdriverIcon, TrophyIcon, ArrowsRightLeftIcon, PaintBrushIcon, SparklesIcon, PrinterIcon, UserGroupIcon, Cog6ToothIcon, HandRaisedIcon, BoltIcon, MagnifyingGlassIcon, InboxIcon, TagIcon, DocumentArrowDownIcon, TrashIcon, LockClosedIcon, ArrowRightOnRectangleIcon, RocketLaunchIcon, BanknotesIcon, GiftIcon, BriefcaseIcon, ScaleIcon, CurrencyDollarIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
+import { ClipboardDocumentListIcon, ExclamationTriangleIcon, CheckCircleIcon, XMarkIcon, LinkIcon, ArrowPathIcon, WrenchScrewdriverIcon, TrophyIcon, ArrowsRightLeftIcon, PaintBrushIcon, SparklesIcon, PrinterIcon, UserGroupIcon, Cog6ToothIcon, BoltIcon, MagnifyingGlassIcon, InboxIcon, TagIcon, DocumentArrowDownIcon, TrashIcon, LockClosedIcon, ArrowRightOnRectangleIcon, RocketLaunchIcon, BanknotesIcon, CurrencyDollarIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
 
 
 
@@ -93,6 +93,11 @@ export default function WishlistHub() {
   // Playgroup Decks Resync Lock
   const [hasResyncedGroupDecks, setHasResyncedGroupDecks] = useState(false);
   const [resyncingGroupDecks, setResyncingGroupDecks] = useState(false);
+
+  // Manifest opt-out state (off by default — user must explicitly opt IN)
+  const [manifestOptedOut, setManifestOptedOut] = useState(true);
+  const [togglingOptOut, setTogglingOptOut] = useState(false);
+
   // Live parsed preview of import cards
   const parsedPreviewCards = useMemo(() => {
     if (!importText.trim()) return [];
@@ -707,7 +712,20 @@ export default function WishlistHub() {
       const membersRes = await fetch(`/api/playgroups/${groupId}/members`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (membersRes.ok) setGroupMembers(await membersRes.json());
+      if (membersRes.ok) {
+        const membersData = await membersRes.json();
+        setGroupMembers(membersData);
+        // Sync the local opted-out state from the server response for the current user
+        const token2 = localStorage.getItem("token");
+        try {
+          // Decode user id from JWT payload
+          const payload = JSON.parse(atob(token2.split(".")[1]));
+          const myMembership = membersData.find(m => m.id === payload.id || m.id === payload.userId || m.id === payload.sub);
+          if (myMembership) {
+            setManifestOptedOut(!!myMembership.opted_out_of_manifest);
+          }
+        } catch (_) { /* ignore decode errors */ }
+      }
 
       // Fetch group bundled wishlists
       const wishlistRes = await fetch(`/api/playgroups/${groupId}/wishlist`, {
@@ -778,6 +796,28 @@ export default function WishlistHub() {
     } catch (e) {
       console.error(e);
       alert(`Failed to ${action} trade.`);
+    }
+  };
+
+  const handleToggleManifestOptOut = async () => {
+    if (!activeGroup) return;
+    const newOptedOut = !manifestOptedOut;
+    setTogglingOptOut(true);
+    try {
+      await api.toggleManifestOptOut(activeGroup.id, newOptedOut);
+      setManifestOptedOut(newOptedOut);
+      // Re-fetch group wishlist so the manifest card count updates immediately
+      await loadPlaygroupDetails(activeGroup.id);
+      showToast(
+        newOptedOut
+          ? "You've opted OUT of the proxy manifest. Your cards won't be included in the next print order."
+          : "You've opted IN to the proxy manifest. Your cards will be included in the next print order.",
+        newOptedOut ? "warning" : "success"
+      );
+    } catch (e) {
+      showToast("Failed to update manifest opt-out setting.", "error");
+    } finally {
+      setTogglingOptOut(false);
     }
   };
 
@@ -1213,12 +1253,7 @@ export default function WishlistHub() {
 
   const totalEstimateCost = mpcActiveCards.length * mpcUnitCost;
 
-  // Build the Trade Matrix match list
-  const getTradeMatches = () => {
-    return [];
-  };
 
-  const tradeMatches = getTradeMatches();
 
   // printable sheets mapping helper
   const printItemsList = [];
@@ -1698,6 +1733,37 @@ export default function WishlistHub() {
                   <span className={`mpc-alert-badge ${isFloorMet ? "met" : "unmet"}`}>
                     {isFloorMet ? "Minimum Floor Met (108+ Cards)" : "️ Below Minimum Floor (Need 108 Cards)"}
                   </span>
+
+                  <button
+                    onClick={handleToggleManifestOptOut}
+                    disabled={!activeGroup || togglingOptOut}
+                    title={
+                      !activeGroup
+                        ? "Select an active playgroup first"
+                        : manifestOptedOut
+                          ? "Your cards are excluded from this order — click to opt in"
+                          : "Your cards are included in this order — click to opt out"
+                    }
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      padding: "0.25rem 0.65rem",
+                      borderRadius: "999px",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      cursor: (!activeGroup || togglingOptOut) ? "not-allowed" : "pointer",
+                      opacity: (!activeGroup || togglingOptOut) ? 0.55 : 1,
+                      border: `1px solid ${manifestOptedOut ? "rgba(245,158,11,0.5)" : "rgba(52,211,153,0.4)"}`,
+                      background: manifestOptedOut ? "rgba(146,64,14,0.25)" : "rgba(6,78,59,0.25)",
+                      color: manifestOptedOut ? "#fbbf24" : "#34d399",
+                      transition: "all 0.15s ease",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {togglingOptOut ? "..." : manifestOptedOut ? "⛔ Opted Out" : "✅ Opted In"}
+                  </button>
                 </div>
 
                 {/* Progress bar metrics */}
@@ -1832,81 +1898,6 @@ export default function WishlistHub() {
                 </div>
               </div>
 
-              {/* Trade Matrix Screen Section */}
-              <div className="mpc-tracker-card" style={{ background: "rgba(30,41,59,0.2)" }}>
-                <h3 style={{ margin: "0", fontSize: "1.1rem" }}><HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Trade Matrix</h3>
-                <p style={{ margin: "0.15rem 0 1rem 0", fontSize: "0.8rem", color: "#94a3b8" }}>
-                  Match wishlists with group physical inventory. Recommends financially balanced configurations at 85% market price value.
-                </p>
-
-                <div className="matrix-pair-container">
-                  {tradeMatches.map(({ peer, cardsIWant, cardsPeerWants }) => {
-                    // Monetary Balancing Engine recommendation
-                    const valueIWant = cardsIWant.reduce((sum, c) => sum + Number(c.market_price || 0), 0) * 0.85;
-                    const valuePeerWants = cardsPeerWants.reduce((sum, c) => sum + Number(c.market_price || 0), 0) * 0.85;
-                    const tradeDiff = Math.abs(valueIWant - valuePeerWants);
-
-                    return (
-                      <div key={peer.id} className="matrix-pair-card">
-                        <div className="matrix-pair-header">
-                          <span style={{ fontWeight: "700", fontSize: "1rem" }}>Trade Pair: You & {peer.username}</span>
-                          <span className="mpc-alert-badge met" style={{ background: "rgba(59,130,246,0.15)", color: "#93c5fd" }}>
-                            Value Balance Diff: ${tradeDiff.toFixed(2)}
-                          </span>
-                        </div>
-
-                        <div className="matrix-columns-split">
-                          {/* Peer owns cards you want */}
-                          <div className="matrix-sub-column">
-                            <h4><GiftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Peer Owned Cards You Want ({cardsIWant.length})</h4>
-                            {cardsIWant.map(c => (
-                              <div key={c.id} className="matrix-item">
-                                <span>{c.card_name}</span>
-                                <span className="matrix-price">${(Number(c.market_price || 0) * 0.85).toFixed(2)}</span>
-                              </div>
-                            ))}
-                            {cardsIWant.length === 0 && <p style={{ fontSize: "0.8rem", color: "#64748b" }}>None</p>}
-                          </div>
-
-                          {/* You own cards peer wants */}
-                          <div className="matrix-sub-column">
-                            <h4><BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Owned Cards Peer Wants ({cardsPeerWants.length})</h4>
-                            {cardsPeerWants.map(c => (
-                              <div key={c.id} className="matrix-item">
-                                <span>{c.card_name}</span>
-                                <span className="matrix-price">${(Number(c.market_price || 0) * 0.85).toFixed(2)}</span>
-                              </div>
-                            ))}
-                            {cardsPeerWants.length === 0 && <p style={{ fontSize: "0.8rem", color: "#64748b" }}>None</p>}
-                          </div>
-                        </div>
-
-                        {/* Balancing recommendations & Non-binding requests */}
-                        <div className="balancing-engine-panel">
-                          <span className="balance-text">
-                            <ScaleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ <strong>Engine:</strong> Recommends trading {cardsPeerWants.length > 0 ? `[${cardsPeerWants[0].card_name}]` : "No cards"} for {cardsIWant.length > 0 ? `[${cardsIWant[0].card_name}]` : "No cards"} to offset balances.
-                          </span>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                              className="trade-matrix-btn"
-                              onClick={() => window.location.href = `/trade?partner=${peer.id}`}
-                            > Build Trade in Hub
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {tradeMatches.length === 0 && (
-                    <p style={{ color: "#64748b", fontStyle: "italic", fontSize: "0.85rem" }}>
-                      No wishlist matches or trade targets available in this playgroup yet. Encourage members to upload inventories and add to their Proxy Wishlists.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-
 
             </>
           ) : (
@@ -1996,6 +1987,70 @@ export default function WishlistHub() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Card 1.5: Proxy Manifest Participation */}
+          <div className="settings-card" style={{ border: manifestOptedOut ? "1px solid rgba(245,158,11,0.35)" : "1px solid rgba(52,211,153,0.25)" }}>
+            <div className="settings-card-header">
+              <h3 className="settings-card-title">
+                <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Manifest Participation
+              </h3>
+              <span
+                className="mpc-alert-badge"
+                style={{
+                  background: manifestOptedOut ? "rgba(146,64,14,0.3)" : "rgba(6,78,59,0.3)",
+                  color: manifestOptedOut ? "#fbbf24" : "#34d399",
+                  border: `1px solid ${manifestOptedOut ? "rgba(245,158,11,0.4)" : "rgba(52,211,153,0.4)"}`
+                }}
+              >
+                {manifestOptedOut ? "⛔ Opted Out" : "✅ Opted In"}
+              </span>
+            </div>
+
+            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0, marginBottom: "1.25rem" }}>
+              Control whether your wishlist cards are included in your playgroup's combined print manifest (the 612-card MPCfill order).
+              {manifestOptedOut
+                ? <><br /><span style={{ color: "#f59e0b", fontWeight: 600 }}>You are currently opted OUT — your cards will not appear in the next print order.</span></>
+                : <><br /><span style={{ color: "#34d399", fontWeight: 600 }}>You are currently opted IN — your cards will be included in the next print order.</span></>
+              }
+            </p>
+
+            <button
+              onClick={handleToggleManifestOptOut}
+              disabled={!activeGroup || togglingOptOut}
+              className="setup-btn"
+              style={{
+                background: manifestOptedOut
+                  ? "linear-gradient(135deg, #065f46, #047857)"
+                  : "linear-gradient(135deg, #78350f, #92400e)",
+                border: "none",
+                color: "white",
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                padding: "0.65rem 1.5rem",
+                borderRadius: "8px",
+                cursor: (!activeGroup || togglingOptOut) ? "not-allowed" : "pointer",
+                opacity: (!activeGroup || togglingOptOut) ? 0.6 : 1,
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}
+              title={!activeGroup ? "Select an active playgroup first" : ""}
+            >
+              {togglingOptOut
+                ? "Saving..."
+                : manifestOptedOut
+                  ? "✅ Opt In to Proxy Manifest"
+                  : "⛔ Opt Out of Proxy Manifest"
+              }
+            </button>
+
+            {!activeGroup && (
+              <p style={{ fontSize: "0.78rem", color: "#64748b", marginTop: "0.5rem" }}>
+                Select an active playgroup above to manage your manifest participation.
+              </p>
+            )}
           </div>
 
           {/* Card 2: Playgroup Cost Per Proxy */}

@@ -208,12 +208,42 @@ router.get("/:id/members", requireAuth, async (req, res) => {
     const members = await db("users")
       .join("playgroup_members", "users.id", "playgroup_members.user_id")
       .where("playgroup_members.playgroup_id", req.params.id)
-      .select("users.id", "users.username", "users.email");
+      .select(
+        "users.id",
+        "users.username",
+        "users.email",
+        "playgroup_members.opted_out_of_manifest"
+      );
       
     res.json(members);
   } catch (err) {
     console.error("Error fetching playgroup members:", err);
     res.status(500).json({ error: "Failed to fetch members." });
+  }
+});
+
+// PATCH /api/playgroups/:id/manifest-opt-out - Toggle the current user's opt-out flag
+router.patch("/:id/manifest-opt-out", requireAuth, async (req, res) => {
+  const playgroupId = req.params.id;
+  try {
+    const membership = await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .first();
+    if (!membership) return res.status(403).json({ error: "Not a member of this playgroup" });
+
+    const { opted_out } = req.body;
+    if (typeof opted_out !== "boolean") {
+      return res.status(400).json({ error: "opted_out must be a boolean" });
+    }
+
+    await db("playgroup_members")
+      .where({ playgroup_id: playgroupId, user_id: req.user.id })
+      .update({ opted_out_of_manifest: opted_out });
+
+    res.json({ success: true, opted_out_of_manifest: opted_out });
+  } catch (err) {
+    console.error("Error toggling manifest opt-out:", err);
+    res.status(500).json({ error: "Failed to update opt-out status." });
   }
 });
 
@@ -265,11 +295,13 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
       .first();
     if (!isMember) return res.status(403).json({ error: "Not a member of this playgroup" });
 
-    // Fetch wishlist items
+    // Fetch wishlist items — exclude members who have opted out of the manifest
     const items = await db("user_cards")
       .join("users", "user_cards.user_id", "users.id")
       .whereIn("user_cards.user_id", function() {
-        this.select("user_id").from("playgroup_members").where("playgroup_id", playgroupId);
+        this.select("user_id").from("playgroup_members")
+          .where("playgroup_id", playgroupId)
+          .where("opted_out_of_manifest", false);
       })
       .where("user_cards.list_type", "wishlist")
       .select(
@@ -384,11 +416,13 @@ router.post("/:id/orders/mpcfill", requireAuth, async (req, res) => {
       .first();
     if (!isMember) return res.status(403).json({ error: "Not a member of this playgroup" });
 
-    // Fetch wishlist items
+    // Fetch wishlist items — exclude opted-out members
     const items = await db("user_cards")
       .join("users", "user_cards.user_id", "users.id")
       .whereIn("user_cards.user_id", function() {
-        this.select("user_id").from("playgroup_members").where("playgroup_id", playgroupId);
+        this.select("user_id").from("playgroup_members")
+          .where("playgroup_id", playgroupId)
+          .where("opted_out_of_manifest", false);
       })
       .where("user_cards.list_type", "wishlist")
       .select(
@@ -403,6 +437,7 @@ router.post("/:id/orders/mpcfill", requireAuth, async (req, res) => {
         "users.username"
       )
       .orderBy("user_cards.created_at", "asc");
+
 
     // Flatten lists by quantity
     const flatQueue = [];

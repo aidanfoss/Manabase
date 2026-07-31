@@ -450,6 +450,15 @@ export async function initDB() {
 // console.log(" Created playgroup_members table");
   }
 
+  // Migration: add opted_out_of_manifest to playgroup_members
+  const hasOptedOut = await db.schema.hasColumn("playgroup_members", "opted_out_of_manifest");
+  if (!hasOptedOut) {
+    await db.schema.alterTable("playgroup_members", (t) => {
+      t.boolean("opted_out_of_manifest").defaultTo(false);
+    });
+// console.log(" Added opted_out_of_manifest to playgroup_members");
+  }
+
   const hasPlaygroupInvites = await db.schema.hasTable("playgroup_invites");
   if (!hasPlaygroupInvites) {
     await db.schema.createTable("playgroup_invites", (t) => {

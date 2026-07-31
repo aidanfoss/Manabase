@@ -191,6 +191,7 @@ export const api = {
   // === Playgroups ===
   // ---------------------------------------
   resyncPlaygroupDecks: (playgroupId) => api.json(`/playgroups/${playgroupId}/resync-decks`, { method: "POST" }),
+  toggleManifestOptOut: (playgroupId, optedOut) => api.json(`/playgroups/${playgroupId}/manifest-opt-out`, { method: "PATCH", body: JSON.stringify({ opted_out: optedOut }) }),
 
   // ---------------------------------------
   // === Marketplace & Retail Pricing ===
