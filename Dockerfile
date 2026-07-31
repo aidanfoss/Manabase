@@ -13,6 +13,9 @@ COPY backend/package*.json ./
 RUN npm install
 COPY backend/ .
 
+# Generate landcycles.json from Scryfall API (required at runtime)
+RUN node scripts/updateLandCycles.js
+
 # Copy built frontend into backend
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 

@@ -88,6 +88,11 @@ export async function loadCardData() {
             crlfDelay: Infinity
         });
 
+        rl.on("error", (err) => {
+            console.error("⚠️ readline interface error (likely corrupt bulk data):", err.message);
+            // Error is handled; resolve with empty to avoid crashing
+        });
+
         const TEMP_CACHE_PATH = PARSED_CACHE_PATH + ".tmp";
         const writeStream = fs.createWriteStream(TEMP_CACHE_PATH);
         writeStream.write('[\n');
