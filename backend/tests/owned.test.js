@@ -113,14 +113,15 @@ describe('Owned Collection & Bulk Import API', () => {
 
     // 4. Fetch owned collection for DevUser to verify persistence
     const collectionRes = await request(app)
-      .get('/api/collection/owned')
+      .get('/api/collection/owned?limit=-1')
       .set('Authorization', `Bearer ${token}`);
 
     expect(collectionRes.status).toBe(200);
-    expect(collectionRes.body.length).toBeGreaterThan(1000);
+    const cards = collectionRes.body.cards || collectionRes.body;
+    expect(cards.length).toBeGreaterThan(1000);
 
     // Check specific card from Giga Boxes.csv, e.g. "Suki, Kyoshi Captain"
-    const suki = collectionRes.body.find(c => c.card_name === 'Suki, Kyoshi Captain');
+    const suki = cards.find(c => c.card_name === 'Suki, Kyoshi Captain');
     expect(suki).toBeDefined();
     expect(suki.set_code).toBe('TLE');
     expect(suki.collector_number).toBe('85');

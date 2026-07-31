@@ -169,19 +169,80 @@ export async function syncDeckInternal(deckId, userId, customMappings = null) {
   });
 
   // Save the deck to user_archidekt_decks (insert/merge just in case it doesn't exist)
+  // Always restore status to "active" on successful resync (in case it was disabled after a proxy list clear)
   const deckName = deck.name || `Deck ${deckId}`;
   await db("user_archidekt_decks")
     .insert({
       user_id: userId,
       deck_id: String(deckId),
       deck_name: deckName,
+      status: "active",
       updated_at: db.fn.now()
     })
     .onConflict(["user_id", "deck_id"])
     .merge({
       deck_name: deckName,
+      status: "active",
       updated_at: db.fn.now()
     });
 
   return { stats: syncStats, deckName };
+}
+
+/**
+ * Disable all of a user's synced decks and remove the cards they contributed to user_cards.
+ * This is called when a user clears their proxy list so deck-imported cards are removed
+ * until the user resyncs.
+ * @param {string} userId The user's ID
+ */
+export async function disableUserDecksAndClearItems(userId) {
+  await db.transaction(async (trx) => {
+    // 1. Fetch all deck item rows for this user (these represent what was imported)
+    const deckItems = await trx("user_archidekt_deck_items")
+      .where({ user_id: userId });
+
+    // 2. For each deck item, reduce the quantity in user_cards accordingly
+    for (const item of deckItems) {
+      const [cardName, listType, setCode, isFoilStr] = [
+        item.card_name,
+        item.list_type,
+        item.set_code,
+        item.is_foil
+      ];
+      const isFoil = isFoilStr === true || isFoilStr === 1;
+
+      const existing = await trx("user_cards")
+        .where({
+          user_id: userId,
+          card_name: cardName,
+          list_type: listType,
+          set_code: setCode,
+          is_foil: isFoil,
+          card_condition: "NM",
+          card_language: "EN"
+        })
+        .first();
+
+      if (existing) {
+        const newTotal = existing.quantity - item.quantity;
+        if (newTotal <= 0) {
+          await trx("user_cards").where({ id: existing.id }).delete();
+        } else {
+          await trx("user_cards")
+            .where({ id: existing.id })
+            .update({ quantity: newTotal, updated_at: trx.fn.now() });
+        }
+      }
+    }
+
+    // 3. Clear deck item tracking rows (so next resync treats it as a fresh import)
+    await trx("user_archidekt_deck_items")
+      .where({ user_id: userId })
+      .delete();
+
+    // 4. Mark all user decks as disabled
+    await trx("user_archidekt_decks")
+      .where({ user_id: userId })
+      .update({ status: "disabled", updated_at: trx.fn.now() });
+  });
 }

@@ -1,6 +1,7 @@
 import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { disableUserDecksAndClearItems } from "../services/archidektSync.js";
 
 const router = express.Router();
 
@@ -351,6 +352,17 @@ router.delete("/", requireAuth, async (req, res) => {
       deletedCount = await db("user_cards")
         .where({ user_id: req.user.id })
         .delete();
+
+      // When clearing the proxy list specifically, also disable deck-imported cards
+      // so that users can resync to get them back, rather than having orphaned references.
+      if (targetListType === "proxy") {
+        try {
+          await disableUserDecksAndClearItems(req.user.id);
+        } catch (deckErr) {
+          // Non-fatal: log but do not prevent the clear from succeeding
+          console.error(" Failed to disable user decks on proxy list clear:", deckErr);
+        }
+      }
     } else if (id) {
       deletedCount = await db("user_cards")
         .where({ id, user_id: req.user.id })

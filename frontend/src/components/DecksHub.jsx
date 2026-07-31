@@ -79,6 +79,29 @@ export default function DecksHub() {
 
   const handleResyncAll = async () => {
     if (decks.length === 0) return;
+
+    // If any active decks have been disabled (e.g. after a proxy list clear),
+    // ask the user whether they want to re-enable them as part of this sync.
+    const disabledDecks = decks.filter(d => d.status === 'disabled');
+    let includeDisabled = false;
+    if (disabledDecks.length > 0) {
+      includeDisabled = window.confirm(
+        `${disabledDecks.length} deck(s) are currently disabled (their cards were removed when you cleared your proxy list).\n\nClick OK to re-enable and resync them now, or Cancel to skip disabled decks.`
+      );
+    }
+
+    // Determine which decks to sync
+    const decksToSync = decks.filter(d => d.status !== 'disabled' || includeDisabled);
+    if (decksToSync.length === 0) {
+      setPopupStats({
+        title: "Nothing to Sync",
+        message: "All decks are disabled. Re-enable them by resyncing individually, or clear your proxy list and try again.",
+        error: false
+      });
+      setTimeout(() => setPopupStats(null), 8000);
+      return;
+    }
+
     setSyncingAll(true);
     setPopupStats(null);
     
@@ -86,7 +109,7 @@ export default function DecksHub() {
     let successCount = 0;
     
     try {
-      for (const deck of decks) {
+      for (const deck of decksToSync) {
         setSyncingId(deck.deck_id);
         const res = await api.syncArchidektDeck(deck.deck_id, undefined);
         if (res.stats) {
@@ -96,9 +119,11 @@ export default function DecksHub() {
         }
         successCount++;
       }
+
+      const skippedCount = decks.length - decksToSync.length;
       setPopupStats({
         title: "Resync All Complete",
-        message: `Successfully synced ${successCount} deck(s).`,
+        message: `Successfully synced ${successCount} deck(s).${skippedCount > 0 ? ` (${skippedCount} disabled deck(s) skipped)` : ""}`,
         stats: totalStats
       });
       loadDecks();
@@ -172,9 +197,38 @@ export default function DecksHub() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
           {visibleDecks.map(deck => (
-            <div key={deck.id} style={{ background: '#1c1c1c', padding: '1.5rem', borderRadius: '8px', border: '1px solid #333', display: 'flex', flexDirection: 'column' }}>
+            <div key={deck.id} style={{ 
+              background: '#1c1c1c', 
+              padding: '1.5rem', 
+              borderRadius: '8px', 
+              border: `1px solid ${deck.status === 'disabled' ? '#f59e0b' : '#333'}`, 
+              display: 'flex', 
+              flexDirection: 'column',
+              opacity: deck.status === 'disabled' ? 0.85 : 1
+            }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, color: '#60a5fa', flex: 1, paddingRight: '1rem', wordBreak: 'break-word' }}>{deck.deck_name}</h3>
+                <h3 style={{ margin: 0, color: '#60a5fa', flex: 1, paddingRight: '1rem', wordBreak: 'break-word' }}>
+                  {deck.deck_name}
+                  {deck.status === 'disabled' && (
+                    <span 
+                      title="Cards from this deck were removed when you cleared your proxy list. Resync to re-add them."
+                      style={{ 
+                        display: 'inline-block', 
+                        marginLeft: '0.5rem', 
+                        background: '#92400e', 
+                        color: '#fbbf24', 
+                        fontSize: '0.65rem', 
+                        padding: '2px 6px', 
+                        borderRadius: '4px', 
+                        fontWeight: 'bold', 
+                        verticalAlign: 'middle',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
+                      DISABLED
+                    </span>
+                  )}
+                </h3>
                 <span style={{ fontSize: '0.8rem', color: '#666', background: '#222', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
                   ID: {deck.deck_id}
                 </span>
@@ -183,17 +237,42 @@ export default function DecksHub() {
               <div style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem', flex: 1 }}>
                 Last Synced: {new Date(deck.updated_at).toLocaleString()}
                 <br/>
-                Status: <strong>{deck.status || "active"}</strong> | Privacy: <strong>{deck.is_public ? "Public" : "Private"}</strong>
+                {deck.status === 'disabled' ? (
+                  <span style={{ color: '#f59e0b' }}>
+                    ⚠️ Cards disabled — resync to restore
+                  </span>
+                ) : (
+                  <>Status: <strong>{deck.status || "active"}</strong> | Privacy: <strong>{deck.is_public ? "Public" : "Private"}</strong></>
+                )}
               </div>
               
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button 
                   onClick={() => handleQuickResync(deck.deck_id)}
-                  disabled={syncingAll || syncingId === deck.deck_id || deck.status === 'disabled'}
-                  style={{ flex: 1, padding: '0.5rem', background: '#2c2c2c', color: 'white', border: '1px solid #444', borderRadius: '4px', cursor: (syncingAll || syncingId === deck.deck_id || deck.status === 'disabled') ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
-                  title={deck.status === 'disabled' ? "Disabled decks cannot be quick-resynced." : ""}
+                  disabled={syncingAll || syncingId === deck.deck_id}
+                  style={{ 
+                    flex: 1, 
+                    padding: '0.5rem', 
+                    background: deck.status === 'disabled' ? '#78350f' : '#2c2c2c', 
+                    color: deck.status === 'disabled' ? '#fbbf24' : 'white', 
+                    border: `1px solid ${deck.status === 'disabled' ? '#f59e0b' : '#444'}`, 
+                    borderRadius: '4px', 
+                    cursor: (syncingAll || syncingId === deck.deck_id) ? 'not-allowed' : 'pointer', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    gap: '0.5rem', 
+                    alignItems: 'center',
+                    fontWeight: deck.status === 'disabled' ? 'bold' : 'normal'
+                  }}
+                  title={deck.status === 'disabled' ? "Click to resync and re-enable this deck's cards." : ""}
                 >
-                  <span><ArrowPathIcon style={{ width: "1.2em", height: "1.2em" }} /></span> {(syncingAll || syncingId === deck.deck_id) ? "Syncing..." : "Resync"}
+                  <span><ArrowPathIcon style={{ width: "1.2em", height: "1.2em" }} /></span> 
+                  {(syncingAll || syncingId === deck.deck_id) 
+                    ? "Syncing..." 
+                    : deck.status === 'disabled' 
+                      ? "Resync to Re-enable" 
+                      : "Resync"
+                  }
                 </button>
                 <button 
                   onClick={() => handleOpenImporter(deck)}

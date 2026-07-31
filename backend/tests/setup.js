@@ -12,7 +12,7 @@ beforeAll(async () => {
 
 // Clean up database after each test to ensure test isolation
 afterEach(async () => {
-  const tables = ['users', 'packages', 'user_presets', 'default_presets', 'user_cards', 'playgroups', 'playgroup_members', 'playgroup_invites', 'proxy_orders', 'trades', 'trade_items'];
+  const tables = ['users', 'packages', 'user_presets', 'default_presets', 'user_cards', 'user_archidekt_deck_items', 'user_archidekt_decks', 'playgroups', 'playgroup_members', 'playgroup_invites', 'proxy_orders', 'trades', 'trade_items'];
   for (const table of tables) {
     try {
       await db(table).del();

@@ -815,7 +815,13 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   // Bulk clear collection
   const handleClearCollection = async () => {
-    if (!window.confirm("️ Are you sure you want to clear your ENTIRE collection across ALL tabs (Owned, Proxies, Decks)? This cannot be undone.")) return;
+    const isProxyTab = activeTab === "proxy";
+
+    const confirmMsg = isProxyTab
+      ? "🗑️ Are you sure you want to clear your Proxy list?\n\nThis will also disable all deck-imported cards (from your Archidekt syncs). Your decks will remain saved — just resync them to re-add their cards."
+      : "️ Are you sure you want to clear your ENTIRE collection across ALL tabs (Owned, Proxies, Decks)? This cannot be undone.";
+
+    if (!window.confirm(confirmMsg)) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -832,7 +838,10 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
       if (res.ok) {
         loadCollection();
-        alert("Collection cleared successfully!");
+        const successMsg = isProxyTab
+          ? "Proxy list cleared. Your synced decks have been disabled — go to the Decks tab and resync to re-add their cards."
+          : "Collection cleared successfully!";
+        alert(successMsg);
       }
     } catch (e) {
       console.error("Failed to clear collection:", e);
