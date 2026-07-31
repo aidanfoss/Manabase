@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowPathIcon, PlusIcon, ArchiveBoxIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, PlusIcon, ArchiveBoxIcon, Cog6ToothIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
 
 
 
@@ -20,6 +20,7 @@ export default function DecksHub() {
   // State for syncing
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingId, setSyncingId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [popupStats, setPopupStats] = useState(null);
 
   const loadDecks = async () => {
@@ -140,6 +141,43 @@ export default function DecksHub() {
     }
   };
 
+  const handleRefreshLists = async () => {
+    if (decks.length === 0) return;
+
+    const confirmed = window.confirm(
+      `This will clear all tradelist and wishlist cards that came from your synced decks, then re-add them fresh from Archidekt.\n\nManually-added cards will NOT be affected.\n\nProceed?`
+    );
+    if (!confirmed) return;
+
+    setRefreshing(true);
+    setPopupStats(null);
+    try {
+      const res = await api.refreshArchidektLists();
+      setPopupStats({
+        title: "Refresh Complete",
+        message: res.message || "Tradelist and wishlist have been refreshed.",
+        stats: res.stats
+          ? {
+              added: res.stats.added ?? 0,
+              removed: res.stats.removed ?? 0,
+              ignored: res.stats.ignored ?? 0
+            }
+          : null,
+        warnings: res.warnings
+      });
+      loadDecks();
+    } catch (err) {
+      setPopupStats({
+        title: "Refresh Failed",
+        message: err.message || "An error occurred while refreshing.",
+        error: true
+      });
+    } finally {
+      setRefreshing(false);
+      setTimeout(() => setPopupStats(null), 12000);
+    }
+  };
+
   if (showImporter) {
     return <DeckImporter initialDeck={importerDeck} onBack={handleCloseImporter} />;
   }
@@ -158,13 +196,25 @@ export default function DecksHub() {
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           {decks.length > 0 && (
-            <button 
-              onClick={handleResyncAll}
-              disabled={syncingAll || syncingId !== null}
-              style={{ padding: '0.75rem 1.5rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
-            >
-              {syncingAll ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Resync All</>}
-            </button>
+            <>
+              <button 
+                onClick={handleResyncAll}
+                disabled={syncingAll || syncingId !== null || refreshing}
+                style={{ padding: '0.75rem 1.5rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null || refreshing) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+              >
+                {syncingAll ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Resync All</>}
+              </button>
+              <button
+                onClick={handleRefreshLists}
+                disabled={syncingAll || syncingId !== null || refreshing}
+                title="Clears tradelist and wishlist cards from your decks, then re-adds them fresh from Archidekt."
+                style={{ padding: '0.75rem 1.5rem', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null || refreshing) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+              >
+                {refreshing
+                  ? "Refreshing..."
+                  : <><ArrowUturnLeftIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Refresh</>}
+              </button>
+            </>
           )}
           <button 
             onClick={() => handleOpenImporter()}
@@ -353,7 +403,15 @@ export default function DecksHub() {
               <li>Cards Added/Moved: <strong>+{popupStats.stats.added}</strong></li>
               <li>Cards Removed: <strong>-{popupStats.stats.removed}</strong></li>
               <li>Cards Ignored: <strong>{popupStats.stats.ignored}</strong></li>
+              {popupStats.stats.decks !== undefined && (
+                <li>Decks Refreshed: <strong>{popupStats.stats.decks}</strong></li>
+              )}
             </ul>
+          )}
+          {popupStats.warnings && popupStats.warnings.length > 0 && (
+            <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#fbbf24' }}>
+              ⚠️ {popupStats.warnings.length} deck(s) failed to resync during refresh.
+            </div>
           )}
         </div>
       )}

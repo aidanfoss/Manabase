@@ -186,6 +186,7 @@ export const api = {
   syncArchidektDeck: (deckId, mappings) => api.json(`/archidekt/sync/${deckId}`, { method: "POST", body: JSON.stringify({ mappings }) }),
   getSavedArchidektDecks: () => api.json("/archidekt/decks"),
   updateArchidektDeckOptions: (deckId, options) => api.json(`/archidekt/decks/${deckId}`, { method: "PUT", body: JSON.stringify(options) }),
+  refreshArchidektLists: () => api.json("/archidekt/refresh-lists", { method: "POST", body: JSON.stringify({}) }),
 
   // ---------------------------------------
   // === Playgroups ===

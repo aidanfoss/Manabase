@@ -92,4 +92,101 @@ router.put("/decks/:deckId", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/archidekt/refresh-lists
+// Clears the tradelist and wishlist entries that came from deck syncs,
+// then resyncs every active deck to repopulate them cleanly.
+router.post("/refresh-lists", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // 1. Fetch all active decks for this user
+    const activeDecks = await db("user_archidekt_decks")
+      .where({ user_id: userId })
+      .whereNot({ status: "archived" });
+
+    if (activeDecks.length === 0) {
+      return res.json({
+        message: "No active decks found to refresh.",
+        stats: { decks: 0, added: 0, removed: 0 }
+      });
+    }
+
+    // 2. Collect all deck-contributed tradelist/wishlist entries across ALL decks
+    const deckItems = await db("user_archidekt_deck_items")
+      .where({ user_id: userId })
+      .whereIn("list_type", ["tradelist", "wishlist"]);
+
+    // 3. Reduce the quantity of those specific cards in user_cards (or remove them)
+    //    so we start clean without touching manually-added cards.
+    await db.transaction(async (trx) => {
+      for (const item of deckItems) {
+        const isFoil = item.is_foil === true || item.is_foil === 1;
+        const existing = await trx("user_cards")
+          .where({
+            user_id: userId,
+            card_name: item.card_name,
+            list_type: item.list_type,
+            set_code: item.set_code,
+            is_foil: isFoil,
+            card_condition: "NM",
+            card_language: "EN"
+          })
+          .first();
+
+        if (existing) {
+          const newTotal = existing.quantity - item.quantity;
+          if (newTotal <= 0) {
+            await trx("user_cards").where({ id: existing.id }).delete();
+          } else {
+            await trx("user_cards")
+              .where({ id: existing.id })
+              .update({ quantity: newTotal, updated_at: trx.fn.now() });
+          }
+        }
+      }
+
+      // 4. Wipe the deck_items tracking rows so next sync treats it as fresh
+      await trx("user_archidekt_deck_items")
+        .where({ user_id: userId })
+        .whereIn("list_type", ["tradelist", "wishlist"])
+        .delete();
+    });
+
+    // 5. Resync all active decks to repopulate tradelist/wishlist
+    let totalStats = { added: 0, removed: 0, ignored: 0 };
+    const errors = [];
+
+    for (const deck of activeDecks) {
+      try {
+        const result = await syncDeckInternal(deck.deck_id, userId);
+        if (result.stats) {
+          totalStats.added += result.stats.added || 0;
+          totalStats.removed += result.stats.removed || 0;
+          totalStats.ignored += result.stats.ignored || 0;
+        }
+      } catch (err) {
+        console.error(` Failed to resync deck ${deck.deck_id} during refresh:`, err.message);
+        errors.push({ deckId: deck.deck_id, error: err.message });
+      }
+    }
+
+    const response = {
+      message: `Refreshed ${activeDecks.length} deck(s). Tradelist and wishlist repopulated.`,
+      stats: {
+        decks: activeDecks.length,
+        ...totalStats
+      }
+    };
+
+    if (errors.length > 0) {
+      response.warnings = errors;
+    }
+
+    res.json(response);
+  } catch (err) {
+    console.error(" Failed to refresh lists:", err.message);
+    res.status(500).json({ error: "Failed to refresh tradelist and wishlist" });
+  }
+});
+
 export default router;
