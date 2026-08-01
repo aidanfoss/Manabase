@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, RectangleStackIcon } from "@heroicons/react/24/solid";
 import Card from "./Card";
 import { api } from "../api/client";
 
@@ -21,7 +21,7 @@ export default function WishlistOverlap() {
           throw new Error("You must be logged in to view alerts.");
         }
         
-        // 1. Fetch overlap names from our backend
+        // 1. Fetch overlap names (now includes source_decks) from our backend
         const res = await fetch("/api/collection/wishlist/overlap", {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -48,6 +48,7 @@ export default function WishlistOverlap() {
             name: backendCard.name,
             wishlist_qty: backendCard.wishlist_qty,
             owned_qty: backendCard.owned_qty,
+            source_decks: backendCard.source_decks || [],
             ...details
           };
         });
@@ -78,8 +79,8 @@ export default function WishlistOverlap() {
 
       <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Wishlist Overlap</h1>
       <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>
-        These are cards that are currently on your Wishlist, but you already have a copy in your Owned collection. 
-        You may want to remove them from your Wishlist to avoid buying duplicates!
+        These are cards on your Wishlist that you already own a copy of.
+        The deck badge shows which synced deck added the card to your wishlist.
       </p>
 
       {loading ? (
@@ -95,26 +96,72 @@ export default function WishlistOverlap() {
               <Card item={it} imageOverlay={
                 <div style={{
                   position: 'absolute',
-                  bottom: '10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'rgba(15, 23, 42, 0.85)', 
-                  backdropFilter: 'blur(4px)',
-                  padding: '4px 12px', 
+                  bottom: '8px',
+                  left: '6px',
+                  right: '6px',
+                  background: 'rgba(10, 15, 30, 0.88)', 
+                  backdropFilter: 'blur(6px)',
+                  padding: '6px 10px', 
                   borderRadius: '8px',
-                  fontSize: '0.85rem',
+                  fontSize: '0.78rem',
                   color: '#f8fafc',
                   textAlign: 'center',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
-                  whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.6)',
                   pointerEvents: 'none',
-                  display: 'flex',
-                  gap: '8px',
                   zIndex: 10
                 }}>
-                  <span><strong>Wishlist:</strong> {it.wishlist_qty}</span>
-                  <span style={{ color: '#475569' }}>|</span>
-                  <span><strong>Owned:</strong> {it.owned_qty}</span>
+                  {/* Quantity row */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: it.source_decks.length > 0 ? '5px' : 0 }}>
+                    <span><strong style={{ color: '#818cf8' }}>Wishlist:</strong> {it.wishlist_qty}</span>
+                    <span style={{ color: '#334155' }}>|</span>
+                    <span><strong style={{ color: '#34d399' }}>Owned:</strong> {it.owned_qty}</span>
+                  </div>
+
+                  {/* Source deck pills */}
+                  {it.source_decks.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'center' }}>
+                      {it.source_decks.map(deck => (
+                        <span
+                          key={deck.deck_id}
+                          title={`This card was added to your wishlist by: ${deck.deck_name}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            background: 'rgba(99, 102, 241, 0.25)',
+                            border: '1px solid rgba(99, 102, 241, 0.5)',
+                            color: '#c7d2fe',
+                            padding: '1px 6px',
+                            borderRadius: '999px',
+                            fontSize: '0.7rem',
+                            maxWidth: '100%',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            lineHeight: '1.4'
+                          }}
+                        >
+                          <RectangleStackIcon style={{ width: '0.7em', height: '0.7em', flexShrink: 0 }} />
+                          {deck.deck_name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        background: 'rgba(71, 85, 105, 0.4)',
+                        border: '1px solid rgba(71, 85, 105, 0.6)',
+                        color: '#94a3b8',
+                        padding: '1px 6px',
+                        borderRadius: '999px',
+                        fontSize: '0.7rem',
+                        lineHeight: '1.4'
+                      }}>
+                        Manually added
+                      </span>
+                    </div>
+                  )}
                 </div>
               } />
             </div>

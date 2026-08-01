@@ -149,6 +149,7 @@ router.delete("/", requireAuth, async (req, res) => {
 // GET /api/collection/wishlist/overlap
 router.get("/overlap", requireAuth, async (req, res) => {
   try {
+    // Fetch overlapping cards (wishlist + owned)
     const overlaps = await db.raw(`
       SELECT 
         w.card_name,
@@ -159,13 +160,39 @@ router.get("/overlap", requireAuth, async (req, res) => {
       AND EXISTS (SELECT 1 FROM user_cards WHERE user_id = ? AND list_type = 'owned' AND card_name = w.card_name)
       GROUP BY w.card_name
     `, [req.user.id, req.user.id, req.user.id, req.user.id]);
-    
+
+    if (overlaps.length === 0) {
+      return res.json({ count: 0, cards: [] });
+    }
+
+    // For each overlapping card, find which synced deck(s) placed it on the wishlist
+    const cardNames = overlaps.map(r => r.card_name);
+    const deckSourceRows = await db("user_archidekt_deck_items as di")
+      .join("user_archidekt_decks as d", function() {
+        this.on("d.deck_id", "=", "di.deck_id").andOn("d.user_id", "=", "di.user_id");
+      })
+      .where("di.user_id", req.user.id)
+      .where("di.list_type", "wishlist")
+      .whereIn("di.card_name", cardNames)
+      .select("di.card_name", "d.deck_name", "d.deck_id");
+
+    // Group deck names by card name
+    const decksByCard = {};
+    for (const row of deckSourceRows) {
+      if (!decksByCard[row.card_name]) decksByCard[row.card_name] = [];
+      // Avoid duplicate deck names
+      if (!decksByCard[row.card_name].some(d => d.deck_id === row.deck_id)) {
+        decksByCard[row.card_name].push({ deck_id: row.deck_id, deck_name: row.deck_name });
+      }
+    }
+
     res.json({
       count: overlaps.length,
       cards: overlaps.map(r => ({
         name: r.card_name,
         wishlist_qty: r.wishlist_qty,
-        owned_qty: r.owned_qty
+        owned_qty: r.owned_qty,
+        source_decks: decksByCard[r.card_name] || []
       }))
     });
   } catch (err) {
