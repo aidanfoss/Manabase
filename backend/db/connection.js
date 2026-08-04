@@ -108,6 +108,8 @@ export async function initDB() {
       t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
       t.string("deck_id").notNullable();
       t.string("deck_name").notNullable();
+      t.json("cards").nullable();
+      t.string("commander").nullable();
       t.boolean("is_public").defaultTo(false);
       t.string("status").defaultTo("active"); // active, disabled, archived
       t.timestamps(true, true);
@@ -123,6 +125,20 @@ export async function initDB() {
         t.string("status").defaultTo("active");
       });
 // console.log(" Added is_public and status to user_archidekt_decks");
+    }
+
+    const hasCommander = await db.schema.hasColumn("user_archidekt_decks", "commander");
+    if (!hasCommander) {
+      await db.schema.alterTable("user_archidekt_decks", (t) => {
+        t.string("commander").nullable();
+      });
+    }
+
+    const hasCards = await db.schema.hasColumn("user_archidekt_decks", "cards");
+    if (!hasCards) {
+      await db.schema.alterTable("user_archidekt_decks", (t) => {
+        t.json("cards").nullable();
+      });
     }
   }
 
@@ -142,7 +158,18 @@ export async function initDB() {
       // We aggregate by card, list, set, foil to diff against user_cards
       t.unique(["user_id", "deck_id", "card_name", "list_type", "set_code", "is_foil"]);
     });
-// console.log(" Created user_archidekt_deck_items table");
+  }
+
+  // Create user_deck_dismissals table for Deck Updater exclusions
+  const hasDismissals = await db.schema.hasTable("user_deck_dismissals");
+  if (!hasDismissals) {
+    await db.schema.createTable("user_deck_dismissals", (t) => {
+      t.increments("id").primary();
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("deck_id").notNullable();
+      t.string("suggestion_id").notNullable();
+      t.timestamps(true, true);
+    });
   }
 
   const hasPackages = await db.schema.hasTable("packages");

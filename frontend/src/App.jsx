@@ -13,6 +13,7 @@ import WishlistHub from "./components/WishlistHub";
 import WishlistOverlap from "./components/WishlistOverlap";
 import TradelistManager from "./components/TradelistManager";
 import DecksHub from "./components/DecksHub";
+import DeckUpdater from "./pages/DeckUpdater";
 import InviteLanding from "./components/InviteLanding";
 import { ToastProvider } from "./context/ToastContext";
 import { api } from "./api/client";
@@ -134,6 +135,7 @@ function AppContent() {
           <Route path="/alerts/wishlist-overlap" element={<WishlistOverlap />} />
           <Route path="/trade" element={<TradelistManager />} />
           <Route path="/decks" element={<DecksHub />} />
+          <Route path="/updater" element={<DeckUpdater />} />
           <Route path="/invite/:token" element={<InviteLanding onOpenLoginModal={() => setShowLogin(true)} />} />
           <Route path="/presets" element={<Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />} />
           <Route path="/packages" element={<PackageManager ref={packageRef} />} />
@@ -206,6 +208,7 @@ function LandingDashboard() {
           <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
             <button className="sub-btn" onClick={() => navigate("/decks")}>Saved Decks</button>
             <button className="sub-btn" onClick={() => navigate("/decks")}>Import New</button>
+            <button className="sub-btn" onClick={() => navigate("/updater")}>Deck Updater</button>
           </div>
         </div>
       </div>
@@ -341,6 +344,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
             <span className="nav-link" onClick={() => navigate("/trade")}>Trade</span>
             <span className="nav-link" onClick={() => navigate("/collection")}>Collection</span>
             <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
+            <span className="nav-link" onClick={() => navigate("/updater")}>Updater</span>
             
             <div className="nav-dropdown-container">
               <span className="nav-link dropdown-trigger">
@@ -451,6 +455,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
             <span className="mobile-nav-link" onClick={() => { navigate("/trade"); setMobileMenuOpen(false); }}>Trade</span>
             <span className="mobile-nav-link" onClick={() => { navigate("/collection"); setMobileMenuOpen(false); }}>Collection</span>
             <span className="mobile-nav-link" onClick={() => { navigate("/decks"); setMobileMenuOpen(false); }}>Decks</span>
+            <span className="mobile-nav-link" onClick={() => { navigate("/updater"); setMobileMenuOpen(false); }}>Deck Updater</span>
             <span className="mobile-nav-link" onClick={() => { navigate("/builder"); setMobileMenuOpen(false); }}>Deckbuilder</span>
             <span className="mobile-nav-link" onClick={() => { navigate("/presets"); setMobileMenuOpen(false); }}>Land Presets</span>
             <span className="mobile-nav-link" onClick={() => { navigate("/packages"); setMobileMenuOpen(false); }}>Custom Packages</span>

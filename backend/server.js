@@ -23,6 +23,7 @@ import packagesRouter from "./routes/packages.js";
 import landcyclesRouter from "./routes/landcycles.js";
 import presetsRouter from "./routes/presets.js";
 import archidektRouter from "./routes/archidekt.js";
+import deckUpdaterRouter from "./routes/deckUpdater.js";
 
 import ownedRouter from "./routes/owned.js";
 import wishlistRouter from "./routes/wishlist.js";
@@ -91,6 +92,9 @@ app.use("/api/packages", packagesRouter);
 
 //  Archidekt integration
 app.use("/api/archidekt", archidektRouter);
+
+//  Deck Updater
+app.use("/api/deck-updater", deckUpdaterRouter);
 
 
 //  Land cycle routes
@@ -221,6 +225,10 @@ if (process.env.NODE_ENV !== "test") {
 
             // Refresh old prices (cards not updated in >7 days)
             await refreshOldPrices();
+
+            // Init strictly better cache in background
+            const { syncStrictlyBetterData } = await import("./services/deckUpdater.js");
+            syncStrictlyBetterData();
             
             // Update land cycles dynamically on boot
             console.log("Starting background land cycles update...");

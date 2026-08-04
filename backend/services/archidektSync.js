@@ -168,6 +168,20 @@ export async function syncDeckInternal(deckId, userId, customMappings = null) {
     }
   });
 
+  // Find commander and all cards
+  let commanderName = null;
+  const allCardNames = [];
+  if (deck.cards && Array.isArray(deck.cards)) {
+    for (const item of deck.cards) {
+      if (item.card && item.card.oracleCard) {
+        allCardNames.push(item.card.oracleCard.name);
+        if (item.categories && item.categories.includes("Commander")) {
+          commanderName = item.card.oracleCard.name;
+        }
+      }
+    }
+  }
+
   // Save the deck to user_archidekt_decks (insert/merge just in case it doesn't exist)
   // Always restore status to "active" on successful resync (in case it was disabled after a proxy list clear)
   const deckName = deck.name || `Deck ${deckId}`;
@@ -176,12 +190,16 @@ export async function syncDeckInternal(deckId, userId, customMappings = null) {
       user_id: userId,
       deck_id: String(deckId),
       deck_name: deckName,
+      commander: commanderName,
+      cards: JSON.stringify(allCardNames),
       status: "active",
       updated_at: db.fn.now()
     })
     .onConflict(["user_id", "deck_id"])
     .merge({
       deck_name: deckName,
+      commander: commanderName,
+      cards: JSON.stringify(allCardNames),
       status: "active",
       updated_at: db.fn.now()
     });
