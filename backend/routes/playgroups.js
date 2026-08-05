@@ -3,6 +3,8 @@ import express from "express";
 import crypto from "crypto";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { getLocalCardsBatch } from "./scryfallLocal.js";
+import { isDoubleFacedCard } from "../utils/cardHelpers.js";
 import { syncDeckInternal } from "../services/archidektSync.js";
 
 const router = express.Router();
@@ -320,13 +322,25 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
 
     const userIds = Array.from(new Set(items.map(item => item.user_id)));
     const proxyArts = await db("user_proxy_arts").whereIn("user_id", userIds);
+    
+    // Fetch Scryfall metadata to determine true double-faced cards
+    const uniqueNames = Array.from(new Set(items.map(item => item.card_name)));
+    const scryfallData = await getLocalCardsBatch(uniqueNames);
 
     // Flatten lists by quantity (to enforce chronological cutoff of individual copies)
     const flatQueue = [];
     items.forEach((item) => {
-      const faces = item.card_name.split(" // ");
-      const frontName = faces[0];
-      const backName = faces.length > 1 ? faces[1] : null;
+      const meta = scryfallData[item.card_name];
+      const isDfc = isDoubleFacedCard(meta);
+
+      let frontName = item.card_name;
+      let backName = null;
+
+      if (isDfc && item.card_name.includes(" // ")) {
+        const faces = item.card_name.split(" // ");
+        frontName = faces[0];
+        backName = faces.length > 1 ? faces[1] : null;
+      }
 
       const frontArt = proxyArts.find(a => a.user_id === item.user_id && a.card_name === frontName);
       const backArt = backName ? proxyArts.find(a => a.user_id === item.user_id && a.card_name === backName) : null;

@@ -2,6 +2,8 @@ import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { XMLParser } from "fast-xml-parser";
+import { getLocalCardsBatch } from "./scryfallLocal.js";
+import { isDoubleFacedCard } from "../utils/cardHelpers.js";
 
 const router = express.Router();
 const parser = new XMLParser({
@@ -48,14 +50,27 @@ router.post("/import", requireAuth, async (req, res) => {
     const normalizeName = (name) => (name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const stripStopWords = (name) => (name || "").toLowerCase().replace(/\b(the|of|a|an|and)\b/g, "").replace(/[^a-z0-9]/g, "");
     
+    // Fetch Scryfall metadata to determine true double-faced cards
+    const uniqueNames = Array.from(new Set(userCards.map(c => c.card_name)));
+    const scryfallData = await getLocalCardsBatch(uniqueNames);
+
     const canonicalNameMap = new Map();
     const strippedNameMap = new Map();
     for (const row of userCards) {
-      // Split DFCs so both front and back can be canonical targets
-      const faces = row.card_name.split(" // ");
-      for (const face of faces) {
-        canonicalNameMap.set(normalizeName(face), face);
-        strippedNameMap.set(stripStopWords(face), face);
+      const meta = scryfallData[row.card_name];
+      const isDfc = isDoubleFacedCard(meta);
+
+      if (isDfc && row.card_name.includes(" // ")) {
+        // Split true DFCs so both front and back can be canonical targets
+        const faces = row.card_name.split(" // ");
+        for (const face of faces) {
+          canonicalNameMap.set(normalizeName(face), face);
+          strippedNameMap.set(stripStopWords(face), face);
+        }
+      } else {
+        // Single-faced cards (including split cards like "Wear // Tear")
+        canonicalNameMap.set(normalizeName(row.card_name), row.card_name);
+        strippedNameMap.set(stripStopWords(row.card_name), row.card_name);
       }
     }
     
