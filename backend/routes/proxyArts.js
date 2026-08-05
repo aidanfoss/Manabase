@@ -43,10 +43,13 @@ router.post("/import", requireAuth, async (req, res) => {
       .distinct("card_name");
 
     const normalizeName = (name) => (name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const stripStopWords = (name) => (name || "").toLowerCase().replace(/\b(the|of|a|an|and)\b/g, "").replace(/[^a-z0-9]/g, "");
     
     const canonicalNameMap = new Map();
+    const strippedNameMap = new Map();
     for (const row of userCards) {
       canonicalNameMap.set(normalizeName(row.card_name), row.card_name);
+      strippedNameMap.set(stripStopWords(row.card_name), row.card_name);
     }
     
     console.log("[proxyArts Import] Canonical Name Map built with", canonicalNameMap.size, "unique items");
@@ -57,16 +60,33 @@ router.post("/import", requireAuth, async (req, res) => {
       if (!card.query || !card.id || !card.name) continue;
       
       const normalizedQuery = normalizeName(card.query);
+      const strippedQuery = stripStopWords(card.query);
       let cardName = card.query;
       
-      console.log(`[proxyArts Import] Processing card from XML. Query: "${card.query}", Normalized: "${normalizedQuery}"`);
+      console.log(`[proxyArts Import] Processing card from XML. Query: "${card.query}", Normalized: "${normalizedQuery}", Stripped: "${strippedQuery}"`);
       
       // Attempt to map back to the exact punctuation/casing in Manabase
       if (canonicalNameMap.has(normalizedQuery)) {
         cardName = canonicalNameMap.get(normalizedQuery);
         console.log(`  -> Match found! Mapping to Canonical: "${cardName}"`);
+      } else if (strippedNameMap.has(strippedQuery)) {
+        cardName = strippedNameMap.get(strippedQuery);
+        console.log(`  -> Stop-Word Match found! Mapping to Canonical: "${cardName}"`);
       } else {
-        console.log(`  -> No canonical match found! Falling back to raw query: "${cardName}"`);
+        // Fallback: Check if one stripped name is a substring of the other
+        let substringMatch = null;
+        for (const [key, val] of strippedNameMap.entries()) {
+          if (key.includes(strippedQuery) || strippedQuery.includes(key)) {
+            substringMatch = val;
+            break;
+          }
+        }
+        if (substringMatch) {
+          cardName = substringMatch;
+          console.log(`  -> Substring Match found! Mapping to Canonical: "${cardName}"`);
+        } else {
+          console.log(`  -> No canonical match found! Falling back to raw query: "${cardName}"`);
+        }
       }
       
       await db("user_proxy_arts")
