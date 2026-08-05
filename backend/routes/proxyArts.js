@@ -48,19 +48,25 @@ router.post("/import", requireAuth, async (req, res) => {
     for (const row of userCards) {
       canonicalNameMap.set(normalizeName(row.card_name), row.card_name);
     }
+    
+    console.log("[proxyArts Import] Canonical Name Map built with", canonicalNameMap.size, "unique items");
 
     let importedCount = 0;
     
     for (const card of cards) {
-      // MPCFill XML might have empty id if not selected, we only want to save if there's an id
       if (!card.query || !card.id || !card.name) continue;
       
       const normalizedQuery = normalizeName(card.query);
       let cardName = card.query;
       
+      console.log(`[proxyArts Import] Processing card from XML. Query: "${card.query}", Normalized: "${normalizedQuery}"`);
+      
       // Attempt to map back to the exact punctuation/casing in Manabase
       if (canonicalNameMap.has(normalizedQuery)) {
         cardName = canonicalNameMap.get(normalizedQuery);
+        console.log(`  -> Match found! Mapping to Canonical: "${cardName}"`);
+      } else {
+        console.log(`  -> No canonical match found! Falling back to raw query: "${cardName}"`);
       }
       
       await db("user_proxy_arts")

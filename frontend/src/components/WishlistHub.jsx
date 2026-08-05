@@ -1037,6 +1037,8 @@ export default function WishlistHub() {
       } else {
         cardGroups.get(key).slots.push(slotIndex);
       }
+      
+      console.log(`[WishlistHub Export] Card: "${name}", User: "${c.username}", MPCFill ID: "${mpcfillId}", MPCFill Name: "${mpcfileName}"`);
     });
 
     const escapeXml = (str) => {

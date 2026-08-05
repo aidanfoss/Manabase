@@ -338,6 +338,9 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           collector_number: item.collector_number,
           is_foil: item.is_foil,
           user_card_back: item.user_card_back || "b:black lotus",
+          mpcfill_id: item.mpcfill_id,
+          mpcfill_name: item.mpcfill_name,
+          mpcfill_query: item.mpcfill_query,
           created_at: item.created_at,
           index: i + 1
         });
