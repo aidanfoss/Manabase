@@ -254,16 +254,23 @@ export default function WishlistHub() {
     const savedNames = new Set(userProxyArts.map(a => a.card_name.toLowerCase()));
     const missingUniqueNames = new Set();
     wishlist.forEach(c => {
-      const faces = c.card_name.split(" // ");
-      const frontName = faces[0].toLowerCase();
-      const backName = faces.length > 1 ? faces[1].toLowerCase() : null;
+      const meta = printsCache[c.card_name];
+      const isDfc = isDoubleFacedCard(c, meta);
+
+      let frontName = c.card_name.toLowerCase();
+      let backName = null;
+      
+      if (isDfc && c.card_name.includes(" // ")) {
+        const faces = c.card_name.split(" // ");
+        frontName = faces[0].toLowerCase();
+        backName = faces.length > 1 ? faces[1].toLowerCase() : null;
+      }
 
       if (!savedNames.has(frontName)) {
         missingUniqueNames.add(frontName);
       }
       
-      const meta = printsCache[c.card_name];
-      if (backName && isDoubleFacedCard(c, meta) && !savedNames.has(backName)) {
+      if (isDfc && backName && !savedNames.has(backName)) {
         missingUniqueNames.add(backName);
       }
     });
@@ -1248,9 +1255,14 @@ export default function WishlistHub() {
       const meta = printsCache[c.card_name];
       const isDfc = isDoubleFacedCard(c, meta);
       
-      const faces = c.card_name.split(" // ");
-      const frontName = faces[0];
-      const backName = faces.length > 1 ? faces[1] : null;
+      let frontName = c.card_name;
+      let backName = null;
+      
+      if (isDfc && c.card_name.includes(" // ")) {
+        const faces = c.card_name.split(" // ");
+        frontName = faces[0];
+        backName = faces.length > 1 ? faces[1] : null;
+      }
       
       const isFrontMissing = !savedNames.has(frontName.toLowerCase());
       const isBackMissing = isDfc && backName && !savedNames.has(backName.toLowerCase());
