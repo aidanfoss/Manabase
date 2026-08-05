@@ -5,4 +5,5 @@ services:
       - "8080:9001"
     environment:
       - NODE_ENV=production
+      - JWT_SECRET=change_this_to_a_secure_random_string
     restart: unless-stopped

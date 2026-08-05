@@ -252,13 +252,14 @@ export default function WishlistHub() {
       return;
     }
     const savedNames = new Set(userProxyArts.map(a => a.card_name.toLowerCase()));
-    let count = 0;
+    const missingUniqueNames = new Set();
     wishlist.forEach(c => {
-      if (!savedNames.has(c.card_name.toLowerCase())) {
-        count++;
+      const name = c.card_name.toLowerCase();
+      if (!savedNames.has(name)) {
+        missingUniqueNames.add(name);
       }
     });
-    setMissingArtsCount(count);
+    setMissingArtsCount(missingUniqueNames.size);
   }, [wishlist, userProxyArts]);
 
   const handleSaveCardBack = async (newVal) => {
@@ -1225,51 +1226,34 @@ export default function WishlistHub() {
   };
 
   const handleDownloadMissingArtsXml = async () => {
-    if (groupWishlist.length === 0) return;
-    showToast("Verifying latest manifest data...", "info");
-
-    const printQueue = await verifyAndGetManifest();
-    if (printQueue.length === 0) {
-      showToast("No cards in print queue to generate XML.", "warning");
-      return;
-    }
+    if (wishlist.length === 0) return;
 
     const savedNames = new Set(userProxyArts.map(a => a.card_name.toLowerCase()));
     
     // Filter out cards that ALREADY have an art selected BY THIS USER
-    const missingArtsQueue = printQueue.filter(c => {
-      const meta = printsCache[c.card_name];
-      const isDfc = isDoubleFacedCard(c, meta);
-      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
-      // ONLY check if the CURRENT logged in user is missing art for this card
-      // If we used the playgroup queue, we just export all cards missing art for *me*.
-      return !savedNames.has(name.toLowerCase());
-    });
-    
-    if (missingArtsQueue.length === 0) {
-      showToast("All cards already have a selected art!", "success");
-      return;
-    }
+    // And deduplicate so we only ask for exactly 1 of each missing card
+    const uniqueMissingCards = new Map();
 
-    const cardGroups = new Map();
-
-    missingArtsQueue.forEach((c, slotIndex) => {
+    wishlist.forEach(c => {
       const meta = printsCache[c.card_name];
       const isDfc = isDoubleFacedCard(c, meta);
       const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
       
-      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}`;
-      if (!cardGroups.has(key)) {
-        cardGroups.set(key, {
-          name: name,
-          set_code: c.set_code || "",
-          collector_number: c.collector_number || "",
-          slots: [slotIndex]
-        });
-      } else {
-        cardGroups.get(key).slots.push(slotIndex);
+      if (!savedNames.has(name.toLowerCase())) {
+        if (!uniqueMissingCards.has(name.toLowerCase())) {
+          uniqueMissingCards.set(name.toLowerCase(), {
+            name: name,
+            set_code: c.set_code || "",
+            collector_number: c.collector_number || ""
+          });
+        }
       }
     });
+    
+    if (uniqueMissingCards.size === 0) {
+      showToast("All cards already have a selected art!", "success");
+      return;
+    }
 
     const escapeXml = (str) => {
       if (!str) return "";
@@ -1279,20 +1263,22 @@ export default function WishlistHub() {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<order>\n`;
     xml += `    <details>\n`;
-    xml += `        <quantity>${missingArtsQueue.length}</quantity>\n`;
+    xml += `        <quantity>${uniqueMissingCards.size}</quantity>\n`;
     xml += `        <stock>(S30) Standard Smooth</stock>\n`;
     xml += `        <foil>false</foil>\n`;
     xml += `    </details>\n`;
     xml += `    <fronts>\n`;
 
-    for (const group of cardGroups.values()) {
+    let slotIdx = 0;
+    for (const group of uniqueMissingCards.values()) {
       const fileName = group.name.match(/\.(png|jpg|jpeg)$/i) ? group.name : `${group.name}.png`;
       xml += `        <card>\n`;
       xml += `            <id></id>\n`;
-      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
+      xml += `            <slots>${slotIdx}</slots>\n`;
       xml += `            <name>${escapeXml(fileName)}</name>\n`;
       xml += `            <query>${escapeXml(group.name)}</query>\n`;
       xml += `        </card>\n`;
+      slotIdx++;
     }
     xml += `    </fronts>\n`;
     xml += `    <cardback>b:black lotus</cardback>\n`;
