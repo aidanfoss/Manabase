@@ -10,7 +10,7 @@ RUN npm run build
 FROM node:20
 WORKDIR /app
 COPY backend/package*.json ./
-RUN npm install
+RUN npm install && npm rebuild sqlite3 --build-from-source
 COPY backend/ .
 
 # Generate landcycles.json from Scryfall API (required at runtime)

@@ -152,3 +152,4 @@ Giga Boxes.csv
 data/scryfall-default-cards.json
 backend/data/scryfall-default-cards.jsonl.gz
 backend/data/scryfall-parsed-cache.json.tmp
+test.Dockerfile
