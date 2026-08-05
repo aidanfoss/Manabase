@@ -29,13 +29,16 @@ router.post("/import", requireAuth, async (req, res) => {
   try {
     const jsonObj = parser.parse(xml);
     const fronts = jsonObj?.order?.fronts?.card;
+    const backs = jsonObj?.order?.backs?.card;
     
     if (!fronts) {
       return res.status(400).json({ error: "Invalid MPCFill XML format. Missing <fronts><card>." });
     }
 
     // fast-xml-parser returns a single object if there's only one <card>, otherwise an array
-    const cards = Array.isArray(fronts) ? fronts : [fronts];
+    const frontCards = Array.isArray(fronts) ? fronts : [fronts];
+    const backCards = backs ? (Array.isArray(backs) ? backs : [backs]) : [];
+    const cards = [...frontCards, ...backCards];
     
     // Fetch user's existing cards to build a canonical name map
     const userCards = await db("user_cards")
@@ -48,8 +51,12 @@ router.post("/import", requireAuth, async (req, res) => {
     const canonicalNameMap = new Map();
     const strippedNameMap = new Map();
     for (const row of userCards) {
-      canonicalNameMap.set(normalizeName(row.card_name), row.card_name);
-      strippedNameMap.set(stripStopWords(row.card_name), row.card_name);
+      // Split DFCs so both front and back can be canonical targets
+      const faces = row.card_name.split(" // ");
+      for (const face of faces) {
+        canonicalNameMap.set(normalizeName(face), face);
+        strippedNameMap.set(stripStopWords(face), face);
+      }
     }
     
     console.log("[proxyArts Import] Canonical Name Map built with", canonicalNameMap.size, "unique items");

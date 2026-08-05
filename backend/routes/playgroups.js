@@ -304,10 +304,6 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           .where("opted_out_of_manifest", false);
       })
       .where("user_cards.list_type", "wishlist")
-      .leftJoin("user_proxy_arts", function() {
-        this.on("user_cards.user_id", "=", "user_proxy_arts.user_id")
-            .andOn("user_cards.card_name", "=", "user_proxy_arts.card_name");
-      })
       .select(
         "user_cards.id",
         "user_cards.user_id",
@@ -318,16 +314,23 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
         "user_cards.quantity",
         "user_cards.created_at",
         "users.username",
-        "users.default_card_back as user_card_back",
-        "user_proxy_arts.mpcfill_id",
-        "user_proxy_arts.mpcfill_name",
-        "user_proxy_arts.mpcfill_query"
+        "users.default_card_back as user_card_back"
       )
       .orderBy("user_cards.created_at", "asc");
+
+    const userIds = Array.from(new Set(items.map(item => item.user_id)));
+    const proxyArts = await db("user_proxy_arts").whereIn("user_id", userIds);
 
     // Flatten lists by quantity (to enforce chronological cutoff of individual copies)
     const flatQueue = [];
     items.forEach((item) => {
+      const faces = item.card_name.split(" // ");
+      const frontName = faces[0];
+      const backName = faces.length > 1 ? faces[1] : null;
+
+      const frontArt = proxyArts.find(a => a.user_id === item.user_id && a.card_name === frontName);
+      const backArt = backName ? proxyArts.find(a => a.user_id === item.user_id && a.card_name === backName) : null;
+
       for (let i = 0; i < item.quantity; i++) {
         flatQueue.push({
           id: item.id,
@@ -338,9 +341,12 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           collector_number: item.collector_number,
           is_foil: item.is_foil,
           user_card_back: item.user_card_back || "b:black lotus",
-          mpcfill_id: item.mpcfill_id,
-          mpcfill_name: item.mpcfill_name,
-          mpcfill_query: item.mpcfill_query,
+          mpcfill_id: frontArt?.mpcfill_id || null,
+          mpcfill_name: frontArt?.mpcfill_name || null,
+          mpcfill_query: frontArt?.mpcfill_query || null,
+          mpcfill_back_id: backArt?.mpcfill_id || null,
+          mpcfill_back_name: backArt?.mpcfill_name || null,
+          mpcfill_back_query: backArt?.mpcfill_query || null,
           created_at: item.created_at,
           index: i + 1
         });

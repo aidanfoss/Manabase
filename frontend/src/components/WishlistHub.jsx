@@ -254,13 +254,21 @@ export default function WishlistHub() {
     const savedNames = new Set(userProxyArts.map(a => a.card_name.toLowerCase()));
     const missingUniqueNames = new Set();
     wishlist.forEach(c => {
-      const name = c.card_name.toLowerCase();
-      if (!savedNames.has(name)) {
-        missingUniqueNames.add(name);
+      const faces = c.card_name.split(" // ");
+      const frontName = faces[0].toLowerCase();
+      const backName = faces.length > 1 ? faces[1].toLowerCase() : null;
+
+      if (!savedNames.has(frontName)) {
+        missingUniqueNames.add(frontName);
+      }
+      
+      const meta = printsCache[c.card_name];
+      if (backName && isDoubleFacedCard(c, meta) && !savedNames.has(backName)) {
+        missingUniqueNames.add(backName);
       }
     });
     setMissingArtsCount(missingUniqueNames.size);
-  }, [wishlist, userProxyArts]);
+  }, [wishlist, userProxyArts, printsCache]);
 
   const handleSaveCardBack = async (newVal) => {
     setDefaultCardBack(newVal);
@@ -1109,9 +1117,9 @@ export default function WishlistHub() {
           isDfc: true,
           rawVal: backName,
           canonicalKey: `dfc:${backName.toLowerCase()}`,
-          cardId: "",
-          queryVal: backName,
-          fileName: `${backName}.png`,
+          cardId: c.mpcfill_back_id || "",
+          queryVal: c.mpcfill_back_query || backName,
+          fileName: c.mpcfill_back_name || `${backName}.png`,
           matchName: "DFC Back Face",
           username: c.username
         };
@@ -1239,12 +1247,21 @@ export default function WishlistHub() {
     wishlist.forEach(c => {
       const meta = printsCache[c.card_name];
       const isDfc = isDoubleFacedCard(c, meta);
-      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
       
-      if (!savedNames.has(name.toLowerCase())) {
-        if (!uniqueMissingCards.has(name.toLowerCase())) {
-          uniqueMissingCards.set(name.toLowerCase(), {
-            name: name,
+      const faces = c.card_name.split(" // ");
+      const frontName = faces[0];
+      const backName = faces.length > 1 ? faces[1] : null;
+      
+      const isFrontMissing = !savedNames.has(frontName.toLowerCase());
+      const isBackMissing = isDfc && backName && !savedNames.has(backName.toLowerCase());
+      
+      if (isFrontMissing || isBackMissing) {
+        if (!uniqueMissingCards.has(c.card_name.toLowerCase())) {
+          uniqueMissingCards.set(c.card_name.toLowerCase(), {
+            name: c.card_name, // e.g. "Boggart Trawler // Boggart Bog"
+            frontName: frontName,
+            backName: backName,
+            isDfc: isDfc,
             set_code: c.set_code || "",
             collector_number: c.collector_number || ""
           });
@@ -1269,20 +1286,46 @@ export default function WishlistHub() {
     xml += `        <stock>(S30) Standard Smooth</stock>\n`;
     xml += `        <foil>false</foil>\n`;
     xml += `    </details>\n`;
-    xml += `    <fronts>\n`;
-
+    
     let slotIdx = 0;
+    
+    // Generate Fronts
+    xml += `    <fronts>\n`;
     for (const group of uniqueMissingCards.values()) {
-      const fileName = group.name.match(/\.(png|jpg|jpeg)$/i) ? group.name : `${group.name}.png`;
+      const fileName = group.frontName.match(/\.(png|jpg|jpeg)$/i) ? group.frontName : `${group.frontName}.png`;
       xml += `        <card>\n`;
       xml += `            <id></id>\n`;
       xml += `            <slots>${slotIdx}</slots>\n`;
       xml += `            <name>${escapeXml(fileName)}</name>\n`;
-      xml += `            <query>${escapeXml(group.name)}</query>\n`;
+      xml += `            <query>${escapeXml(group.frontName)}</query>\n`;
       xml += `        </card>\n`;
       slotIdx++;
     }
     xml += `    </fronts>\n`;
+    
+    // Generate Backs
+    let hasBacks = false;
+    let backsXml = `    <backs>\n`;
+    let backSlotIdx = 0;
+    for (const group of uniqueMissingCards.values()) {
+      if (group.isDfc && group.backName) {
+        hasBacks = true;
+        const fileName = group.backName.match(/\.(png|jpg|jpeg)$/i) ? group.backName : `${group.backName}.png`;
+        backsXml += `        <card>\n`;
+        backsXml += `            <id></id>\n`;
+        backsXml += `            <slots>${backSlotIdx}</slots>\n`;
+        backsXml += `            <name>${escapeXml(fileName)}</name>\n`;
+        backsXml += `            <query>${escapeXml(group.backName)}</query>\n`;
+        backsXml += `        </card>\n`;
+      }
+      backSlotIdx++;
+    }
+    backsXml += `    </backs>\n`;
+    
+    if (hasBacks) {
+      xml += backsXml;
+    }
+    
     xml += `    <cardback>b:black lotus</cardback>\n`;
     xml += `</order>\n`;
 

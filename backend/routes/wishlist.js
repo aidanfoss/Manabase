@@ -8,19 +8,32 @@ const router = express.Router();
 router.get("/", requireAuth, async (req, res) => {
   try {
     const cards = await db("user_cards")
-      .leftJoin("user_proxy_arts", function() {
-        this.on("user_cards.user_id", "=", "user_proxy_arts.user_id")
-            .andOn("user_cards.card_name", "=", "user_proxy_arts.card_name");
-      })
       .where({ "user_cards.user_id": req.user.id, "user_cards.list_type": "wishlist" })
-      .select(
-        "user_cards.*",
-        "user_proxy_arts.mpcfill_id",
-        "user_proxy_arts.mpcfill_name",
-        "user_proxy_arts.mpcfill_query"
-      )
+      .select("user_cards.*")
       .orderBy("user_cards.card_name", "asc");
-    res.json(cards);
+
+    const proxyArts = await db("user_proxy_arts").where("user_id", req.user.id);
+    
+    const cardsWithArts = cards.map(item => {
+      const faces = item.card_name.split(" // ");
+      const frontName = faces[0];
+      const backName = faces.length > 1 ? faces[1] : null;
+
+      const frontArt = proxyArts.find(a => a.card_name === frontName);
+      const backArt = backName ? proxyArts.find(a => a.card_name === backName) : null;
+
+      return {
+        ...item,
+        mpcfill_id: frontArt?.mpcfill_id || null,
+        mpcfill_name: frontArt?.mpcfill_name || null,
+        mpcfill_query: frontArt?.mpcfill_query || null,
+        mpcfill_back_id: backArt?.mpcfill_id || null,
+        mpcfill_back_name: backArt?.mpcfill_name || null,
+        mpcfill_back_query: backArt?.mpcfill_query || null
+      };
+    });
+
+    res.json(cardsWithArts);
   } catch (err) {
     console.error(" Failed to fetch wishlist cards:", err);
     res.status(500).json({ error: "Failed to fetch wishlist cards" });
