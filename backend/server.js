@@ -8,6 +8,11 @@
  *     → /api/metas now proxies to /api/packages for backward compatibility.
  */
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+    console.error("FATAL ERROR: JWT_SECRET is not set in production. Refusing to start.");
+    process.exit(1);
+}
+
 import express from "express";
 import cors from "cors";
 import fs from "fs";
@@ -33,6 +38,8 @@ import playgroupsRouter from "./routes/playgroups.js";
 import listsRouter from "./routes/lists.js";
 import cardbacksRouter from "./routes/cardbacks.js";
 import pricingRouter from "./routes/pricingRoutes.js";
+import adminRouter from "./routes/admin.js";
+import proxyArtsRouter from "./routes/proxyArts.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -50,15 +57,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 8080;
 
 // ---------------------------------
 // Middleware
 // ---------------------------------
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',') 
+  : ['http://localhost:5173', 'http://localhost:8080', 'https://manabase.quantumaidan.co.za'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Logging middleware
 app.use((req, _res, next) => {
@@ -86,6 +107,8 @@ app.use("/api/playgroups", playgroupsRouter);
 app.use("/api/lists", listsRouter);
 app.use("/api/trade", tradeRouter);
 app.use("/api/pricing", pricingRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/user/proxy-arts", proxyArtsRouter);
 
 //  Packages (User-created or public)
 app.use("/api/packages", packagesRouter);

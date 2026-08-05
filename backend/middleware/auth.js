@@ -17,3 +17,17 @@ export function requireAuth(req, res, next) {
     res.status(401).json({ error: "Invalid or expired token" });
   }
 }
+
+export function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    const email = req.user.email;
+    const isMainAdmin = email === "quantumaidan@gmail.com";
+    const isDevAdmin = process.env.ENABLE_DEV_LOGIN === "true" && email === "dev@manabase.com";
+
+    if (isMainAdmin || isDevAdmin) {
+      next();
+    } else {
+      res.status(403).json({ error: "Admin access required" });
+    }
+  });
+}

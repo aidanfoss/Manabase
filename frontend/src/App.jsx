@@ -14,6 +14,7 @@ import WishlistOverlap from "./components/WishlistOverlap";
 import TradelistManager from "./components/TradelistManager";
 import DecksHub from "./components/DecksHub";
 import DeckUpdater from "./pages/DeckUpdater";
+import AdminDashboard from "./pages/AdminDashboard";
 import InviteLanding from "./components/InviteLanding";
 import { ToastProvider } from "./context/ToastContext";
 import { api } from "./api/client";
@@ -139,6 +140,7 @@ function AppContent() {
           <Route path="/invite/:token" element={<InviteLanding onOpenLoginModal={() => setShowLogin(true)} />} />
           <Route path="/presets" element={<Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />} />
           <Route path="/packages" element={<PackageManager ref={packageRef} />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<LandingDashboard />} />
         </Routes>
       </div>
@@ -346,6 +348,10 @@ function TopNav({ user, showLogin, setShowLogin }) {
             <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
             <span className="nav-link" onClick={() => navigate("/updater")}>Updater</span>
             
+            {(user?.email === "quantumaidan@gmail.com" || user?.email === "dev@manabase.com") && (
+              <span className="nav-link" style={{ color: '#fbbf24', fontWeight: 'bold' }} onClick={() => navigate("/admin")}>Admin</span>
+            )}
+
             <div className="nav-dropdown-container">
               <span className="nav-link dropdown-trigger">
                 Build <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>▼</span>
@@ -460,6 +466,10 @@ function TopNav({ user, showLogin, setShowLogin }) {
             <span className="mobile-nav-link" onClick={() => { navigate("/presets"); setMobileMenuOpen(false); }}>Land Presets</span>
             <span className="mobile-nav-link" onClick={() => { navigate("/packages"); setMobileMenuOpen(false); }}>Custom Packages</span>
             
+            {(user?.email === "quantumaidan@gmail.com" || user?.email === "dev@manabase.com") && (
+              <span className="mobile-nav-link" style={{ color: '#fbbf24' }} onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}>Admin Dashboard</span>
+            )}
+
             <div className="mobile-nav-divider"></div>
             
             {user ? (

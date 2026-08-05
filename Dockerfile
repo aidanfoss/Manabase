@@ -27,6 +27,7 @@ RUN mkdir -p /data && \
 
 ENV NODE_ENV=production
 ENV PORT=9001
+ENV ENABLE_DEV_LOGIN=false
 EXPOSE 9001
 
 CMD ["node", "server.js"]

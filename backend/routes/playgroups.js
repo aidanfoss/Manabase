@@ -304,6 +304,10 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           .where("opted_out_of_manifest", false);
       })
       .where("user_cards.list_type", "wishlist")
+      .leftJoin("user_proxy_arts", function() {
+        this.on("user_cards.user_id", "=", "user_proxy_arts.user_id")
+            .andOn("user_cards.card_name", "=", "user_proxy_arts.card_name");
+      })
       .select(
         "user_cards.id",
         "user_cards.user_id",
@@ -314,7 +318,10 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
         "user_cards.quantity",
         "user_cards.created_at",
         "users.username",
-        "users.default_card_back as user_card_back"
+        "users.default_card_back as user_card_back",
+        "user_proxy_arts.mpcfill_id",
+        "user_proxy_arts.mpcfill_name",
+        "user_proxy_arts.mpcfill_query"
       )
       .orderBy("user_cards.created_at", "asc");
 

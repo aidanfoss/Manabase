@@ -12,11 +12,11 @@
     "@heroicons/react": "^2.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.11.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^6.0.5",
     "baseline-browser-mapping": "^2.11.1",
-    "vite": "^5.4.8"
+    "vite": "^8.2.0"
   }
 }

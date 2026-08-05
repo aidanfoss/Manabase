@@ -8,8 +8,18 @@ const router = express.Router();
 router.get("/", requireAuth, async (req, res) => {
   try {
     const cards = await db("user_cards")
-      .where({ user_id: req.user.id, list_type: "wishlist" })
-      .orderBy("card_name", "asc");
+      .leftJoin("user_proxy_arts", function() {
+        this.on("user_cards.user_id", "=", "user_proxy_arts.user_id")
+            .andOn("user_cards.card_name", "=", "user_proxy_arts.card_name");
+      })
+      .where({ "user_cards.user_id": req.user.id, "user_cards.list_type": "wishlist" })
+      .select(
+        "user_cards.*",
+        "user_proxy_arts.mpcfill_id",
+        "user_proxy_arts.mpcfill_name",
+        "user_proxy_arts.mpcfill_query"
+      )
+      .orderBy("user_cards.card_name", "asc");
     res.json(cards);
   } catch (err) {
     console.error(" Failed to fetch wishlist cards:", err);

@@ -13,11 +13,13 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.6.1",
+    "fast-xml-parser": "^5.10.1",
     "fuse.js": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "node-fetch": "^3.3.2",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "stream-json": "^3.5.0"
   },
   "devDependencies": {

@@ -9,6 +9,7 @@ import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
 import { isDoubleFacedCard, getCardFrontName, getCardBackName, formatMpcTextList } from "../utils/cardHelpers";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
+import ProxyArtSettings from "./ProxyArtSettings";
 import { useToast } from "../context/ToastContext";
 import "../styles/wishlist.css";
 
@@ -61,6 +62,10 @@ export default function WishlistHub() {
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+
+  // User Proxy Arts
+  const [userProxyArts, setUserProxyArts] = useState([]);
+  const [missingArtsCount, setMissingArtsCount] = useState(0);
 
   // Autocomplete search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -220,7 +225,41 @@ export default function WishlistHub() {
         })
         .catch(() => { });
     }
+
+    fetchProxyArts();
   }, []);
+
+  const fetchProxyArts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await fetch("/api/user/proxy-arts", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserProxyArts(data);
+      }
+    } catch (err) {
+      console.error("Failed to load proxy arts:", err);
+    }
+  };
+
+  // Pre-fetch missing arts info
+  useEffect(() => {
+    if (!wishlist || wishlist.length === 0) {
+      setMissingArtsCount(0);
+      return;
+    }
+    const savedNames = new Set(userProxyArts.map(a => a.card_name.toLowerCase()));
+    let count = 0;
+    wishlist.forEach(c => {
+      if (!savedNames.has(c.card_name.toLowerCase())) {
+        count++;
+      }
+    });
+    setMissingArtsCount(count);
+  }, [wishlist, userProxyArts]);
 
   const handleSaveCardBack = async (newVal) => {
     setDefaultCardBack(newVal);
@@ -971,19 +1010,27 @@ export default function WishlistHub() {
       return;
     }
 
-    // Group cards by card_name + set_code + collector_number to combine slot indices
+    // Group cards by card_name + set_code + collector_number + mpcfill_id to combine slot indices
     const cardGroups = new Map();
 
     printQueue.forEach((c, slotIndex) => {
       const meta = printsCache[c.card_name];
       const isDfc = isDoubleFacedCard(c, meta);
       const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
-      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}`;
+      
+      const mpcfillId = c.mpcfill_id || "";
+      const mpcfileName = c.mpcfill_name || (name.match(/\.(png|jpg|jpeg)$/i) ? name : `${name}.png`);
+      const mpcfillQuery = c.mpcfill_query || name;
+      
+      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}__${mpcfillId}`;
       if (!cardGroups.has(key)) {
         cardGroups.set(key, {
           name: name,
           set_code: c.set_code || "",
           collector_number: c.collector_number || "",
+          mpcfillId,
+          mpcfileName,
+          mpcfillQuery,
           slots: [slotIndex]
         });
       } else {
@@ -1011,16 +1058,11 @@ export default function WishlistHub() {
     xml += `    <fronts>\n`;
 
     for (const group of cardGroups.values()) {
-      const fileName = group.name.match(/\.(png|jpg|jpeg)$/i)
-        ? group.name
-        : `${group.name}.png`;
-      const query = group.name;
-
       xml += `        <card>\n`;
-      xml += `            <id></id>\n`;
+      xml += `            <id>${escapeXml(group.mpcfillId)}</id>\n`;
       xml += `            <slots>${group.slots.join(",")}</slots>\n`;
-      xml += `            <name>${escapeXml(fileName)}</name>\n`;
-      xml += `            <query>${escapeXml(query)}</query>\n`;
+      xml += `            <name>${escapeXml(group.mpcfileName)}</name>\n`;
+      xml += `            <query>${escapeXml(group.mpcfillQuery)}</query>\n`;
       xml += `        </card>\n`;
     }
 
@@ -1182,6 +1224,90 @@ export default function WishlistHub() {
     showToast("Verified manifest data & downloaded XML!", "success");
   };
 
+  const handleDownloadMissingArtsXml = async () => {
+    if (groupWishlist.length === 0) return;
+    showToast("Verifying latest manifest data...", "info");
+
+    const printQueue = await verifyAndGetManifest();
+    if (printQueue.length === 0) {
+      showToast("No cards in print queue to generate XML.", "warning");
+      return;
+    }
+
+    const savedNames = new Set(userProxyArts.map(a => a.card_name.toLowerCase()));
+    
+    // Filter out cards that ALREADY have an art selected BY THIS USER
+    const missingArtsQueue = printQueue.filter(c => {
+      const meta = printsCache[c.card_name];
+      const isDfc = isDoubleFacedCard(c, meta);
+      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
+      // ONLY check if the CURRENT logged in user is missing art for this card
+      // If we used the playgroup queue, we just export all cards missing art for *me*.
+      return !savedNames.has(name.toLowerCase());
+    });
+    
+    if (missingArtsQueue.length === 0) {
+      showToast("All cards already have a selected art!", "success");
+      return;
+    }
+
+    const cardGroups = new Map();
+
+    missingArtsQueue.forEach((c, slotIndex) => {
+      const meta = printsCache[c.card_name];
+      const isDfc = isDoubleFacedCard(c, meta);
+      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
+      
+      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}`;
+      if (!cardGroups.has(key)) {
+        cardGroups.set(key, {
+          name: name,
+          set_code: c.set_code || "",
+          collector_number: c.collector_number || "",
+          slots: [slotIndex]
+        });
+      } else {
+        cardGroups.get(key).slots.push(slotIndex);
+      }
+    });
+
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+    };
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<order>\n`;
+    xml += `    <details>\n`;
+    xml += `        <quantity>${missingArtsQueue.length}</quantity>\n`;
+    xml += `        <stock>(S30) Standard Smooth</stock>\n`;
+    xml += `        <foil>false</foil>\n`;
+    xml += `    </details>\n`;
+    xml += `    <fronts>\n`;
+
+    for (const group of cardGroups.values()) {
+      const fileName = group.name.match(/\.(png|jpg|jpeg)$/i) ? group.name : `${group.name}.png`;
+      xml += `        <card>\n`;
+      xml += `            <id></id>\n`;
+      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(group.name)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+    xml += `    </fronts>\n`;
+    xml += `    <cardback>b:black lotus</cardback>\n`;
+    xml += `</order>\n`;
+
+    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `missing_arts_mpcfill.xml`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("Downloaded XML of cards missing art!", "success");
+  };
+
   const handleDownloadMpcCsv = () => {
     const currentList = wishlist;
     if (currentList.length === 0) return;
@@ -1335,6 +1461,13 @@ export default function WishlistHub() {
               <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist ({wishlist.length})
             </button>
             <button
+              className={`sub-tab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
+              onClick={() => setSelectedList("proxy_arts")}
+            >
+              <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Art Selections ({userProxyArts.length})
+              {missingArtsCount > 0 && <span style={{ marginLeft: '6px', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>{missingArtsCount} missing</span>}
+            </button>
+            <button
               className="sub-tab-btn"
               onClick={() => window.location.href = "/trade"}
             >
@@ -1361,12 +1494,21 @@ export default function WishlistHub() {
           </div>
 
           {/* Quick descriptions */}
-          <div className="compliance-banner compliant" style={{ background: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.2)", color: "#93c5fd" }}>
-            <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
-          </div>
+          {selectedList === "proxy_wishlist" && (
+            <div className="compliance-banner compliant" style={{ background: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.2)", color: "#93c5fd" }}>
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
+            </div>
+          )}
+          {selectedList === "proxy_arts" && (
+            <div className="compliance-banner compliant" style={{ background: "rgba(236,72,153,0.06)", borderColor: "rgba(236,72,153,0.2)", color: "#f472b6" }}>
+              <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Art Selections: Ensure your specific cards always use the proxy art you want.
+            </div>
+          )}
 
           {/* Search bar */}
-          <div className="search-bar-row">
+          {selectedList === "proxy_wishlist" && (
+            <>
+              <div className="search-bar-row">
             <div className="search-input-wrapper">
               <span className="search-icon"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
               <input
@@ -1395,7 +1537,6 @@ export default function WishlistHub() {
             )}
           </div>
           {/* Lists Views */}
-          <>
             {/* Summary Bar */}
             <div className="wishlist-summary-bar">
               <div className="stat-cards-row">
@@ -1643,7 +1784,17 @@ export default function WishlistHub() {
                 </table>
               </div>
             )}
-          </>
+            </>
+          )}
+
+          {selectedList === "proxy_arts" && (
+            <ProxyArtSettings 
+              userProxyArts={userProxyArts} 
+              fetchProxyArts={fetchProxyArts} 
+              missingArtsCount={missingArtsCount}
+              onDownloadMissingArts={handleDownloadMissingArtsXml} 
+            />
+          )}
         </div>
       )}
 

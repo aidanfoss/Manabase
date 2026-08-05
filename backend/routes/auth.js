@@ -4,9 +4,16 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 import { db } from "../db/connection.js";
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: { error: "Too many auth attempts from this IP, please try again after 15 minutes" }
+});
 
 // Helper to find existing user or create a new user via SSO
 export async function findOrCreateSSOUser({ email, username, providerId, providerName, avatarUrl }) {
@@ -67,7 +74,7 @@ export async function findOrCreateSSOUser({ email, username, providerId, provide
 // ------------------------------------
 // Standard Register & Login
 // ------------------------------------
-router.post("/register", async (req, res) => {
+router.post("/register", authLimiter, async (req, res) => {
 // console.log(" Register body:", req.body);
   const { email, username, password } = req.body;
   if (!email || !username || !password)
@@ -86,11 +93,11 @@ router.post("/register", async (req, res) => {
     ? rawId
     : await db("users").where({ email }).first();
 
-  const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
   res.json({ token, user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null } });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   const { email, password } = req.body;
   const user = await db("users")
     .where({ email })
@@ -105,7 +112,7 @@ router.post("/login", async (req, res) => {
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-  const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
   res.json({
     token,
     user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },
@@ -114,8 +121,8 @@ router.post("/login", async (req, res) => {
 
 // Dev auto-login (disabled in production)
 router.post("/dev-login", async (req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    return res.status(403).json({ error: "Dev login only allowed in development environment" });
+  if (process.env.ENABLE_DEV_LOGIN !== "true") {
+    return res.status(403).json({ error: "Dev login is disabled" });
   }
 
   try {
@@ -140,7 +147,7 @@ router.post("/dev-login", async (req, res) => {
       return res.status(500).json({ error: "Failed to locate or create DevUser" });
     }
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.json({
       token,
       user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },
@@ -168,7 +175,7 @@ router.get("/providers", (req, res) => {
 router.get("/google", (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.ENABLE_DEV_LOGIN === "true") {
       // Dev mode fallback
       return res.redirect("/api/auth/google/dev-callback");
     }
@@ -183,8 +190,8 @@ router.get("/google", (req, res) => {
 });
 
 router.get("/google/dev-callback", async (req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    return res.status(403).json({ error: "Dev callback only allowed in development mode" });
+  if (process.env.ENABLE_DEV_LOGIN !== "true") {
+    return res.status(403).json({ error: "Dev callback is disabled" });
   }
   try {
     const user = await findOrCreateSSOUser({
@@ -195,7 +202,7 @@ router.get("/google/dev-callback", async (req, res) => {
       avatarUrl: "https://lh3.googleusercontent.com/a/default-user",
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
     console.error(" Google dev SSO error:", err);
@@ -249,7 +256,7 @@ router.get("/google/callback", async (req, res) => {
       avatarUrl: profile.picture || null,
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
     console.error(" Google callback error:", err);
@@ -260,7 +267,7 @@ router.get("/google/callback", async (req, res) => {
 router.post("/google", async (req, res) => {
   const { code, id_token, access_token } = req.body;
   
-  if (process.env.NODE_ENV !== "production" && (!code && !id_token && !access_token)) {
+  if (process.env.ENABLE_DEV_LOGIN === "true" && (!code && !id_token && !access_token)) {
     try {
       const user = await findOrCreateSSOUser({
         email: "google_dev@manabase.com",
@@ -269,7 +276,7 @@ router.post("/google", async (req, res) => {
         providerName: "google",
         avatarUrl: "https://lh3.googleusercontent.com/a/default-user",
       });
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
       return res.json({
         token,
         user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url },
@@ -321,7 +328,7 @@ router.post("/google", async (req, res) => {
       avatarUrl: profile.picture || null,
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.json({
       token,
       user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },
@@ -338,7 +345,7 @@ router.post("/google", async (req, res) => {
 router.get("/discord", (req, res) => {
   const clientId = process.env.DISCORD_CLIENT_ID;
   if (!clientId) {
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.ENABLE_DEV_LOGIN === "true") {
       // Dev mode fallback
       return res.redirect("/api/auth/discord/dev-callback");
     }
@@ -353,8 +360,8 @@ router.get("/discord", (req, res) => {
 });
 
 router.get("/discord/dev-callback", async (req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    return res.status(403).json({ error: "Dev callback only allowed in development mode" });
+  if (process.env.ENABLE_DEV_LOGIN !== "true") {
+    return res.status(403).json({ error: "Dev callback is disabled" });
   }
   try {
     const user = await findOrCreateSSOUser({
@@ -365,7 +372,7 @@ router.get("/discord/dev-callback", async (req, res) => {
       avatarUrl: "https://cdn.discordapp.com/embed/avatars/0.png",
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
     console.error(" Discord dev SSO error:", err);
@@ -423,7 +430,7 @@ router.get("/discord/callback", async (req, res) => {
       avatarUrl,
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.redirect(`/?sso_token=${encodeURIComponent(token)}`);
   } catch (err) {
     console.error(" Discord callback error:", err);
@@ -434,7 +441,7 @@ router.get("/discord/callback", async (req, res) => {
 router.post("/discord", async (req, res) => {
   const { code } = req.body;
 
-  if (process.env.NODE_ENV !== "production" && !code) {
+  if (process.env.ENABLE_DEV_LOGIN === "true" && !code) {
     try {
       const user = await findOrCreateSSOUser({
         email: "discord_dev@manabase.com",
@@ -443,7 +450,7 @@ router.post("/discord", async (req, res) => {
         providerName: "discord",
         avatarUrl: "https://cdn.discordapp.com/embed/avatars/0.png",
       });
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
       return res.json({
         token,
         user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url },
@@ -498,7 +505,7 @@ router.post("/discord", async (req, res) => {
       avatarUrl,
     });
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
     res.json({
       token,
       user: { id: user.id, email: user.email, username: user.username, avatar_url: user.avatar_url || null },

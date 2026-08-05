@@ -235,6 +235,21 @@ export async function initDB() {
     });
   }
 
+  // Create user_proxy_arts table for saved MPCFill selections per card
+  const hasUserProxyArts = await db.schema.hasTable("user_proxy_arts");
+  if (!hasUserProxyArts) {
+    await db.schema.createTable("user_proxy_arts", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("card_name").notNullable();
+      t.string("mpcfill_id").nullable();
+      t.string("mpcfill_name").nullable();
+      t.string("mpcfill_query").nullable();
+      t.timestamps(true, true);
+      t.unique(["user_id", "card_name"]);
+    });
+  }
+
   // Create user_cards table for collection tracking (Owned, Wishlist, Tradelist)
   const hasUserCards = await db.schema.hasTable("user_cards");
   if (!hasUserCards) {
