@@ -37,13 +37,31 @@ router.post("/import", requireAuth, async (req, res) => {
     // fast-xml-parser returns a single object if there's only one <card>, otherwise an array
     const cards = Array.isArray(fronts) ? fronts : [fronts];
     
+    // Fetch user's existing cards to build a canonical name map
+    const userCards = await db("user_cards")
+      .where({ user_id: req.user.id })
+      .distinct("card_name");
+
+    const normalizeName = (name) => (name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    
+    const canonicalNameMap = new Map();
+    for (const row of userCards) {
+      canonicalNameMap.set(normalizeName(row.card_name), row.card_name);
+    }
+
     let importedCount = 0;
     
     for (const card of cards) {
       // MPCFill XML might have empty id if not selected, we only want to save if there's an id
       if (!card.query || !card.id || !card.name) continue;
       
-      const cardName = card.query;
+      const normalizedQuery = normalizeName(card.query);
+      let cardName = card.query;
+      
+      // Attempt to map back to the exact punctuation/casing in Manabase
+      if (canonicalNameMap.has(normalizedQuery)) {
+        cardName = canonicalNameMap.get(normalizedQuery);
+      }
       
       await db("user_proxy_arts")
         .insert({
