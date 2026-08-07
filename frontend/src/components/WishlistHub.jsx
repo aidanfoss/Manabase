@@ -54,6 +54,7 @@ export default function WishlistHub() {
   const [counterDemand, setCounterDemand] = useState([]);
   // Lists data states
   const [wishlist, setWishlist] = useState([]);
+  const [optionalProxies, setOptionalProxies] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Bulk import states
@@ -149,7 +150,7 @@ export default function WishlistHub() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ cards: chunk, list_kind: "proxy_wishlist" }),
+          body: JSON.stringify({ cards: chunk, list_kind: selectedList === "optional_proxies" ? "optional_proxies" : "proxy_wishlist" }),
         });
 
         if (res.ok) {
@@ -169,7 +170,7 @@ export default function WishlistHub() {
       fetchPrintsBatch(uniqueNames);
       window.dispatchEvent(new Event("refreshAlerts"));
 
-      alert(` Successfully imported ${totalAdded} total cards into your Proxy Wishlist!`);
+      alert(` Successfully imported ${totalAdded} total cards into your ${selectedList === "optional_proxies" ? "Optional Proxies" : "Proxy Wishlist"}!`);
     } catch (err) {
       console.error("Failed importing cards into list:", err);
       alert("An error occurred during import. Please try again.");
@@ -314,7 +315,6 @@ export default function WishlistHub() {
 
       // Fetch Proxy Wishlist
       let newWishlist = [];
-      let newTradeList = [];
       const resWish = await fetch("/api/lists/proxy_wishlist", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -324,16 +324,24 @@ export default function WishlistHub() {
         window.dispatchEvent(new Event("refreshAlerts"));
       }
 
-      // Fetch Trade List (removed)
-
+      // Fetch Optional Proxies
+      let newOptionalProxies = [];
+      const resOpt = await fetch("/api/lists/optional_proxies", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (resOpt.ok) {
+        newOptionalProxies = await resOpt.json() || [];
+        setOptionalProxies(newOptionalProxies);
+      }
 
       const uniqueNames = [...new Set([
-        ...newWishlist.map(c => c.card_name)
+        ...newWishlist.map(c => c.card_name),
+        ...newOptionalProxies.map(c => c.card_name)
       ])];
 
       if (uniqueNames.length > 0) {
-        fetchPrintsBatch(uniqueNames, newWishlist);
-        fetchRetailPrices(newWishlist);
+        fetchPrintsBatch(uniqueNames, [...newWishlist, ...newOptionalProxies]);
+        fetchRetailPrices([...newWishlist, ...newOptionalProxies]);
       }
 
     } catch (e) {
@@ -427,7 +435,7 @@ export default function WishlistHub() {
 
       const payload = {
         card_name: card.name,
-        list_kind: "proxy_wishlist",
+        list_kind: selectedList === "optional_proxies" ? "optional_proxies" : "proxy_wishlist",
         quantity: 1,
         set_code: (card.set || "").toUpperCase(),
         collector_number: card.collector_number || "",
@@ -455,14 +463,22 @@ export default function WishlistHub() {
   };
 
   // Update card in list
-  const updateCardDetails = async (card, updates) => {
+  const updateCardDetails = async (card, updates, targetListKind = null) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      if (targetListKind && targetListKind !== card.list_type && targetListKind !== (card.list_type === "wishlist" ? "proxy_wishlist" : "")) {
+        // We are moving the card to a different list. Delete old card first to avoid duplicates.
+        await fetch(`/api/lists/${card.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
       const payload = {
         card_name: card.card_name,
-        list_kind: "proxy_wishlist",
+        list_kind: targetListKind || (card.list_type === "optional_proxies" ? "optional_proxies" : "proxy_wishlist"),
         quantity: updates.quantity !== undefined ? updates.quantity : card.quantity,
         set_code: updates.set_code !== undefined ? updates.set_code : card.set_code,
         collector_number: updates.collector_number !== undefined ? updates.collector_number : card.collector_number,
@@ -1242,6 +1258,263 @@ export default function WishlistHub() {
     showToast("Verified manifest data & downloaded XML!", "success");
   };
 
+  const verifyAndGetMyManifest = async () => {
+    // 1. Flatten wishlist and attach mpcfill fields from userProxyArts
+    const flatQueue = [];
+    const proxyArts = userProxyArts || [];
+
+    // Combine wishlist and optionalProxies (just like playgroup does)
+    const currentList = [...wishlist, ...optionalProxies].sort((a, b) => {
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+
+    currentList.forEach((item) => {
+      const meta = printsCache[item.card_name];
+      const isDfc = isDoubleFacedCard(item, meta);
+
+      let frontName = item.card_name;
+      let backName = null;
+
+      if (isDfc && item.card_name.includes(" // ")) {
+        const faces = item.card_name.split(" // ");
+        frontName = faces[0];
+        backName = faces.length > 1 ? faces[1] : null;
+      }
+
+      const frontArt = proxyArts.find(a => a.card_name.toLowerCase() === frontName.toLowerCase());
+      const backArt = backName ? proxyArts.find(a => a.card_name.toLowerCase() === backName.toLowerCase()) : null;
+
+      for (let i = 0; i < item.quantity; i++) {
+        flatQueue.push({
+          ...item,
+          username: "Me",
+          mpcfill_id: frontArt?.mpcfill_id || null,
+          mpcfill_name: frontArt?.mpcfill_name || null,
+          mpcfill_query: frontArt?.mpcfill_query || null,
+          mpcfill_back_id: backArt?.mpcfill_id || null,
+          mpcfill_back_name: backArt?.mpcfill_name || null,
+          mpcfill_back_query: backArt?.mpcfill_query || null,
+          user_card_back: item.user_card_back || defaultCardBack || "b:black lotus",
+        });
+      }
+    });
+
+    const printQueue = flatQueue.slice(0, 612);
+
+    if (printQueue.length > 0) {
+      const cardNames = Array.from(new Set(printQueue.map((c) => c.card_name)));
+      try {
+        await fetchPrintsBatch(cardNames, currentList);
+      } catch (e) {
+        console.warn("⚠️ [WishlistHub] Could not refresh prints cache prior to XML export:", e);
+      }
+    }
+
+    return printQueue;
+  };
+
+  const handleDownloadMyMpcXml = async () => {
+    if (wishlist.length === 0 && optionalProxies.length === 0) return;
+    showToast("Verifying your manifest data...", "info");
+
+    const printQueue = await verifyAndGetMyManifest();
+    if (printQueue.length === 0) {
+      showToast("No cards in print queue to generate XML.", "warning");
+      return;
+    }
+
+    // Group cards by card_name + set_code + collector_number + mpcfill_id to combine slot indices
+    const cardGroups = new Map();
+
+    printQueue.forEach((c, slotIndex) => {
+      const meta = printsCache[c.card_name];
+      const isDfc = isDoubleFacedCard(c, meta);
+      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
+      
+      const mpcfillId = c.mpcfill_id || "";
+      const mpcfileName = c.mpcfill_name || (name.match(/\.(png|jpg|jpeg)$/i) ? name : `${name}.png`);
+      const mpcfillQuery = c.mpcfill_query || name;
+      
+      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}__${mpcfillId}`;
+      if (!cardGroups.has(key)) {
+        cardGroups.set(key, {
+          name: name,
+          set_code: c.set_code || "",
+          collector_number: c.collector_number || "",
+          mpcfillId,
+          mpcfileName,
+          mpcfillQuery,
+          slots: [slotIndex]
+        });
+      } else {
+        cardGroups.get(key).slots.push(slotIndex);
+      }
+    });
+
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    };
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<order>\n`;
+    xml += `    <details>\n`;
+    xml += `        <quantity>${printQueue.length}</quantity>\n`;
+    xml += `        <stock>(S30) Standard Smooth</stock>\n`;
+    xml += `        <foil>false</foil>\n`;
+    xml += `    </details>\n`;
+    xml += `    <fronts>\n`;
+
+    for (const group of cardGroups.values()) {
+      xml += `        <card>\n`;
+      xml += `            <id>${escapeXml(group.mpcfillId)}</id>\n`;
+      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(group.mpcfileName)}</name>\n`;
+      xml += `            <query>${escapeXml(group.mpcfillQuery)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    // Helper to resolve cardback details canonically
+    const resolveCardbackDetails = (rawVal, username) => {
+      const val = (rawVal || "").trim();
+      if (!val) return null;
+
+      const match = prebuiltCardbacks.find(
+        (pb) => pb.driveId === val || pb.query === val || pb.id === val || pb.name === val
+      );
+
+      let cardId = "";
+      let queryVal = "";
+      let fileName = `${username || "User"} Card Back.png`;
+
+      if (match) {
+        cardId = match.driveId || "";
+        queryVal = match.query || match.name || "";
+        fileName = match.name.match(/\.(png|jpg|jpeg)$/i) ? match.name : `${match.name}.png`;
+      } else if (/^[1-9a-zA-Z_-]{20,}$/.test(val)) {
+        cardId = val;
+        queryVal = ""; // Leave query empty when exact Drive ID is provided to prevent search failure
+        fileName = "Card Back.png";
+      } else {
+        cardId = "";
+        queryVal = val;
+        fileName = "Card Back.png";
+      }
+
+      const canonicalKey = cardId ? `id:${cardId}` : `query:${queryVal.toLowerCase()}`;
+      return { rawVal, canonicalKey, cardId, queryVal, fileName, matchName: match ? match.name : null, username };
+    };
+
+    // 1. Resolve cardback or DFC status for every slot in the print queue
+    const slotCardbacks = printQueue.map((c) => {
+      const meta = printsCache[c.card_name];
+      if (isDoubleFacedCard(c, meta)) {
+        const backName = getCardBackName(c, meta) || getCardFrontName(c, meta) || "Unknown Card";
+        return {
+          isDfc: true,
+          rawVal: backName,
+          canonicalKey: `dfc:${backName.toLowerCase()}`,
+          cardId: c.mpcfill_back_id || "",
+          queryVal: c.mpcfill_back_query || backName,
+          fileName: c.mpcfill_back_name || `${backName}.png`,
+          matchName: "DFC Back Face",
+          username: c.username
+        };
+      }
+      const raw = (c.user_card_back || defaultCardBack || "b:black lotus").trim();
+      const resolved = resolveCardbackDetails(raw, c.username);
+      return {
+        isDfc: false,
+        ...resolved
+      };
+    });
+
+    // 2. Count frequency of non-DFC canonical cardbacks to determine primary default <cardback>
+    const frequencyMap = new Map(); // canonicalKey -> { count, details }
+    slotCardbacks.forEach((cb) => {
+      if (cb && !cb.isDfc) {
+        if (!frequencyMap.has(cb.canonicalKey)) {
+          frequencyMap.set(cb.canonicalKey, { count: 1, details: cb });
+        } else {
+          frequencyMap.get(cb.canonicalKey).count++;
+        }
+      }
+    });
+
+    let primaryCardbackDetails = null;
+    let maxCount = 0;
+    for (const entry of frequencyMap.values()) {
+      if (entry.count > maxCount) {
+        maxCount = entry.count;
+        primaryCardbackDetails = entry.details;
+      }
+    }
+
+    const globalCardbackVal = primaryCardbackDetails
+      ? (primaryCardbackDetails.cardId || primaryCardbackDetails.queryVal || primaryCardbackDetails.rawVal)
+      : (defaultCardBack || "b:black lotus").trim();
+
+    // 3. Group slots by canonical key for any DFC backs OR cardbacks that OVERRIDE the primary <cardback>
+    const overrideBacksMap = new Map(); // canonicalKey -> { ...details, slots: [] }
+
+    slotCardbacks.forEach((cb, slotIndex) => {
+      if (cb) {
+        if (cb.isDfc) {
+          if (!overrideBacksMap.has(cb.canonicalKey)) {
+            overrideBacksMap.set(cb.canonicalKey, {
+              ...cb,
+              slots: [slotIndex]
+            });
+          } else {
+            overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
+          }
+        } else {
+          const matchesPrimary = primaryCardbackDetails && cb.canonicalKey === primaryCardbackDetails.canonicalKey;
+          if (!matchesPrimary) {
+            if (!overrideBacksMap.has(cb.canonicalKey)) {
+              overrideBacksMap.set(cb.canonicalKey, {
+                ...cb,
+                slots: [slotIndex]
+              });
+            } else {
+              overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
+            }
+          }
+        }
+      }
+    });
+
+    xml += `    </fronts>\n`;
+    xml += `    <backs>\n`;
+
+    for (const backGroup of overrideBacksMap.values()) {
+      xml += `        <card>\n`;
+      xml += `            <id>${escapeXml(backGroup.cardId)}</id>\n`;
+      xml += `            <slots>${backGroup.slots.join(",")}</slots>\n`;
+      xml += `            <name>${escapeXml(backGroup.fileName)}</name>\n`;
+      xml += `            <query>${escapeXml(backGroup.queryVal)}</query>\n`;
+      xml += `        </card>\n`;
+    }
+
+    xml += `    </backs>\n`;
+    xml += `    <cardback>${escapeXml(globalCardbackVal)}</cardback>\n`;
+    xml += `</order>\n`;
+
+    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `my_mpcfill_manifest.xml`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("Verified manifest data & downloaded XML!", "success");
+  };
+
   const handleDownloadMissingArtsXml = async () => {
     if (wishlist.length === 0) return;
 
@@ -1504,6 +1777,12 @@ export default function WishlistHub() {
               <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist ({wishlist.length})
             </button>
             <button
+              className={`sub-tab-btn ${selectedList === "optional_proxies" ? "active" : ""}`}
+              onClick={() => setSelectedList("optional_proxies")}
+            >
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Optional Proxies ({optionalProxies.length})
+            </button>
+            <button
               className={`sub-tab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
               onClick={() => setSelectedList("proxy_arts")}
             >
@@ -1542,6 +1821,11 @@ export default function WishlistHub() {
               <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
             </div>
           )}
+          {selectedList === "optional_proxies" && (
+            <div className="compliance-banner compliant" style={{ background: "rgba(107,114,128,0.06)", borderColor: "rgba(107,114,128,0.2)", color: "#9ca3af" }}>
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Optional Proxies: Lower priority cards used to fill out the remaining slots of a bulk print bracket.
+            </div>
+          )}
           {selectedList === "proxy_arts" && (
             <div className="compliance-banner compliant" style={{ background: "rgba(236,72,153,0.06)", borderColor: "rgba(236,72,153,0.2)", color: "#f472b6" }}>
               <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Art Selections: Ensure your specific cards always use the proxy art you want.
@@ -1549,7 +1833,7 @@ export default function WishlistHub() {
           )}
 
           {/* Search bar */}
-          {selectedList === "proxy_wishlist" && (
+          {(selectedList === "proxy_wishlist" || selectedList === "optional_proxies") && (
             <>
               <div className="search-bar-row">
             <div className="search-input-wrapper">
@@ -1581,52 +1865,60 @@ export default function WishlistHub() {
           </div>
           {/* Lists Views */}
             {/* Summary Bar */}
-            <div className="wishlist-summary-bar">
-              <div className="stat-cards-row">
-                <div className="summary-stat-card">
-                  <span className="label">Unique Cards</span>
-                  <span className="val">{wishlist.length}</span>
-                </div>
-                <div className="summary-stat-card">
-                  <span className="label">Total Quantity</span>
-                  <span className="val">
-                    {wishlist.reduce((sum, c) => sum + c.quantity, 0)}
-                  </span>
-                </div>
-                <div className="summary-stat-card">
-                  <span className="label">Est. Cost</span>
-                  <span className="val">
-                    ${(
-                      wishlist.reduce((sum, c) => sum + c.quantity, 0) * 0.25
-                    ).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+            {(() => {
+              const activeList = selectedList === "optional_proxies" ? optionalProxies : wishlist;
+              return (
+                <div className="wishlist-summary-bar">
+                  <div className="stat-cards-row">
+                    <div className="summary-stat-card">
+                      <span className="label">Unique Cards</span>
+                      <span className="val">{activeList.length}</span>
+                    </div>
+                    <div className="summary-stat-card">
+                      <span className="label">Total Quantity</span>
+                      <span className="val">
+                        {activeList.reduce((sum, c) => sum + c.quantity, 0)}
+                      </span>
+                    </div>
+                    <div className="summary-stat-card">
+                      <span className="label">Est. Cost</span>
+                      <span className="val">
+                        ${(
+                          activeList.reduce((sum, c) => sum + c.quantity, 0) * 0.25
+                        ).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
 
-              <div className="proxy-actions-row">
-                <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
-                  <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
-                </button>
-                <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={wishlist.length === 0} title="Purge cards cheap enough to buy directly">
-                  <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Remove Cheap Cards
-                </button>
-                <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={wishlist.length === 0}>
-                  <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
-                </button>
-                <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={wishlist.length === 0}>
-                  <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download CSV
-                </button>
-                <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={wishlist.length === 0}>
-                  <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Print Sheets
-                </button>
-                <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={wishlist.length === 0}>
-                  <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
-                </button>
-                <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={wishlist.length === 0} title="Clear all cards from your proxy wishlist">
-                  <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Clear All
-                </button>
-              </div>
-            </div>
+                  <div className="proxy-actions-row">
+                    <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
+                      <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
+                    </button>
+                    <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
+                      <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Remove Cheap Cards
+                    </button>
+                    <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={activeList.length === 0}>
+                      <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
+                    </button>
+                    <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={activeList.length === 0}>
+                      <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download CSV
+                    </button>
+                    <button className="proxy-btn" onClick={handleDownloadMyMpcXml} disabled={activeList.length === 0}>
+                      <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download XML
+                    </button>
+                    <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={activeList.length === 0}>
+                      <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Print Sheets
+                    </button>
+                    <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={activeList.length === 0}>
+                      <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
+                    </button>
+                    <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
+                      <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Clear All
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Retail Provider Toggles Bar */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", background: "rgba(15,23,42,0.7)", padding: "0.6rem 1rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "0.75rem", flexWrap: "wrap" }}>
@@ -1675,7 +1967,7 @@ export default function WishlistHub() {
             </div>
 
             {/* Grid cards */}
-            {wishlist.length === 0 ? (
+            {(selectedList === "optional_proxies" ? optionalProxies : wishlist).length === 0 ? (
               <div className="empty-wishlist-box">
                 This list is empty. Search cards above to add them.
               </div>
@@ -1695,7 +1987,7 @@ export default function WishlistHub() {
                     </tr>
                   </thead>
                   <tbody>
-                    {wishlist.map((c) => {
+                    {(selectedList === "optional_proxies" ? optionalProxies : wishlist).map((c) => {
                       const cardMeta = printsCache[c.card_name];
                       const prints = cardMeta?.prints || [];
                       const activePrintIdx = selectedPrints[c.card_name] || 0;
@@ -1811,6 +2103,17 @@ export default function WishlistHub() {
                               title="Check LotusVault stock & ManaPool shipping for this card"
                             >
                               <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Retail Check
+                            </button>
+                            <button
+                              className="table-action-btn"
+                              style={{ background: "rgba(234,179,8,0.15)", color: "#eab308", border: "1px solid rgba(234,179,8,0.3)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem", marginRight: "6px", cursor: "pointer" }}
+                              onClick={() => {
+                                updateCardDetails(c, {}, c.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist")
+                                  .then(() => loadLists());
+                              }}
+                              title={`Move to ${c.list_type === "wishlist" ? "Optional Proxies" : "Required Proxies"}`}
+                            >
+                              <ArrowsRightLeftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Move
                             </button>
                             <button
                               className="table-delete-btn"
@@ -2020,7 +2323,7 @@ export default function WishlistHub() {
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       {groupWishlist.slice(0, 612).map((c, idx) => (
                         <div key={`${c.id}-${idx}`} className="queue-list-item">
-                          <span>{idx + 1}. <strong>{c.card_name}</strong> ({c.username})</span>
+                          <span>{idx + 1}. <strong>{c.card_name}</strong> {c.list_type === "optional_proxies" && <span style={{ color: "#a8a29e", fontSize: "0.75rem", fontStyle: "italic", marginLeft: "2px", marginRight: "2px" }}>(Optional)</span>} ({c.username})</span>
                           <span style={{ color: "#64748b" }}>{c.set_code?.toUpperCase()}</span>
                         </div>
                       ))}
@@ -2039,7 +2342,7 @@ export default function WishlistHub() {
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       {groupWishlist.slice(612).map((c, idx) => (
                         <div key={`${c.id}-${idx}`} className="queue-list-item">
-                          <span>{idx + 1}. <strong>{c.card_name}</strong> ({c.username})</span>
+                          <span>{idx + 1}. <strong>{c.card_name}</strong> {c.list_type === "optional_proxies" && <span style={{ color: "#a8a29e", fontSize: "0.75rem", fontStyle: "italic", marginLeft: "2px", marginRight: "2px" }}>(Optional)</span>} ({c.username})</span>
                           <span style={{ color: "#64748b" }}>{c.set_code?.toUpperCase()}</span>
                         </div>
                       ))}

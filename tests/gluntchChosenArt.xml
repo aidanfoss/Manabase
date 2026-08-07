@@ -1,0 +1,55 @@
+<order>
+    <details>
+        <quantity>4</quantity>
+        <bracket>18</bracket>
+        <stock>(S30) Standard Smooth</stock>
+        <foil>false</foil>
+    </details>
+    <fronts>
+        <card>
+            <id>1YhletqWHezOcrsXSE-Tw2_Tcq4uufeeb</id>
+            <slots>0</slots>
+            <name>Gluntch the Bestower.jpg</name>
+            <query>gluntch bestower</query>
+        </card>
+        <card>
+            <id>1RLjaV74Hj-QX3rd7BXNJnIdQUmfmxktl</id>
+            <slots>1</slots>
+            <name>Wear _ Tear (3).png</name>
+            <query>wear tear</query>
+        </card>
+        <card>
+            <id>15tDzRAfBE2giqjFQm0RhjPauQiiA8Hi_</id>
+            <slots>2</slots>
+            <name>Generous Gift (Borderless Ron Spears).jpg</name>
+            <query>generous gift</query>
+        </card>
+        <card>
+            <id>1XLjHFNLK80BI4Efd8EJie4NTC4KzpnB4</id>
+            <slots>3</slots>
+            <name>Stroke of Midnight (Memoories of Nibelheim).jpg</name>
+            <query>stroke of midnight</query>
+        </card>
+    </fronts>
+    <backs>
+        <card>
+            <id>1B6Zi82YPhjYlqU2c7BBGK--pdducb_xO</id>
+            <slots>1</slots>
+            <name>Black Lotus (Steven Belledin).jpg</name>
+            <query>b:black lotus</query>
+        </card>
+        <card>
+            <id>1xTnSx8FhtZX1IV_OXUeorFaJS8iYwV45</id>
+            <slots>2</slots>
+            <name>Berserk.jpg</name>
+            <query>b:berserk</query>
+        </card>
+        <card>
+            <id>1k2Ko1GuZc15Kl7gXsGp2wlt71TD86wUJ</id>
+            <slots>3</slots>
+            <name>Commence the Endgame.jpg</name>
+            <query>b:commence endgame</query>
+        </card>
+    </backs>
+    <cardback>1LrVX0pUcye9n_0RtaDNVl2xPrQgn7CYf</cardback>
+</order>

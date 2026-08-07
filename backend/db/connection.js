@@ -53,6 +53,7 @@ export async function initDB() {
       t.string("google_id").nullable().unique();
       t.string("discord_id").nullable().unique();
       t.string("avatar_url").nullable();
+      t.string("default_card_back").defaultTo("b:black lotus");
       t.timestamps(true, true);
     });
   } else {

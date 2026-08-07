@@ -305,10 +305,11 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           .where("playgroup_id", playgroupId)
           .where("opted_out_of_manifest", false);
       })
-      .where("user_cards.list_type", "wishlist")
+      .whereIn("user_cards.list_type", ["wishlist", "optional_proxies"])
       .select(
         "user_cards.id",
         "user_cards.user_id",
+        "user_cards.list_type",
         "user_cards.card_name",
         "user_cards.set_code",
         "user_cards.collector_number",
@@ -318,6 +319,7 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
         "users.username",
         "users.default_card_back as user_card_back"
       )
+      .orderBy("user_cards.list_type", "desc")
       .orderBy("user_cards.created_at", "asc");
 
     const userIds = Array.from(new Set(items.map(item => item.user_id)));
@@ -362,6 +364,7 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
           mpcfill_back_name: backArt?.mpcfill_name || null,
           mpcfill_back_query: backArt?.mpcfill_query || null,
           created_at: item.created_at,
+          list_type: item.list_type,
           index: i + 1
         });
       }
@@ -454,10 +457,11 @@ router.post("/:id/orders/mpcfill", requireAuth, async (req, res) => {
           .where("playgroup_id", playgroupId)
           .where("opted_out_of_manifest", false);
       })
-      .where("user_cards.list_type", "wishlist")
+      .whereIn("user_cards.list_type", ["wishlist", "optional_proxies"])
       .select(
         "user_cards.id",
         "user_cards.user_id",
+        "user_cards.list_type",
         "user_cards.card_name",
         "user_cards.set_code",
         "user_cards.collector_number",
@@ -466,6 +470,7 @@ router.post("/:id/orders/mpcfill", requireAuth, async (req, res) => {
         "user_cards.created_at",
         "users.username"
       )
+      .orderBy("user_cards.list_type", "desc")
       .orderBy("user_cards.created_at", "asc");
 
 
@@ -481,7 +486,8 @@ router.post("/:id/orders/mpcfill", requireAuth, async (req, res) => {
           set_code: item.set_code,
           collector_number: item.collector_number,
           is_foil: item.is_foil,
-          created_at: item.created_at
+          created_at: item.created_at,
+          list_type: item.list_type
         });
       }
     });

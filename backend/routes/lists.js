@@ -11,7 +11,7 @@ router.get("/:type", requireAuth, async (req, res) => {
   const { type } = req.params;
   const listType = type === "proxy_wishlist" ? "wishlist" : type; // map to db naming
 
-  if (!["wishlist", "tradelist"].includes(listType)) {
+  if (!["wishlist", "tradelist", "optional_proxies"].includes(listType)) {
     return res.status(400).json({ error: "Invalid list type." });
   }
 
@@ -34,7 +34,7 @@ router.post("/", requireAuth, async (req, res) => {
   const { card_name, list_kind, quantity, set_code, collector_number, is_foil, target_owner_id, any_printing } = req.body;
   const listType = list_kind === "proxy_wishlist" ? "wishlist" : list_kind;
 
-  if (!["wishlist", "tradelist"].includes(listType)) {
+  if (!["wishlist", "tradelist", "optional_proxies"].includes(listType)) {
     return res.status(400).json({ error: "Invalid list type." });
   }
 
@@ -108,7 +108,7 @@ router.post("/bulk", requireAuth, async (req, res) => {
   const { cards, list_kind } = req.body;
   const listType = (list_kind === "proxy_wishlist" || !list_kind) ? "wishlist" : list_kind;
 
-  if (!["wishlist", "tradelist"].includes(listType)) {
+  if (!["wishlist", "tradelist", "optional_proxies"].includes(listType)) {
     return res.status(400).json({ error: "Invalid list type." });
   }
 
