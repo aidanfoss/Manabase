@@ -518,11 +518,42 @@ export async function initDB() {
   if (!hasProxyOrders) {
     await db.schema.createTable("proxy_orders", (t) => {
       t.increments("id").primary();
-      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups");
-      t.string("status").defaultTo("open"); // 'open', 'locked', 'ordered'
+      t.uuid("user_id").nullable().references("id").inTable("users").onDelete("SET NULL");
+      t.integer("playgroup_id").nullable().references("id").inTable("playgroups").onDelete("SET NULL");
+      t.string("title").nullable();
+      t.string("status").defaultTo("confirmed"); // 'open', 'locked', 'ordered', 'confirmed'
+      t.integer("total_cards").defaultTo(0);
+      t.decimal("total_cost", 10, 2).defaultTo(0);
+      t.json("cards").nullable();
       t.timestamps(true, true);
     });
 // console.log(" Created proxy_orders table");
+  } else {
+    const hasUserId = await db.schema.hasColumn("proxy_orders", "user_id");
+    if (!hasUserId) {
+      await db.schema.alterTable("proxy_orders", (t) => {
+        t.uuid("user_id").nullable().references("id").inTable("users").onDelete("SET NULL");
+      });
+    }
+    const hasTitle = await db.schema.hasColumn("proxy_orders", "title");
+    if (!hasTitle) {
+      await db.schema.alterTable("proxy_orders", (t) => {
+        t.string("title").nullable();
+      });
+    }
+    const hasTotalCards = await db.schema.hasColumn("proxy_orders", "total_cards");
+    if (!hasTotalCards) {
+      await db.schema.alterTable("proxy_orders", (t) => {
+        t.integer("total_cards").defaultTo(0);
+        t.decimal("total_cost", 10, 2).defaultTo(0);
+      });
+    }
+    const hasCardsCol = await db.schema.hasColumn("proxy_orders", "cards");
+    if (!hasCardsCol) {
+      await db.schema.alterTable("proxy_orders", (t) => {
+        t.json("cards").nullable();
+      });
+    }
   }
 
   // Trades system

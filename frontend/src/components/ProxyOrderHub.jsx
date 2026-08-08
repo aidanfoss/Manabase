@@ -79,6 +79,56 @@ export default function ProxyOrderHub({ data }) {
   const [importStatus, setImportStatus] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
+  // Confirm order states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmingOrder, setConfirmingOrder] = useState(false);
+  const [confirmChecked, setConfirmChecked] = useState(false);
+
+  const handleConfirmOrderSubmit = async () => {
+    if (!confirmChecked) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please log in to confirm order.");
+      return;
+    }
+
+    setConfirmingOrder(true);
+    try {
+      const res = await fetch("/api/proxy-orders/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          cards: configuredCards.filter(c => c.qty > 0).map(c => ({
+            card_name: c.name,
+            set_code: c.setCode,
+            collector_number: c.collector,
+            is_foil: c.finish === "foil",
+            quantity: c.qty,
+            list_type: "wishlist"
+          })),
+          unit_cost: 0.25
+        })
+      });
+
+      if (res.ok) {
+        alert("Success! Order confirmed and saved to Order History.");
+        setShowConfirmModal(false);
+        setConfirmChecked(false);
+      } else {
+        const errData = await res.json();
+        alert(errData.error || "Failed to confirm order.");
+      }
+    } catch (err) {
+      console.error("Error confirming order:", err);
+      alert("Failed to confirm order.");
+    } finally {
+      setConfirmingOrder(false);
+    }
+  };
+
   const parsedPreviewCards = useMemo(() => {
     if (!importText.trim()) return [];
     return parseImportInput(importText);
@@ -602,6 +652,15 @@ export default function ProxyOrderHub({ data }) {
           </button>
           <button
             className="hub-btn"
+            style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399", color: "#ffffff", fontWeight: "700" }}
+            onClick={() => setShowConfirmModal(true)}
+            disabled={stats.items === 0}
+            title="Confirm that you ordered these cards on MakePlayingCards"
+          >
+            <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
+          </button>
+          <button
+            className="hub-btn"
             style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.2), rgba(99,102,241,0.2))", border: "1px solid rgba(236,72,153,0.5)", color: "#f472b6" }}
             onClick={() => {
               setDrawerCardName("");
@@ -822,6 +881,71 @@ export default function ProxyOrderHub({ data }) {
           </div>
         </div>
       )}
+      {/* CONFIRM ORDER MODAL */}
+      {showConfirmModal && (
+        <div className="modal-overlay" onClick={() => !confirmingOrder && setShowConfirmModal(false)}>
+          <div className="modal-container" style={{ maxWidth: "520px" }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-title">
+                <h2>
+                  <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: "#10b981" }} />
+                  Confirm Proxy Order
+                </h2>
+                <p>Verify and save your order into Order History</p>
+              </div>
+              <button className="modal-close-btn" onClick={() => !confirmingOrder && setShowConfirmModal(false)}></button>
+            </div>
+
+            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: "8px", padding: "0.85rem", color: "#34d399", fontSize: "0.85rem" }}>
+                <p style={{ margin: 0, fontWeight: "600" }}>
+                  Confirming this order will save it to your Order History and clear the ordered cards from the proxy wishlist.
+                </p>
+              </div>
+
+              <div style={{ background: "rgba(15,23,42,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "8px", padding: "0.85rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+                  <span style={{ color: "#94a3b8" }}>Total Cards:</span>
+                  <strong style={{ color: "#34d399" }}>{stats.items} cards ({stats.unique} unique)</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
+                  <span style={{ color: "#94a3b8" }}>Est. Print Cost ($0.25/card):</span>
+                  <strong style={{ color: "#f8fafc" }}>${(stats.items * 0.25).toFixed(2)}</strong>
+                </div>
+              </div>
+
+              <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.88rem", color: "#f8fafc", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={confirmChecked}
+                  onChange={(e) => setConfirmChecked(e.target.checked)}
+                  style={{ width: "18px", height: "18px", accentColor: "#10b981" }}
+                />
+                <span>I confirm that I have ordered these cards on MakePlayingCards.</span>
+              </label>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn-secondary"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={confirmingOrder}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399" }}
+                onClick={handleConfirmOrderSubmit}
+                disabled={confirmingOrder || !confirmChecked}
+              >
+                {confirmingOrder ? "Confirming..." : "Confirm & Clear Wishlist"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LotusVault & ManaPool Price & Shipping Drawer */}
       <MarketplacePriceDrawer
         isOpen={showMarketplaceDrawer}

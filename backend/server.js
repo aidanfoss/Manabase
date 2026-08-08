@@ -40,6 +40,7 @@ import cardbacksRouter from "./routes/cardbacks.js";
 import pricingRouter from "./routes/pricingRoutes.js";
 import adminRouter from "./routes/admin.js";
 import proxyArtsRouter from "./routes/proxyArts.js";
+import proxyOrdersRouter from "./routes/proxyOrders.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -109,6 +110,7 @@ app.use("/api/trade", tradeRouter);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/user/proxy-arts", proxyArtsRouter);
+app.use("/api/proxy-orders", proxyOrdersRouter);
 
 //  Packages (User-created or public)
 app.use("/api/packages", packagesRouter);
