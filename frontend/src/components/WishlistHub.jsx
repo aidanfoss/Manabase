@@ -2930,8 +2930,8 @@ export default function WishlistHub() {
                                   borderRadius: "6px",
                                   fontSize: "0.8rem",
                                   display: "flex",
-                                  justify-content: "space-between",
-                                  align-items: "center"
+                                  justifyContent: "space-between",
+                                  alignItems: "center"
                                 }}
                               >
                                 <span>
