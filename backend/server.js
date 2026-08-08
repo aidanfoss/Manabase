@@ -28,6 +28,7 @@ import packagesRouter from "./routes/packages.js";
 import landcyclesRouter from "./routes/landcycles.js";
 import presetsRouter from "./routes/presets.js";
 import archidektRouter from "./routes/archidekt.js";
+import moxfieldRouter from "./routes/moxfield.js";
 import deckUpdaterRouter from "./routes/deckUpdater.js";
 
 import ownedRouter from "./routes/owned.js";
@@ -117,6 +118,9 @@ app.use("/api/packages", packagesRouter);
 
 //  Archidekt integration
 app.use("/api/archidekt", archidektRouter);
+
+//  Moxfield integration
+app.use("/api/moxfield", moxfieldRouter);
 
 //  Deck Updater
 app.use("/api/deck-updater", deckUpdaterRouter);

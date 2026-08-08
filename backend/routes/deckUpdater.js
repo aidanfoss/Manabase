@@ -3,6 +3,7 @@ import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { getStrictlyBetterUpgrades, getEDHRecSuggestions, syncStrictlyBetterData } from "../services/deckUpdater.js";
 import { getLocalCardsBatch } from "./scryfallLocal.js";
+import { fetchMoxfieldDeck } from "../services/moxfieldSync.js";
 import axios from "axios";
 
 const router = express.Router();
@@ -45,33 +46,39 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
       let deckCardNames = [];
       let commanderName = deck.commander;
       
-      // If the deck is missing the 'cards' JSON array (e.g. older sync), fetch from Archidekt directly to heal it
+      // If the deck is missing the 'cards' JSON array (e.g. older sync), fetch directly to heal it
       if (!deck.cards) {
         try {
-          const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deck.deck_id}/`);
-          const archidektDeck = archidektRes.data;
-          if (archidektDeck.cards) {
-            deckCardNames = archidektDeck.cards
-              .filter(item => item.card && item.card.oracleCard)
-              .map(item => item.card.oracleCard.name);
-            
-            if (!commanderName) {
-              for (const item of archidektDeck.cards) {
-                if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
-                  commanderName = item.card.oracleCard.name;
-                  break;
+          if (deck.source === "moxfield") {
+            const moxfieldData = await fetchMoxfieldDeck(deck.deck_id);
+            deckCardNames = moxfieldData.cards.map(c => c.cardName);
+            if (!commanderName) commanderName = moxfieldData.commander;
+          } else {
+            const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deck.deck_id}/`);
+            const archidektDeck = archidektRes.data;
+            if (archidektDeck.cards) {
+              deckCardNames = archidektDeck.cards
+                .filter(item => item.card && item.card.oracleCard)
+                .map(item => item.card.oracleCard.name);
+              
+              if (!commanderName) {
+                for (const item of archidektDeck.cards) {
+                  if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
+                    commanderName = item.card.oracleCard.name;
+                    break;
+                  }
                 }
               }
             }
-
-            // Heal the DB cache
-            await db("user_archidekt_decks")
-              .where({ id: deck.id })
-              .update({
-                cards: JSON.stringify(deckCardNames),
-                commander: commanderName
-              });
           }
+
+          // Heal the DB cache
+          await db("user_archidekt_decks")
+            .where({ id: deck.id })
+            .update({
+              cards: JSON.stringify(deckCardNames),
+              commander: commanderName
+            });
         } catch (e) {
           console.warn(`Could not heal missing cache for deck ${deck.deck_id}`);
           // Fallback to deck items just in case
@@ -188,26 +195,32 @@ router.get("/:deckId", requireAuth, async (req, res) => {
     let commanderName = deck.commander;
 
     try {
-      const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
-      const archidektDeck = archidektRes.data;
-      
-      if (archidektDeck.cards) {
-        deckCardNames = archidektDeck.cards
-          .filter(item => item.card && item.card.oracleCard)
-          .map(item => item.card.oracleCard.name);
-          
-        // Re-check commander if it was missing in DB
-        if (!commanderName) {
-          for (const item of archidektDeck.cards) {
-            if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
-              commanderName = item.card.oracleCard.name;
-              break;
+      if (deck.source === "moxfield") {
+        const moxfieldData = await fetchMoxfieldDeck(deckId);
+        deckCardNames = moxfieldData.cards.map(c => c.cardName);
+        if (!commanderName) commanderName = moxfieldData.commander;
+      } else {
+        const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
+        const archidektDeck = archidektRes.data;
+        
+        if (archidektDeck.cards) {
+          deckCardNames = archidektDeck.cards
+            .filter(item => item.card && item.card.oracleCard)
+            .map(item => item.card.oracleCard.name);
+            
+          // Re-check commander if it was missing in DB
+          if (!commanderName) {
+            for (const item of archidektDeck.cards) {
+              if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
+                commanderName = item.card.oracleCard.name;
+                break;
+              }
             }
           }
         }
       }
     } catch (e) {
-      console.warn(`Could not fetch live deck ${deckId} from Archidekt, falling back to DB items.`);
+      console.warn(`Could not fetch live deck ${deckId} (${deck.source || "archidekt"}), falling back to DB items.`);
       // Fallback to db
       const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
       deckCardNames = items.map(i => i.card_name);

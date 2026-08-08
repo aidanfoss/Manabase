@@ -189,6 +189,16 @@ export const api = {
   refreshArchidektLists: () => api.json("/archidekt/refresh-lists", { method: "POST", body: JSON.stringify({}) }),
 
   // ---------------------------------------
+  // === Moxfield Sync ===
+  // ---------------------------------------
+  updateMoxfieldConfig: (config) => api.json("/moxfield/config", { method: "PUT", body: JSON.stringify(config) }),
+  getMoxfieldDeckInfo: (deckId) => api.json(`/moxfield/deck/${encodeURIComponent(deckId)}`),
+  syncMoxfieldDeck: (deckId, mappings) => api.json(`/moxfield/sync/${encodeURIComponent(deckId)}`, { method: "POST", body: JSON.stringify({ mappings }) }),
+  getSavedMoxfieldDecks: () => api.json("/moxfield/decks"),
+  updateMoxfieldDeckOptions: (deckId, options) => api.json(`/moxfield/decks/${encodeURIComponent(deckId)}`, { method: "PUT", body: JSON.stringify(options) }),
+  refreshMoxfieldLists: () => api.json("/moxfield/refresh-lists", { method: "POST", body: JSON.stringify({}) }),
+
+  // ---------------------------------------
   // === Playgroups ===
   // ---------------------------------------
   resyncPlaygroupDecks: (playgroupId) => api.json(`/playgroups/${playgroupId}/resync-decks`, { method: "POST" }),

@@ -6,6 +6,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { getLocalCardsBatch } from "./scryfallLocal.js";
 import { isDoubleFacedCard } from "../utils/cardHelpers.js";
 import { syncDeckInternal } from "../services/archidektSync.js";
+import { syncMoxfieldDeckInternal } from "../services/moxfieldSync.js";
 
 const router = express.Router();
 
@@ -403,13 +404,15 @@ router.post("/:id/resync-decks", requireAuth, async (req, res) => {
 
     for (const deck of activeDecks) {
       try {
-        const result = await syncDeckInternal(deck.deck_id, deck.user_id, null);
+        const result = deck.source === "moxfield"
+          ? await syncMoxfieldDeckInternal(deck.deck_id, deck.user_id, null)
+          : await syncDeckInternal(deck.deck_id, deck.user_id, null);
         totalAdded += result.stats.added || 0;
         totalRemoved += result.stats.removed || 0;
         totalIgnored += result.stats.ignored || 0;
         successCount++;
       } catch (err) {
-        console.error(`Failed to bulk sync deck ${deck.deck_id} for user ${deck.user_id}:`, err.message);
+        console.error(`Failed to bulk sync deck ${deck.deck_id} (${deck.source || "archidekt"}) for user ${deck.user_id}:`, err.message);
         // Continue with other decks
       }
     }

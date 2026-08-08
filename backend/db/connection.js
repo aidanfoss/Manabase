@@ -50,6 +50,9 @@ export async function initDB() {
       t.string("archidekt_username");
       t.integer("archidekt_id");
       t.json("archidekt_tag_mappings");
+      t.string("moxfield_username");
+      t.string("moxfield_id");
+      t.json("moxfield_tag_mappings");
       t.string("google_id").nullable().unique();
       t.string("discord_id").nullable().unique();
       t.string("avatar_url").nullable();
@@ -66,6 +69,15 @@ export async function initDB() {
         t.json("archidekt_tag_mappings");
       });
 // console.log(" Added archidekt columns to users table");
+    }
+
+    const hasMoxfieldUsername = await db.schema.hasColumn("users", "moxfield_username");
+    if (!hasMoxfieldUsername) {
+      await db.schema.table("users", (t) => {
+        t.string("moxfield_username");
+        t.string("moxfield_id");
+        t.json("moxfield_tag_mappings");
+      });
     }
 
     const hasGoogleId = await db.schema.hasColumn("users", "google_id");
@@ -113,6 +125,7 @@ export async function initDB() {
       t.string("commander").nullable();
       t.boolean("is_public").defaultTo(false);
       t.string("status").defaultTo("active"); // active, disabled, archived
+      t.string("source").defaultTo("archidekt"); // archidekt, moxfield
       t.timestamps(true, true);
       t.unique(["user_id", "deck_id"]); // One entry per deck per user
     });
@@ -141,6 +154,13 @@ export async function initDB() {
         t.json("cards").nullable();
       });
     }
+
+    const hasSource = await db.schema.hasColumn("user_archidekt_decks", "source");
+    if (!hasSource) {
+      await db.schema.alterTable("user_archidekt_decks", (t) => {
+        t.string("source").defaultTo("archidekt");
+      });
+    }
   }
 
   // Create user_archidekt_deck_items table for tracking differential syncs
@@ -155,10 +175,18 @@ export async function initDB() {
       t.string("set_code").defaultTo("");
       t.boolean("is_foil").defaultTo(false);
       t.integer("quantity").defaultTo(1);
+      t.string("source").defaultTo("archidekt");
       t.timestamps(true, true);
       // We aggregate by card, list, set, foil to diff against user_cards
       t.unique(["user_id", "deck_id", "card_name", "list_type", "set_code", "is_foil"]);
     });
+  } else {
+    const hasSourceItems = await db.schema.hasColumn("user_archidekt_deck_items", "source");
+    if (!hasSourceItems) {
+      await db.schema.alterTable("user_archidekt_deck_items", (t) => {
+        t.string("source").defaultTo("archidekt");
+      });
+    }
   }
 
   // Create user_deck_dismissals table for Deck Updater exclusions

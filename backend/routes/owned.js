@@ -2,6 +2,7 @@ import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { disableUserDecksAndClearItems } from "../services/archidektSync.js";
+import { disableUserMoxfieldDecksAndClearItems } from "../services/moxfieldSync.js";
 
 const router = express.Router();
 
@@ -358,6 +359,7 @@ router.delete("/", requireAuth, async (req, res) => {
       if (targetListType === "proxy") {
         try {
           await disableUserDecksAndClearItems(req.user.id);
+          await disableUserMoxfieldDecksAndClearItems(req.user.id);
         } catch (deckErr) {
           // Non-fatal: log but do not prevent the clear from succeeding
           console.error(" Failed to disable user decks on proxy list clear:", deckErr);

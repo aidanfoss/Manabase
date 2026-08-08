@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowPathIcon, PlusIcon, ArchiveBoxIcon, Cog6ToothIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
 
-
-
 import { api } from "../api/client";
 import DeckImporter from "./DeckImporter";
 import "../styles.css";
@@ -26,8 +24,13 @@ export default function DecksHub() {
   const loadDecks = async () => {
     setLoading(true);
     try {
-      const data = await api.getSavedArchidektDecks();
-      setDecks(data || []);
+      const [archidektDecks, moxfieldDecks] = await Promise.all([
+        api.getSavedArchidektDecks().catch(() => []),
+        api.getSavedMoxfieldDecks().catch(() => [])
+      ]);
+      const combined = [...(archidektDecks || []), ...(moxfieldDecks || [])];
+      combined.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+      setDecks(combined);
     } catch (err) {
       setError(err.message || "Failed to load saved decks");
     } finally {
@@ -36,7 +39,6 @@ export default function DecksHub() {
   };
 
   useEffect(() => {
-    // Only load decks if we are on the Hub view
     if (!showImporter) {
       loadDecks();
     }
@@ -50,30 +52,32 @@ export default function DecksHub() {
   const handleCloseImporter = () => {
     setShowImporter(false);
     setImporterDeck(null);
-    loadDecks(); // reload decks in case a new one was added
+    loadDecks();
   };
 
-  const handleQuickResync = async (deckId) => {
-    setSyncingId(deckId);
+  const handleQuickResync = async (deck) => {
+    setSyncingId(deck.deck_id);
     setPopupStats(null);
     try {
-      // Passing undefined for mappings tells backend to use saved mappings
-      const res = await api.syncArchidektDeck(deckId, undefined);
+      const isMoxfield = deck.source === "moxfield";
+      const res = isMoxfield
+        ? await api.syncMoxfieldDeck(deck.deck_id, undefined)
+        : await api.syncArchidektDeck(deck.deck_id, undefined);
+
       setPopupStats({
         title: "Sync Complete",
-        message: `Successfully synced deck ${deckId}`,
+        message: `Successfully synced ${isMoxfield ? 'Moxfield' : 'Archidekt'} deck: ${deck.deck_name}`,
         stats: res.stats
       });
       loadDecks();
     } catch (err) {
       setPopupStats({
         title: "Sync Failed",
-        message: err.message || `Failed to sync deck ${deckId}`,
+        message: err.message || `Failed to sync deck ${deck.deck_name}`,
         error: true
       });
     } finally {
       setSyncingId(null);
-      // Auto-hide popup after 10s
       setTimeout(() => setPopupStats(null), 10000);
     }
   };
@@ -81,8 +85,6 @@ export default function DecksHub() {
   const handleResyncAll = async () => {
     if (decks.length === 0) return;
 
-    // If any active decks have been disabled (e.g. after a proxy list clear),
-    // ask the user whether they want to re-enable them as part of this sync.
     const disabledDecks = decks.filter(d => d.status === 'disabled');
     let includeDisabled = false;
     if (disabledDecks.length > 0) {
@@ -91,7 +93,6 @@ export default function DecksHub() {
       );
     }
 
-    // Determine which decks to sync
     const decksToSync = decks.filter(d => d.status !== 'disabled' || includeDisabled);
     if (decksToSync.length === 0) {
       setPopupStats({
@@ -112,7 +113,10 @@ export default function DecksHub() {
     try {
       for (const deck of decksToSync) {
         setSyncingId(deck.deck_id);
-        const res = await api.syncArchidektDeck(deck.deck_id, undefined);
+        const res = deck.source === "moxfield"
+          ? await api.syncMoxfieldDeck(deck.deck_id, undefined)
+          : await api.syncArchidektDeck(deck.deck_id, undefined);
+
         if (res.stats) {
           totalStats.added += (res.stats.added || 0);
           totalStats.removed += (res.stats.removed || 0);
@@ -145,25 +149,26 @@ export default function DecksHub() {
     if (decks.length === 0) return;
 
     const confirmed = window.confirm(
-      `This will clear all tradelist and wishlist cards that came from your synced decks, then re-add them fresh from Archidekt.\n\nManually-added cards will NOT be affected.\n\nProceed?`
+      `This will clear all tradelist and wishlist cards that came from your synced decks (Archidekt & Moxfield), then re-add them fresh.\n\nManually-added cards will NOT be affected.\n\nProceed?`
     );
     if (!confirmed) return;
 
     setRefreshing(true);
     setPopupStats(null);
     try {
-      const res = await api.refreshArchidektLists();
+      const [archidektRes, moxfieldRes] = await Promise.all([
+        api.refreshArchidektLists().catch(() => ({ stats: { added: 0, removed: 0, ignored: 0 } })),
+        api.refreshMoxfieldLists().catch(() => ({ stats: { added: 0, removed: 0, ignored: 0 } }))
+      ]);
+
+      const added = (archidektRes.stats?.added || 0) + (moxfieldRes.stats?.added || 0);
+      const removed = (archidektRes.stats?.removed || 0) + (moxfieldRes.stats?.removed || 0);
+      const ignored = (archidektRes.stats?.ignored || 0) + (moxfieldRes.stats?.ignored || 0);
+
       setPopupStats({
         title: "Refresh Complete",
-        message: res.message || "Tradelist and wishlist have been refreshed.",
-        stats: res.stats
-          ? {
-              added: res.stats.added ?? 0,
-              removed: res.stats.removed ?? 0,
-              ignored: res.stats.ignored ?? 0
-            }
-          : null,
-        warnings: res.warnings
+        message: "Tradelist and wishlist have been refreshed from your decks.",
+        stats: { added, removed, ignored }
       });
       loadDecks();
     } catch (err) {
@@ -189,9 +194,9 @@ export default function DecksHub() {
     <div className="main-content" style={{ padding: '2rem' }}>
       <div className="section-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2>Archidekt Sync Hub</h2>
+          <h2>Deck Sync Hub</h2>
           <p style={{ color: '#888', marginTop: '0.5rem' }}>
-            Manage your synchronized Archidekt decks and import new ones.
+            Manage your synchronized Archidekt & Moxfield decks and import new ones.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
@@ -207,7 +212,7 @@ export default function DecksHub() {
               <button
                 onClick={handleRefreshLists}
                 disabled={syncingAll || syncingId !== null || refreshing}
-                title="Clears tradelist and wishlist cards from your decks, then re-adds them fresh from Archidekt."
+                title="Clears tradelist and wishlist cards from your decks, then re-adds them fresh."
                 style={{ padding: '0.75rem 1.5rem', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null || refreshing) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
               >
                 {refreshing
@@ -226,6 +231,41 @@ export default function DecksHub() {
         </div>
       </div>
 
+      {/* Global Sync Notification Popup */}
+      {popupStats && (
+        <div style={{ 
+          marginBottom: '1.5rem', 
+          padding: '1rem 1.5rem', 
+          borderRadius: '8px', 
+          background: popupStats.error ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
+          border: `1px solid ${popupStats.error ? '#ef4444' : '#10b981'}`,
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h4 style={{ margin: '0 0 0.25rem 0', color: popupStats.error ? '#ef4444' : '#10b981' }}>
+              {popupStats.title}
+            </h4>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#ccc' }}>{popupStats.message}</p>
+
+            {popupStats.stats && (
+              <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1.5rem', fontSize: '0.85rem' }}>
+                <span style={{ color: '#10b981' }}>Added/Updated: <strong>+{popupStats.stats.added}</strong></span>
+                <span style={{ color: '#ef4444' }}>Removed: <strong>-{popupStats.stats.removed}</strong></span>
+                <span style={{ color: '#aaa' }}>Ignored: <strong>{popupStats.stats.ignored}</strong></span>
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={() => setPopupStats(null)}
+            style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div style={{ color: '#888' }}>Loading your decks...</div>
       ) : error ? (
@@ -235,7 +275,7 @@ export default function DecksHub() {
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><ArchiveBoxIcon style={{ width: "3rem", height: "3rem" }} /></div>
           <h3 style={{ marginBottom: '0.5rem' }}>No Decks Synced Yet</h3>
           <p style={{ color: '#888', marginBottom: '1.5rem' }}>
-            Import your first deck from Archidekt to manage your collection and wishlist dynamically.
+            Import your first deck from Archidekt or Moxfield to manage your collection and wishlist dynamically.
           </p>
           <button 
             onClick={() => handleOpenImporter()}
@@ -257,8 +297,21 @@ export default function DecksHub() {
               opacity: deck.status === 'disabled' ? 0.85 : 1
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, color: '#60a5fa', flex: 1, paddingRight: '1rem', wordBreak: 'break-word' }}>
+                <h3 style={{ margin: 0, color: deck.source === 'moxfield' ? '#34d399' : '#60a5fa', flex: 1, paddingRight: '1rem', wordBreak: 'break-word' }}>
                   {deck.deck_name}
+                  <span style={{ 
+                    display: 'inline-block', 
+                    marginLeft: '0.5rem', 
+                    background: deck.source === 'moxfield' ? '#065f46' : '#1e3a8a', 
+                    color: 'white', 
+                    fontSize: '0.65rem', 
+                    padding: '2px 6px', 
+                    borderRadius: '4px', 
+                    fontWeight: 'bold', 
+                    verticalAlign: 'middle'
+                  }}>
+                    {deck.source === 'moxfield' ? 'Moxfield' : 'Archidekt'}
+                  </span>
                   {deck.status === 'disabled' && (
                     <span 
                       title="Cards from this deck were removed when you cleared your proxy list. Resync to re-add them."
@@ -271,8 +324,7 @@ export default function DecksHub() {
                         padding: '2px 6px', 
                         borderRadius: '4px', 
                         fontWeight: 'bold', 
-                        verticalAlign: 'middle',
-                        letterSpacing: '0.05em'
+                        verticalAlign: 'middle'
                       }}
                     >
                       DISABLED
@@ -285,6 +337,7 @@ export default function DecksHub() {
               </div>
               
               <div style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem', flex: 1 }}>
+                {deck.commander && <>Commander: <strong>{deck.commander}</strong><br/></>}
                 Last Synced: {new Date(deck.updated_at).toLocaleString()}
                 <br/>
                 {deck.status === 'disabled' ? (
@@ -298,7 +351,7 @@ export default function DecksHub() {
               
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button 
-                  onClick={() => handleQuickResync(deck.deck_id)}
+                  onClick={() => handleQuickResync(deck)}
                   disabled={syncingAll || syncingId === deck.deck_id}
                   style={{ 
                     flex: 1, 
@@ -319,17 +372,15 @@ export default function DecksHub() {
                   <span><ArrowPathIcon style={{ width: "1.2em", height: "1.2em" }} /></span> 
                   {(syncingAll || syncingId === deck.deck_id) 
                     ? "Syncing..." 
-                    : deck.status === 'disabled' 
-                      ? "Resync to Re-enable" 
-                      : "Resync"
-                  }
+                    : (deck.status === 'disabled' ? "Re-Enable & Sync" : "Quick Sync")}
                 </button>
                 <button 
                   onClick={() => handleOpenImporter(deck)}
-                  disabled={syncingAll || syncingId !== null}
-                  style={{ flex: 1, padding: '0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null) ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
+                  disabled={syncingAll || syncingId === deck.deck_id}
+                  style={{ padding: '0.5rem 0.75rem', background: '#2c2c2c', color: 'white', border: '1px solid #444', borderRadius: '4px', cursor: (syncingAll || syncingId === deck.deck_id) ? 'not-allowed' : 'pointer' }}
+                  title="Edit mappings and options"
                 >
-                  <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Edit Options
+                  <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em" }} />
                 </button>
               </div>
             </div>
@@ -338,79 +389,30 @@ export default function DecksHub() {
       )}
 
       {archivedDecks.length > 0 && (
-        <div style={{ marginTop: '3rem' }}>
+        <div style={{ marginTop: '3rem', borderTop: '1px solid #333', paddingTop: '1.5rem' }}>
           <button 
             onClick={() => setShowArchived(!showArchived)}
-            style={{ width: '100%', padding: '0.75rem', background: '#1c1c1c', color: '#888', border: '1px dashed #444', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.9rem', padding: 0 }}
           >
-            <span>Archived Decks ({archivedDecks.length})</span>
-            <span>{showArchived ? '▲' : '▼'}</span>
+            {showArchived ? "Hide Archived Decks" : `Show Archived Decks (${archivedDecks.length})`}
           </button>
-          
+
           {showArchived && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1.5rem', opacity: 0.6 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
               {archivedDecks.map(deck => (
-                <div key={deck.id} style={{ background: '#111', padding: '1.5rem', borderRadius: '8px', border: '1px solid #333', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <h3 style={{ margin: 0, color: '#60a5fa', flex: 1, paddingRight: '1rem', wordBreak: 'break-word' }}>{deck.deck_name}</h3>
-                    <span style={{ fontSize: '0.8rem', color: '#666', background: '#222', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                      ID: {deck.deck_id}
-                    </span>
+                <div key={deck.id} style={{ background: '#181818', padding: '1rem', borderRadius: '8px', border: '1px solid #282828', opacity: 0.6 }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#aaa' }}>{deck.deck_name}</h4>
+                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
+                    ID: {deck.deck_id} | Platform: {deck.source === 'moxfield' ? 'Moxfield' : 'Archidekt'}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                      onClick={() => handleOpenImporter(deck)}
-                      style={{ flex: 1, padding: '0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
-                    >
-                      <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Edit Options
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => handleOpenImporter(deck)}
+                    style={{ padding: '0.3rem 0.6rem', background: '#252525', color: '#ccc', border: '1px solid #3a3a3a', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
+                  >
+                    Unarchive / Edit
+                  </button>
                 </div>
               ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Popup Stats Toast */}
-      {popupStats && (
-        <div style={{ 
-          position: 'fixed', 
-          bottom: '2rem', 
-          right: '2rem', 
-          background: popupStats.error ? '#450a0a' : '#064e3b', 
-          border: `1px solid ${popupStats.error ? '#ef4444' : '#10b981'}`,
-          borderRadius: '8px',
-          padding: '1.5rem',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-          zIndex: 9999,
-          minWidth: '250px',
-          color: 'white'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-            <h3 style={{ margin: 0, color: popupStats.error ? '#f87171' : '#34d399' }}>{popupStats.title}</h3>
-            <button 
-              onClick={() => setPopupStats(null)} 
-              style={{ background: 'transparent', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1.2rem', padding: 0 }}
-            >
-              
-            </button>
-          </div>
-          <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#cbd5e1' }}>{popupStats.message}</p>
-          
-          {popupStats.stats && (
-            <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: '#a7f3d0' }}>
-              <li>Cards Added/Moved: <strong>+{popupStats.stats.added}</strong></li>
-              <li>Cards Removed: <strong>-{popupStats.stats.removed}</strong></li>
-              <li>Cards Ignored: <strong>{popupStats.stats.ignored}</strong></li>
-              {popupStats.stats.decks !== undefined && (
-                <li>Decks Refreshed: <strong>{popupStats.stats.decks}</strong></li>
-              )}
-            </ul>
-          )}
-          {popupStats.warnings && popupStats.warnings.length > 0 && (
-            <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#fbbf24' }}>
-              ⚠️ {popupStats.warnings.length} deck(s) failed to resync during refresh.
             </div>
           )}
         </div>

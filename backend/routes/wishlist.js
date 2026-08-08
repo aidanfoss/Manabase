@@ -211,7 +211,7 @@ router.get("/overlap", requireAuth, async (req, res) => {
       .where("di.user_id", req.user.id)
       .where("di.list_type", "wishlist")
       .whereIn("di.card_name", cardNames)
-      .select("di.card_name", "d.deck_name", "d.deck_id");
+      .select("di.card_name", "d.deck_name", "d.deck_id", "d.source");
 
     // Group deck names by card name
     const decksByCard = {};
@@ -219,7 +219,7 @@ router.get("/overlap", requireAuth, async (req, res) => {
       if (!decksByCard[row.card_name]) decksByCard[row.card_name] = [];
       // Avoid duplicate deck names
       if (!decksByCard[row.card_name].some(d => d.deck_id === row.deck_id)) {
-        decksByCard[row.card_name].push({ deck_id: row.deck_id, deck_name: row.deck_name });
+        decksByCard[row.card_name].push({ deck_id: row.deck_id, deck_name: row.deck_name, source: row.source || "archidekt" });
       }
     }
 
