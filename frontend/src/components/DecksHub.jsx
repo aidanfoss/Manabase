@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { ArrowPathIcon, PlusIcon, ArchiveBoxIcon, Cog6ToothIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
+import { 
+  ArrowPathIcon, 
+  PlusIcon, 
+  ArchiveBoxIcon, 
+  Cog6ToothIcon, 
+  ArrowUturnLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  QueueListIcon
+} from "@heroicons/react/24/solid";
 
 import { api } from "../api/client";
 import DeckImporter from "./DeckImporter";
@@ -240,7 +249,7 @@ export default function DecksHub() {
           background: popupStats.error ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
           border: `1px solid ${popupStats.error ? '#ef4444' : '#10b981'}`,
           display: 'flex',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           alignItems: 'center'
         }}>
           <div>
@@ -285,7 +294,7 @@ export default function DecksHub() {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
           {visibleDecks.map(deck => (
             <div key={deck.id} style={{ 
               background: '#1c1c1c', 
@@ -314,7 +323,7 @@ export default function DecksHub() {
                   </span>
                   {deck.status === 'disabled' && (
                     <span 
-                      title="Cards from this deck were removed when you cleared your proxy list. Resync to re-add them."
+                       title="Cards from this deck were removed when you cleared your proxy list. Resync to re-add them."
                       style={{ 
                         display: 'inline-block', 
                         marginLeft: '0.5rem', 
@@ -336,7 +345,7 @@ export default function DecksHub() {
                 </span>
               </div>
               
-              <div style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem', flex: 1 }}>
+              <div style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1.25rem', flex: 1 }}>
                 {deck.commander && <>Commander: <strong>{deck.commander}</strong><br/></>}
                 Last Synced: {new Date(deck.updated_at).toLocaleString()}
                 <br/>
@@ -383,6 +392,9 @@ export default function DecksHub() {
                   <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em" }} />
                 </button>
               </div>
+
+              {/* Dropdown for Requested Cards */}
+              <DeckRequestedCardsDropdown deck={deck} />
             </div>
           ))}
         </div>
@@ -398,19 +410,362 @@ export default function DecksHub() {
           </button>
 
           {showArchived && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', marginTop: '1rem', alignItems: 'start' }}>
               {archivedDecks.map(deck => (
-                <div key={deck.id} style={{ background: '#181818', padding: '1rem', borderRadius: '8px', border: '1px solid #282828', opacity: 0.6 }}>
+                <div key={deck.id} style={{ background: '#181818', padding: '1.25rem', borderRadius: '8px', border: '1px solid #282828', opacity: 0.85 }}>
                   <h4 style={{ margin: '0 0 0.5rem 0', color: '#aaa' }}>{deck.deck_name}</h4>
-                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.75rem' }}>
                     ID: {deck.deck_id} | Platform: {deck.source === 'moxfield' ? 'Moxfield' : 'Archidekt'}
                   </div>
-                  <button 
-                    onClick={() => handleOpenImporter(deck)}
-                    style={{ padding: '0.3rem 0.6rem', background: '#252525', color: '#ccc', border: '1px solid #3a3a3a', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-                  >
-                    Unarchive / Edit
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <button 
+                      onClick={() => handleOpenImporter(deck)}
+                      style={{ padding: '0.35rem 0.75rem', background: '#252525', color: '#ccc', border: '1px solid #3a3a3a', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
+                    >
+                      Unarchive / Edit
+                    </button>
+                  </div>
+                  <DeckRequestedCardsDropdown deck={deck} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DeckRequestedCardsDropdown({ deck }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("requested"); // "requested", "wishlist", "tradelist", "owned", "all"
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const items = deck.items || [];
+  const wishlistItems = items.filter(i => i.list_type === "wishlist");
+  const tradelistItems = items.filter(i => i.list_type === "tradelist");
+  const ownedItems = items.filter(i => i.list_type === "owned");
+  const requestedItems = items.filter(i => i.list_type === "wishlist" || i.list_type === "tradelist");
+
+  const totalRequestedCount = requestedItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
+  const wishlistCount = wishlistItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
+  const tradelistCount = tradelistItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
+  const ownedCount = ownedItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
+  const totalAllCount = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
+
+  // If there are no requested items but there are owned items, default filter to all
+  let effectiveFilter = activeFilter;
+  if (requestedItems.length === 0 && ownedItems.length > 0 && activeFilter === "requested") {
+    effectiveFilter = "all";
+  }
+
+  let displayedItems = [];
+  if (effectiveFilter === "requested") displayedItems = requestedItems;
+  else if (effectiveFilter === "wishlist") displayedItems = wishlistItems;
+  else if (effectiveFilter === "tradelist") displayedItems = tradelistItems;
+  else if (effectiveFilter === "owned") displayedItems = ownedItems;
+  else displayedItems = items;
+
+  if (searchTerm.trim()) {
+    const term = searchTerm.toLowerCase();
+    displayedItems = displayedItems.filter(i => 
+      (i.card_name && i.card_name.toLowerCase().includes(term)) ||
+      (i.set_code && i.set_code.toLowerCase().includes(term))
+    );
+  }
+
+  // Sort displayed items alphabetically by card name
+  const sortedItems = [...displayedItems].sort((a, b) => (a.card_name || "").localeCompare(b.card_name || ""));
+
+  return (
+    <div style={{ marginTop: '1rem', borderTop: '1px solid #2d2d2d', paddingTop: '0.85rem' }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          padding: '0.5rem 0.75rem',
+          background: isOpen ? '#232733' : '#1a1d24',
+          border: `1px solid ${isOpen ? '#3b82f6' : '#333a48'}`,
+          borderRadius: '6px',
+          color: '#e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          fontSize: '0.82rem',
+          fontWeight: '600',
+          transition: 'all 0.15s ease'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+          <QueueListIcon style={{ width: '1.15em', height: '1.15em', color: totalRequestedCount > 0 ? '#60a5fa' : '#9ca3af' }} />
+          <span>Requested Cards ({totalRequestedCount})</span>
+          {wishlistCount > 0 && (
+            <span style={{ fontSize: '0.68rem', padding: '1px 5px', borderRadius: '3px', background: 'rgba(168, 85, 247, 0.25)', color: '#d8b4fe', fontWeight: 'bold' }}>
+              {wishlistCount} Wishlist
+            </span>
+          )}
+          {tradelistCount > 0 && (
+            <span style={{ fontSize: '0.68rem', padding: '1px 5px', borderRadius: '3px', background: 'rgba(234, 179, 8, 0.25)', color: '#fde047', fontWeight: 'bold' }}>
+              {tradelistCount} Trade
+            </span>
+          )}
+        </div>
+        {isOpen ? (
+          <ChevronUpIcon style={{ width: '1.1em', height: '1.1em', color: '#9ca3af', flexShrink: 0 }} />
+        ) : (
+          <ChevronDownIcon style={{ width: '1.1em', height: '1.1em', color: '#9ca3af', flexShrink: 0 }} />
+        )}
+      </button>
+
+      {isOpen && (
+        <div style={{
+          marginTop: '0.5rem',
+          background: '#13151b',
+          border: '1px solid #28303f',
+          borderRadius: '6px',
+          padding: '0.75rem',
+          fontSize: '0.82rem'
+        }}>
+          {/* Filter Pills if multiple categories exist */}
+          {items.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.65rem' }}>
+              {requestedItems.length > 0 && (
+                <button
+                  onClick={() => setActiveFilter("requested")}
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    border: '1px solid',
+                    borderColor: effectiveFilter === 'requested' ? '#3b82f6' : '#2e384d',
+                    background: effectiveFilter === 'requested' ? 'rgba(59, 130, 246, 0.25)' : '#1a202c',
+                    color: effectiveFilter === 'requested' ? '#93c5fd' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    fontWeight: effectiveFilter === 'requested' ? 'bold' : 'normal'
+                  }}
+                >
+                  Requested ({totalRequestedCount})
+                </button>
+              )}
+              {wishlistItems.length > 0 && (
+                <button
+                  onClick={() => setActiveFilter("wishlist")}
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    border: '1px solid',
+                    borderColor: effectiveFilter === 'wishlist' ? '#a855f7' : '#2e384d',
+                    background: effectiveFilter === 'wishlist' ? 'rgba(168, 85, 247, 0.25)' : '#1a202c',
+                    color: effectiveFilter === 'wishlist' ? '#d8b4fe' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    fontWeight: effectiveFilter === 'wishlist' ? 'bold' : 'normal'
+                  }}
+                >
+                  Wishlist ({wishlistCount})
+                </button>
+              )}
+              {tradelistItems.length > 0 && (
+                <button
+                  onClick={() => setActiveFilter("tradelist")}
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    border: '1px solid',
+                    borderColor: effectiveFilter === 'tradelist' ? '#eab308' : '#2e384d',
+                    background: effectiveFilter === 'tradelist' ? 'rgba(234, 179, 8, 0.25)' : '#1a202c',
+                    color: effectiveFilter === 'tradelist' ? '#fde047' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    fontWeight: effectiveFilter === 'tradelist' ? 'bold' : 'normal'
+                  }}
+                >
+                  Tradelist ({tradelistCount})
+                </button>
+              )}
+              {ownedItems.length > 0 && (
+                <button
+                  onClick={() => setActiveFilter("owned")}
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    border: '1px solid',
+                    borderColor: effectiveFilter === 'owned' ? '#10b981' : '#2e384d',
+                    background: effectiveFilter === 'owned' ? 'rgba(16, 185, 129, 0.25)' : '#1a202c',
+                    color: effectiveFilter === 'owned' ? '#6ee7b7' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    fontWeight: effectiveFilter === 'owned' ? 'bold' : 'normal'
+                  }}
+                >
+                  Collection ({ownedCount})
+                </button>
+              )}
+              <button
+                onClick={() => setActiveFilter("all")}
+                style={{
+                  padding: '2px 7px',
+                  borderRadius: '4px',
+                  border: '1px solid',
+                  borderColor: effectiveFilter === 'all' ? '#64748b' : '#2e384d',
+                  background: effectiveFilter === 'all' ? 'rgba(100, 116, 139, 0.25)' : '#1a202c',
+                  color: effectiveFilter === 'all' ? '#cbd5e1' : '#94a3b8',
+                  fontSize: '0.72rem',
+                  cursor: 'pointer',
+                  fontWeight: effectiveFilter === 'all' ? 'bold' : 'normal'
+                }}
+              >
+                All ({totalAllCount})
+              </button>
+            </div>
+          )}
+
+          {/* Quick search input if more than 5 cards */}
+          {items.length > 5 && (
+            <input
+              type="text"
+              placeholder="Search cards in this deck..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.35rem 0.6rem',
+                background: '#0a0c10',
+                border: '1px solid #2d3748',
+                borderRadius: '4px',
+                color: '#fff',
+                fontSize: '0.75rem',
+                marginBottom: '0.5rem',
+                boxSizing: 'border-box'
+              }}
+            />
+          )}
+
+          {/* Card list */}
+          {sortedItems.length === 0 ? (
+            <div style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic', fontSize: '0.8rem' }}>
+              {searchTerm ? "No cards match search." : "No cards requested for this deck."}
+            </div>
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.35rem',
+              maxHeight: '260px',
+              overflowY: 'auto',
+              paddingRight: '2px'
+            }}>
+              {sortedItems.map((item, idx) => (
+                <div
+                  key={`${item.card_name}-${item.list_type}-${item.set_code}-${idx}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem',
+                    padding: '0.35rem 0.5rem',
+                    background: '#1b1f2b',
+                    borderRadius: '4px',
+                    border: '1px solid #252c3d'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0, flex: 1 }}>
+                    <span style={{
+                      background: '#334155',
+                      color: '#93c5fd',
+                      fontSize: '0.72rem',
+                      fontWeight: 'bold',
+                      padding: '1px 5px',
+                      borderRadius: '3px',
+                      flexShrink: 0
+                    }}>
+                      {item.quantity}×
+                    </span>
+                    <a
+                      href={`https://scryfall.com/search?q=${encodeURIComponent(item.card_name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Search "${item.card_name}" on Scryfall`}
+                      style={{
+                        color: '#f1f5f9',
+                        textDecoration: 'none',
+                        fontWeight: '500',
+                        fontSize: '0.8rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#60a5fa'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#f1f5f9'}
+                    >
+                      {item.card_name}
+                    </a>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+                    {item.set_code && (
+                      <span style={{
+                        fontSize: '0.68rem',
+                        background: '#0f172a',
+                        color: '#94a3b8',
+                        padding: '1px 4px',
+                        borderRadius: '3px',
+                        fontWeight: '600'
+                      }}>
+                        {item.set_code}
+                      </span>
+                    )}
+                    {item.is_foil && (
+                      <span style={{
+                        fontSize: '0.68rem',
+                        background: 'rgba(234, 179, 8, 0.2)',
+                        color: '#fde047',
+                        padding: '1px 4px',
+                        borderRadius: '3px',
+                        fontWeight: '600'
+                      }}>
+                        ✨ Foil
+                      </span>
+                    )}
+                    {item.list_type === 'wishlist' ? (
+                      <span style={{
+                        fontSize: '0.65rem',
+                        background: 'rgba(168, 85, 247, 0.2)',
+                        color: '#c084fc',
+                        border: '1px solid rgba(168, 85, 247, 0.5)',
+                        padding: '1px 5px',
+                        borderRadius: '3px',
+                        fontWeight: 'bold'
+                      }}>
+                        Wishlist
+                      </span>
+                    ) : item.list_type === 'tradelist' ? (
+                      <span style={{
+                        fontSize: '0.65rem',
+                        background: 'rgba(234, 179, 8, 0.2)',
+                        color: '#facc15',
+                        border: '1px solid rgba(234, 179, 8, 0.5)',
+                        padding: '1px 5px',
+                        borderRadius: '3px',
+                        fontWeight: 'bold'
+                      }}>
+                        Tradelist
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: '0.65rem',
+                        background: 'rgba(16, 185, 129, 0.2)',
+                        color: '#34d399',
+                        border: '1px solid rgba(16, 185, 129, 0.5)',
+                        padding: '1px 5px',
+                        borderRadius: '3px',
+                        fontWeight: 'bold'
+                      }}>
+                        Collection
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

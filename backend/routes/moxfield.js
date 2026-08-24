@@ -67,7 +67,26 @@ router.get("/decks", requireAuth, async (req, res) => {
     const decks = await db("user_archidekt_decks")
       .where({ user_id: req.user.id, source: "moxfield" })
       .orderBy("updated_at", "desc");
-    res.json(decks);
+
+    const deckIds = decks.map(d => String(d.deck_id));
+    const items = await db("user_archidekt_deck_items")
+      .where({ user_id: req.user.id, source: "moxfield" })
+      .whereIn("deck_id", deckIds);
+
+    const itemsByDeckId = {};
+    for (const item of items) {
+      if (!itemsByDeckId[item.deck_id]) {
+        itemsByDeckId[item.deck_id] = [];
+      }
+      itemsByDeckId[item.deck_id].push(item);
+    }
+
+    const result = decks.map(deck => ({
+      ...deck,
+      items: itemsByDeckId[deck.deck_id] || []
+    }));
+
+    res.json(result);
   } catch (error) {
     console.error("Moxfield fetch decks error:", error.message);
     res.status(500).json({ error: "Failed to fetch saved decks" });
