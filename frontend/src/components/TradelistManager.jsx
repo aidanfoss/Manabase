@@ -9,6 +9,87 @@ import { MagnifyingGlassIcon, ExclamationTriangleIcon, XMarkIcon, HandRaisedIcon
 import { api } from "../api/client";
 import "../styles/tradelist.css";
 
+const getPrintVariantLabel = (p) => {
+  const parts = [];
+  if (p.collector_number) parts.push(`#${p.collector_number}`);
+  if (p.frame_effects?.includes("showcase")) parts.push("Showcase");
+  else if (p.border_color === "borderless") parts.push("Borderless");
+  else if (p.frame_effects?.includes("extendedart")) parts.push("Extended Art");
+  else if (p.frame === "1997" || p.frame === "1993") parts.push("Retro Frame");
+  else if (p.promo) parts.push("Promo");
+  return parts.length > 0 ? parts.join(" · ") : `#${p.collector_number || "Standard"}`;
+};
+
+const getUniqueSetsFromPrints = (prints = []) => {
+  const seen = new Set();
+  const sets = [];
+  for (const p of prints) {
+    const code = p.set?.toUpperCase();
+    if (code && !seen.has(code)) {
+      seen.add(code);
+      sets.push({
+        set_code: code,
+        set_name: p.set_name || code,
+        released_at: p.released_at
+      });
+    }
+  }
+  return sets;
+};
+
+const getFinishVersionOptions = (cachedPrints, setCode) => {
+  if (!cachedPrints?.prints || !setCode) return [];
+  const setPrints = cachedPrints.prints.filter(
+    (p) => p.set?.toUpperCase() === setCode?.toUpperCase()
+  );
+  if (setPrints.length === 0) return [];
+
+  const options = [];
+  setPrints.forEach((p) => {
+    const variantTag = getPrintVariantLabel(p);
+    const finishes = p.finishes || ["nonfoil", "foil"];
+    const hasNonFoil = finishes.includes("nonfoil");
+    const hasFoil = finishes.includes("foil") || finishes.includes("etched");
+
+    if (hasNonFoil) {
+      const priceStr = p.prices?.usd ? `$${parseFloat(p.prices.usd).toFixed(2)}` : null;
+      options.push({
+        key: `${p.collector_number}:normal`,
+        collector_number: p.collector_number,
+        is_foil: false,
+        label: `${variantTag} - Normal${priceStr ? ` (${priceStr})` : ""}`,
+      });
+    }
+    if (hasFoil) {
+      const priceStr = p.prices?.usd_foil ? `$${parseFloat(p.prices.usd_foil).toFixed(2)}` : (p.prices?.usd_etched ? `$${parseFloat(p.prices.usd_etched).toFixed(2)}` : null);
+      options.push({
+        key: `${p.collector_number}:foil`,
+        collector_number: p.collector_number,
+        is_foil: true,
+        label: `${variantTag} - ✨ Foil${priceStr ? ` (${priceStr})` : ""}`,
+      });
+    }
+  });
+
+  return options;
+};
+
+const getCardImageUrl = (card, cardMeta) => {
+  const prints = cardMeta?.prints || [];
+  const activePrint = card?.set_code
+    ? prints.find(
+        (p) =>
+          p.set?.toUpperCase() === card.set_code?.toUpperCase() &&
+          (!card.collector_number || p.collector_number === card.collector_number)
+      ) || prints.find((p) => p.set?.toUpperCase() === card.set_code?.toUpperCase())
+    : (prints[0] || cardMeta);
+
+  if (activePrint) {
+    return activePrint.image_uris?.normal || activePrint.image_uris?.small || activePrint.card_faces?.[0]?.image_uris?.normal || cardMeta?.image_uris?.normal;
+  }
+  return cardMeta?.image_uris?.normal || cardMeta?.image_uris?.small || null;
+};
+
 export default function TradelistManager() {
   const [activeTab, setActiveTab] = useState("trading"); // "trading" or "manage"
   
@@ -886,63 +967,107 @@ export default function TradelistManager() {
                       {myWishlist.map((card) => {
                         const price = getCardPrice(card);
                         const lineTotal = price * card.quantity;
+                        const cardMeta = printsCache[card.card_name];
+                        const prints = cardMeta?.prints || [];
+                        const setPrints = card.set_code
+                          ? prints.filter(p => p.set?.toUpperCase() === card.set_code.toUpperCase())
+                          : prints;
+                        const activePrint = setPrints.length > 0
+                          ? (setPrints.find(p => card.collector_number ? p.collector_number === card.collector_number : true) || setPrints[0])
+                          : (prints[0] || cardMeta);
+                        const uniqueSets = getUniqueSetsFromPrints(prints);
+                        const finishOptions = getFinishVersionOptions(cardMeta, card.set_code);
+                        const currentSelectedFinishKey = `${activePrint?.collector_number || card.collector_number || ""}:${card.is_foil ? "foil" : "normal"}`;
+                        const thumbUrl = getCardImageUrl(card, cardMeta);
+
                         return (
                           <tr key={card.id}>
                             <td className="col-qty">
                               <div className="qty-picker-compact">
-                                <button onClick={() => updateWishlistCardDetails(card, { quantity: card.quantity - 1 })}>-</button>
+                                <button onClick={() => updateWishlistCardDetails(card, { quantity: Math.max(1, card.quantity - 1) })}>-</button>
                                 <span>{card.quantity}</span>
                                 <button onClick={() => updateWishlistCardDetails(card, { quantity: card.quantity + 1 })}>+</button>
                               </div>
                             </td>
                             <td className="col-name font-bold">
-                              {card.card_name}
+                              <div
+                                className="proxy-card-cell"
+                                onClick={() => setInspectedCard(card)}
+                                style={{ cursor: "pointer" }}
+                                title="Click to inspect card in sidebar"
+                              >
+                                {thumbUrl ? (
+                                  <img src={thumbUrl} alt={card.card_name} className="proxy-card-thumb" loading="lazy" />
+                                ) : (
+                                  <div className="proxy-card-thumb-placeholder">
+                                    <span style={{ fontSize: "10px", color: "#64748b" }}>🃏</span>
+                                  </div>
+                                )}
+                                <div className="proxy-card-info">
+                                  <span className="proxy-card-name-text">{card.card_name}</span>
+                                  {cardMeta?.type_line && (
+                                    <span className="proxy-card-type-subtext">{cardMeta.type_line}</span>
+                                  )}
+                                </div>
+                              </div>
                             </td>
                             <td className="col-print">
-                              {(() => {
-                                const cardMeta = printsCache[card.card_name];
-                                const prints = cardMeta?.prints || [];
-                                const activePrintIdx = prints.findIndex(p => p.set?.toUpperCase() === card.set_code?.toUpperCase() && p.collector_number === card.collector_number);
-                                const valueIdx = activePrintIdx !== -1 ? activePrintIdx : 0;
-                                
-                                if (prints.length > 0) {
-                                  return (
-                                    <select 
-                                      value={valueIdx}
-                                      onChange={(e) => {
-                                        const idx = parseInt(e.target.value);
-                                        const p = prints[idx];
-                                        if (p) {
-                                          updateWishlistCardDetails(card, {
-                                            set_code: p.set?.toUpperCase(),
-                                            collector_number: p.collector_number || ""
-                                          });
-                                        }
-                                      }}
-                                      className="table-input set-select"
-                                      style={{ width: "100%", padding: "4px" }}
-                                    >
-                                      {prints.map((p, idx) => (
-                                        <option key={idx} value={idx}>
-                                          {p.set?.toUpperCase()} - {p.set_name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  );
-                                }
-                                return <span className="loading-label">Loading...</span>;
-                              })()}
+                              {uniqueSets.length > 0 ? (
+                                <select
+                                  value={card.set_code ? card.set_code.toUpperCase() : (uniqueSets[0]?.set_code || "")}
+                                  onChange={(e) => {
+                                    const newSet = e.target.value;
+                                    const firstPrintInSet = prints.find(p => p.set?.toUpperCase() === newSet.toUpperCase());
+                                    updateWishlistCardDetails(card, {
+                                      set_code: newSet,
+                                      collector_number: firstPrintInSet?.collector_number || ""
+                                    });
+                                  }}
+                                  className="table-input set-select"
+                                  style={{ width: "100%", padding: "4px" }}
+                                >
+                                  {uniqueSets.map((s) => (
+                                    <option key={s.set_code} value={s.set_code}>
+                                      {s.set_code} - {s.set_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <span className="loading-label">{cardMeta ? "Default Print" : "Loading..."}</span>
+                              )}
                             </td>
                             <td className="col-foil">
-                              <label className="switch-container">
-                                <input
-                                  type="checkbox"
-                                  checked={!!card.is_foil}
-                                  onChange={(e) => updateWishlistCardDetails(card, { is_foil: e.target.checked })}
-                                />
-                                <span className="slider round"></span>
-                                <span className="foil-label">{card.is_foil ? "Foil" : "Normal"}</span>
-                              </label>
+                              {finishOptions.length > 0 ? (
+                                <select
+                                  value={currentSelectedFinishKey}
+                                  onChange={(e) => {
+                                    const [collNum, finishType] = e.target.value.split(":");
+                                    const isFoil = finishType === "foil";
+                                    updateWishlistCardDetails(card, {
+                                      collector_number: collNum,
+                                      is_foil: isFoil
+                                    });
+                                  }}
+                                  className="table-input finish-select"
+                                  style={{ width: "100%", padding: "4px" }}
+                                >
+                                  {finishOptions.map((opt) => (
+                                    <option key={opt.key} value={opt.key}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <label className="switch-container">
+                                  <input
+                                    type="checkbox"
+                                    checked={!!card.is_foil}
+                                    onChange={(e) => updateWishlistCardDetails(card, { is_foil: e.target.checked })}
+                                  />
+                                  <span className="slider round"></span>
+                                  <span className="foil-label">{card.is_foil ? "Foil" : "Normal"}</span>
+                                </label>
+                              )}
                             </td>
                             <td className="col-price font-bold">
                               <span>
@@ -951,7 +1076,7 @@ export default function TradelistManager() {
                               </span>
                             </td>
                             <td className="col-actions">
-                              <button 
+                              <button
                                 className="table-delete-btn"
                                 onClick={() => deleteWishlistCard(card)}
                                 title="Remove card"
@@ -1021,63 +1146,107 @@ export default function TradelistManager() {
                   {tradelist.map((card) => {
                     const price = getCardPrice(card);
                     const lineTotal = price * card.quantity;
+                    const cardMeta = printsCache[card.card_name];
+                    const prints = cardMeta?.prints || [];
+                    const setPrints = card.set_code
+                      ? prints.filter(p => p.set?.toUpperCase() === card.set_code.toUpperCase())
+                      : prints;
+                    const activePrint = setPrints.length > 0
+                      ? (setPrints.find(p => card.collector_number ? p.collector_number === card.collector_number : true) || setPrints[0])
+                      : (prints[0] || cardMeta);
+                    const uniqueSets = getUniqueSetsFromPrints(prints);
+                    const finishOptions = getFinishVersionOptions(cardMeta, card.set_code);
+                    const currentSelectedFinishKey = `${activePrint?.collector_number || card.collector_number || ""}:${card.is_foil ? "foil" : "normal"}`;
+                    const thumbUrl = getCardImageUrl(card, cardMeta);
+
                     return (
                       <tr key={card.id}>
                         <td className="col-qty">
                           <div className="qty-picker-compact">
-                            <button onClick={() => updateCardDetails(card, { quantity: card.quantity - 1 })}>-</button>
+                            <button onClick={() => updateCardDetails(card, { quantity: Math.max(1, card.quantity - 1) })}>-</button>
                             <span>{card.quantity}</span>
                             <button onClick={() => updateCardDetails(card, { quantity: card.quantity + 1 })}>+</button>
                           </div>
                         </td>
                         <td className="col-name font-bold">
-                          {card.card_name}
+                          <div
+                            className="proxy-card-cell"
+                            onClick={() => setInspectedCard(card)}
+                            style={{ cursor: "pointer" }}
+                            title="Click to inspect card in sidebar"
+                          >
+                            {thumbUrl ? (
+                              <img src={thumbUrl} alt={card.card_name} className="proxy-card-thumb" loading="lazy" />
+                            ) : (
+                              <div className="proxy-card-thumb-placeholder">
+                                <span style={{ fontSize: "10px", color: "#64748b" }}>🃏</span>
+                              </div>
+                            )}
+                            <div className="proxy-card-info">
+                              <span className="proxy-card-name-text">{card.card_name}</span>
+                              {cardMeta?.type_line && (
+                                <span className="proxy-card-type-subtext">{cardMeta.type_line}</span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="col-print">
-                          {(() => {
-                            const cardMeta = printsCache[card.card_name];
-                            const prints = cardMeta?.prints || [];
-                            const activePrintIdx = prints.findIndex(p => p.set?.toUpperCase() === card.set_code?.toUpperCase() && p.collector_number === card.collector_number);
-                            const valueIdx = activePrintIdx !== -1 ? activePrintIdx : 0;
-                            
-                            if (prints.length > 0) {
-                              return (
-                                <select 
-                                  value={valueIdx}
-                                  onChange={(e) => {
-                                    const idx = parseInt(e.target.value);
-                                    const p = prints[idx];
-                                    if (p) {
-                                      updateCardDetails(card, {
-                                        set_code: p.set?.toUpperCase(),
-                                        collector_number: p.collector_number || ""
-                                      });
-                                    }
-                                  }}
-                                  className="table-input set-select"
-                                  style={{ width: "100%", padding: "4px" }}
-                                >
-                                  {prints.map((p, idx) => (
-                                    <option key={idx} value={idx}>
-                                      {p.set?.toUpperCase()} - {p.set_name}
-                                    </option>
-                                  ))}
-                                </select>
-                              );
-                            }
-                            return <span className="loading-label">Loading...</span>;
-                          })()}
+                          {uniqueSets.length > 0 ? (
+                            <select
+                              value={card.set_code ? card.set_code.toUpperCase() : (uniqueSets[0]?.set_code || "")}
+                              onChange={(e) => {
+                                const newSet = e.target.value;
+                                const firstPrintInSet = prints.find(p => p.set?.toUpperCase() === newSet.toUpperCase());
+                                updateCardDetails(card, {
+                                  set_code: newSet,
+                                  collector_number: firstPrintInSet?.collector_number || ""
+                                });
+                              }}
+                              className="table-input set-select"
+                              style={{ width: "100%", padding: "4px" }}
+                            >
+                              {uniqueSets.map((s) => (
+                                <option key={s.set_code} value={s.set_code}>
+                                  {s.set_code} - {s.set_name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="loading-label">{cardMeta ? "Default Print" : "Loading..."}</span>
+                          )}
                         </td>
                         <td className="col-foil">
-                          <label className="switch-container">
-                            <input
-                              type="checkbox"
-                              checked={!!card.is_foil}
-                              onChange={(e) => updateCardDetails(card, { is_foil: e.target.checked })}
-                            />
-                            <span className="slider round"></span>
-                            <span className="foil-label">{card.is_foil ? "Foil" : "Normal"}</span>
-                          </label>
+                          {finishOptions.length > 0 ? (
+                            <select
+                              value={currentSelectedFinishKey}
+                              onChange={(e) => {
+                                const [collNum, finishType] = e.target.value.split(":");
+                                const isFoil = finishType === "foil";
+                                updateCardDetails(card, {
+                                  collector_number: collNum,
+                                  is_foil: isFoil
+                                });
+                              }}
+                              className="table-input finish-select"
+                              style={{ width: "100%", padding: "4px" }}
+                            >
+                              {finishOptions.map((opt) => (
+                                <option key={opt.key} value={opt.key}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <label className="switch-container">
+                              <input
+                                type="checkbox"
+                                checked={!!card.is_foil}
+                                onChange={(e) => updateCardDetails(card, { is_foil: e.target.checked })}
+                              />
+                              <span className="slider round"></span>
+                              <span className="foil-label">{card.is_foil ? "Foil" : "Normal"}</span>
+                            </label>
+                          )}
                         </td>
                         <td className="col-price font-bold">
                           <span>
@@ -1086,7 +1255,7 @@ export default function TradelistManager() {
                           </span>
                         </td>
                         <td className="col-actions">
-                          <button 
+                          <button
                             className="table-delete-btn"
                             onClick={() => deleteCard(card)}
                             title="Remove card"

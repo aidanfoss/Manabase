@@ -2234,9 +2234,6 @@ export default function WishlistHub() {
                     <tr>
                       <th className="col-qty">Quantity</th>
                       <th className="col-name">Card Name</th>
-                      <th className="col-print">Printing</th>
-                      <th className="col-foil">Finish</th>
-                      <th className="col-any">Any Print</th>
                       {showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault</th>}
                       {showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}><BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool</th>}
                       <th className="col-actions">Actions</th>
@@ -2245,81 +2242,46 @@ export default function WishlistHub() {
                   <tbody>
                     {(selectedList === "optional_proxies" ? optionalProxies : wishlist).map((c) => {
                       const cardMeta = printsCache[c.card_name];
-                      const prints = cardMeta?.prints || [];
-                      const activePrintIdx = selectedPrints[c.card_name] || 0;
                       const rData = retailPrices[c.card_name];
+                      const thumbUrl = getCardImageUrl(c, cardMeta);
 
                       return (
                         <tr key={c.id}>
                           <td className="col-qty">
                             <div className="qty-picker-compact">
-                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity - 1 })}>-</button>
+                              <button onClick={() => updateCardDetails(c, { quantity: Math.max(1, c.quantity - 1) })}>-</button>
                               <span>{c.quantity}</span>
                               <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
                             </div>
                           </td>
                           <td className="col-name font-bold">
-                            {c.card_name}
-                          </td>
-                          <td className="col-print">
-                            {!c.any_printing ? (
-                              prints.length > 0 ? (
-                                <select
-                                  value={activePrintIdx}
-                                  onChange={(e) => handlePrintChange(c, parseInt(e.target.value))}
-                                  className="table-input set-select"
-                                  style={{ width: "100%", padding: "4px" }}
-                                >
-                                  {prints.map((p, idx) => (
-                                    <option key={idx} value={idx}>
-                                      {p.set?.toUpperCase()} - {p.set_name} (#{p.collector_number || "?"})
-                                    </option>
-                                  ))}
-                                </select>
+                            <div
+                              className="proxy-card-cell"
+                              onMouseEnter={(e) => {
+                                setHoveredCard(c);
+                                setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
+                              }}
+                              onMouseMove={(e) => {
+                                setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
+                              }}
+                              onMouseLeave={() => setHoveredCard(null)}
+                              onClick={() => setModalCard(c)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {thumbUrl ? (
+                                <img src={thumbUrl} alt={c.card_name} className="proxy-card-thumb" loading="lazy" />
                               ) : (
-                                <span className="loading-label">Loading...</span>
-                              )
-                            ) : (
-                              <span className="sub" style={{ color: "#64748b" }}>Any Printing</span>
-                            )}
-                          </td>
-                          <td className="col-foil">
-                            <label className="switch-container">
-                              <input
-                                type="checkbox"
-                                checked={!!c.is_foil}
-                                onChange={(e) => updateCardDetails(c, { is_foil: e.target.checked })}
-                              />
-                              <span className="slider round"></span>
-                              <span className="foil-label">{c.is_foil ? "Foil" : "Normal"}</span>
-                            </label>
-                          </td>
-                          <td className="col-any">
-                            <label className="switch-container" title="If unchecked, you will only accept the selected printing in a trade">
-                              <input
-                                type="checkbox"
-                                checked={c.any_printing}
-                                onChange={(e) => {
-                                  const anyPrint = e.target.checked;
-                                  if (anyPrint) {
-                                    updateCardDetails(c, { any_printing: true });
-                                  } else {
-                                    const meta = printsCache[c.card_name];
-                                    if (meta) {
-                                      updateCardDetails(c, {
-                                        any_printing: false,
-                                        set_code: meta.set?.toUpperCase(),
-                                        collector_number: meta.collector_number || ""
-                                      });
-                                      setSelectedPrints(prev => ({ ...prev, [c.card_name]: 0 }));
-                                    } else {
-                                      updateCardDetails(c, { any_printing: false });
-                                    }
-                                  }
-                                }}
-                              />
-                              <span className="slider round"></span>
-                            </label>
+                                <div className="proxy-card-thumb-placeholder">
+                                  <PhotoIcon style={{ width: "16px", height: "16px", color: "#64748b" }} />
+                                </div>
+                              )}
+                              <div className="proxy-card-info">
+                                <span className="proxy-card-name-text">{c.card_name}</span>
+                                {cardMeta?.type_line && (
+                                  <span className="proxy-card-type-subtext">{cardMeta.type_line}</span>
+                                )}
+                              </div>
+                            </div>
                           </td>
 
                           {showLotusColumn && (
@@ -2348,36 +2310,43 @@ export default function WishlistHub() {
                             </td>
                           )}
                           <td className="col-actions">
-                            <button
-                              className="table-action-btn"
-                              style={{ background: "rgba(236,72,153,0.15)", color: "#f472b6", border: "1px solid rgba(236,72,153,0.3)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem", marginRight: "6px", cursor: "pointer" }}
-                              onClick={() => {
-                                setDrawerCardName(c.card_name);
-                                setDrawerCardList([]);
-                                setShowMarketplaceDrawer(true);
-                              }}
-                              title="Check LotusVault stock & ManaPool shipping for this card"
-                            >
-                              <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Retail Check
-                            </button>
-                            <button
-                              className="table-action-btn"
-                              style={{ background: "rgba(234,179,8,0.15)", color: "#eab308", border: "1px solid rgba(234,179,8,0.3)", padding: "4px 8px", borderRadius: "4px", fontSize: "0.75rem", marginRight: "6px", cursor: "pointer" }}
-                              onClick={() => {
-                                updateCardDetails(c, {}, c.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist")
-                                  .then(() => loadLists());
-                              }}
-                              title={`Move to ${c.list_type === "wishlist" ? "Optional Proxies" : "Required Proxies"}`}
-                            >
-                              <ArrowsRightLeftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Move
-                            </button>
-                            <button
-                              className="table-delete-btn"
-                              onClick={() => deleteCard(c)}
-                              title="Remove card"
-                            >
-                              Remove
-                            </button>
+                            <div className="table-actions-group">
+                              <button
+                                className="table-action-icon-btn retail"
+                                onClick={() => {
+                                  setDrawerCardName(c.card_name);
+                                  setDrawerCardList([]);
+                                  setShowMarketplaceDrawer(true);
+                                }}
+                                title="Retail Check (LotusVault & ManaPool)"
+                              >
+                                <SparklesIcon className="action-icon" />
+                              </button>
+                              <button
+                                className="table-action-icon-btn move"
+                                onClick={() => {
+                                  updateCardDetails(c, {}, c.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist")
+                                    .then(() => loadLists());
+                                }}
+                                title={`Move to ${c.list_type === "wishlist" ? "Optional Proxies" : "Required Proxies"}`}
+                              >
+                                <ArrowsRightLeftIcon className="action-icon" />
+                              </button>
+                              <button
+                                className="table-action-icon-btn info"
+                                onClick={() => setModalCard(c)}
+                                title="Card Details & Visual Preview"
+                              >
+                                <InformationCircleIcon className="action-icon" />
+                              </button>
+                              <button
+                                className="table-action-icon-btn delete"
+                                onClick={() => deleteCard(c)}
+                                title="Remove Card"
+                              >
+                                <TrashIcon className="action-icon" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -3394,6 +3363,161 @@ export default function WishlistHub() {
                 {confirmingOrder ? "Confirming..." : "Confirm & Clear Wishlist"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Card Hover Preview Tooltip */}
+      {hoveredCard && (
+        <div
+          className="floating-card-preview"
+          style={{
+            left: `${Math.min(window.innerWidth - 270, hoverPosition.x)}px`,
+            top: `${Math.min(window.innerHeight - 380, hoverPosition.y)}px`
+          }}
+        >
+          {(() => {
+            const cardMeta = printsCache[hoveredCard.card_name];
+            const imgUrl = getCardImageUrl(hoveredCard, cardMeta);
+            const price = resolveWishlistCardPrice(hoveredCard);
+            return (
+              <>
+                {imgUrl ? (
+                  <img src={imgUrl} alt={hoveredCard.card_name} />
+                ) : (
+                  <div style={{ height: "180px", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+                    No Image Available
+                  </div>
+                )}
+                <div className="floating-preview-info">
+                  <div className="floating-preview-name">{hoveredCard.card_name}</div>
+                  {cardMeta?.type_line && <div className="floating-preview-type">{cardMeta.type_line}</div>}
+                  <div className="floating-preview-price-row">
+                    <span style={{ color: "#94a3b8" }}>Est. Price:</span>
+                    <strong style={{ color: "#34d399" }}>${price > 0 ? price.toFixed(2) : "N/A"}</strong>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Rich Card Detail & Configuration Modal */}
+      {modalCard && (
+        <div className="modal-overlay" onClick={() => setModalCard(null)}>
+          <div className="modal-container card-detail-modal" onClick={(e) => e.stopPropagation()}>
+            {(() => {
+              const cardMeta = printsCache[modalCard.card_name];
+              const prints = cardMeta?.prints || [];
+              const imgUrl = getCardImageUrl(modalCard, cardMeta);
+              const uniqueSets = getUniqueSetsFromPrints(prints);
+              const finishOptions = getFinishVersionOptions(cardMeta, modalCard.set_code);
+              const setPrints = modalCard.set_code
+                ? prints.filter(p => p.set?.toUpperCase() === modalCard.set_code.toUpperCase())
+                : prints;
+              const activePrint = setPrints.length > 0
+                ? (setPrints.find(p => modalCard.collector_number ? p.collector_number === modalCard.collector_number : true) || setPrints[0])
+                : (prints[0] || cardMeta);
+              const currentSelectedFinishKey = `${activePrint?.collector_number || modalCard.collector_number || ""}:${modalCard.is_foil ? "foil" : "normal"}`;
+              const price = resolveWishlistCardPrice(modalCard);
+              const rData = retailPrices[modalCard.card_name];
+
+              return (
+                <>
+                  <div className="modal-header">
+                    <div className="modal-header-title">
+                      <h2 style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        {modalCard.card_name}
+                        {cardMeta?.mana_cost && <span style={{ fontSize: "0.9rem", color: "#94a3b8", fontWeight: "normal" }}>({cardMeta.mana_cost})</span>}
+                      </h2>
+                      <p>{cardMeta?.type_line || "Magic: The Gathering Card"}</p>
+                    </div>
+                    <button className="modal-close-btn" onClick={() => setModalCard(null)}>✕</button>
+                  </div>
+
+                  <div className="card-detail-grid">
+                    {/* Left: Card Art */}
+                    <div className="card-detail-art-col">
+                      {imgUrl ? (
+                        <img src={imgUrl} alt={modalCard.card_name} className="card-detail-large-img" />
+                      ) : (
+                        <div style={{ width: "240px", height: "336px", background: "#1e293b", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+                          No Art Available
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right: Info & Controls */}
+                    <div className="card-detail-info-col">
+                      {cardMeta?.oracle_text && (
+                        <div>
+                          <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Oracle Rules Text:</span>
+                          <div className="card-detail-oracle-box">
+                            {cardMeta.oracle_text}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Price & Retail Breakdown */}
+                      <div>
+                        <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Market Pricing & Availability:</span>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: "0.4rem" }}>
+                          <div style={{ background: "rgba(15,23,42,0.6)", padding: "0.6rem 0.8rem", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Scryfall Market</div>
+                            <div style={{ fontSize: "1rem", fontWeight: "700", color: "#34d399" }}>${price > 0 ? price.toFixed(2) : "N/A"}</div>
+                          </div>
+                          <div style={{ background: "rgba(15,23,42,0.6)", padding: "0.6rem 0.8rem", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            <div style={{ fontSize: "0.75rem", color: "#f472b6" }}>LotusVault (Local)</div>
+                            <div style={{ fontSize: "1rem", fontWeight: "700", color: rData?.lotusInStock ? "#34d399" : "#f87171" }}>
+                              {rData?.lotusInStock ? `$${rData.lotusPrice?.toFixed(2)}` : "Out of Stock"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Action Buttons */}
+                      <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto", paddingTop: "0.75rem" }}>
+                        <button
+                          className="btn-secondary"
+                          style={{ background: "rgba(236,72,153,0.15)", borderColor: "rgba(236,72,153,0.3)", color: "#f472b6" }}
+                          onClick={() => {
+                            setDrawerCardName(modalCard.card_name);
+                            setDrawerCardList([]);
+                            setShowMarketplaceDrawer(true);
+                          }}
+                        >
+                          <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Retail Deals
+                        </button>
+                        <button
+                          className="btn-secondary"
+                          style={{ background: "rgba(234,179,8,0.15)", borderColor: "rgba(234,179,8,0.3)", color: "#facc15" }}
+                          onClick={() => {
+                            const targetKind = modalCard.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist";
+                            updateCardDetails(modalCard, {}, targetKind).then(() => {
+                              loadLists();
+                              setModalCard(null);
+                            });
+                          }}
+                        >
+                          <ArrowsRightLeftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Move to {modalCard.list_type === "wishlist" ? "Optional" : "Required"}
+                        </button>
+                        <button
+                          className="btn-secondary"
+                          style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.3)", color: "#f87171", marginLeft: "auto" }}
+                          onClick={() => {
+                            deleteCard(modalCard);
+                            setModalCard(null);
+                          }}
+                        >
+                          <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

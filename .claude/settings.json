@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "agent",
+            "if": "Edit(frontend/**)",
+            "prompt": "Review the modified frontend files in $ARGUMENTS following the ui-reviewer subagent guidelines (.claude/agents/ui-reviewer.md). Specifically verify: 1. Strict use of @heroicons/react icons and zero emojis in UI or logs; 2. Responsive layouts and scroll containers; 3. Semantic HTML and accessibility attributes; 4. Proper React 18 / React Router patterns and state management.",
+            "statusMessage": "Running UI Reviewer on frontend changes..."
+          }
+        ]
+      }
+    ]
+  }
+}
