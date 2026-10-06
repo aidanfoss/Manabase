@@ -164,7 +164,21 @@ export async function getLocalCardByName(name) {
   await ensureLoaded();
 
   const nameLower = name.toLowerCase();
-  const card = nameToCardMap.get(nameLower);
+  let card = nameToCardMap.get(nameLower);
+
+  // Fallback: if no exact match, try substring or fuzzy search
+  if (!card) {
+    const substringMatches = substringMatch(name);
+    if (substringMatches.length > 0) {
+      card = substringMatches[0];
+    } else if (fuse) {
+      const fuseResults = fuse.search(name);
+      if (fuseResults.length > 0 && fuseResults[0].item) {
+        card = fuseResults[0].item;
+      }
+    }
+  }
+
   if (!card) return null;
 
   const oracle = card.oracle_id || card.id;

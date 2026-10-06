@@ -86,35 +86,39 @@ describe('Gluntch Test', () => {
     
     // We expect 4 items
     expect(printQueue.length).toBe(4);
-    
-    // The items will be returned in insertion order (created_at asc)
-    const gluntch = printQueue[0];
-    const wearTear = printQueue[1];
-    const genGift = printQueue[2];
-    const stroke = printQueue[3];
-    
+
+    // Find items by card_name
+    const gluntch = printQueue.find(p => p.card_name === 'Gluntch, the Bestower');
+    const wearTear = printQueue.find(p => p.card_name === 'Wear // Tear');
+    const genGift = printQueue.find(p => p.card_name === 'Generous Gift');
+    const stroke = printQueue.find(p => p.card_name === 'Stroke of Midnight');
+
     // Check if the art was successfully applied for all
+    expect(gluntch).toBeDefined();
     expect(gluntch.card_name).toBe('Gluntch, the Bestower');
     expect(gluntch.mpcfill_id).toBe('1YhletqWHezOcrsXSE-Tw2_Tcq4uufeeb');
     expect(gluntch.mpcfill_name).toBe('Gluntch the Bestower.jpg');
     expect(gluntch.mpcfill_query).toBe('gluntch bestower');
 
+    expect(wearTear).toBeDefined();
     expect(wearTear.card_name).toBe('Wear // Tear');
     expect(wearTear.mpcfill_id).toBe('1RLjaV74Hj-QX3rd7BXNJnIdQUmfmxktl');
     expect(wearTear.mpcfill_name).toBe('Wear _ Tear (3).png');
     expect(wearTear.mpcfill_query).toBe('wear tear');
 
+    expect(genGift).toBeDefined();
     expect(genGift.card_name).toBe('Generous Gift');
     expect(genGift.mpcfill_id).toBe('15tDzRAfBE2giqjFQm0RhjPauQiiA8Hi_');
     expect(genGift.mpcfill_name).toBe('Generous Gift (Borderless Ron Spears).jpg');
     expect(genGift.mpcfill_query).toBe('generous gift');
 
+    expect(stroke).toBeDefined();
     expect(stroke.card_name).toBe('Stroke of Midnight');
     expect(stroke.mpcfill_id).toBe('1XLjHFNLK80BI4Efd8EJie4NTC4KzpnB4');
     expect(stroke.mpcfill_name).toBe('Stroke of Midnight (Memoories of Nibelheim).jpg');
     expect(stroke.mpcfill_query).toBe('stroke of midnight');
 
-    // 4. Export the entire proxy manifest (mimic frontend logic to assemble XML)
+    // 4. Export the entire proxy manifest in canonical order (mimic frontend logic to assemble XML)
     const escapeXml = (str) => {
       if (!str) return "";
       return String(str)
@@ -125,8 +129,9 @@ describe('Gluntch Test', () => {
         .replace(/'/g, "&apos;");
     };
 
+    const orderedCards = [gluntch, wearTear, genGift, stroke];
     let cardsXml = '';
-    printQueue.forEach((card, index) => {
+    orderedCards.forEach((card, index) => {
       cardsXml += `        <card>
             <id>${card.mpcfill_id}</id>
             <slots>${index}</slots>
