@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import PlaygroupNexus from "./wishlist/PlaygroupNexus";
 import {
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
@@ -37,115 +38,17 @@ import {
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
 import { isDoubleFacedCard, getCardFrontName, getCardBackName, formatMpcTextList } from "../utils/cardHelpers";
+import {
+  getPrintVariantLabel,
+  getUniqueSetsFromPrints,
+  getFinishVersionOptions,
+  getCardImageUrl,
+  generateManaPoolCheckoutUrl
+} from "../utils/WishlistHelpers";
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import ProxyArtSettings from "./ProxyArtSettings";
 import { useToast } from "../context/ToastContext";
 import "../styles/wishlist.css";
-
-// Helper to generate descriptive tag for a card print variant (e.g. #290 Borderless)
-const getPrintVariantLabel = (p) => {
-  const parts = [];
-  if (p.collector_number) parts.push(`#${p.collector_number}`);
-  if (p.border_color === "borderless") parts.push("Borderless");
-  if (p.frame_effects?.includes("showcase")) parts.push("Showcase");
-  if (p.frame_effects?.includes("extendedart")) parts.push("Extended Art");
-  if (p.promo_types?.includes("prerelease")) parts.push("Prerelease");
-  if (p.promo_types?.includes("stamped")) parts.push("Stamped");
-  if (p.full_art && !parts.includes("Borderless")) parts.push("Full Art");
-  return parts.join(" ");
-};
-
-// Helper to extract deduplicated unique sets from prints list
-const getUniqueSetsFromPrints = (prints = []) => {
-  const seen = new Set();
-  const uniqueSets = [];
-  for (const p of prints) {
-    const setCode = (p.set || "").toUpperCase();
-    if (!setCode || seen.has(setCode)) continue;
-    seen.add(setCode);
-    uniqueSets.push({
-      set_code: setCode,
-      set_name: p.set_name || setCode
-    });
-  }
-  return uniqueSets;
-};
-
-// Helper to build Finish / Version dropdown options for a given card and set_code
-const getFinishVersionOptions = (cachedPrints, setCode) => {
-  if (!cachedPrints || !cachedPrints.prints || cachedPrints.prints.length === 0) {
-    return [
-      { key: ":normal", collNum: "", isFoil: false, label: "Normal" },
-      { key: ":foil", collNum: "", isFoil: true, label: "Foil ✨" }
-    ];
-  }
-
-  const matchingPrints = cachedPrints.prints.filter(p => p.set?.toUpperCase() === (setCode || "").toUpperCase());
-  const targetPrints = matchingPrints.length > 0 ? matchingPrints : cachedPrints.prints;
-  const isMultiVariant = targetPrints.length > 1;
-
-  const options = [];
-  targetPrints.forEach((p) => {
-    const variantTag = getPrintVariantLabel(p);
-    const tagSuffix = variantTag ? ` (${variantTag})` : isMultiVariant ? ` (#${p.collector_number})` : "";
-
-    const normPrice = p.prices?.usd ? ` ($${parseFloat(p.prices.usd).toFixed(2)})` : "";
-    const foilPrice = p.prices?.usd_foil ? ` ($${parseFloat(p.prices.usd_foil).toFixed(2)})` : "";
-
-    options.push({
-      key: `${p.collector_number || ""}:normal`,
-      collNum: p.collector_number || "",
-      isFoil: false,
-      label: `Normal${tagSuffix}${normPrice}`
-    });
-
-    options.push({
-      key: `${p.collector_number || ""}:foil`,
-      collNum: p.collector_number || "",
-      isFoil: true,
-      label: `Foil ✨${tagSuffix}${foilPrice}`
-    });
-  });
-
-  return options;
-};
-
-// Helper to get high-res image URL
-const getCardImageUrl = (card, cardMeta) => {
-  if (!card) return null;
-  const prints = cardMeta?.prints || [];
-  const setPrints = card.set_code ? prints.filter(p => p.set?.toUpperCase() === card.set_code.toUpperCase()) : prints;
-  const activePrint = setPrints.length > 0
-    ? (setPrints.find(p => card.collector_number ? p.collector_number === card.collector_number : true) || setPrints[0])
-    : (prints[0] || cardMeta);
-
-  if (activePrint) {
-    return activePrint.image_uris?.normal || activePrint.image_uris?.small || activePrint.card_faces?.[0]?.image_uris?.normal || cardMeta?.image_uris?.normal;
-  }
-  return cardMeta?.image_uris?.normal || cardMeta?.image_uris?.small || null;
-};
-
-function generateManaPoolCheckoutUrl(items) {
-  if (!items || items.length === 0) return "https://manapool.com/add-deck";
-
-  const deckLines = items.map(item => {
-    const qty = typeof item === "object" ? (item.quantity || item.qty || item.count || 1) : 1;
-    const name = typeof item === "string" ? item : (item.card_name || item.name || item.title || "");
-    const set = typeof item === "object" ? (item.set_code || item.setCode || item.set || "") : "";
-    const collector = typeof item === "object" ? (item.collector_number || item.collector || "") : "";
-    if (set && collector) {
-      return `${qty} ${name} [${set.toLowerCase()}] ${collector}`;
-    }
-    return `${qty} ${name}`;
-  }).filter(line => line.trim().length > 0);
-
-  const deckText = deckLines.join("\n");
-  const base64Deck = typeof btoa !== "undefined"
-    ? btoa(unescape(encodeURIComponent(deckText)))
-    : Buffer.from(deckText).toString("base64");
-
-  return `https://manapool.com/add-deck?ref=scm&tap_s=5258590-8677e0&deck=${encodeURIComponent(base64Deck)}&ref_meta=referrer:manabase-bulkBuy`;
-}
 
 export default function WishlistHub() {
   const { showToast } = useToast();
@@ -217,7 +120,7 @@ export default function WishlistHub() {
   const [hasResyncedGroupDecks, setHasResyncedGroupDecks] = useState(false);
   const [resyncingGroupDecks, setResyncingGroupDecks] = useState(false);
 
-  // Manifest opt-out state (off by default — user must explicitly opt IN)
+  // Manifest opt-out state (off by default  user must explicitly opt IN)
   const [manifestOptedOut, setManifestOptedOut] = useState(true);
   const [togglingOptOut, setTogglingOptOut] = useState(false);
 
@@ -594,7 +497,7 @@ export default function WishlistHub() {
 
       setPrintsCache(prev => {
         const next = { ...prev, ...batchResult };
-        console.log("️ [WishlistHub] Updated printsCache size:", Object.keys(next).length);
+        console.log(" [WishlistHub] Updated printsCache size:", Object.keys(next).length);
         return next;
       });
 
@@ -605,9 +508,9 @@ export default function WishlistHub() {
         namesToFetch.forEach(cardName => {
           const cardData = batchResult[cardName];
           if (!cardData) {
-            console.warn(`️ [WishlistHub] No cardData returned for "${cardName}" in batch response!`);
+            console.warn(` [WishlistHub] No cardData returned for "${cardName}" in batch response!`);
           } else if (!cardData.prints || cardData.prints.length === 0) {
-            console.warn(`️ [WishlistHub] cardData for "${cardName}" has EMPTY prints array!`, cardData);
+            console.warn(` [WishlistHub] cardData for "${cardName}" has EMPTY prints array!`, cardData);
           } else {
             console.log(`[WishlistHub] "${cardName}" has ${cardData.prints.length} printings.`);
           }
@@ -916,7 +819,7 @@ export default function WishlistHub() {
 
       if (res.ok) {
         const data = await res.json();
-        alert(` Successfully removed ${data.count || cheapCardsList.length} cheap cards (≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}) from your Proxy Wishlist!`);
+        alert(` Successfully removed ${data.count || cheapCardsList.length} cheap cards ( $${parseFloat(cheapThreshold || 0).toFixed(2)}) from your Proxy Wishlist!`);
         setShowCheapModal(false);
         await loadLists();
         window.dispatchEvent(new Event("refreshAlerts"));
@@ -964,7 +867,7 @@ export default function WishlistHub() {
   // Bulk buy cheap cards on ManaPool handler
   const handleBuyCheapCardsOnManaPool = () => {
     if (cheapCardsList.length === 0) {
-      alert(`No cheap cards match your current threshold of ≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}.`);
+      alert(`No cheap cards match your current threshold of  $${parseFloat(cheapThreshold || 0).toFixed(2)}.`);
       return;
     }
 
@@ -1230,7 +1133,7 @@ export default function WishlistHub() {
           }
         }
       } catch (e) {
-        console.warn("️ [WishlistHub] Could not fetch latest group wishlist prior to XML export:", e);
+        console.warn(" [WishlistHub] Could not fetch latest group wishlist prior to XML export:", e);
       }
     }
 
@@ -1242,7 +1145,7 @@ export default function WishlistHub() {
       try {
         await fetchPrintsBatch(cardNames, latestQueue);
       } catch (e) {
-        console.warn("️ [WishlistHub] Could not refresh prints cache prior to XML export:", e);
+        console.warn(" [WishlistHub] Could not refresh prints cache prior to XML export:", e);
       }
     }
 
@@ -1443,7 +1346,7 @@ export default function WishlistHub() {
     });
 
     // Verbose debug logging for user cardbacks & DFCs
-    console.group("️ [MPCfill XML Generator] Verbose Debug Log");
+    console.group(" [MPCfill XML Generator] Verbose Debug Log");
     console.log(` Active Group: "${activeGroup?.name || "group"}"`);
     console.log(`Total Cards in Print Queue: ${printQueue.length}`);
     printQueue.forEach((c, idx) => {
@@ -1538,7 +1441,7 @@ export default function WishlistHub() {
       try {
         await fetchPrintsBatch(cardNames, currentList);
       } catch (e) {
-        console.warn("⚠️ [WishlistHub] Could not refresh prints cache prior to XML export:", e);
+        console.warn(" [WishlistHub] Could not refresh prints cache prior to XML export:", e);
       }
     }
 
@@ -1943,7 +1846,7 @@ export default function WishlistHub() {
     return (
       <div className="printable-sheets-container">
         <div className="print-controls no-print">
-          <h2><PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Printable Proxy Sheets Layout</h2>
+          <h2><PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Printable Proxy Sheets Layout</h2>
           <p>This layout is scaled to standard Magic card dimensions (63mm x 88mm). Use <code>Ctrl + P</code> to print sheets.</p>
           <div className="print-actions">
             <button className="print-btn-confirm" onClick={() => window.print()}>Open Print Dialog</button>
@@ -2037,7 +1940,7 @@ export default function WishlistHub() {
               className="subtab-btn"
               onClick={() => window.location.href = "/trade"}
             >
-              <HandRaisedIcon className="inline-icon" /> Trade Hub ↗
+              <HandRaisedIcon className="inline-icon" /> Trade Hub 
             </button>
             <button
               className="subtab-btn"
@@ -2061,12 +1964,12 @@ export default function WishlistHub() {
           {/* Quick descriptions */}
           {selectedList === "proxy_wishlist" && (
             <div className="compliance-banner compliant" style={{ background: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.2)", color: "#93c5fd" }}>
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
             </div>
           )}
           {selectedList === "optional_proxies" && (
             <div className="compliance-banner compliant" style={{ background: "rgba(107,114,128,0.06)", borderColor: "rgba(107,114,128,0.2)", color: "#9ca3af" }}>
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Optional Proxies: Lower priority cards used to fill out the remaining slots of a bulk print bracket.
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Optional Proxies: Lower priority cards used to fill out the remaining slots of a bulk print bracket.
             </div>
           )}
           {selectedList === "proxy_arts" && (
@@ -2138,7 +2041,7 @@ export default function WishlistHub() {
                       <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
                     </button>
                     <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
-                      <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Remove Cheap Cards
+                      <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove Cheap Cards
                     </button>
                     <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={activeList.length === 0}>
                       <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
@@ -2150,7 +2053,7 @@ export default function WishlistHub() {
                       <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download XML
                     </button>
                     <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={activeList.length === 0}>
-                      <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Print Sheets
+                      <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Print Sheets
                     </button>
                     <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={activeList.length === 0}>
                       <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
@@ -2169,7 +2072,7 @@ export default function WishlistHub() {
                       <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
                     </button>
                     <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
-                      <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Clear All
+                      <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear All
                     </button>
                   </div>
                 </div>
@@ -2206,7 +2109,7 @@ export default function WishlistHub() {
                   style={{ background: "rgba(99,102,241,0.2)", borderColor: "rgba(99,102,241,0.4)", color: "#818cf8", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: "700" }}
                   onClick={handleBuyCheapCardsOnManaPool}
                   disabled={wishlist.length === 0 || cheapCardsList.length === 0}
-                  title="Export cheap cards (≤ threshold) directly into ManaPool cart"
+                  title="Export cheap cards ( threshold) directly into ManaPool cart"
                 >
                   <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Buy Cheap Cards ({cheapCardsList.length})
                 </button>
@@ -2371,276 +2274,17 @@ export default function WishlistHub() {
 
       {/* VIEW 2: PLAYGROUP NEXUS */}
       {activeTab === "nexus" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-
-          {/* Active Playgroup selector & invite/create actions */}
-          <div className="playgroup-setup-grid">
-            {/* Selector */}
-            <div className="setup-card">
-              <label className="playgroup-label"><UserGroupIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Select Active Playgroup:</label>
-              {playgroups.length > 0 ? (
-                <select
-                  value={activeGroup?.id || ""}
-                  onChange={(e) => {
-                    const group = playgroups.find(g => g.id === parseInt(e.target.value));
-                    setActiveGroup(group);
-                  }}
-                  className="playgroup-dropdown"
-                >
-                  {playgroups.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              ) : (
-                <p style={{ color: "#64748b", margin: "0", fontSize: "0.85rem" }}>You are not in any playgroups yet.</p>
-              )}
-
-              {activeGroup && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.75rem", gap: "0.5rem" }}>
-                  <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
-                    Active members: <strong>{groupMembers.length}</strong> <LockClosedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Private
-                  </div>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      onClick={handleGenerateInviteLink}
-                      className="setup-btn"
-                      style={{ background: "#3b82f6", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
-                    >
-                      <LinkIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Invite Link
-                    </button>
-                    <button
-                      onClick={handleLeaveGroup}
-                      className="setup-btn"
-                      style={{ background: "transparent", border: "1px solid #ef4444", color: "#f87171", fontSize: "0.8rem", padding: "0.35rem 0.75rem" }}
-                      title="Leave this playgroup"
-                    >
-                      <ArrowRightOnRectangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Leave
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Create Group */}
-            <div className="setup-card" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", paddingLeft: "1.5rem" }}>
-              <label className="playgroup-label"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Create Private Playgroup:</label>
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
-                <input
-                  type="text"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  placeholder="New playgroup name..."
-                  className="setup-input"
-                  style={{ flex: 1 }}
-                />
-                <button onClick={handleCreateGroup} className="setup-btn">Create Group</button>
-              </div>
-            </div>
-          </div>
-
-          {activeGroup ? (
-            <>
-              {/* Playgroup Active View */}
-
-              {/* Shared Group MPC Order Engine Section */}
-              <div className="mpc-tracker-card">
-                <div className="mpc-progress-header">
-                  <div>
-                    <h3 style={{ margin: "0", fontSize: "1.1rem" }}> Shared Group MPC Order Engine</h3>
-                    <p style={{ margin: "0.15rem 0 0 0", fontSize: "0.8rem", color: "#94a3b8" }}>
-                      Bundles playgroup wishlists chronologically. Optimal bulk bracket target: <strong>612 cards</strong>.
-                    </p>
-                  </div>
-
-                  <span className={`mpc-alert-badge ${isFloorMet ? "met" : "unmet"}`}>
-                    {isFloorMet ? "Minimum Floor Met (108+ Cards)" : "️ Below Minimum Floor (Need 108 Cards)"}
-                  </span>
-
-                  <button
-                    onClick={handleToggleManifestOptOut}
-                    disabled={!activeGroup || togglingOptOut}
-                    title={
-                      !activeGroup
-                        ? "Select an active playgroup first"
-                        : manifestOptedOut
-                          ? "Your cards are excluded from this order — click to opt in"
-                          : "Your cards are included in this order — click to opt out"
-                    }
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                      padding: "0.25rem 0.65rem",
-                      borderRadius: "999px",
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      cursor: (!activeGroup || togglingOptOut) ? "not-allowed" : "pointer",
-                      opacity: (!activeGroup || togglingOptOut) ? 0.55 : 1,
-                      border: `1px solid ${manifestOptedOut ? "rgba(245,158,11,0.5)" : "rgba(52,211,153,0.4)"}`,
-                      background: manifestOptedOut ? "rgba(146,64,14,0.25)" : "rgba(6,78,59,0.25)",
-                      color: manifestOptedOut ? "#fbbf24" : "#34d399",
-                      transition: "all 0.15s ease",
-                      whiteSpace: "nowrap",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {togglingOptOut ? "..." : manifestOptedOut ? "⛔ Opted Out" : "✅ Opted In"}
-                  </button>
-                </div>
-
-                {/* Progress bar metrics */}
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                  <div className="progress-bar-container" style={{ flex: 1 }}>
-                    <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
-                  </div>
-                  <span style={{ fontSize: "0.85rem", fontWeight: "700" }}>
-                    {mpcListCount} / 612 Cards
-                  </span>
-                </div>
-
-                {/* Default Card Back Preference Input */}
-                <div style={{ margin: "0.75rem 0", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <label style={{ fontSize: "0.85rem", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
-                    <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Default Card Back ID / Query:
-                  </label>
-                  <input
-                    type="text"
-                    className="setup-input"
-                    style={{ flex: 1, minWidth: "220px", fontSize: "0.85rem", padding: "0.35rem 0.6rem" }}
-                    placeholder="e.g. Google Drive ID, image URL, or cardback query"
-                    value={defaultCardBack}
-                    onChange={(e) => handleSaveCardBack(e.target.value)}
-                  />
-                </div>
-
-                {/* Download and actions */}
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <button 
-                    className="setup-btn" 
-                    onClick={handleResyncGroupDecks} 
-                    disabled={resyncingGroupDecks}
-                    style={{ background: "#3b82f6" }}
-                  >
-                    {resyncingGroupDecks ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Resync All Playgroup Decks</>}
-                  </button>
-                  <button className="setup-btn" onClick={handleDownloadMpcXml} disabled={mpcListCount === 0}>
-                    <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Generate MPCfill XML Manifest
-                  </button>
-                  <button
-                    className="setup-btn"
-                    onClick={handleCopyMpcTextList}
-                    disabled={mpcListCount === 0}
-                    style={{ background: "rgba(59, 130, 246, 0.2)", borderColor: "rgba(59, 130, 246, 0.4)", color: "#93c5fd" }}
-                    title="Copy card names in MPCfill text format (e.g. 2x Card Name)"
-                  >
-                    <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy MPCfill Quick List
-                  </button>
-                  <button
-                    className="setup-btn"
-                    onClick={() => {
-                      setConfirmTargetScope("playgroup");
-                      setConfirmChecked(false);
-                      setShowConfirmModal(true);
-                    }}
-                    disabled={mpcListCount === 0}
-                    style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399", color: "#ffffff", fontWeight: "700" }}
-                    title="Confirm that you ordered the active manifest cards on MakePlayingCards"
-                  >
-                    <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
-                  </button>
-                </div>
-
-                {/* Split list display: Active queue vs Overflow queue */}
-                <div className="queue-panel-split">
-                  {/* Active Queue */}
-                  <div className="queue-column">
-                    <h3>
-                      <span><RocketLaunchIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Active Print Queue</span>
-                      <span className="queue-badge active">First 612 Copies</span>
-                    </h3>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      {groupWishlist.slice(0, 612).map((c, idx) => (
-                        <div key={`${c.id}-${idx}`} className="queue-list-item">
-                          <span>{idx + 1}. <strong>{c.card_name}</strong> {c.list_type === "optional_proxies" && <span style={{ color: "#a8a29e", fontSize: "0.75rem", fontStyle: "italic", marginLeft: "2px", marginRight: "2px" }}>(Optional)</span>} ({c.username})</span>
-                          <span style={{ color: "#64748b" }}>{c.set_code?.toUpperCase()}</span>
-                        </div>
-                      ))}
-                      {groupWishlist.slice(0, 612).length === 0 && (
-                        <p style={{ color: "#64748b", fontStyle: "italic", fontSize: "0.85rem" }}>Queue is empty.</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Overflow Queue */}
-                  <div className="queue-column">
-                    <h3>
-                      <span>⏳ Overflow / Deferred Queue</span>
-                      <span className="queue-badge overflow">Deferred to Next Manifest</span>
-                    </h3>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      {groupWishlist.slice(612).map((c, idx) => (
-                        <div key={`${c.id}-${idx}`} className="queue-list-item">
-                          <span>{idx + 1}. <strong>{c.card_name}</strong> {c.list_type === "optional_proxies" && <span style={{ color: "#a8a29e", fontSize: "0.75rem", fontStyle: "italic", marginLeft: "2px", marginRight: "2px" }}>(Optional)</span>} ({c.username})</span>
-                          <span style={{ color: "#64748b" }}>{c.set_code?.toUpperCase()}</span>
-                        </div>
-                      ))}
-                      {groupWishlist.slice(612).length === 0 && (
-                        <p style={{ color: "#64748b", fontStyle: "italic", fontSize: "0.85rem" }}>No overflow cards in queue.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Venmo Calculator & receipts */}
-                <div className="venmo-calculator-card">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <h4 style={{ margin: "0", fontSize: "1rem" }}><BanknotesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Venmo Reimbursement Calculator</h4>
-                      <p style={{ margin: "0.15rem 0 0 0", fontSize: "0.78rem", color: "#64748b" }}>
-                        Costs split proportionally according to card count percentage in the active 612 manifest.
-                      </p>
-                    </div>
-
-                    {/* Cost config */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>Cost per print card:</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={mpcUnitCost}
-                        onChange={(e) => setMpcUnitCost(parseFloat(e.target.value) || 0)}
-                        className="setup-input"
-                        style={{ width: "70px", padding: "0.3rem" }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="venmo-grid">
-                    {Object.entries(venmoUserCounts).map(([username, count]) => {
-                      const pct = (count / mpcActiveCards.length) * 100;
-                      const shareVal = (pct / 100) * totalEstimateCost;
-                      return (
-                        <div key={username} className="venmo-user-card">
-                          <div>
-                            <span className="venmo-user-name">{username}</span>
-                            <div className="venmo-user-stats">{count} cards ({pct.toFixed(1)}% of manifest)</div>
-                          </div>
-                          <span className="venmo-price-share">${shareVal.toFixed(2)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-
-            </>
-          ) : (
-            <div className="empty-wishlist-box">
-              Please create or join a playgroup to access the Playgroup Nexus tools!
-            </div>
-          )}
-        </div>
+        <PlaygroupNexus
+          activeGroup={activeGroup}
+          setActiveGroup={setActiveGroup}
+          playgroups={playgroups}
+          loadPlaygroups={loadPlaygroups}
+          printQueue={groupWishlist}
+          mpcUnitCost={mpcUnitCost}
+          setMpcUnitCost={setMpcUnitCost}
+          defaultCardBack={defaultCardBack}
+          handleSaveCardBack={handleSaveCardBack}
+        />
       )}
 
       {/* VIEW 3: PROXY SETTINGS */}
@@ -2738,15 +2382,15 @@ export default function WishlistHub() {
                   border: `1px solid ${manifestOptedOut ? "rgba(245,158,11,0.4)" : "rgba(52,211,153,0.4)"}`
                 }}
               >
-                {manifestOptedOut ? "⛔ Opted Out" : "✅ Opted In"}
+                {manifestOptedOut ? "Not  Opted Out" : "Active  Opted In"}
               </span>
             </div>
 
             <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0, marginBottom: "1.25rem" }}>
               Control whether your wishlist cards are included in your playgroup's combined print manifest (the 612-card MPCfill order).
               {manifestOptedOut
-                ? <><br /><span style={{ color: "#f59e0b", fontWeight: 600 }}>You are currently opted OUT — your cards will not appear in the next print order.</span></>
-                : <><br /><span style={{ color: "#34d399", fontWeight: 600 }}>You are currently opted IN — your cards will be included in the next print order.</span></>
+                ? <><br /><span style={{ color: "#f59e0b", fontWeight: 600 }}>You are currently opted OUT  your cards will not appear in the next print order.</span></>
+                : <><br /><span style={{ color: "#34d399", fontWeight: 600 }}>You are currently opted IN  your cards will be included in the next print order.</span></>
               }
             </p>
 
@@ -2776,8 +2420,8 @@ export default function WishlistHub() {
               {togglingOptOut
                 ? "Saving..."
                 : manifestOptedOut
-                  ? "✅ Opt In to Proxy Manifest"
-                  : "⛔ Opt Out of Proxy Manifest"
+                  ? "Active  Opt In to Proxy Manifest"
+                  : "Not  Opt Out of Proxy Manifest"
               }
             </button>
 
@@ -2965,7 +2609,7 @@ export default function WishlistHub() {
                             </span>
                           </div>
                           <p style={{ margin: "0.3rem 0 0 0", fontSize: "0.82rem", color: "#94a3b8" }}>
-                            Ordered on <strong>{dateStr}</strong> by <strong>{order.creator_username || "User"}</strong> {order.playgroup_name ? `• Playgroup: ${order.playgroup_name}` : "• Personal Wishlist"}
+                            Ordered on <strong>{dateStr}</strong> by <strong>{order.creator_username || "User"}</strong> {order.playgroup_name ? ` Playgroup: ${order.playgroup_name}` : " Personal Wishlist"}
                           </p>
                           <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
                             <span><strong>{order.total_cards}</strong> total cards</span>
@@ -2997,7 +2641,7 @@ export default function WishlistHub() {
                             style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "#94a3b8", fontSize: "0.8rem" }}
                             onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                           >
-                            {isExpanded ? "Hide Cards ▲" : `View Cards (${orderCards.length}) ▼`}
+                            {isExpanded ? "Hide Cards " : `View Cards (${orderCards.length}) `}
                           </button>
                         </div>
                       </div>
@@ -3127,7 +2771,7 @@ export default function WishlistHub() {
 
               {importStatus && (
                 <div className="import-status-banner">
-                  <span className="spinner">⏳</span> {importStatus}
+                  <span className="spinner"></span> {importStatus}
                 </div>
               )}
             </div>
@@ -3167,7 +2811,7 @@ export default function WishlistHub() {
           <div className="modal-container cheap-cards-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-header-title">
-                <h2><TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Remove Cheap Cards from Proxy List</h2>
+                <h2><TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove Cheap Cards from Proxy List</h2>
                 <p>Purge cards from your proxy wishlist if their purchase price is at or below your set threshold.</p>
               </div>
               <button className="modal-close-btn" onClick={() => !deletingCheap && setShowCheapModal(false)}></button>
@@ -3273,7 +2917,7 @@ export default function WishlistHub() {
                   onClick={handleBuyCheapCardsOnManaPool}
                   disabled={cheapCardsList.length === 0}
                 >
-                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Buy {cheapCardsList.length} Cards on ManaPool ↗
+                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Buy {cheapCardsList.length} Cards on ManaPool 
                 </button>
                 <button
                   className="btn-primary btn-danger-action"
@@ -3310,7 +2954,7 @@ export default function WishlistHub() {
                   Confirming this order will save it to your Order History and clear the ordered cards from the proxy wishlist.
                 </p>
                 <p style={{ margin: "0.3rem 0 0 0", color: "#a7f3d0", fontSize: "0.78rem" }}>
-                  ℹ️ Any overflow/deferred cards beyond the 612 cap will <strong>NOT</strong> be cleared and will remain in wishlists for future orders.
+                   Any overflow/deferred cards beyond the 612 cap will <strong>NOT</strong> be cleared and will remain in wishlists for future orders.
                 </p>
               </div>
 
@@ -3433,7 +3077,7 @@ export default function WishlistHub() {
                       </h2>
                       <p>{cardMeta?.type_line || "Magic: The Gathering Card"}</p>
                     </div>
-                    <button className="modal-close-btn" onClick={() => setModalCard(null)}>✕</button>
+                    <button className="modal-close-btn" onClick={() => setModalCard(null)}></button>
                   </div>
 
                   <div className="card-detail-grid">
