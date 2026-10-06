@@ -1,5 +1,38 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { ClipboardDocumentListIcon, ExclamationTriangleIcon, CheckCircleIcon, XMarkIcon, LinkIcon, ArrowPathIcon, WrenchScrewdriverIcon, TrophyIcon, ArrowsRightLeftIcon, PaintBrushIcon, SparklesIcon, PrinterIcon, UserGroupIcon, Cog6ToothIcon, BoltIcon, MagnifyingGlassIcon, InboxIcon, TagIcon, DocumentArrowDownIcon, TrashIcon, LockClosedIcon, ArrowRightOnRectangleIcon, RocketLaunchIcon, BanknotesIcon, CurrencyDollarIcon, DocumentTextIcon, HandRaisedIcon, ClockIcon, ShoppingBagIcon } from "@heroicons/react/24/solid";
+import {
+  ClipboardDocumentListIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+  LinkIcon,
+  ArrowPathIcon,
+  WrenchScrewdriverIcon,
+  TrophyIcon,
+  ArrowsRightLeftIcon,
+  PaintBrushIcon,
+  SparklesIcon,
+  PrinterIcon,
+  UserGroupIcon,
+  Cog6ToothIcon,
+  BoltIcon,
+  MagnifyingGlassIcon,
+  InboxIcon,
+  TagIcon,
+  DocumentArrowDownIcon,
+  TrashIcon,
+  LockClosedIcon,
+  ArrowRightOnRectangleIcon,
+  RocketLaunchIcon,
+  BanknotesIcon,
+  CurrencyDollarIcon,
+  DocumentTextIcon,
+  HandRaisedIcon,
+  ClockIcon,
+  ShoppingBagIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ArrowDownTrayIcon
+} from "@heroicons/react/24/solid";
 
 
 
@@ -112,6 +145,35 @@ export default function WishlistHub() {
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [confirmTargetScope, setConfirmTargetScope] = useState("playgroup"); // "playgroup" or "personal"
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+  // Bulk Actions Dropdown States
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [showClearDropdown, setShowClearDropdown] = useState(false);
+  const exportDropdownRef = useRef(null);
+  const clearDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(e.target)) {
+        setShowExportDropdown(false);
+      }
+      if (clearDropdownRef.current && !clearDropdownRef.current.contains(e.target)) {
+        setShowClearDropdown(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowExportDropdown(false);
+        setShowClearDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const loadOrderHistory = async () => {
     setLoadingHistory(true);
@@ -799,7 +861,7 @@ export default function WishlistHub() {
 
       if (res.ok) {
         const data = await res.json();
-        alert(` Successfully removed ${data.count || cheapCardsList.length} cheap cards (≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}) from your Proxy Wishlist!`);
+        alert(`Successfully removed ${data.count || cheapCardsList.length} cheap cards (≤ $${parseFloat(cheapThreshold || 0).toFixed(2)}) from your Proxy Wishlist!`);
         setShowCheapModal(false);
         await loadLists();
         window.dispatchEvent(new Event("refreshAlerts"));
@@ -1826,7 +1888,7 @@ export default function WishlistHub() {
     return (
       <div className="printable-sheets-container">
         <div className="print-controls no-print">
-          <h2><PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Printable Proxy Sheets Layout</h2>
+          <h2><PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Printable Proxy Sheets Layout</h2>
           <p>This layout is scaled to standard Magic card dimensions (63mm x 88mm). Use <code>Ctrl + P</code> to print sheets.</p>
           <div className="print-actions">
             <button className="print-btn-confirm" onClick={() => window.print()}>Open Print Dialog</button>
@@ -1884,7 +1946,7 @@ export default function WishlistHub() {
           className={`nexus-tab-btn ${activeTab === "settings" ? "active" : ""}`}
           onClick={() => setActiveTab("settings")}
         >
-          <Cog6ToothIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Settings
+          <Cog6ToothIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Settings
         </button>
       </div>
 
@@ -1898,13 +1960,13 @@ export default function WishlistHub() {
               className={`sub-tab-btn ${selectedList === "proxy_wishlist" ? "active" : ""}`}
               onClick={() => setSelectedList("proxy_wishlist")}
             >
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist ({wishlist.length})
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Wishlist ({wishlist.length})
             </button>
             <button
               className={`sub-tab-btn ${selectedList === "optional_proxies" ? "active" : ""}`}
               onClick={() => setSelectedList("optional_proxies")}
             >
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Optional Proxies ({optionalProxies.length})
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Optional Proxies ({optionalProxies.length})
             </button>
             <button
               className={`sub-tab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
@@ -1917,7 +1979,7 @@ export default function WishlistHub() {
               className="sub-tab-btn"
               onClick={() => window.location.href = "/trade"}
             >
-              <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Go to Trade Hub ↗
+              <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Go to Trade Hub
             </button>
             <button
               className="sub-tab-btn"
@@ -1942,12 +2004,12 @@ export default function WishlistHub() {
           {/* Quick descriptions */}
           {selectedList === "proxy_wishlist" && (
             <div className="compliance-banner compliant" style={{ background: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.2)", color: "#93c5fd" }}>
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
             </div>
           )}
           {selectedList === "optional_proxies" && (
             <div className="compliance-banner compliant" style={{ background: "rgba(107,114,128,0.06)", borderColor: "rgba(107,114,128,0.2)", color: "#9ca3af" }}>
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Optional Proxies: Lower priority cards used to fill out the remaining slots of a bulk print bracket.
+              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Optional Proxies: Lower priority cards used to fill out the remaining slots of a bulk print bracket.
             </div>
           )}
           {selectedList === "proxy_arts" && (
@@ -2015,29 +2077,179 @@ export default function WishlistHub() {
                   </div>
 
                   <div className="proxy-actions-row">
-                    <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
-                      <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
-                    </button>
-                    <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
-                      <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Remove Cheap Cards
-                    </button>
-                    <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={activeList.length === 0}>
-                      <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
-                    </button>
-                    <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={activeList.length === 0}>
-                      <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download CSV
-                    </button>
-                    <button className="proxy-btn" onClick={handleDownloadMyMpcXml} disabled={activeList.length === 0}>
-                      <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download XML
-                    </button>
-                    <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={activeList.length === 0}>
-                      <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Print Sheets
-                    </button>
-                    <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={activeList.length === 0}>
-                      <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
-                    </button>
+                    {/* Bulk Import */}
                     <button
-                      className="proxy-btn"
+                      type="button"
+                      className="proxy-btn import"
+                      onClick={() => setShowImportModal(true)}
+                      title="Import cards in bulk via text or file"
+                    >
+                      <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+                      <span>Bulk Import</span>
+                    </button>
+
+                    {/* Print Sheets */}
+                    <button
+                      type="button"
+                      className="proxy-btn print"
+                      onClick={() => setShowPrintMode(true)}
+                      disabled={activeList.length === 0}
+                      title="Generate printable sheet grid for paper proxies"
+                    >
+                      <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+                      <span>Print Sheets</span>
+                    </button>
+
+                    {/* Export Dropdown */}
+                    <div className="proxy-dropdown-container" ref={exportDropdownRef}>
+                      <button
+                        type="button"
+                        className={`proxy-btn proxy-dropdown-trigger ${showExportDropdown ? "active" : ""}`}
+                        onClick={() => {
+                          setShowExportDropdown(prev => !prev);
+                          setShowClearDropdown(false);
+                        }}
+                        disabled={activeList.length === 0}
+                        title="Export or copy card list in various formats"
+                        aria-haspopup="true"
+                        aria-expanded={showExportDropdown}
+                      >
+                        <ArrowDownTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+                        <span>Export</span>
+                        <ChevronDownIcon
+                          className={`dropdown-chevron-icon ${showExportDropdown ? "open" : ""}`}
+                          style={{ width: '1em', height: '1em', verticalAlign: 'middle', marginLeft: '4px' }}
+                        />
+                      </button>
+
+                      {showExportDropdown && (
+                        <div className="proxy-dropdown-menu">
+                          <button
+                            type="button"
+                            className="proxy-dropdown-item"
+                            onClick={() => {
+                              handleCopyMoxfield();
+                              setShowExportDropdown(false);
+                            }}
+                          >
+                            <ClipboardDocumentListIcon className="dropdown-item-icon" />
+                            <div className="dropdown-item-content">
+                              <span className="dropdown-item-title">Copy Decklist</span>
+                              <span className="dropdown-item-desc">Moxfield / standard text format</span>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="proxy-dropdown-item"
+                            onClick={() => {
+                              handleDownloadMpcCsv();
+                              setShowExportDropdown(false);
+                            }}
+                          >
+                            <DocumentArrowDownIcon className="dropdown-item-icon" />
+                            <div className="dropdown-item-content">
+                              <span className="dropdown-item-title">Download CSV</span>
+                              <span className="dropdown-item-desc">Spreadsheet with sets & prices</span>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="proxy-dropdown-item"
+                            onClick={() => {
+                              handleDownloadMyMpcXml();
+                              setShowExportDropdown(false);
+                            }}
+                          >
+                            <WrenchScrewdriverIcon className="dropdown-item-icon" />
+                            <div className="dropdown-item-content">
+                              <span className="dropdown-item-title">Download XML</span>
+                              <span className="dropdown-item-desc">MPCfill automated XML manifest</span>
+                            </div>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Clear / Cleanup Dropdown */}
+                    <div className="proxy-dropdown-container" ref={clearDropdownRef}>
+                      <button
+                        type="button"
+                        className={`proxy-btn proxy-btn-clear-trigger ${showClearDropdown ? "active" : ""}`}
+                        onClick={() => {
+                          setShowClearDropdown(prev => !prev);
+                          setShowExportDropdown(false);
+                        }}
+                        disabled={activeList.length === 0}
+                        title="Clear cards, purge cheap cards, or reset printing rules"
+                        aria-haspopup="true"
+                        aria-expanded={showClearDropdown}
+                      >
+                        <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+                        <span>Clear / Manage</span>
+                        <ChevronDownIcon
+                          className={`dropdown-chevron-icon ${showClearDropdown ? "open" : ""}`}
+                          style={{ width: '1em', height: '1em', verticalAlign: 'middle', marginLeft: '4px' }}
+                        />
+                      </button>
+
+                      {showClearDropdown && (
+                        <div className="proxy-dropdown-menu">
+                          <button
+                            type="button"
+                            className="proxy-dropdown-item"
+                            onClick={() => {
+                              setShowCheapModal(true);
+                              setShowClearDropdown(false);
+                            }}
+                          >
+                            <TagIcon className="dropdown-item-icon" style={{ color: "#fb7185" }} />
+                            <div className="dropdown-item-content">
+                              <span className="dropdown-item-title">Remove Cheap Cards</span>
+                              <span className="dropdown-item-desc">Purge cards below custom price threshold</span>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="proxy-dropdown-item"
+                            onClick={() => {
+                              handleSetAllAnyPrinting();
+                              setShowClearDropdown(false);
+                            }}
+                          >
+                            <ArrowPathIcon className="dropdown-item-icon" style={{ color: "#60a5fa" }} />
+                            <div className="dropdown-item-content">
+                              <span className="dropdown-item-title">Clear Specific Printing Rules</span>
+                              <span className="dropdown-item-desc">Reset card print selections to Any Printing</span>
+                            </div>
+                          </button>
+
+                          <div className="proxy-dropdown-divider" />
+
+                          <button
+                            type="button"
+                            className="proxy-dropdown-item danger"
+                            onClick={() => {
+                              handleClearAll();
+                              setShowClearDropdown(false);
+                            }}
+                          >
+                            <TrashIcon className="dropdown-item-icon" style={{ color: "#ef4444" }} />
+                            <div className="dropdown-item-content">
+                              <span className="dropdown-item-title danger-text">Clear All Cards</span>
+                              <span className="dropdown-item-desc">Remove all cards from current wishlist</span>
+                            </div>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Confirm Order */}
+                    <button
+                      type="button"
+                      className="proxy-btn confirm-order-btn"
                       style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399", color: "#ffffff", fontWeight: "700" }}
                       onClick={() => {
                         setConfirmTargetScope("personal");
@@ -2047,10 +2259,8 @@ export default function WishlistHub() {
                       disabled={activeList.length === 0}
                       title="Confirm that you ordered these cards and clear them from your wishlist"
                     >
-                      <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
-                    </button>
-                    <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
-                      <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Clear All
+                      <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+                      <span>Confirm Order</span>
                     </button>
                   </div>
                 </div>
@@ -2358,14 +2568,14 @@ export default function WishlistHub() {
               <div className="mpc-tracker-card">
                 <div className="mpc-progress-header">
                   <div>
-                    <h3 style={{ margin: "0", fontSize: "1.1rem" }}> Shared Group MPC Order Engine</h3>
+                    <h3 style={{ margin: "0", fontSize: "1.1rem" }}>Shared Group MPC Order Engine</h3>
                     <p style={{ margin: "0.15rem 0 0 0", fontSize: "0.8rem", color: "#94a3b8" }}>
                       Bundles playgroup wishlists chronologically. Optimal bulk bracket target: <strong>612 cards</strong>.
                     </p>
                   </div>
 
                   <span className={`mpc-alert-badge ${isFloorMet ? "met" : "unmet"}`}>
-                    {isFloorMet ? "Minimum Floor Met (108+ Cards)" : "️ Below Minimum Floor (Need 108 Cards)"}
+                    {isFloorMet ? "Minimum Floor Met (108+ Cards)" : "Below Minimum Floor (Need 108 Cards)"}
                   </span>
 
                   <button
@@ -2396,7 +2606,7 @@ export default function WishlistHub() {
                       flexShrink: 0,
                     }}
                   >
-                    {togglingOptOut ? "..." : manifestOptedOut ? "⛔ Opted Out" : "✅ Opted In"}
+                    {togglingOptOut ? "..." : manifestOptedOut ? "Opted Out" : "Opted In"}
                   </button>
                 </div>
 
@@ -2436,7 +2646,7 @@ export default function WishlistHub() {
                     {resyncingGroupDecks ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Resync All Playgroup Decks</>}
                   </button>
                   <button className="setup-btn" onClick={handleDownloadMpcXml} disabled={mpcListCount === 0}>
-                    <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Generate MPCfill XML Manifest
+                    <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Generate MPCfill XML Manifest
                   </button>
                   <button
                     className="setup-btn"
@@ -2486,7 +2696,7 @@ export default function WishlistHub() {
                   {/* Overflow Queue */}
                   <div className="queue-column">
                     <h3>
-                      <span>⏳ Overflow / Deferred Queue</span>
+                      <span><ClockIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Overflow / Deferred Queue</span>
                       <span className="queue-badge overflow">Deferred to Next Manifest</span>
                     </h3>
                     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -2650,7 +2860,7 @@ export default function WishlistHub() {
                   border: `1px solid ${manifestOptedOut ? "rgba(245,158,11,0.4)" : "rgba(52,211,153,0.4)"}`
                 }}
               >
-                {manifestOptedOut ? "⛔ Opted Out" : "✅ Opted In"}
+                {manifestOptedOut ? "Opted Out" : "Opted In"}
               </span>
             </div>
 
@@ -2688,8 +2898,8 @@ export default function WishlistHub() {
               {togglingOptOut
                 ? "Saving..."
                 : manifestOptedOut
-                  ? "✅ Opt In to Proxy Manifest"
-                  : "⛔ Opt Out of Proxy Manifest"
+                  ? "Opt In to Proxy Manifest"
+                  : "Opt Out of Proxy Manifest"
               }
             </button>
 
@@ -3039,7 +3249,7 @@ export default function WishlistHub() {
 
               {importStatus && (
                 <div className="import-status-banner">
-                  <span className="spinner">⏳</span> {importStatus}
+                  <ArrowPathIcon className="inline-icon spinner-spin" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {importStatus}
                 </div>
               )}
             </div>
@@ -3079,7 +3289,7 @@ export default function WishlistHub() {
           <div className="modal-container cheap-cards-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-header-title">
-                <h2><TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Remove Cheap Cards from Proxy List</h2>
+                <h2><TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove Cheap Cards from Proxy List</h2>
                 <p>Purge cards from your proxy wishlist if their purchase price is at or below your set threshold.</p>
               </div>
               <button className="modal-close-btn" onClick={() => !deletingCheap && setShowCheapModal(false)}></button>
@@ -3222,7 +3432,8 @@ export default function WishlistHub() {
                   Confirming this order will save it to your Order History and clear the ordered cards from the proxy wishlist.
                 </p>
                 <p style={{ margin: "0.3rem 0 0 0", color: "#a7f3d0", fontSize: "0.78rem" }}>
-                  ℹ️ Any overflow/deferred cards beyond the 612 cap will <strong>NOT</strong> be cleared and will remain in wishlists for future orders.
+                  <InformationCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Any overflow/deferred cards beyond the 612 cap will <strong>NOT</strong> be cleared and will remain in wishlists for future orders.
                 </p>
               </div>
 
