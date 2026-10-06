@@ -3,7 +3,7 @@ import { db, initDB } from '../db/connection.js';
 
 // Setup in-memory database before all tests
 beforeAll(async () => {
-  // Ensure we are using test environment
+  // Ensure we are using test environment and dev login
   process.env.NODE_ENV = 'test';
   process.env.ENABLE_DEV_LOGIN = 'true';
 

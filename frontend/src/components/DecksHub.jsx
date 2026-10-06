@@ -615,8 +615,8 @@ export default function DecksHub() {
         <div
           className="floating-mystic-card-preview"
           style={{
-            left: `${Math.min(typeof window !== 'undefined' ? window.innerWidth - 280 : 800, Math.max(10, hoveredPreviewCard.x || 100))}px`,
-            top: `${Math.min(typeof window !== 'undefined' ? window.innerHeight - 420 : 600, Math.max(10, hoveredPreviewCard.y || 100))}px`,
+            left: `${Math.min(typeof window !== 'undefined' ? window.innerWidth - 270 : 800, Math.max(10, hoveredPreviewCard.x || 100))}px`,
+            top: `${Math.min(typeof window !== 'undefined' ? window.innerHeight - 380 : 600, Math.max(10, hoveredPreviewCard.y || 100))}px`,
           }}
         >
           <div className="mystic-card-portal-inner">
@@ -690,26 +690,35 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
 
       {/* Card Content */}
       <div className="deck-card-content">
-        {/* Commander Header Banner */}
+        {/* Commander Header Bar */}
         {deck.commander ? (
           <div className="deck-commander-bar">
+            <div
+              className="commander-portrait-box"
+              onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                onHoverCard({
+                  card_name: deck.commander,
+                  image_url: commanderLarge,
+                  type_line: commanderMeta?.type_line,
+                  x: rect.right + 12,
+                  y: rect.top - 50
+                });
+              }}
+              onMouseLeave={() => onHoverCard(null)}
+              title={`Commander: ${deck.commander}`}
+            >
+              {commanderThumb ? (
+                <img src={commanderThumb} alt={deck.commander} className="commander-portrait-img" />
+              ) : (
+                <div className="commander-portrait-placeholder">
+                  <SparklesIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+                </div>
+              )}
+            </div>
+
             <div className="commander-info-meta">
-              <div className="commander-eyebrow-row">
-                <span className="commander-label-eyebrow">
-                  <SparklesIcon style={{ width: '0.9rem', height: '0.9rem', display: 'inline', verticalAlign: '-1px', marginRight: '4px' }} />
-                  Commander
-                </span>
-                {commanderMeta?.mana_cost && (
-                  <span className="commander-mana-pill">{commanderMeta.mana_cost}</span>
-                )}
-                {colorIdentity.length > 0 && (
-                  <div className="deck-color-identity-bar">
-                    {colorIdentity.map(c => (
-                      <span key={c} className={`color-pip ${c}`} title={`Color: ${c}`}>{c}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <div className="commander-label-eyebrow">Commander</div>
               <div
                 className="commander-name-text"
                 onMouseEnter={(e) => {
@@ -723,26 +732,28 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
                   });
                 }}
                 onMouseLeave={() => onHoverCard(null)}
-                title={`${deck.commander} (Hover for full card scan)`}
+                title={deck.commander}
               >
                 {deck.commander}
               </div>
-              {commanderMeta?.type_line && (
-                <div className="commander-type-text">
-                  {commanderMeta.type_line}
+              {commanderMeta?.mana_cost && (
+                <div className="commander-mana-cost">
+                  <span>{commanderMeta.mana_cost}</span>
+                  {commanderMeta.type_line && <span>• {commanderMeta.type_line.split('—')[0].trim()}</span>}
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="deck-commander-bar no-commander">
-            <div className="commander-info-meta">
-              <div className="commander-eyebrow-row">
-                <span className="commander-label-eyebrow">
-                  <GlobeAltIcon style={{ width: '0.9rem', height: '0.9rem', display: 'inline', verticalAlign: '-1px', marginRight: '4px' }} />
-                  {isMoxfield ? "Moxfield List" : "Archidekt List"}
-                </span>
+          <div className="deck-commander-bar" style={{ opacity: 0.7 }}>
+            <div className="commander-portrait-box">
+              <div className="commander-portrait-placeholder">
+                <GlobeAltIcon style={{ width: '1.25rem', height: '1.25rem' }} />
               </div>
+            </div>
+            <div className="commander-info-meta">
+              <div className="commander-label-eyebrow">Platform Deck</div>
+              <div className="commander-name-text">{isMoxfield ? "Moxfield List" : "Archidekt List"}</div>
             </div>
           </div>
         )}
@@ -757,6 +768,15 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
               {isMoxfield ? 'Moxfield' : 'Archidekt'}
             </span>
           </div>
+
+          {/* Color Identity Mana Pips */}
+          {colorIdentity.length > 0 && (
+            <div className="deck-color-identity-bar">
+              {colorIdentity.map(c => (
+                <span key={c} className={`color-pip ${c}`} title={`Color: ${c}`}>{c}</span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Meta Grid */}
