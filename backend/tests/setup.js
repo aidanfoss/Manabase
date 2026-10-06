@@ -5,7 +5,8 @@ import { db, initDB } from '../db/connection.js';
 beforeAll(async () => {
   // Ensure we are using test environment
   process.env.NODE_ENV = 'test';
-  
+  process.env.ENABLE_DEV_LOGIN = 'true';
+
   // Run schema migrations
   await initDB();
 });

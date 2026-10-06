@@ -2,7 +2,7 @@ import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { getLocalCardsBatch } from "./scryfallLocal.js";
-import { isDoubleFacedCard } from "../utils/cardHelpers.js";
+import { getCardFaces } from "../utils/cardHelpers.js";
 
 const router = express.Router();
 
@@ -15,23 +15,14 @@ router.get("/", requireAuth, async (req, res) => {
       .orderBy("user_cards.card_name", "asc");
 
     const proxyArts = await db("user_proxy_arts").where("user_id", req.user.id);
-    
+
     // Fetch Scryfall metadata to determine true double-faced cards
     const uniqueNames = Array.from(new Set(cards.map(item => item.card_name)));
     const scryfallData = await getLocalCardsBatch(uniqueNames);
-    
+
     const cardsWithArts = cards.map(item => {
       const meta = scryfallData[item.card_name];
-      const isDfc = isDoubleFacedCard(meta);
-
-      let frontName = item.card_name;
-      let backName = null;
-
-      if (isDfc && item.card_name.includes(" // ")) {
-        const faces = item.card_name.split(" // ");
-        frontName = faces[0];
-        backName = faces.length > 1 ? faces[1] : null;
-      }
+      const { frontName, backName } = getCardFaces(item.card_name, meta);
 
       const frontArt = proxyArts.find(a => a.card_name === frontName);
       const backArt = backName ? proxyArts.find(a => a.card_name === backName) : null;

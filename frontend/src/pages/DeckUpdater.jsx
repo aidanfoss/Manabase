@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from "react";
+import {
+  Cog6ToothIcon,
+  SparklesIcon,
+  ExclamationTriangleIcon,
+  StarIcon,
+  FireIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronRightIcon
+} from "@heroicons/react/24/solid";
 import "./DeckUpdater.css";
 
 export default function DeckUpdater() {
@@ -159,12 +169,14 @@ export default function DeckUpdater() {
       <div className="updater-header">
         <h1>Deck Upgrades & Analysis</h1>
         <p>At a glance overview of upgrades and new synergy cards for all your decks.</p>
-        <button className="options-btn" onClick={openOptions}>⚙️ Options & Dismissals</button>
+        <button className="options-btn" onClick={openOptions}>
+          <Cog6ToothIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Options & Dismissals
+        </button>
       </div>
 
       {deckAnalyses.length === 0 ? (
         <div className="empty-state glass-panel">
-          <div className="empty-icon">✨</div>
+          <div className="empty-icon"><SparklesIcon style={{ width: '2.5rem', height: '2.5rem', color: '#818cf8' }} /></div>
           <h2>No decks found</h2>
           <p>Import decks from Archidekt to see upgrades here.</p>
         </div>
@@ -177,9 +189,9 @@ export default function DeckUpdater() {
             const isExpanded = expandedDeck === analysis.deck_id;
 
             return (
-              <div 
-                key={analysis.deck_id} 
-                className={`dashboard-card glass-panel slide-up ${isExpanded ? 'expanded' : ''}`} 
+              <div
+                key={analysis.deck_id}
+                className={`dashboard-card glass-panel slide-up ${isExpanded ? 'expanded' : ''}`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <div className="card-header" onClick={() => toggleDeck(analysis.deck_id)}>
@@ -187,33 +199,38 @@ export default function DeckUpdater() {
                     <h2>{analysis.deck_name}</h2>
                     <span className="commander-subtitle">Cmdr: {analysis.commander || 'Unknown'}</span>
                   </div>
-                  
+
                   <div className="card-badges">
                     {hasStrictlyBetter && (
                       <span className="badge warning" title="Powercrept cards or variations detected">
-                        ⚠️ {analysis.strictlyBetter.length} Upgrades
+                        <ExclamationTriangleIcon style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle', marginRight: '3px' }} /> {analysis.strictlyBetter.length} Upgrades
                       </span>
                     )}
                     {hasNewCards && (
                       <span className="badge success" title="New EDHRec cards">
-                        🌟 {analysis.edhrec.newCards.length} New
+                        <StarIcon style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle', marginRight: '3px' }} /> {analysis.edhrec.newCards.length} New
                       </span>
                     )}
                     {!hasStrictlyBetter && !hasNewCards && (
-                      <span className="badge neutral">✓ Optimal</span>
+                      <span className="badge neutral">
+                        <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle', marginRight: '3px' }} /> Optimal
+                      </span>
                     )}
-                    <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
+                    <span className="expand-icon">{isExpanded ? <ChevronDownIcon style={{ width: '1.1em', height: '1.1em' }} /> : <ChevronRightIcon style={{ width: '1.1em', height: '1.1em' }} />}</span>
                   </div>
                 </div>
 
                 {isExpanded && (
                   <div className="card-expanded-content fade-in">
-                    
+
                     {/* Strictly Better Section */}
                     {hasStrictlyBetter && (
                       <section className="analysis-section strictly-better">
                         <div className="section-header">
-                          <h3>⚠️ Potential Upgrades / Variations</h3>
+                          <h3>
+                            <ExclamationTriangleIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: '#f59e0b' }} />
+                            Potential Upgrades / Variations
+                          </h3>
                         </div>
                         <div className="upgrade-grid">
                           {analysis.strictlyBetter.map((upgrade, idx) => {
@@ -221,7 +238,7 @@ export default function DeckUpdater() {
                             return (
                               <div key={idx} className="upgrade-card rich-card">
                                 <button className="dismiss-btn" onClick={() => handleDismiss(analysis.deck_id, suggestionId)} title="Dismiss">×</button>
-                                
+
                                 <div className="card-visuals">
                                   <div className="inferior-visual">
                                     <span className="label">Current</span>
@@ -232,9 +249,9 @@ export default function DeckUpdater() {
                                     )}
                                     <div className="card-price">{upgrade.currentCardData?.price ? `$${upgrade.currentCardData.price}` : '--'}</div>
                                   </div>
-                                  
+
                                   <div className="upgrade-arrow">→</div>
-                                  
+
                                   <div className="superior-visuals">
                                     <span className="label">Better Options</span>
                                     <div className="superior-list">
@@ -262,7 +279,10 @@ export default function DeckUpdater() {
                     {hasNewCards && (
                       <section className="analysis-section edhrec-new">
                         <div className="section-header">
-                          <h3>🌟 New Additions</h3>
+                          <h3>
+                            <StarIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: '#38bdf8' }} />
+                            New Additions
+                          </h3>
                         </div>
                         <div className="suggestion-grid">
                           {analysis.edhrec.newCards.slice(0, 12).map((card, idx) => {
@@ -285,12 +305,15 @@ export default function DeckUpdater() {
                         </div>
                       </section>
                     )}
-                    
+
                     {/* EDHRec High Synergy Section */}
                     {hasSynergy && (
                       <section className="analysis-section edhrec-synergy">
                         <div className="section-header">
-                          <h3>🔥 High Synergy Missing</h3>
+                          <h3>
+                            <FireIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: '#f87171' }} />
+                            High Synergy Missing
+                          </h3>
                         </div>
                         <div className="suggestion-grid">
                           {analysis.edhrec.highSynergy.slice(0, 12).map((card, idx) => {

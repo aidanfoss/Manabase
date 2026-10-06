@@ -71,7 +71,10 @@ router.get("/active", requireAuth, async (req, res) => {
     const userMap = {};
     users.forEach(u => userMap[u.id] = u.username);
 
-    const userCards = await db("user_cards").select("card_name", "market_price");
+    const tradeCardNames = [...new Set(items.map(i => i.card_name).filter(Boolean))];
+    const userCards = tradeCardNames.length > 0
+      ? await db("user_cards").whereIn("card_name", tradeCardNames).select("card_name", "market_price")
+      : [];
     const priceMap = {};
     userCards.forEach(uc => {
       if (uc.market_price && uc.market_price > 0) {
@@ -207,7 +210,10 @@ router.get("/ledger", requireAuth, async (req, res) => {
       };
     });
 
-    const userCards = await db("user_cards").select("card_name", "market_price");
+    const tradeCardNames = [...new Set(items.map(i => i.card_name).filter(Boolean))];
+    const userCards = tradeCardNames.length > 0
+      ? await db("user_cards").whereIn("card_name", tradeCardNames).select("card_name", "market_price")
+      : [];
     const priceMap = {};
     userCards.forEach(uc => {
       if (uc.market_price && uc.market_price > 0) {

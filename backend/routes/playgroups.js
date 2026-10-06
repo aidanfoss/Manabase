@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { getLocalCardsBatch } from "./scryfallLocal.js";
-import { isDoubleFacedCard } from "../utils/cardHelpers.js";
+import { isDoubleFacedCard, getCardFaces } from "../utils/cardHelpers.js";
 import { syncDeckInternal } from "../services/archidektSync.js";
 import { syncMoxfieldDeckInternal } from "../services/moxfieldSync.js";
 
@@ -321,11 +321,12 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
         "users.default_card_back as user_card_back"
       )
       .orderBy("user_cards.list_type", "desc")
-      .orderBy("user_cards.created_at", "asc");
+      .orderBy("user_cards.created_at", "asc")
+      .orderBy("user_cards.rowid", "asc");
 
     const userIds = Array.from(new Set(items.map(item => item.user_id)));
     const proxyArts = await db("user_proxy_arts").whereIn("user_id", userIds);
-    
+
     // Fetch Scryfall metadata to determine true double-faced cards
     const uniqueNames = Array.from(new Set(items.map(item => item.card_name)));
     const scryfallData = await getLocalCardsBatch(uniqueNames);
@@ -334,16 +335,7 @@ router.get("/:id/wishlist", requireAuth, async (req, res) => {
     const flatQueue = [];
     items.forEach((item) => {
       const meta = scryfallData[item.card_name];
-      const isDfc = isDoubleFacedCard(meta);
-
-      let frontName = item.card_name;
-      let backName = null;
-
-      if (isDfc && item.card_name.includes(" // ")) {
-        const faces = item.card_name.split(" // ");
-        frontName = faces[0];
-        backName = faces.length > 1 ? faces[1] : null;
-      }
+      const { frontName, backName } = getCardFaces(item.card_name, meta);
 
       const frontArt = proxyArts.find(a => a.user_id === item.user_id && a.card_name === frontName);
       const backArt = backName ? proxyArts.find(a => a.user_id === item.user_id && a.card_name === backName) : null;

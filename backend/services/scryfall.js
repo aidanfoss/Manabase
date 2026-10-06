@@ -45,12 +45,18 @@ function formatCard(card) {
     const image =
         card.image_uris?.normal ||
         card.card_faces?.[0]?.image_uris?.normal ||
+        card.image_uris?.small ||
+        card.card_faces?.[0]?.image_uris?.small ||
         null;
 
     return {
         name: card.name,
         oracle_id: card.oracle_id,
-        type_line: card.type_line,
+        layout: card.layout,
+        card_faces: card.card_faces,
+        image_uris: card.image_uris,
+        type_line: card.type_line || card.card_faces?.[0]?.type_line,
+        mana_cost: card.mana_cost || card.card_faces?.[0]?.mana_cost,
         color_identity: card.color_identity ?? [],
         fetchable,
         set: card.set,

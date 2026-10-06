@@ -124,36 +124,6 @@
   transform: rotate(90deg);
 }
 
-.packages-tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #1f2937;
-  padding-bottom: 1rem;
-}
-
-.packages-tabs button {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.packages-tabs button.active {
-  background: #2563eb;
-  color: white;
-}
-
-.packages-tabs button:hover:not(.active) {
-  background: #1f2937;
-  color: #f8fafc;
-}
-
 .packages-content {
   min-height: 400px;
 }

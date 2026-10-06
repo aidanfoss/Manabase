@@ -89,7 +89,7 @@ export async function loadCardData() {
         });
 
         rl.on("error", (err) => {
-            console.error("⚠️ readline interface error (likely corrupt bulk data):", err.message);
+            console.error("[scryfallUpdater] readline interface error (likely corrupt bulk data):", err.message);
             // Error is handled; resolve with empty to avoid crashing
         });
 
@@ -149,34 +149,34 @@ export async function loadCardData() {
         });
 
         rl.on("close", () => {
-            console.log(`📚 Streamed ${count.toLocaleString()} cards. Saving fast cache...`);
+            console.log(`[scryfallUpdater] Streamed ${count.toLocaleString()} cards. Saving fast cache...`);
             writeStream.write('\n]');
             writeStream.end(() => {
                 // Atomic rename so cache is never malformed
                 fs.renameSync(TEMP_CACHE_PATH, PARSED_CACHE_PATH);
-                console.log("💾 Saved pre-parsed cache for instant future startups.");
+                console.log("[scryfallUpdater] Saved pre-parsed cache for instant future startups.");
                 try {
                     const parsedCards = JSON.parse(fs.readFileSync(PARSED_CACHE_PATH, "utf8"));
                     resolve(parsedCards);
                 } catch (err) {
-                    console.error("⚠️ Failed to parse newly created cache:", err);
+                    console.error("[scryfallUpdater] Failed to parse newly created cache:", err);
                     resolve([]);
                 }
             });
         });
 
         readStream.on("error", (err) => {
-            console.error("⚠️ Failed to read raw bulk data:", err);
+            console.error("[scryfallUpdater] Failed to read raw bulk data:", err);
             resolve([]); // fallback
         });
 
         gunzip.on("error", (err) => {
-            console.error("⚠️ Failed to decompress bulk data:", err);
+            console.error("[scryfallUpdater] Failed to decompress bulk data:", err);
             resolve([]); // fallback
         });
-        
+
         writeStream.on("error", (err) => {
-            console.warn("⚠️ Failed to write pre-parsed cache file:", err.message);
+            console.warn("[scryfallUpdater] Failed to write pre-parsed cache file:", err.message);
             resolve([]);
         });
     });

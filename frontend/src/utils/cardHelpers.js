@@ -16,28 +16,6 @@ export function isDoubleFacedCard(card, meta) {
 
   const layout = (merged.layout || card?.layout || meta?.layout || "").toLowerCase();
 
-  // Known single-faced layouts that use "//" in their name
-  if (
-    [
-      "split",
-      "adventure",
-      "flip",
-      "normal",
-      "leveler",
-      "class",
-      "saga",
-      "planar",
-      "scheme",
-      "vanguard",
-      "token",
-      "emblem",
-      "augment",
-      "host"
-    ].includes(layout)
-  ) {
-    return false;
-  }
-
   // Known physical double-faced card layouts
   if (
     [
@@ -55,12 +33,37 @@ export function isDoubleFacedCard(card, meta) {
 
   // Check card_faces array:
   // In Scryfall API data, double-faced cards have distinct image_uris on BOTH faces.
-  // Single-faced split/adventure/flip cards have image_uris on the top-level card object, NOT on individual card_faces.
   const faces = merged.card_faces || card?.card_faces || meta?.card_faces || merged.faces || [];
   if (Array.isArray(faces) && faces.length > 1) {
     const face0HasImages = !!(faces[0]?.image_uris || faces[0]?.image);
     const face1HasImages = !!(faces[1]?.image_uris || faces[1]?.image);
     if (face0HasImages && face1HasImages) {
+      return true;
+    }
+    // If faces have distinct names and layout isn't split/adventure/flip
+    if (!["split", "adventure", "flip", "normal"].includes(layout) && faces[0]?.name && faces[1]?.name) {
+      return true;
+    }
+  }
+
+  // Check if name has " // " and is not a known single-faced layout
+  const rawName = (merged.card_name || merged.name || "").trim();
+  if (rawName.includes(" // ")) {
+    if (![
+      "split",
+      "adventure",
+      "flip",
+      "normal",
+      "leveler",
+      "class",
+      "planar",
+      "scheme",
+      "vanguard",
+      "token",
+      "emblem",
+      "augment",
+      "host"
+    ].includes(layout)) {
       return true;
     }
   }
@@ -70,8 +73,8 @@ export function isDoubleFacedCard(card, meta) {
 
 /**
  * Returns the front face card name for a card.
- * For physical double-faced cards (e.g. "Lunarch Veteran // Luminous Phantom"),
- * returns "Lunarch Veteran".
+ * For physical double-faced cards (e.g. "Lunarch Veteran // Luminous Phantom" or "The Restoration of Eiganjo // Architect of Restoration"),
+ * returns "Lunarch Veteran" or "The Restoration of Eiganjo".
  * For single-sided cards (including split cards like "Fire // Ice" or "Sol Ring"),
  * returns the full card name ("Fire // Ice").
  */
@@ -97,8 +100,8 @@ export function getCardFrontName(card, meta) {
 
 /**
  * Returns the back face card name for a physical double-faced card.
- * For double-faced cards (e.g. "Lunarch Veteran // Luminous Phantom"),
- * returns "Luminous Phantom".
+ * For double-faced cards (e.g. "The Restoration of Eiganjo // Architect of Restoration"),
+ * returns "Architect of Restoration".
  * For single-sided cards (including "Fire // Ice"), returns "".
  */
 export function getCardBackName(card, meta) {
@@ -117,6 +120,69 @@ export function getCardBackName(card, meta) {
     return fullName.split("//")[1]?.trim() || "";
   }
   return "";
+}
+
+/**
+ * Returns front and back face image URIs for any card (single-faced or DFC).
+ */
+export function getCardImages(card, meta) {
+  const merged = { ...meta, ...card };
+  const isDfc = isDoubleFacedCard(card, meta);
+  const faces = merged.card_faces || card?.card_faces || meta?.card_faces || [];
+
+  let frontSmall = null;
+  let frontNormal = null;
+  let frontLarge = null;
+  let backSmall = null;
+  let backNormal = null;
+  let backLarge = null;
+
+  if (isDfc && Array.isArray(faces) && faces.length > 0) {
+    frontSmall = faces[0]?.image_uris?.small || faces[0]?.image;
+    frontNormal = faces[0]?.image_uris?.normal || faces[0]?.image || frontSmall;
+    frontLarge = faces[0]?.image_uris?.large || faces[0]?.image_uris?.png || frontNormal;
+
+    if (faces.length > 1) {
+      backSmall = faces[1]?.image_uris?.small || faces[1]?.image;
+      backNormal = faces[1]?.image_uris?.normal || faces[1]?.image || backSmall;
+      backLarge = faces[1]?.image_uris?.large || faces[1]?.image_uris?.png || backNormal;
+    }
+  }
+
+  // Fallback to top-level image_uris if front face images not found
+  if (!frontSmall) {
+    frontSmall = merged.image_uris?.small || merged.image || merged.image_url;
+  }
+  if (!frontNormal) {
+    frontNormal = merged.image_uris?.normal || merged.image || merged.image_url || frontSmall;
+  }
+  if (!frontLarge) {
+    frontLarge = merged.image_uris?.large || merged.image_uris?.png || frontNormal;
+  }
+
+  return {
+    frontSmall,
+    frontNormal,
+    frontLarge,
+    backSmall,
+    backNormal,
+    backLarge,
+    isDfc: isDfc || !!(backNormal || backSmall)
+  };
+}
+
+export function getCardFrontImage(card, meta, size = "normal") {
+  const { frontSmall, frontNormal, frontLarge } = getCardImages(card, meta);
+  if (size === "small") return frontSmall || frontNormal;
+  if (size === "large") return frontLarge || frontNormal;
+  return frontNormal || frontSmall || frontLarge;
+}
+
+export function getCardBackImage(card, meta, size = "normal") {
+  const { backSmall, backNormal, backLarge } = getCardImages(card, meta);
+  if (size === "small") return backSmall || backNormal;
+  if (size === "large") return backLarge || backNormal;
+  return backNormal || backSmall || backLarge;
 }
 
 /**

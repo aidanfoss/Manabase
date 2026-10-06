@@ -1,56 +1,31 @@
 // backend/routes/presets.js
 import express from "express";
 import jwt from "jsonwebtoken";
+import path from "path";
+import { fileURLToPath } from "url";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { landCyclePresets } from "../data/landcyclesData.js";
+import { getLocalCardsBatch } from "./scryfallLocal.js";
+import { readJsonSafe } from "../utils/safeJson.js";
 
-// Helper function to calculate preset price
-async function calculatePresetPrice(preset, colors) {
-  try {
-    // Prepare query params for cards endpoint
-    const params = new URLSearchParams();
-    (Array.isArray(preset.packages) ? preset.packages : []).forEach(pkg => params.append('packages', pkg));
-    Object.keys(preset.landCycles || {}).forEach(lc => params.append('landcycles', lc));
-        colors.forEach(color => params.append('colors', color));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const landcyclesPath = path.resolve(__dirname, "../data/landcycles.json");
 
-    // Fetch from internal cards API
-    const response = await fetch(`http://localhost:${process.env.PORT || 8080}/api/cards?${params.toString()}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-    let totalPrice = 0;
-
-    // Sum up prices from response
-    if (Array.isArray(data)) {
-      data.forEach(card => {
-        const price = card.price || card.prices?.usd || "0";
-        totalPrice += parseFloat(price) || 0;
-      });
-    } else if (data?.lands) {
-      data.lands.forEach(card => {
-        const price = card.price || card.prices?.usd || "0";
-        totalPrice += parseFloat(price) || 0;
-      });
-    }
-
-    return `$${totalPrice.toFixed(2)}`;
-  } catch (error) {
-    console.error('Error calculating preset price:', error);
-    return "$0.00";
-  }
-}
+let defaultPresetsSeeded = false;
 
 // Seed default presets into database
 async function seedDefaultPresets() {
+  if (defaultPresetsSeeded) return;
   try {
-    // Check if default presets are already seeded
-    const existingCount = await db("default_presets").count("id as count");
-    if (existingCount[0].count > 0) return; // Already seeded
+    const existingCount = await db("default_presets").count("id as count").first();
+    const count = typeof existingCount === "object" ? (existingCount.count || Object.values(existingCount)[0]) : existingCount;
+    if (parseInt(count, 10) > 0) {
+      defaultPresetsSeeded = true;
+      return;
+    }
 
-// console.log(" Seeding default presets...");
-
-    // Insert all built-in presets as read-only defaults
     for (const preset of landCyclePresets) {
       await db("default_presets").insert({
         name: preset.name,
@@ -61,11 +36,94 @@ async function seedDefaultPresets() {
         updated_at: new Date().toISOString()
       });
     }
-
-// console.log(" Default presets seeded successfully");
+    defaultPresetsSeeded = true;
   } catch (error) {
     console.error('Error seeding default presets:', error);
   }
+}
+
+function passesColorFilter(colorIdentity = [], colors = []) {
+  if (colorIdentity.length === 0 || (colorIdentity.length === 1 && colorIdentity[0] === "C")) return true;
+  return colorIdentity.every((c) => colors.includes(c));
+}
+
+async function enrichPresetsWithPrices(presets, selectedColors) {
+  if (!selectedColors || selectedColors.length === 0 || selectedColors.includes("colorless")) {
+    return presets;
+  }
+
+  try {
+    const landcyclesData = await readJsonSafe(landcyclesPath, []);
+    const landcyclesMap = new Map(landcyclesData.map(lc => [lc.id, lc.cards || []]));
+
+    // Collect all unique package IDs referenced by presets
+    const allPackageIds = [...new Set(presets.flatMap(p => p.packages || []))];
+    const dbPackages = allPackageIds.length > 0 ? await db("packages").whereIn("id", allPackageIds) : [];
+    const packageCardsMap = new Map();
+
+    for (const pkg of dbPackages) {
+      try {
+        const cards = typeof pkg.cards === "string" ? JSON.parse(pkg.cards) : (Array.isArray(pkg.cards) ? pkg.cards : []);
+        packageCardsMap.set(pkg.id, cards);
+      } catch {
+        packageCardsMap.set(pkg.id, []);
+      }
+    }
+
+    // Map each preset to its list of card names
+    const presetCardNamesMap = new Map();
+    const allCardNames = new Set();
+
+    for (const preset of presets) {
+      const names = [];
+      // 1. Packages
+      for (const pkgId of (preset.packages || [])) {
+        const pkgCards = packageCardsMap.get(pkgId) || [];
+        for (const c of pkgCards) {
+          const n = typeof c === "string" ? c : c?.name;
+          if (n) { names.push(n); allCardNames.add(n); }
+        }
+      }
+      // 2. Land cycles
+      const cycleKeys = Array.isArray(preset.landCycles) ? preset.landCycles : Object.keys(preset.landCycles || {});
+      for (const cycleId of cycleKeys) {
+        const cycleCards = landcyclesMap.get(cycleId) || [];
+        for (const c of cycleCards) {
+          const n = typeof c === "string" ? c : c?.name;
+          if (n) { names.push(n); allCardNames.add(n); }
+        }
+      }
+      // 3. Preset custom cards
+      for (const c of (preset.cards || [])) {
+        const n = typeof c === "string" ? c : c?.name;
+        if (n) { names.push(n); allCardNames.add(n); }
+      }
+
+      presetCardNamesMap.set(preset.id, [...new Set(names)]);
+    }
+
+    // Batch load card details in memory
+    const batchCards = await getLocalCardsBatch(Array.from(allCardNames));
+
+    for (const preset of presets) {
+      const cardNames = presetCardNamesMap.get(preset.id) || [];
+      let total = 0;
+      for (const name of cardNames) {
+        const cardMeta = batchCards[name];
+        if (!cardMeta) continue;
+        if (passesColorFilter(cardMeta.color_identity, selectedColors)) {
+          const price = parseFloat(cardMeta.prices?.usd || cardMeta.prices?.usd_foil || 0) || 0;
+          total += price;
+        }
+      }
+      preset.price = `$${total.toFixed(2)}`;
+    }
+  } catch (err) {
+    console.error("Error enriching presets with prices:", err);
+    presets.forEach(p => { p.price = p.price || "$0.00"; });
+  }
+
+  return presets;
 }
 
 const router = express.Router();
@@ -156,20 +214,9 @@ router.get("/", async (req, res) => {
       presets.push(...parsedUserPresets);
     }
 
-    // Calculate prices if colors are provided and not colorless
+    // Calculate prices in-memory if colors are provided and not colorless
     if (selectedColors.length > 0 && !selectedColors.includes('colorless')) {
-      const pricePromises = presets.map(async (preset) => {
-        try {
-          return await calculatePresetPrice(preset, selectedColors);
-        } catch (error) {
-          console.error(`Error calculating price for preset ${preset.id}:`, error);
-          return "$0.00";
-        }
-      });
-      const prices = await Promise.all(pricePromises);
-      presets.forEach((preset, index) => {
-        preset.price = prices[index];
-      });
+      await enrichPresetsWithPrices(presets, selectedColors);
     }
 
     res.json(presets);

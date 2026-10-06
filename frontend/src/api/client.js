@@ -1,10 +1,20 @@
-import { GlobeAltIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
-
 // frontend/src/api/client.js
 const BASE = "/api";
 
 const batchCache = {};
 const inflightBatch = {};
+
+const toQueryString = (params = {}) => {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (Array.isArray(val)) {
+      val.filter(Boolean).forEach((v) => q.append(key, v));
+    } else if (val !== undefined && val !== null && val !== "") {
+      q.append(key, val);
+    }
+  });
+  return q.toString();
+};
 
 export const api = {
   // ---------------------------------------
@@ -22,26 +32,32 @@ export const api = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
-    console.log(`[API Request] ${method} ${url}`, options.body ? JSON.parse(options.body) : "");
-
     const response = await fetch(url, {
       method,
       headers,
       body: options.body,
     });
 
-    if (!response.ok) {
-      console.error(`[API Error] ${method} ${url} status: ${response.status}`);
-      throw new Error(`HTTP ${response.status}`);
-    }
     const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text.replace(/^\uFEFF/, "")) : {};
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      const errMsg = data?.error || data?.message || `HTTP ${response.status}`;
+      console.error(`[API Error] ${method} ${url} status: ${response.status}`, errMsg);
+      throw new Error(errMsg);
+    }
+
     const contentType = response.headers.get("content-type");
     if (contentType && !contentType.includes("application/json")) {
-      console.warn(`[API Response] ${method} ${url} returned non-JSON content (likely dev-server restart fallback).`);
+      console.warn(`[API Response] ${method} ${url} returned non-JSON content.`);
       throw new Error("Received non-JSON response from server");
     }
-    const data = text ? JSON.parse(text.replace(/^\uFEFF/, "")) : {};
-    console.log(`[API Response] ${method} ${url}`, Array.isArray(data) ? `Array(${data.length})` : typeof data === "object" ? `Keys: [${Object.keys(data).join(", ")}]` : data);
+
     return data;
   },
 
@@ -64,21 +80,13 @@ export const api = {
   getLandcycles: () => api.json("/landcycles"),
   // Presets
   getPresets: (colors) => {
-    const params = new URLSearchParams();
-    if (colors && colors.length > 0) {
-      colors.forEach(color => params.append('colors', color));
-    } else {
-      params.append('colors', 'colorless');
-    }
-    return api.json(`/presets?${params.toString()}`);
+    const qs = toQueryString({ colors: colors?.length ? colors : ["colorless"] });
+    return api.json(`/presets?${qs}`);
   },
   applyPreset: (presetId) => api.json(`/presets/${presetId}/apply`, { method: "POST" }),
   getLandcyclePresets: (packages, landcycles, colors) => {
-    const params = new URLSearchParams();
-    if (packages) params.append('packages', packages);
-    if (landcycles) params.append('landcycles', landcycles);
-    if (colors) params.append('colors', colors);
-    return api.json(`/presets?${params.toString()}`);
+    const qs = toQueryString({ packages, landcycles, colors });
+    return api.json(`/presets?${qs}`);
   },
   getPreset: (id) => api.json(`/presets/${id}`),
   savePreset: (presetData) => api.post("/presets", presetData),
@@ -89,11 +97,8 @@ export const api = {
   deletePreset: (presetId) => api.json(`/presets/${presetId}`, { method: "DELETE" }),
 
   getCards: ({ packages = [], landcycles = [], colors = [] }) => {
-    const q = new URLSearchParams();
-    packages.forEach((m) => q.append("packages", m));
-    landcycles.forEach((l) => q.append("landcycles", l));
-    colors.forEach((c) => q.append("colors", c));
-    return api.json(`/cards?${q.toString()}`);
+    const qs = toQueryString({ packages, landcycles, colors });
+    return api.json(`/cards?${qs}`);
   },
 
   // ---------------------------------------

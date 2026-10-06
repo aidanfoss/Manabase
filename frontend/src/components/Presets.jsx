@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { SparklesIcon, FolderIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { PresetsService } from "../services/presetsService";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -57,18 +58,20 @@ export default function Presets({ currentSelection, onApplyPreset, landcycles, a
         </button>
       </div>
 
-      <div className="presets-tabs">
+      <div className="tabs-header">
         <button
-          className={activeTab === "your" ? "active" : ""}
+          className={`tab-btn ${activeTab === "your" ? "active" : ""}`}
           onClick={() => setActiveTab("your")}
         >
-          Your Presets
+          <SparklesIcon className="inline-icon" /> Your Presets
+          {yourPresets.length > 0 && <span className="tab-badge">{yourPresets.length}</span>}
         </button>
         <button
-          className={activeTab === "default" ? "active" : ""}
+          className={`tab-btn ${activeTab === "default" ? "active" : ""}`}
           onClick={() => setActiveTab("default")}
         >
-          Default Presets
+          <FolderIcon className="inline-icon" /> Default Presets
+          {defaultPresets.length > 0 && <span className="tab-badge">{defaultPresets.length}</span>}
         </button>
       </div>
 

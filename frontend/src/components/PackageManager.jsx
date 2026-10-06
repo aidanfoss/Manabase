@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { SparklesIcon, UserGroupIcon, UsersIcon } from "@heroicons/react/24/solid";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import PackageEditor from "./PackageEditor";
@@ -120,24 +121,27 @@ export default function PackageManager({ onApplyPackage }) {
         </div>
       </div>
 
-      <div className="packages-tabs">
+      <div className="tabs-header">
         <button
-          className={activeTab === "your" ? "active" : ""}
+          className={`tab-btn ${activeTab === "your" ? "active" : ""}`}
           onClick={() => setActiveTab("your")}
         >
-          Your Packages
+          <SparklesIcon className="inline-icon" /> Your Packages
+          {yourPackages.length > 0 && <span className="tab-badge">{yourPackages.length}</span>}
         </button>
         <button
-          className={activeTab === "playgroups" ? "active" : ""}
+          className={`tab-btn ${activeTab === "playgroups" ? "active" : ""}`}
           onClick={() => setActiveTab("playgroups")}
         >
-          Playgroup Packages
+          <UserGroupIcon className="inline-icon" /> Playgroup Packages
+          {playgroupPackages.length > 0 && <span className="tab-badge">{playgroupPackages.length}</span>}
         </button>
         <button
-          className={activeTab === "users" ? "active" : ""}
+          className={`tab-btn ${activeTab === "users" ? "active" : ""}`}
           onClick={() => setActiveTab("users")}
         >
-          Other Users
+          <UsersIcon className="inline-icon" /> Community Packages
+          {userPackages.length > 0 && <span className="tab-badge">{userPackages.length}</span>}
         </button>
       </div>
 

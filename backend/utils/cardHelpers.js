@@ -64,3 +64,17 @@ export function isDoubleFacedCard(cardMeta) {
 
   return false;
 }
+
+/**
+ * Returns normalized front and back names for a card.
+ * Handles split DFCs ("Front // Back") only when the card is a true physical DFC.
+ */
+export function getCardFaces(cardName, meta) {
+  if (!cardName) return { frontName: "", backName: null };
+  if (isDoubleFacedCard(meta) && cardName.includes(" // ")) {
+    const [front, back] = cardName.split(" // ");
+    return { frontName: front.trim(), backName: back ? back.trim() : null };
+  }
+  return { frontName: cardName, backName: null };
+}
+

@@ -1,8 +1,4 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { KeyIcon, XMarkIcon, WrenchScrewdriverIcon, BoltIcon } from "@heroicons/react/24/solid";
-
-
-
 
 const AuthContext = createContext();
 

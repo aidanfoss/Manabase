@@ -563,66 +563,6 @@
 
 /* --- PLAYGROUP NEXUS & THREE-LIST ARCHITECTURE STYLES --- */
 
-/* Tabs Navigation */
-.nexus-tabs-header {
-  display: flex;
-  gap: 1rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.nexus-tab-btn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 0.5rem 1.25rem;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s ease;
-}
-
-.nexus-tab-btn.active {
-  color: #2563eb;
-}
-
-.nexus-tab-btn.active::after {
-  content: "";
-  position: absolute;
-  bottom: -0.65rem;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: #2563eb;
-}
-
-/* Sub-tabs for lists */
-.sub-tabs-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.sub-tab-btn {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
-  padding: 0.45rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.sub-tab-btn.active {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #3b82f6;
-}
-
 /* Playgroup Setup Banner */
 .playgroup-setup-grid {
   display: grid;

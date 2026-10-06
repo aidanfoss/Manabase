@@ -199,6 +199,41 @@ router.post("/set-all-any-printing", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/lists/bulk-update - Update properties (list_type, is_foil, any_printing, etc.) for multiple cards by ID array
+router.post("/bulk-update", requireAuth, async (req, res) => {
+  const { ids, updates, target_list_type } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: "ids array is required" });
+  }
+
+  try {
+    const patch = { updated_at: db.fn.now() };
+    if (target_list_type) {
+      const listType = target_list_type === "proxy_wishlist" ? "wishlist" : target_list_type;
+      if (["wishlist", "tradelist", "optional_proxies", "owned"].includes(listType)) {
+        patch.list_type = listType;
+      }
+    }
+    if (updates) {
+      if (updates.is_foil !== undefined) patch.is_foil = !!updates.is_foil;
+      if (updates.any_printing !== undefined) patch.any_printing = !!updates.any_printing;
+      if (updates.card_condition !== undefined) patch.card_condition = updates.card_condition;
+      if (updates.card_language !== undefined) patch.card_language = updates.card_language;
+    }
+
+    const updatedCount = await db("user_cards")
+      .whereIn("id", ids)
+      .andWhere({ user_id: req.user.id })
+      .update(patch);
+
+    res.json({ success: true, count: updatedCount, message: `Successfully updated ${updatedCount} cards` });
+  } catch (err) {
+    console.error("Error bulk updating cards:", err);
+    res.status(500).json({ error: "Failed to bulk update cards" });
+  }
+});
+
 // POST /api/lists/bulk-delete - Delete multiple cards by ID array
 router.post("/bulk-delete", requireAuth, async (req, res) => {
   const { ids } = req.body;

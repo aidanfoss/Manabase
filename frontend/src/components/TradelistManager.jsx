@@ -1,6 +1,6 @@
 // src/components/TradelistManager.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { MagnifyingGlassIcon, ExclamationTriangleIcon, XMarkIcon, HandRaisedIcon, BoltIcon, PrinterIcon, ArrowUpTrayIcon, InboxIcon, PencilIcon, BriefcaseIcon, StarIcon, GiftIcon, RocketLaunchIcon, CheckCircleIcon, NoSymbolIcon, ArrowPathIcon, ChartBarIcon, XCircleIcon, MinusCircleIcon, UserIcon, SparklesIcon, ChevronDownIcon, TagIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon, ExclamationTriangleIcon, XMarkIcon, HandRaisedIcon, BoltIcon, PrinterIcon, ArrowUpTrayIcon, InboxIcon, PencilIcon, BriefcaseIcon, StarIcon, GiftIcon, RocketLaunchIcon, CheckCircleIcon, NoSymbolIcon, ArrowPathIcon, ChartBarIcon, XCircleIcon, MinusCircleIcon, UserIcon, SparklesIcon, ChevronDownIcon, TagIcon, Cog6ToothIcon, ClockIcon } from "@heroicons/react/24/solid";
 
 
 
@@ -818,30 +818,32 @@ export default function TradelistManager() {
   return (
     <div className="collection-page-container steam-theme">
       {/* Upper Navigation Tabs */}
-      <div className="steam-tabs-container">
-        <button 
-          className={`steam-tab-btn ${activeTab === "trading" ? "active" : ""}`}
+      <div className="tabs-header">
+        <button
+          className={`tab-btn ${activeTab === "trading" ? "active" : ""}`}
           onClick={() => setActiveTab("trading")}
         >
-          <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Trading
+          <HandRaisedIcon className="inline-icon" /> Playgroup Trading
         </button>
-        <button 
-          className={`steam-tab-btn ${activeTab === "active" ? "active" : ""}`}
+        <button
+          className={`tab-btn ${activeTab === "active" ? "active" : ""}`}
           onClick={() => { setActiveTab("active"); loadActiveTrades(); }}
         >
-          <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Active Trades {activeTrades.length > 0 && <span style={{ marginLeft: "0.4rem", background: "rgba(59,130,246,0.3)", color: "#93c5fd", borderRadius: "10px", padding: "2px 8px", fontSize: "0.75rem", fontWeight: 700 }}>{activeTrades.length}</span>}
+          <BoltIcon className="inline-icon" /> Active Trades
+          {activeTrades.length > 0 && <span className="tab-badge">{activeTrades.length}</span>}
         </button>
-        <button 
-          className={`steam-tab-btn ${activeTab === "manage" ? "active" : ""}`}
+        <button
+          className={`tab-btn ${activeTab === "manage" ? "active" : ""}`}
           onClick={() => setActiveTab("manage")}
         >
-          <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Manage My Tradelist
+          <Cog6ToothIcon className="inline-icon" /> Manage My Tradelist
+          {tradelist.length > 0 && <span className="tab-badge">{tradelist.length}</span>}
         </button>
-        <button 
-          className={`steam-tab-btn ${activeTab === "history" ? "active" : ""}`}
+        <button
+          className={`tab-btn ${activeTab === "history" ? "active" : ""}`}
           onClick={() => setActiveTab("history")}
         >
-           Trade History & Ledger
+          <ClockIcon className="inline-icon" /> Trade History & Ledger
         </button>
       </div>
 
@@ -1113,34 +1115,33 @@ export default function TradelistManager() {
             </div>
 
             {/* Filter Pills */}
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <div className="subtabs-segmented">
               <button
-                className={`steam-tab-btn ${activeTradeFilter === "all" ? "active" : ""}`}
-                style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
+                className={`subtab-btn ${activeTradeFilter === "all" ? "active" : ""}`}
                 onClick={() => setActiveTradeFilter("all")}
               >
-                All Active ({activeTrades.length})
+                All Active <span className="subtab-badge">{activeTrades.length}</span>
               </button>
               <button
-                className={`steam-tab-btn ${activeTradeFilter === "outbound" ? "active" : ""}`}
-                style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
+                className={`subtab-btn ${activeTradeFilter === "outbound" ? "active" : ""}`}
                 onClick={() => setActiveTradeFilter("outbound")}
               >
-                <ArrowUpTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Outbound ({activeTrades.filter(t => t.is_outbound && t.status !== "accepted").length})
+                <ArrowUpTrayIcon className="inline-icon" /> Outbound
+                <span className="subtab-badge">{activeTrades.filter(t => t.is_outbound && t.status !== "accepted").length}</span>
               </button>
               <button
-                className={`steam-tab-btn ${activeTradeFilter === "inbound" ? "active" : ""}`}
-                style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
+                className={`subtab-btn ${activeTradeFilter === "inbound" ? "active" : ""}`}
                 onClick={() => setActiveTradeFilter("inbound")}
               >
-                <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Inbound ({activeTrades.filter(t => !t.is_outbound && t.status !== "accepted").length})
+                <InboxIcon className="inline-icon" /> Inbound
+                <span className="subtab-badge">{activeTrades.filter(t => !t.is_outbound && t.status !== "accepted").length}</span>
               </button>
               <button
-                className={`steam-tab-btn ${activeTradeFilter === "accepted" ? "active" : ""}`}
-                style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
+                className={`subtab-btn ${activeTradeFilter === "accepted" ? "active" : ""}`}
                 onClick={() => setActiveTradeFilter("accepted")}
               >
-                <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Accepted ({activeTrades.filter(t => t.status === "accepted").length})
+                <HandRaisedIcon className="inline-icon" /> Accepted
+                <span className="subtab-badge">{activeTrades.filter(t => t.status === "accepted").length}</span>
               </button>
             </div>
           </div>

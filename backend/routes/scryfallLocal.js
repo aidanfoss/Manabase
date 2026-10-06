@@ -45,9 +45,22 @@ export async function reloadLocalScryfall(force = false) {
       if (!oracle) continue;
       if (!groups.has(oracle)) groups.set(oracle, []);
       groups.get(oracle).push(card);
-      
+
       if (card.name) {
-        nameToOracle.set(card.name.toLowerCase(), oracle);
+        const fullLower = card.name.toLowerCase();
+        nameToOracle.set(fullLower, oracle);
+        if (card.name.includes(" // ")) {
+          const parts = card.name.split(" // ");
+          if (parts[0]) nameToOracle.set(parts[0].trim().toLowerCase(), oracle);
+          if (parts[1]) nameToOracle.set(parts[1].trim().toLowerCase(), oracle);
+        }
+      }
+      if (Array.isArray(card.card_faces)) {
+        for (const face of card.card_faces) {
+          if (face?.name) {
+            nameToOracle.set(face.name.toLowerCase(), oracle);
+          }
+        }
       }
     }
 
@@ -63,7 +76,8 @@ export async function reloadLocalScryfall(force = false) {
         return (
           c.image_uris?.normal ||
           c.image_uris?.small ||
-          c.card_faces?.[0]?.image_uris?.normal
+          c.card_faces?.[0]?.image_uris?.normal ||
+          c.card_faces?.[0]?.image_uris?.small
         );
       });
 
@@ -102,6 +116,7 @@ export async function reloadLocalScryfall(force = false) {
           released_at: p.released_at,
           image_uris: p.image_uris,
           card_faces: p.card_faces,
+          layout: p.layout,
           border_color: p.border_color,
           frame_effects: p.frame_effects,
           promo_types: p.promo_types,
@@ -114,16 +129,32 @@ export async function reloadLocalScryfall(force = false) {
 
     for (const card of dedupedCards) {
       if (card.name) {
-        nameToCardMap.set(card.name.toLowerCase(), card);
+        const fullLower = card.name.toLowerCase();
+        nameToCardMap.set(fullLower, card);
+        if (card.name.includes(" // ")) {
+          const parts = card.name.split(" // ");
+          if (parts[0]) {
+            const frontLower = parts[0].trim().toLowerCase();
+            if (!nameToCardMap.has(frontLower)) nameToCardMap.set(frontLower, card);
+          }
+          if (parts[1]) {
+            const backLower = parts[1].trim().toLowerCase();
+            if (!nameToCardMap.has(backLower)) nameToCardMap.set(backLower, card);
+          }
+        }
+      }
+      if (Array.isArray(card.card_faces)) {
+        for (const face of card.card_faces) {
+          if (face?.name) {
+            const faceLower = face.name.toLowerCase();
+            if (!nameToCardMap.has(faceLower)) nameToCardMap.set(faceLower, card);
+          }
+        }
       }
     }
 
-// console.log(
-//       ` Deduplicated ${allCards.length.toLocaleString()} → ${dedupedCards.length.toLocaleString()} unique cards.`
-//     );
-
     fuse = new Fuse(dedupedCards, {
-      keys: ["name"],
+      keys: ["name", "card_faces.name"],
       threshold: 0.2,
       ignoreLocation: true,
       minMatchCharLength: 3,
@@ -159,12 +190,44 @@ function substringMatch(query) {
 // Exportable Functional API
 // ----------------------------------------------------
 
+function findCardInMap(queryName) {
+  if (!queryName) return null;
+  const qLower = String(queryName).trim().toLowerCase();
+
+  // 1. Exact match in nameToCardMap (contains full names, front faces, back faces)
+  let card = nameToCardMap.get(qLower);
+  if (card) return card;
+
+  // 2. If queryName contains " // ", try front face
+  if (qLower.includes(" // ")) {
+    const front = qLower.split(" // ")[0].trim();
+    card = nameToCardMap.get(front);
+    if (card) return card;
+  }
+
+  // 3. Fallback: check if any deduped card starts with or matches front face
+  for (const c of dedupedCards) {
+    const cNameLower = (c.name || "").toLowerCase();
+    if (cNameLower === qLower || cNameLower.startsWith(`${qLower} //`)) {
+      return c;
+    }
+    if (Array.isArray(c.card_faces)) {
+      for (const face of c.card_faces) {
+        if (face?.name?.toLowerCase() === qLower) {
+          return c;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 export async function getLocalCardByName(name) {
   if (!name) return null;
   await ensureLoaded();
 
-  const nameLower = name.toLowerCase();
-  const card = nameToCardMap.get(nameLower);
+  const card = findCardInMap(name);
   if (!card) return null;
 
   const oracle = card.oracle_id || card.id;
@@ -181,9 +244,14 @@ export async function getLocalCardsBatch(names = []) {
   const result = {};
 
   for (const name of names) {
-    const cardData = await getLocalCardByName(name);
-    if (cardData) {
-      result[name] = cardData;
+    if (!name) continue;
+    const card = findCardInMap(name);
+    if (card) {
+      const oracle = card.oracle_id || card.id;
+      result[name] = {
+        ...card,
+        prints: oracleToPrintingsMap.get(oracle) || []
+      };
     }
   }
 
@@ -194,21 +262,32 @@ export async function searchLocalCards(q) {
   if (!q) return [];
   await ensureLoaded();
 
-  const qLower = q.toLowerCase();
+  const qLower = q.trim().toLowerCase();
 
-  // 1️⃣ Exact match first
-  const exactMatches = dedupedCards.filter(
-    (c) => c.name?.toLowerCase() === qLower
-  );
+  // 1️⃣ Exact match first (checks full name and DFC front/back faces)
+  const exactMatches = dedupedCards.filter((c) => {
+    const nameLower = c.name?.toLowerCase();
+    if (nameLower === qLower || nameLower?.startsWith(`${qLower} //`)) return true;
+    if (Array.isArray(c.card_faces)) {
+      return c.card_faces.some(f => f?.name?.toLowerCase() === qLower);
+    }
+    return false;
+  });
   if (exactMatches.length > 0) {
-    return exactMatches.slice(0, 1);
+    return exactMatches.slice(0, 5);
   }
 
   // 2️⃣ Fuzzy match
   const fuseResults = fuse ? fuse.search(q).slice(0, 20).map((r) => r.item) : [];
 
-  // 3️⃣ Fallback substring
-  const substringResults = substringMatch(q);
+  // 3️⃣ Fallback substring (including card_faces)
+  const substringResults = dedupedCards.filter((c) => {
+    if (c.name?.toLowerCase().includes(qLower)) return true;
+    if (Array.isArray(c.card_faces)) {
+      return c.card_faces.some(f => f?.name?.toLowerCase().includes(qLower));
+    }
+    return false;
+  });
 
   // Combine results without duplicates
   const seen = new Set();

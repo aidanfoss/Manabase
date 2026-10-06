@@ -1857,34 +1857,34 @@ export default function WishlistHub() {
       </div>
 
       {/* Primary Tab Navigation */}
-
-      <div className="nexus-tabs-header">
+      <div className="tabs-header">
         <button
-          className={`nexus-tab-btn ${activeTab === "lists" ? "active" : ""}`}
+          className={`tab-btn ${activeTab === "lists" ? "active" : ""}`}
           onClick={() => setActiveTab("lists")}
         >
-          <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> My Lists
+          <ClipboardDocumentListIcon className="inline-icon" /> My Lists
         </button>
         <button
-          className={`nexus-tab-btn ${activeTab === "nexus" ? "active" : ""}`}
+          className={`tab-btn ${activeTab === "nexus" ? "active" : ""}`}
           onClick={() => setActiveTab("nexus")}
         >
-          <UserGroupIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Nexus
+          <UserGroupIcon className="inline-icon" /> Playgroup Nexus
         </button>
         <button
-          className={`nexus-tab-btn ${activeTab === "history" ? "active" : ""}`}
+          className={`tab-btn ${activeTab === "history" ? "active" : ""}`}
           onClick={() => {
             setActiveTab("history");
             loadOrderHistory();
           }}
         >
-          <ClockIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Order History ({orderHistory.length})
+          <ClockIcon className="inline-icon" /> Order History
+          {orderHistory.length > 0 && <span className="tab-badge">{orderHistory.length}</span>}
         </button>
         <button
-          className={`nexus-tab-btn ${activeTab === "settings" ? "active" : ""}`}
+          className={`tab-btn ${activeTab === "settings" ? "active" : ""}`}
           onClick={() => setActiveTab("settings")}
         >
-          <Cog6ToothIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Settings
+          <Cog6ToothIcon className="inline-icon" /> Proxy Settings
         </button>
       </div>
 
@@ -1893,34 +1893,37 @@ export default function WishlistHub() {
       {activeTab === "lists" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {/* Sub-tabs Selection */}
-          <div className="sub-tabs-row">
+          <div className="subtabs-segmented">
             <button
-              className={`sub-tab-btn ${selectedList === "proxy_wishlist" ? "active" : ""}`}
+              className={`subtab-btn ${selectedList === "proxy_wishlist" ? "active" : ""}`}
               onClick={() => setSelectedList("proxy_wishlist")}
             >
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Proxy Wishlist ({wishlist.length})
+              <PrinterIcon className="inline-icon" /> Required Proxies
+              <span className="subtab-badge">{wishlist.length}</span>
             </button>
             <button
-              className={`sub-tab-btn ${selectedList === "optional_proxies" ? "active" : ""}`}
+              className={`subtab-btn ${selectedList === "optional_proxies" ? "active" : ""}`}
               onClick={() => setSelectedList("optional_proxies")}
             >
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Optional Proxies ({optionalProxies.length})
+              <PrinterIcon className="inline-icon" /> Optional Proxies
+              <span className="subtab-badge">{optionalProxies.length}</span>
             </button>
             <button
-              className={`sub-tab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
+              className={`subtab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
               onClick={() => setSelectedList("proxy_arts")}
             >
-              <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Art Selections ({userProxyArts.length})
-              {missingArtsCount > 0 && <span style={{ marginLeft: '6px', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>{missingArtsCount} missing</span>}
+              <PaintBrushIcon className="inline-icon" /> Art Selections
+              <span className="subtab-badge">{userProxyArts.length}</span>
+              {missingArtsCount > 0 && <span style={{ marginLeft: '4px', background: '#ef4444', color: 'white', padding: '1px 5px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>{missingArtsCount} missing</span>}
             </button>
             <button
-              className="sub-tab-btn"
+              className="subtab-btn"
               onClick={() => window.location.href = "/trade"}
             >
-              <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Go to Trade Hub ↗
+              <HandRaisedIcon className="inline-icon" /> Trade Hub ↗
             </button>
             <button
-              className="sub-tab-btn"
+              className="subtab-btn"
               style={{
                 background: "linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(99, 102, 241, 0.15))",
                 border: "1px solid rgba(236, 72, 153, 0.4)",
@@ -1934,9 +1937,8 @@ export default function WishlistHub() {
               }}
               title="Compare LotusVault local store stock vs ManaPool live cart shipping estimates"
             >
-              <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Retail Deals & Live Shipping <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />
+              <SparklesIcon className="inline-icon" /> Retail Deals & Live Shipping <BoltIcon className="inline-icon" />
             </button>
-
           </div>
 
           {/* Quick descriptions */}
