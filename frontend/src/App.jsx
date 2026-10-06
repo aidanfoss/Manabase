@@ -19,6 +19,7 @@ import InviteLanding from "./components/InviteLanding";
 import { ToastProvider } from "./context/ToastContext";
 import { api } from "./api/client";
 import "./styles/nav-auth.css";
+import "./styles/tabs.css";
 
 export default function App() {
   return (

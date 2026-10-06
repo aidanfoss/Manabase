@@ -1,3 +1,5 @@
+@import "./styles/tabs.css";
+
 :root {
     --bottom-bar-height: 60px;
 }

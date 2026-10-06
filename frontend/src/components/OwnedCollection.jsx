@@ -1062,27 +1062,27 @@ export default function OwnedCollection({ onCollectionChanged }) {
       </div>
 
       {/* Collection Tabs */}
-      <div className="collection-tabs" style={{ display: 'flex', gap: '1rem', padding: '1rem 2rem', borderBottom: '1px solid #333', background: '#111' }}>
-        <button 
+      <div className="tabs-header">
+        <button
           className={`tab-btn ${activeTab === 'owned' ? 'active' : ''}`}
           onClick={() => setActiveTab('owned')}
-          style={{ padding: '0.5rem 1rem', background: activeTab === 'owned' ? '#4CAF50' : '#222', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
-          Collection
+          <RectangleGroupIcon className="inline-icon" /> Collection
+          {activeTab === 'owned' && globalStats.totalItems > 0 && (
+            <span className="tab-badge">{globalStats.totalItems}</span>
+          )}
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'proxy' ? 'active' : ''}`}
           onClick={() => setActiveTab('proxy')}
-          style={{ padding: '0.5rem 1rem', background: activeTab === 'proxy' ? '#4CAF50' : '#222', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
-          Extra Proxies
+          <SparklesIcon className="inline-icon" /> Extra Proxies
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'deck' ? 'active' : ''}`}
           onClick={() => setActiveTab('deck')}
-          style={{ padding: '0.5rem 1rem', background: activeTab === 'deck' ? '#4CAF50' : '#222', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
-          In decks
+          <FolderIcon className="inline-icon" /> In Decks
         </button>
       </div>
 

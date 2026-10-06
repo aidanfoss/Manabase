@@ -174,34 +174,16 @@ export default function DeckImporter({ initialDeck = null, onBack }) {
       </div>
 
       {/* Platform Selector Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <div className="subtabs-segmented">
         <button
+          className={`subtab-btn ${platform === "archidekt" ? "active" : ""}`}
           onClick={() => { setPlatform("archidekt"); setDeckInfo(null); }}
-          style={{
-            padding: '0.6rem 1.2rem',
-            borderRadius: '6px',
-            border: '1px solid',
-            borderColor: platform === 'archidekt' ? '#3b82f6' : '#444',
-            background: platform === 'archidekt' ? 'rgba(59, 130, 246, 0.2)' : '#1c1c1c',
-            color: platform === 'archidekt' ? '#60a5fa' : '#aaa',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
         >
           Archidekt
         </button>
         <button
+          className={`subtab-btn ${platform === "moxfield" ? "active" : ""}`}
           onClick={() => { setPlatform("moxfield"); setDeckInfo(null); }}
-          style={{
-            padding: '0.6rem 1.2rem',
-            borderRadius: '6px',
-            border: '1px solid',
-            borderColor: platform === 'moxfield' ? '#10b981' : '#444',
-            background: platform === 'moxfield' ? 'rgba(16, 185, 129, 0.2)' : '#1c1c1c',
-            color: platform === 'moxfield' ? '#34d399' : '#aaa',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
         >
           Moxfield
         </button>
