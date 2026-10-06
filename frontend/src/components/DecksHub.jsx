@@ -1,34 +1,73 @@
-import React, { useState, useEffect } from "react";
-import { 
-  ArrowPathIcon, 
-  PlusIcon, 
-  ArchiveBoxIcon, 
-  Cog6ToothIcon, 
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  ArrowPathIcon,
+  PlusIcon,
+  ArchiveBoxIcon,
+  Cog6ToothIcon,
   ArrowUturnLeftIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  QueueListIcon
+  QueueListIcon,
+  SparklesIcon,
+  ArrowTopRightOnSquareIcon,
+  MagnifyingGlassIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+  ShieldCheckIcon,
+  TagIcon,
+  Square2StackIcon,
+  GlobeAltIcon
 } from "@heroicons/react/24/solid";
 
 import { api } from "../api/client";
 import DeckImporter from "./DeckImporter";
-import "../styles.css";
+import "../styles/deck-hub.css";
+
+// Helper to format relative time
+function formatRelativeTime(dateString) {
+  if (!dateString) return "Never";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  if (diffInSeconds < 60) return "Just now";
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `${diffInDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 export default function DecksHub() {
   const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
+  // Commander Card Metadata Cache (Scryfall art_crop, images, color_identity, mana_cost)
+  const [commanderCache, setCommanderCache] = useState({});
+
+  // Floating Card Hover Preview
+  const [hoveredPreviewCard, setHoveredPreviewCard] = useState(null);
+
   // State to manage importer view
   const [showImporter, setShowImporter] = useState(false);
   const [importerDeck, setImporterDeck] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
-  
+
   // State for syncing
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingId, setSyncingId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [popupStats, setPopupStats] = useState(null);
+
+  // Filters & Search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [platformFilter, setPlatformFilter] = useState("all"); // 'all', 'moxfield', 'archidekt'
+  const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'disabled'
+  const [colorFilter, setColorFilter] = useState("all"); // 'all', 'W', 'U', 'B', 'R', 'G', 'C'
 
   const loadDecks = async () => {
     setLoading(true);
@@ -40,6 +79,35 @@ export default function DecksHub() {
       const combined = [...(archidektDecks || []), ...(moxfieldDecks || [])];
       combined.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
       setDecks(combined);
+
+      // Extract unique commander names to batch fetch high-res artwork and metadata
+      const commanderNames = new Set();
+      combined.forEach(d => {
+        if (d.commander) {
+          commanderNames.add(d.commander);
+        }
+      });
+
+      if (commanderNames.size > 0) {
+        try {
+          const namesList = Array.from(commanderNames);
+          const metaBatch = await api.getCardDetailsBatch(namesList);
+          setCommanderCache(prev => ({ ...prev, ...metaBatch }));
+
+          // For any commander missing from batch, try searching individual cards
+          for (const name of namesList) {
+            if (!metaBatch[name]) {
+              api.getCardSearch(name).then(results => {
+                if (results && results.length > 0) {
+                  setCommanderCache(prev => ({ ...prev, [name]: results[0] }));
+                }
+              }).catch(() => {});
+            }
+          }
+        } catch (e) {
+          console.warn("Could not batch load commander art:", e);
+        }
+      }
     } catch (err) {
       setError(err.message || "Failed to load saved decks");
     } finally {
@@ -115,10 +183,10 @@ export default function DecksHub() {
 
     setSyncingAll(true);
     setPopupStats(null);
-    
+
     let totalStats = { added: 0, removed: 0, ignored: 0 };
     let successCount = 0;
-    
+
     try {
       for (const deck of decksToSync) {
         setSyncingId(deck.deck_id);
@@ -192,251 +260,576 @@ export default function DecksHub() {
     }
   };
 
+  // Filter Decks
+  const visibleDecks = useMemo(() => {
+    return decks.filter(deck => {
+      // Archive check
+      if (deck.status === 'archived') return false;
+
+      // Platform check
+      if (platformFilter !== 'all' && deck.source !== platformFilter) return false;
+
+      // Status check
+      if (statusFilter === 'active' && deck.status === 'disabled') return false;
+      if (statusFilter === 'disabled' && deck.status !== 'disabled') return false;
+
+      // Search query check (name, commander, deck id)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesName = (deck.deck_name || "").toLowerCase().includes(q);
+        const matchesComm = (deck.commander || "").toLowerCase().includes(q);
+        const matchesId = String(deck.deck_id || "").toLowerCase().includes(q);
+        if (!matchesName && !matchesComm && !matchesId) return false;
+      }
+
+      // Color Identity check
+      if (colorFilter !== 'all') {
+        const commMeta = deck.commander ? commanderCache[deck.commander] : null;
+        const colorId = commMeta?.color_identity || [];
+        if (colorFilter === 'C') {
+          if (colorId.length > 0) return false;
+        } else {
+          if (!colorId.includes(colorFilter)) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [decks, platformFilter, statusFilter, searchQuery, colorFilter, commanderCache]);
+
+  const archivedDecks = useMemo(() => {
+    return decks.filter(d => d.status === 'archived');
+  }, [decks]);
+
+  // Aggregate stats
+  const totalCardsCount = useMemo(() => {
+    return decks.reduce((sum, d) => {
+      const cardList = typeof d.cards === 'string' ? JSON.parse(d.cards || "[]") : (d.cards || []);
+      return sum + (cardList.length || d.items?.length || 0);
+    }, 0);
+  }, [decks]);
+
+  const totalDemandsCount = useMemo(() => {
+    return decks.reduce((sum, d) => {
+      const items = d.items || [];
+      const requested = items.filter(i => i.list_type === "wishlist" || i.list_type === "tradelist");
+      return sum + requested.reduce((s, i) => s + (i.quantity || 1), 0);
+    }, 0);
+  }, [decks]);
+
+  const activeCommandersCount = useMemo(() => {
+    return decks.filter(d => d.commander && d.status !== 'archived').length;
+  }, [decks]);
+
   if (showImporter) {
     return <DeckImporter initialDeck={importerDeck} onBack={handleCloseImporter} />;
   }
 
-  const visibleDecks = decks.filter(d => d.status !== 'archived');
-  const archivedDecks = decks.filter(d => d.status === 'archived');
-
   return (
-    <div className="main-content" style={{ padding: '2rem' }}>
-      <div className="section-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2>Deck Sync Hub</h2>
-          <p style={{ color: '#888', marginTop: '0.5rem' }}>
-            Manage your synchronized Archidekt & Moxfield decks and import new ones.
+    <div className="deck-hub-container">
+      {/* Ambient Leyline Background Auras */}
+      <div className="deck-hub-aura-bg">
+        <div className="deck-aura-orb deck-aura-orb-1"></div>
+        <div className="deck-aura-orb deck-aura-orb-2"></div>
+        <div className="deck-aura-orb deck-aura-orb-3"></div>
+      </div>
+
+      {/* Header & Command Actions */}
+      <div className="deck-hub-header">
+        <div className="deck-hub-title-group">
+          <h1>
+            <SparklesIcon className="deck-hub-title-icon" />
+            Deck Sync Hub
+          </h1>
+          <p className="deck-hub-subtitle">
+            Synchronize, explore, and manage your Moxfield & Archidekt decks with live commander art and dynamic collection tracking.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+
+        <div className="deck-hub-actions">
           {decks.length > 0 && (
             <>
-              <button 
+              <button
+                type="button"
                 onClick={handleResyncAll}
                 disabled={syncingAll || syncingId !== null || refreshing}
-                style={{ padding: '0.75rem 1.5rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null || refreshing) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                className="mystic-btn mystic-btn-emerald"
+                title="Sync all active decks with remote platforms"
               >
-                {syncingAll ? "Syncing..." : <><ArrowPathIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Resync All</>}
+                <ArrowPathIcon className={syncingAll ? "icon-spin" : ""} style={{ width: "1.15em", height: "1.15em" }} />
+                <span>{syncingAll ? "Syncing Decks..." : "Resync All"}</span>
               </button>
+
               <button
+                type="button"
                 onClick={handleRefreshLists}
                 disabled={syncingAll || syncingId !== null || refreshing}
+                className="mystic-btn mystic-btn-purple"
                 title="Clears tradelist and wishlist cards from your decks, then re-adds them fresh."
-                style={{ padding: '0.75rem 1.5rem', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null || refreshing) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
               >
-                {refreshing
-                  ? "Refreshing..."
-                  : <><ArrowUturnLeftIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Refresh</>}
+                <ArrowUturnLeftIcon className={refreshing ? "icon-spin" : ""} style={{ width: "1.15em", height: "1.15em" }} />
+                <span>{refreshing ? "Refreshing..." : "Refresh Lists"}</span>
               </button>
             </>
           )}
-          <button 
+
+          <button
+            type="button"
             onClick={() => handleOpenImporter()}
             disabled={syncingAll || syncingId !== null}
-            style={{ padding: '0.75rem 1.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: (syncingAll || syncingId !== null) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+            className="mystic-btn mystic-btn-primary"
           >
-            <PlusIcon style={{ width: "1.2em", height: "1.2em", verticalAlign: "middle", marginRight: "4px" }} /> Import New Deck
+            <PlusIcon style={{ width: "1.15em", height: "1.15em" }} />
+            <span>Import New Deck</span>
           </button>
         </div>
       </div>
 
       {/* Global Sync Notification Popup */}
       {popupStats && (
-        <div style={{ 
-          marginBottom: '1.5rem', 
-          padding: '1rem 1.5rem', 
-          borderRadius: '8px', 
-          background: popupStats.error ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
-          border: `1px solid ${popupStats.error ? '#ef4444' : '#10b981'}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+        <div className={`deck-sync-alert ${popupStats.error ? 'error' : 'success'}`}>
           <div>
-            <h4 style={{ margin: '0 0 0.25rem 0', color: popupStats.error ? '#ef4444' : '#10b981' }}>
-              {popupStats.title}
-            </h4>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#ccc' }}>{popupStats.message}</p>
+            <div className="deck-sync-alert-header">
+              {popupStats.error ? (
+                <ExclamationTriangleIcon style={{ width: '1.25rem', height: '1.25rem', color: '#f87171' }} />
+              ) : (
+                <CheckCircleIcon style={{ width: '1.25rem', height: '1.25rem', color: '#34d399' }} />
+              )}
+              <h4>{popupStats.title}</h4>
+            </div>
+            <p className="deck-sync-alert-msg">{popupStats.message}</p>
 
             {popupStats.stats && (
-              <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1.5rem', fontSize: '0.85rem' }}>
-                <span style={{ color: '#10b981' }}>Added/Updated: <strong>+{popupStats.stats.added}</strong></span>
-                <span style={{ color: '#ef4444' }}>Removed: <strong>-{popupStats.stats.removed}</strong></span>
-                <span style={{ color: '#aaa' }}>Ignored: <strong>{popupStats.stats.ignored}</strong></span>
+              <div className="deck-sync-stat-pills">
+                <span className="stat-pill-add">Added / Updated: <strong>+{popupStats.stats.added}</strong></span>
+                <span className="stat-pill-rem">Removed: <strong>-{popupStats.stats.removed}</strong></span>
+                <span className="stat-pill-ign">Ignored: <strong>{popupStats.stats.ignored}</strong></span>
               </div>
             )}
           </div>
-          <button 
+          <button
+            type="button"
             onClick={() => setPopupStats(null)}
-            style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+            className="deck-alert-close-btn"
+            title="Dismiss notification"
           >
-            ✕
+            <XMarkIcon style={{ width: '1.2rem', height: '1.2rem' }} />
           </button>
         </div>
       )}
 
+      {/* Crystal Stats Summary Bar */}
+      {decks.length > 0 && (
+        <div className="deck-hub-summary-bar">
+          <div className="deck-stat-crystal">
+            <div className="deck-stat-crystal-icon indigo">
+              <Square2StackIcon style={{ width: "1.4rem", height: "1.4rem" }} />
+            </div>
+            <div>
+              <div className="deck-stat-val">{decks.length}</div>
+              <div className="deck-stat-lbl">Total Synced Decks</div>
+            </div>
+          </div>
+
+          <div className="deck-stat-crystal">
+            <div className="deck-stat-crystal-icon emerald">
+              <SparklesIcon style={{ width: "1.4rem", height: "1.4rem" }} />
+            </div>
+            <div>
+              <div className="deck-stat-val">{activeCommandersCount}</div>
+              <div className="deck-stat-lbl">Commanders Leading</div>
+            </div>
+          </div>
+
+          <div className="deck-stat-crystal">
+            <div className="deck-stat-crystal-icon purple">
+              <TagIcon style={{ width: "1.4rem", height: "1.4rem" }} />
+            </div>
+            <div>
+              <div className="deck-stat-val">{totalCardsCount > 0 ? totalCardsCount : decks.length * 100}</div>
+              <div className="deck-stat-lbl">Cards in Deck Sync</div>
+            </div>
+          </div>
+
+          <div className="deck-stat-crystal">
+            <div className="deck-stat-crystal-icon amber">
+              <QueueListIcon style={{ width: "1.4rem", height: "1.4rem" }} />
+            </div>
+            <div>
+              <div className="deck-stat-val">{totalDemandsCount}</div>
+              <div className="deck-stat-lbl">Trade / Wishlist Demands</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search & Filter Grimoire Bar */}
+      {decks.length > 0 && (
+        <div className="deck-hub-filter-bar">
+          <div className="deck-search-box">
+            <MagnifyingGlassIcon className="deck-search-icon" />
+            <input
+              type="text"
+              placeholder="Filter by deck name, commander, or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="deck-search-input"
+            />
+          </div>
+
+          <div className="deck-filter-pills">
+            {/* Platform Filter */}
+            <button
+              type="button"
+              className={`filter-pill-btn ${platformFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setPlatformFilter('all')}
+            >
+              All Platforms
+            </button>
+            <button
+              type="button"
+              className={`filter-pill-btn ${platformFilter === 'moxfield' ? 'active moxfield' : ''}`}
+              onClick={() => setPlatformFilter('moxfield')}
+            >
+              Moxfield
+            </button>
+            <button
+              type="button"
+              className={`filter-pill-btn ${platformFilter === 'archidekt' ? 'active archidekt' : ''}`}
+              onClick={() => setPlatformFilter('archidekt')}
+            >
+              Archidekt
+            </button>
+          </div>
+
+          {/* Color Identity Pills */}
+          <div className="deck-filter-pills">
+            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginRight: '2px' }}>Color:</span>
+            {['all', 'W', 'U', 'B', 'R', 'G'].map(c => (
+              <button
+                key={c}
+                type="button"
+                className={`filter-pill-btn ${colorFilter === c ? 'active' : ''}`}
+                onClick={() => setColorFilter(colorFilter === c ? 'all' : c)}
+                style={{ padding: '0.3rem 0.55rem', minWidth: '24px', textAlign: 'center' }}
+                title={`Filter by ${c === 'all' ? 'All Colors' : c}`}
+              >
+                {c === 'all' ? 'Any' : c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
       {loading ? (
-        <div style={{ color: '#888' }}>Loading your decks...</div>
+        <div style={{ textAlign: "center", padding: "4rem 2rem", color: "#94a3b8" }}>
+          <ArrowPathIcon className="icon-spin" style={{ width: "2.5rem", height: "2.5rem", margin: "0 auto 1rem auto", color: "#818cf8" }} />
+          <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#cbd5e1" }}>Summoning your synchronized decks...</div>
+          <p style={{ fontSize: "0.85rem", color: "#64748b", marginTop: "0.4rem" }}>Gathering commander art and remote manifests</p>
+        </div>
       ) : error ? (
-        <div style={{ color: '#ef4444' }}>{error}</div>
+        <div style={{ padding: "2rem", background: "rgba(239, 68, 68, 0.15)", border: "1px solid #ef4444", borderRadius: "12px", color: "#fca5a5", textAlign: "center" }}>
+          <ExclamationTriangleIcon style={{ width: "2rem", height: "2rem", margin: "0 auto 0.5rem auto", color: "#ef4444" }} />
+          <div style={{ fontWeight: 700 }}>{error}</div>
+        </div>
       ) : decks.length === 0 ? (
-        <div style={{ background: '#1c1c1c', padding: '3rem', borderRadius: '8px', border: '1px solid #333', textAlign: 'center' }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}><ArchiveBoxIcon style={{ width: "3rem", height: "3rem" }} /></div>
-          <h3 style={{ marginBottom: '0.5rem' }}>No Decks Synced Yet</h3>
-          <p style={{ color: '#888', marginBottom: '1.5rem' }}>
-            Import your first deck from Archidekt or Moxfield to manage your collection and wishlist dynamically.
+        <div className="deck-hub-empty-state">
+          <div className="deck-empty-icon-halo">
+            <ArchiveBoxIcon style={{ width: "2rem", height: "2rem" }} />
+          </div>
+          <h3 style={{ fontSize: "1.35rem", fontWeight: 700, margin: "0 0 0.5rem 0", color: "#f8fafc" }}>No Decks Synced Yet</h3>
+          <p style={{ color: "#94a3b8", maxWidth: "450px", margin: "0 auto 1.75rem auto", fontSize: "0.9rem", lineHeight: 1.5 }}>
+            Import your first deck from Archidekt or Moxfield to manage your MTG collection, commanders, and automated proxy queues seamlessly.
           </p>
-          <button 
+          <button
+            type="button"
             onClick={() => handleOpenImporter()}
-            style={{ padding: '0.5rem 1.5rem', background: '#2c2c2c', color: 'white', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}
+            className="mystic-btn mystic-btn-primary"
           >
-            Import a Deck
+            <PlusIcon style={{ width: "1.15em", height: "1.15em" }} />
+            <span>Import Your First Deck</span>
+          </button>
+        </div>
+      ) : visibleDecks.length === 0 ? (
+        <div className="deck-hub-empty-state">
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.5rem 0", color: "#cbd5e1" }}>No Decks Match Your Filter</h3>
+          <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1rem" }}>Try clearing your search query or color filters.</p>
+          <button
+            type="button"
+            onClick={() => { setSearchQuery(""); setPlatformFilter("all"); setStatusFilter("all"); setColorFilter("all"); }}
+            className="mystic-btn mystic-btn-secondary"
+          >
+            Reset Filters
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+        <div className="deck-grid">
           {visibleDecks.map(deck => (
-            <div key={deck.id} style={{ 
-              background: '#1c1c1c', 
-              padding: '1.5rem', 
-              borderRadius: '8px', 
-              border: `1px solid ${deck.status === 'disabled' ? '#f59e0b' : '#333'}`, 
-              display: 'flex', 
-              flexDirection: 'column',
-              opacity: deck.status === 'disabled' ? 0.85 : 1
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, color: deck.source === 'moxfield' ? '#34d399' : '#60a5fa', flex: 1, paddingRight: '1rem', wordBreak: 'break-word' }}>
-                  {deck.deck_name}
-                  <span style={{ 
-                    display: 'inline-block', 
-                    marginLeft: '0.5rem', 
-                    background: deck.source === 'moxfield' ? '#065f46' : '#1e3a8a', 
-                    color: 'white', 
-                    fontSize: '0.65rem', 
-                    padding: '2px 6px', 
-                    borderRadius: '4px', 
-                    fontWeight: 'bold', 
-                    verticalAlign: 'middle'
-                  }}>
-                    {deck.source === 'moxfield' ? 'Moxfield' : 'Archidekt'}
-                  </span>
-                  {deck.status === 'disabled' && (
-                    <span 
-                       title="Cards from this deck were removed when you cleared your proxy list. Resync to re-add them."
-                      style={{ 
-                        display: 'inline-block', 
-                        marginLeft: '0.5rem', 
-                        background: '#92400e', 
-                        color: '#fbbf24', 
-                        fontSize: '0.65rem', 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        fontWeight: 'bold', 
-                        verticalAlign: 'middle'
-                      }}
-                    >
-                      DISABLED
-                    </span>
-                  )}
-                </h3>
-                <span style={{ fontSize: '0.8rem', color: '#666', background: '#222', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                  ID: {deck.deck_id}
-                </span>
-              </div>
-              
-              <div style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1.25rem', flex: 1 }}>
-                {deck.commander && <>Commander: <strong>{deck.commander}</strong><br/></>}
-                Last Synced: {new Date(deck.updated_at).toLocaleString()}
-                <br/>
-                {deck.status === 'disabled' ? (
-                  <span style={{ color: '#f59e0b' }}>
-                    ⚠️ Cards disabled — resync to restore
-                  </span>
-                ) : (
-                  <>Status: <strong>{deck.status || "active"}</strong> | Privacy: <strong>{deck.is_public ? "Public" : "Private"}</strong></>
-                )}
-              </div>
-              
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  onClick={() => handleQuickResync(deck)}
-                  disabled={syncingAll || syncingId === deck.deck_id}
-                  style={{ 
-                    flex: 1, 
-                    padding: '0.5rem', 
-                    background: deck.status === 'disabled' ? '#78350f' : '#2c2c2c', 
-                    color: deck.status === 'disabled' ? '#fbbf24' : 'white', 
-                    border: `1px solid ${deck.status === 'disabled' ? '#f59e0b' : '#444'}`, 
-                    borderRadius: '4px', 
-                    cursor: (syncingAll || syncingId === deck.deck_id) ? 'not-allowed' : 'pointer', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    gap: '0.5rem', 
-                    alignItems: 'center',
-                    fontWeight: deck.status === 'disabled' ? 'bold' : 'normal'
-                  }}
-                  title={deck.status === 'disabled' ? "Click to resync and re-enable this deck's cards." : ""}
-                >
-                  <span><ArrowPathIcon style={{ width: "1.2em", height: "1.2em" }} /></span> 
-                  {(syncingAll || syncingId === deck.deck_id) 
-                    ? "Syncing..." 
-                    : (deck.status === 'disabled' ? "Re-Enable & Sync" : "Quick Sync")}
-                </button>
-                <button 
-                  onClick={() => handleOpenImporter(deck)}
-                  disabled={syncingAll || syncingId === deck.deck_id}
-                  style={{ padding: '0.5rem 0.75rem', background: '#2c2c2c', color: 'white', border: '1px solid #444', borderRadius: '4px', cursor: (syncingAll || syncingId === deck.deck_id) ? 'not-allowed' : 'pointer' }}
-                  title="Edit mappings and options"
-                >
-                  <Cog6ToothIcon style={{ width: "1.2em", height: "1.2em" }} />
-                </button>
-              </div>
-
-              {/* Dropdown for Requested Cards */}
-              <DeckRequestedCardsDropdown deck={deck} />
-            </div>
+            <DeckCardItem
+              key={deck.id}
+              deck={deck}
+              commanderMeta={deck.commander ? commanderCache[deck.commander] : null}
+              syncing={syncingAll || syncingId === deck.deck_id}
+              onQuickSync={() => handleQuickResync(deck)}
+              onOpenImporter={() => handleOpenImporter(deck)}
+              onHoverCard={setHoveredPreviewCard}
+            />
           ))}
         </div>
       )}
 
+      {/* Archived Decks Section */}
       {archivedDecks.length > 0 && (
-        <div style={{ marginTop: '3rem', borderTop: '1px solid #333', paddingTop: '1.5rem' }}>
-          <button 
+        <div style={{ marginTop: '3.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '2rem' }}>
+          <button
+            type="button"
             onClick={() => setShowArchived(!showArchived)}
-            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.9rem', padding: 0 }}
+            className="mystic-btn mystic-btn-secondary"
+            style={{ fontSize: '0.85rem' }}
           >
-            {showArchived ? "Hide Archived Decks" : `Show Archived Decks (${archivedDecks.length})`}
+            <ArchiveBoxIcon style={{ width: "1.1em", height: "1.1em" }} />
+            <span>{showArchived ? "Hide Archived Decks" : `Show Archived Decks (${archivedDecks.length})`}</span>
           </button>
 
           {showArchived && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', marginTop: '1rem', alignItems: 'start' }}>
+            <div className="deck-grid" style={{ marginTop: '1.5rem', opacity: 0.85 }}>
               {archivedDecks.map(deck => (
-                <div key={deck.id} style={{ background: '#181818', padding: '1.25rem', borderRadius: '8px', border: '1px solid #282828', opacity: 0.85 }}>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#aaa' }}>{deck.deck_name}</h4>
-                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.75rem' }}>
-                    ID: {deck.deck_id} | Platform: {deck.source === 'moxfield' ? 'Moxfield' : 'Archidekt'}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <button 
-                      onClick={() => handleOpenImporter(deck)}
-                      style={{ padding: '0.35rem 0.75rem', background: '#252525', color: '#ccc', border: '1px solid #3a3a3a', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-                    >
-                      Unarchive / Edit
-                    </button>
-                  </div>
-                  <DeckRequestedCardsDropdown deck={deck} />
-                </div>
+                <DeckCardItem
+                  key={deck.id}
+                  deck={deck}
+                  commanderMeta={deck.commander ? commanderCache[deck.commander] : null}
+                  syncing={syncingAll || syncingId === deck.deck_id}
+                  onQuickSync={() => handleQuickResync(deck)}
+                  onOpenImporter={() => handleOpenImporter(deck)}
+                  onHoverCard={setHoveredPreviewCard}
+                />
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Floating Interactive Card Preview Portal */}
+      {hoveredPreviewCard && (
+        <div
+          className="floating-mystic-card-preview"
+          style={{
+            left: `${Math.min(typeof window !== 'undefined' ? window.innerWidth - 270 : 800, Math.max(10, hoveredPreviewCard.x || 100))}px`,
+            top: `${Math.min(typeof window !== 'undefined' ? window.innerHeight - 380 : 600, Math.max(10, hoveredPreviewCard.y || 100))}px`,
+          }}
+        >
+          <div className="mystic-card-portal-inner">
+            {hoveredPreviewCard.image_url ? (
+              <img
+                src={hoveredPreviewCard.image_url}
+                alt={hoveredPreviewCard.card_name}
+                className="portal-card-img"
+              />
+            ) : (
+              <div className="portal-no-img">
+                <SparklesIcon style={{ width: '2.5rem', height: '2.5rem', color: '#818cf8' }} />
+                <span>{hoveredPreviewCard.card_name}</span>
+              </div>
+            )}
+            <div className="portal-card-meta">
+              <div className="portal-meta-title">{hoveredPreviewCard.card_name}</div>
+              {hoveredPreviewCard.type_line && (
+                <div className="portal-meta-sub">{hoveredPreviewCard.type_line}</div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function DeckRequestedCardsDropdown({ deck }) {
+/**
+ * Beautified Deck Card Component with Blurred Commander Art Backdrop
+ */
+function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporter, onHoverCard }) {
+  const isMoxfield = deck.source === "moxfield";
+  const remoteUrl = isMoxfield
+    ? `https://www.moxfield.com/decks/${deck.deck_id}`
+    : `https://archidekt.com/decks/${deck.deck_id}/`;
+
+  // Commander Artwork extraction (art_crop for backdrop blur, normal/large for portal)
+  const commanderArtCrop = commanderMeta?.image_uris?.art_crop
+    || commanderMeta?.card_faces?.[0]?.image_uris?.art_crop
+    || commanderMeta?.image_uris?.normal
+    || null;
+
+  const commanderThumb = commanderMeta?.image_uris?.small
+    || commanderMeta?.image_uris?.art_crop
+    || commanderMeta?.card_faces?.[0]?.image_uris?.small
+    || null;
+
+  const commanderLarge = commanderMeta?.image_uris?.normal
+    || commanderMeta?.image_uris?.large
+    || commanderMeta?.card_faces?.[0]?.image_uris?.normal
+    || commanderThumb;
+
+  const colorIdentity = commanderMeta?.color_identity || [];
+  const cardCount = typeof deck.cards === 'string'
+    ? JSON.parse(deck.cards || "[]").length
+    : (deck.cards?.length || 100);
+
+  return (
+    <div className={`deck-card-frame ${deck.status === 'disabled' ? 'disabled' : ''}`}>
+      {/* Blurred Commander Art Backdrop */}
+      {commanderArtCrop && (
+        <div
+          className="deck-card-backdrop"
+          style={{ backgroundImage: `url(${commanderArtCrop})` }}
+        />
+      )}
+
+      {/* Dark Mystic Gradient Overlay */}
+      <div className="deck-card-gradient-overlay" />
+
+      {/* Card Content */}
+      <div className="deck-card-content">
+        {/* Commander Header Banner */}
+        {deck.commander ? (
+          <div className="deck-commander-bar">
+            <div className="commander-info-meta">
+              <div className="commander-eyebrow-row">
+                <span className="commander-label-eyebrow">
+                  <SparklesIcon style={{ width: '0.9rem', height: '0.9rem', display: 'inline', verticalAlign: '-1px', marginRight: '4px' }} />
+                  Commander
+                </span>
+                {commanderMeta?.mana_cost && (
+                  <span className="commander-mana-pill">{commanderMeta.mana_cost}</span>
+                )}
+                {colorIdentity.length > 0 && (
+                  <div className="deck-color-identity-bar">
+                    {colorIdentity.map(c => (
+                      <span key={c} className={`color-pip ${c}`} title={`Color: ${c}`}>{c}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div
+                className="commander-name-text"
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  onHoverCard({
+                    card_name: deck.commander,
+                    image_url: commanderLarge,
+                    type_line: commanderMeta?.type_line,
+                    x: rect.right + 12,
+                    y: rect.top - 50
+                  });
+                }}
+                onMouseLeave={() => onHoverCard(null)}
+                title={`${deck.commander} (Hover for full card scan)`}
+              >
+                {deck.commander}
+              </div>
+              {commanderMeta?.type_line && (
+                <div className="commander-type-text">
+                  {commanderMeta.type_line}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="deck-commander-bar no-commander">
+            <div className="commander-info-meta">
+              <div className="commander-eyebrow-row">
+                <span className="commander-label-eyebrow">
+                  <GlobeAltIcon style={{ width: '0.9rem', height: '0.9rem', display: 'inline', verticalAlign: '-1px', marginRight: '4px' }} />
+                  {isMoxfield ? "Moxfield List" : "Archidekt List"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Deck Title & Remote Platform Info */}
+        <div>
+          <div className="deck-title-row">
+            <h3 className="deck-name-heading" title={deck.deck_name}>
+              {deck.deck_name}
+            </h3>
+            <span className={`deck-platform-pill ${isMoxfield ? 'moxfield' : 'archidekt'}`}>
+              {isMoxfield ? 'Moxfield' : 'Archidekt'}
+            </span>
+          </div>
+        </div>
+
+        {/* Meta Grid */}
+        <div className="deck-meta-grid">
+          <div className="deck-meta-item">
+            Cards: <strong>{cardCount}</strong>
+          </div>
+          <div className="deck-meta-item">
+            Synced: <strong>{formatRelativeTime(deck.updated_at)}</strong>
+          </div>
+          <div className="deck-meta-item">
+            Access: <strong>{deck.is_public ? "Public" : "Private"}</strong>
+          </div>
+          <div className="deck-meta-item">
+            {deck.status === 'disabled' ? (
+              <span className="deck-status-disabled-chip" title="Cards were removed when proxy list was cleared. Resync to re-add.">
+                <ExclamationTriangleIcon style={{ width: '1.05em', height: '1.05em' }} /> Disabled
+              </span>
+            ) : (
+              <span>Status: <strong style={{ color: "#34d399", textTransform: "capitalize" }}>{deck.status || "active"}</strong></span>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons Cluster */}
+        <div className="deck-action-cluster">
+          <button
+            type="button"
+            onClick={onQuickSync}
+            disabled={syncing}
+            className={`deck-action-btn-sync ${deck.status === 'disabled' ? 'disabled-resync' : ''}`}
+            title={deck.status === 'disabled' ? "Click to resync and re-enable this deck's cards" : "Resync deck now"}
+          >
+            <ArrowPathIcon className={syncing ? "icon-spin" : ""} style={{ width: "1.1em", height: "1.1em" }} />
+            <span>
+              {syncing
+                ? "Syncing..."
+                : (deck.status === 'disabled' ? "Re-Enable & Sync" : "Quick Sync")}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenImporter}
+            disabled={syncing}
+            className="deck-icon-btn"
+            title="Edit tag mappings & deck sync settings"
+          >
+            <Cog6ToothIcon style={{ width: "1.15em", height: "1.15em" }} />
+          </button>
+
+          <a
+            href={remoteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="deck-icon-btn"
+            title={`Open deck on ${isMoxfield ? 'Moxfield' : 'Archidekt'}`}
+          >
+            <ArrowTopRightOnSquareIcon style={{ width: "1.15em", height: "1.15em" }} />
+          </a>
+        </div>
+
+        {/* Dropdown for Requested Cards */}
+        <DeckRequestedCardsDropdown deck={deck} onHoverCard={onHoverCard} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Beautified Accordion for Cards requested or managed by this deck
+ */
+function DeckRequestedCardsDropdown({ deck, onHoverCard }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("requested"); // "requested", "wishlist", "tradelist", "owned", "all"
   const [searchTerm, setSearchTerm] = useState("");
@@ -453,7 +846,6 @@ function DeckRequestedCardsDropdown({ deck }) {
   const ownedCount = ownedItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
   const totalAllCount = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
 
-  // If there are no requested items but there are owned items, default filter to all
   let effectiveFilter = activeFilter;
   if (requestedItems.length === 0 && ownedItems.length > 0 && activeFilter === "requested") {
     effectiveFilter = "all";
@@ -468,41 +860,27 @@ function DeckRequestedCardsDropdown({ deck }) {
 
   if (searchTerm.trim()) {
     const term = searchTerm.toLowerCase();
-    displayedItems = displayedItems.filter(i => 
+    displayedItems = displayedItems.filter(i =>
       (i.card_name && i.card_name.toLowerCase().includes(term)) ||
       (i.set_code && i.set_code.toLowerCase().includes(term))
     );
   }
 
-  // Sort displayed items alphabetically by card name
   const sortedItems = [...displayedItems].sort((a, b) => (a.card_name || "").localeCompare(b.card_name || ""));
 
   return (
-    <div style={{ marginTop: '1rem', borderTop: '1px solid #2d2d2d', paddingTop: '0.85rem' }}>
+    <div className="requested-cards-dropdown-container">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: '100%',
-          padding: '0.5rem 0.75rem',
-          background: isOpen ? '#232733' : '#1a1d24',
-          border: `1px solid ${isOpen ? '#3b82f6' : '#333a48'}`,
-          borderRadius: '6px',
-          color: '#e2e8f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: 'pointer',
-          fontSize: '0.82rem',
-          fontWeight: '600',
-          transition: 'all 0.15s ease'
-        }}
+        className={`requested-cards-toggle-btn ${isOpen ? 'open' : ''}`}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
           <QueueListIcon style={{ width: '1.15em', height: '1.15em', color: totalRequestedCount > 0 ? '#60a5fa' : '#9ca3af' }} />
-          <span>Requested Cards ({totalRequestedCount})</span>
+          <span>Cards ({totalRequestedCount > 0 ? `${totalRequestedCount} Requested` : `${totalAllCount} Tracked`})</span>
           {wishlistCount > 0 && (
             <span style={{ fontSize: '0.68rem', padding: '1px 5px', borderRadius: '3px', background: 'rgba(168, 85, 247, 0.25)', color: '#d8b4fe', fontWeight: 'bold' }}>
-              {wishlistCount} Wishlist
+              {wishlistCount} Wish
             </span>
           )}
           {tradelistCount > 0 && (
@@ -512,163 +890,85 @@ function DeckRequestedCardsDropdown({ deck }) {
           )}
         </div>
         {isOpen ? (
-          <ChevronUpIcon style={{ width: '1.1em', height: '1.1em', color: '#9ca3af', flexShrink: 0 }} />
+          <ChevronUpIcon style={{ width: '1.1em', height: '1.1em', color: '#94a3b8', flexShrink: 0 }} />
         ) : (
-          <ChevronDownIcon style={{ width: '1.1em', height: '1.1em', color: '#9ca3af', flexShrink: 0 }} />
+          <ChevronDownIcon style={{ width: '1.1em', height: '1.1em', color: '#94a3b8', flexShrink: 0 }} />
         )}
       </button>
 
       {isOpen && (
-        <div style={{
-          marginTop: '0.5rem',
-          background: '#13151b',
-          border: '1px solid #28303f',
-          borderRadius: '6px',
-          padding: '0.75rem',
-          fontSize: '0.82rem'
-        }}>
-          {/* Filter Pills if multiple categories exist */}
+        <div className="requested-cards-drawer">
+          {/* Filter Pills */}
           {items.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.65rem' }}>
+            <div className="drawer-filter-pills">
               {requestedItems.length > 0 && (
                 <button
+                  type="button"
                   onClick={() => setActiveFilter("requested")}
-                  style={{
-                    padding: '2px 7px',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    borderColor: effectiveFilter === 'requested' ? '#3b82f6' : '#2e384d',
-                    background: effectiveFilter === 'requested' ? 'rgba(59, 130, 246, 0.25)' : '#1a202c',
-                    color: effectiveFilter === 'requested' ? '#93c5fd' : '#94a3b8',
-                    fontSize: '0.72rem',
-                    cursor: 'pointer',
-                    fontWeight: effectiveFilter === 'requested' ? 'bold' : 'normal'
-                  }}
+                  className={`drawer-pill-btn ${effectiveFilter === 'requested' ? 'active requested' : ''}`}
                 >
                   Requested ({totalRequestedCount})
                 </button>
               )}
               {wishlistItems.length > 0 && (
                 <button
+                  type="button"
                   onClick={() => setActiveFilter("wishlist")}
-                  style={{
-                    padding: '2px 7px',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    borderColor: effectiveFilter === 'wishlist' ? '#a855f7' : '#2e384d',
-                    background: effectiveFilter === 'wishlist' ? 'rgba(168, 85, 247, 0.25)' : '#1a202c',
-                    color: effectiveFilter === 'wishlist' ? '#d8b4fe' : '#94a3b8',
-                    fontSize: '0.72rem',
-                    cursor: 'pointer',
-                    fontWeight: effectiveFilter === 'wishlist' ? 'bold' : 'normal'
-                  }}
+                  className={`drawer-pill-btn ${effectiveFilter === 'wishlist' ? 'active wishlist' : ''}`}
                 >
                   Wishlist ({wishlistCount})
                 </button>
               )}
               {tradelistItems.length > 0 && (
                 <button
+                  type="button"
                   onClick={() => setActiveFilter("tradelist")}
-                  style={{
-                    padding: '2px 7px',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    borderColor: effectiveFilter === 'tradelist' ? '#eab308' : '#2e384d',
-                    background: effectiveFilter === 'tradelist' ? 'rgba(234, 179, 8, 0.25)' : '#1a202c',
-                    color: effectiveFilter === 'tradelist' ? '#fde047' : '#94a3b8',
-                    fontSize: '0.72rem',
-                    cursor: 'pointer',
-                    fontWeight: effectiveFilter === 'tradelist' ? 'bold' : 'normal'
-                  }}
+                  className={`drawer-pill-btn ${effectiveFilter === 'tradelist' ? 'active tradelist' : ''}`}
                 >
                   Tradelist ({tradelistCount})
                 </button>
               )}
               {ownedItems.length > 0 && (
                 <button
+                  type="button"
                   onClick={() => setActiveFilter("owned")}
-                  style={{
-                    padding: '2px 7px',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    borderColor: effectiveFilter === 'owned' ? '#10b981' : '#2e384d',
-                    background: effectiveFilter === 'owned' ? 'rgba(16, 185, 129, 0.25)' : '#1a202c',
-                    color: effectiveFilter === 'owned' ? '#6ee7b7' : '#94a3b8',
-                    fontSize: '0.72rem',
-                    cursor: 'pointer',
-                    fontWeight: effectiveFilter === 'owned' ? 'bold' : 'normal'
-                  }}
+                  className={`drawer-pill-btn ${effectiveFilter === 'owned' ? 'active owned' : ''}`}
                 >
                   Collection ({ownedCount})
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => setActiveFilter("all")}
-                style={{
-                  padding: '2px 7px',
-                  borderRadius: '4px',
-                  border: '1px solid',
-                  borderColor: effectiveFilter === 'all' ? '#64748b' : '#2e384d',
-                  background: effectiveFilter === 'all' ? 'rgba(100, 116, 139, 0.25)' : '#1a202c',
-                  color: effectiveFilter === 'all' ? '#cbd5e1' : '#94a3b8',
-                  fontSize: '0.72rem',
-                  cursor: 'pointer',
-                  fontWeight: effectiveFilter === 'all' ? 'bold' : 'normal'
-                }}
+                className={`drawer-pill-btn ${effectiveFilter === 'all' ? 'active all' : ''}`}
               >
                 All ({totalAllCount})
               </button>
             </div>
           )}
 
-          {/* Quick search input if more than 5 cards */}
+          {/* Quick Search */}
           {items.length > 5 && (
             <input
               type="text"
               placeholder="Search cards in this deck..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.35rem 0.6rem',
-                background: '#0a0c10',
-                border: '1px solid #2d3748',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.75rem',
-                marginBottom: '0.5rem',
-                boxSizing: 'border-box'
-              }}
+              className="drawer-search-input"
             />
           )}
 
-          {/* Card list */}
+          {/* Cards Scroll List */}
           {sortedItems.length === 0 ? (
             <div style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic', fontSize: '0.8rem' }}>
-              {searchTerm ? "No cards match search." : "No cards requested for this deck."}
+              {searchTerm ? "No cards match search." : "No cards in this category."}
             </div>
           ) : (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.35rem',
-              maxHeight: '260px',
-              overflowY: 'auto',
-              paddingRight: '2px'
-            }}>
+            <div className="drawer-card-scroll-list">
               {sortedItems.map((item, idx) => (
                 <div
                   key={`${item.card_name}-${item.list_type}-${item.set_code}-${idx}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.5rem',
-                    padding: '0.35rem 0.5rem',
-                    background: '#1b1f2b',
-                    borderRadius: '4px',
-                    border: '1px solid #252c3d'
-                  }}
+                  className="drawer-card-item-row"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0, flex: 1 }}>
                     <span style={{
@@ -687,17 +987,17 @@ function DeckRequestedCardsDropdown({ deck }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       title={`Search "${item.card_name}" on Scryfall`}
-                      style={{
-                        color: '#f1f5f9',
-                        textDecoration: 'none',
-                        fontWeight: '500',
-                        fontSize: '0.8rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                      className="drawer-card-link"
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        onHoverCard({
+                          card_name: item.card_name,
+                          image_url: `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(item.card_name)}&format=image`,
+                          x: rect.right + 12,
+                          y: rect.top - 50
+                        });
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#60a5fa'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#f1f5f9'}
+                      onMouseLeave={() => onHoverCard(null)}
                     >
                       {item.card_name}
                     </a>
@@ -716,7 +1016,7 @@ function DeckRequestedCardsDropdown({ deck }) {
                         {item.set_code}
                       </span>
                     )}
-                    {item.is_foil && (
+                    {item.is_foil ? (
                       <span style={{
                         fontSize: '0.68rem',
                         background: 'rgba(234, 179, 8, 0.2)',
@@ -725,46 +1025,9 @@ function DeckRequestedCardsDropdown({ deck }) {
                         borderRadius: '3px',
                         fontWeight: '600'
                       }}>
-                        ✨ Foil
+                        Foil
                       </span>
-                    )}
-                    {item.list_type === 'wishlist' ? (
-                      <span style={{
-                        fontSize: '0.65rem',
-                        background: 'rgba(168, 85, 247, 0.2)',
-                        color: '#c084fc',
-                        border: '1px solid rgba(168, 85, 247, 0.5)',
-                        padding: '1px 5px',
-                        borderRadius: '3px',
-                        fontWeight: 'bold'
-                      }}>
-                        Wishlist
-                      </span>
-                    ) : item.list_type === 'tradelist' ? (
-                      <span style={{
-                        fontSize: '0.65rem',
-                        background: 'rgba(234, 179, 8, 0.2)',
-                        color: '#facc15',
-                        border: '1px solid rgba(234, 179, 8, 0.5)',
-                        padding: '1px 5px',
-                        borderRadius: '3px',
-                        fontWeight: 'bold'
-                      }}>
-                        Tradelist
-                      </span>
-                    ) : (
-                      <span style={{
-                        fontSize: '0.65rem',
-                        background: 'rgba(16, 185, 129, 0.2)',
-                        color: '#34d399',
-                        border: '1px solid rgba(16, 185, 129, 0.5)',
-                        padding: '1px 5px',
-                        borderRadius: '3px',
-                        fontWeight: 'bold'
-                      }}>
-                        Collection
-                      </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               ))}
