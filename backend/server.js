@@ -30,6 +30,7 @@ import presetsRouter from "./routes/presets.js";
 import archidektRouter from "./routes/archidekt.js";
 import moxfieldRouter from "./routes/moxfield.js";
 import deckUpdaterRouter from "./routes/deckUpdater.js";
+import trendingRouter from "./routes/trending.js";
 
 import ownedRouter from "./routes/owned.js";
 import wishlistRouter from "./routes/wishlist.js";
@@ -85,7 +86,7 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Logging middleware
 app.use((req, _res, next) => {
-// console.log(`→ ${req.method} ${req.originalUrl}`);
+    console.log(`→ ${req.method} ${req.originalUrl}`);
     next();
 });
 
@@ -124,6 +125,10 @@ app.use("/api/moxfield", moxfieldRouter);
 
 //  Deck Updater
 app.use("/api/deck-updater", deckUpdaterRouter);
+
+//  Trending
+app.use("/api/trending", trendingRouter);
+
 
 
 //  Land cycle routes
