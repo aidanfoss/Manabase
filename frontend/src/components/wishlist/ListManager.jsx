@@ -59,6 +59,23 @@ const ProxyDropdown = ({ id, isOpen, toggleOpen, triggerLabel, triggerIcon: Trig
 };
 
 export default function ListManager({...props}) {
+  let contextWishlist = [];
+  let contextOptionalProxies = [];
+  try {
+    const context = useWishlist();
+    if (context) {
+      contextWishlist = context.wishlist || [];
+      contextOptionalProxies = context.optionalProxies || [];
+    }
+  } catch (e) {
+    // Context not available, fallback to props
+  }
+
+  const wishlist = props.wishlist ?? contextWishlist;
+  const optionalProxies = props.optionalProxies ?? contextOptionalProxies;
+  const activeList = props.selectedList === "optional_proxies" ? optionalProxies : wishlist;
+  const cheapCardsList = props.cheapCardsList || [];
+
   const [isOpen, setIsOpen] = useState(null);
 
   const toggleOpen = (id) => setIsOpen(id);
@@ -88,7 +105,7 @@ export default function ListManager({...props}) {
           onClick={() => props.setSelectedList("proxy_arts")}
         >
           <PaintBrushIcon className="inline-icon" /> Art Selections
-          <span className="subtab-badge">{props.userProxyArts.length}</span>
+          <span className="subtab-badge">{(props.userProxyArts || []).length}</span>
           {props.missingArtsCount > 0 && <span style={{ marginLeft: '4px', background: '#ef4444', color: 'white', padding: '1px 5px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>{props.missingArtsCount} missing</span>}
         </button>
         <button
@@ -241,10 +258,10 @@ export default function ListManager({...props}) {
                   className="proxy-btn"
                   style={{ background: "rgba(99,102,241,0.2)", borderColor: "rgba(99,102,241,0.4)", color: "#818cf8", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: "700" }}
                   onClick={props.handleBuyCheapCardsOnManaPool}
-                  disabled={wishlist.length === 0 || props.cheapCardsList.length === 0}
+                  disabled={wishlist.length === 0 || cheapCardsList.length === 0}
                   title="Export cheap cards ( threshold) directly into ManaPool cart"
                 >
-                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Buy Cheap Cards ({props.cheapCardsList.length})
+                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Buy Cheap Cards ({cheapCardsList.length})
                 </button>
 
                 <button
