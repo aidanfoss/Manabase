@@ -1,0 +1,161 @@
+.landing-container {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #050810 80%);
+  color: #f1f5f9;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.landing-hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f1f5f9, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: #cbd5e1;
+  max-width: 600px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(129, 140, 248, 0.5);
+  box-shadow: 0 0 30px rgba(129, 140, 248, 0.2);
+}
+
+.card-icon {
+  font-size: 2rem;
+  color: #818cf8;
+  margin-bottom: 1rem;
+}
+
+.card-title-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.card-description {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* Pro Ad Slot Styles (Already existed) */
+.pro-ad-slot {
+  width: 100%;
+  max-width: 728px;
+  margin: 2rem auto;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  background: rgba(10, 15, 25, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+}
+
+.pro-ad-placeholder {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Commander Showcase Styles */
+.commander-showcase {
+  margin: 4rem auto;
+  max-width: 1000px;
+  padding: 0 2rem;
+}
+
+.showcase-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.showcase-title {
+  font-size: 2rem;
+  color: #fff;
+}
+
+.showcase-source {
+  color: #818cf8;
+  font-size: 0.9rem;
+}
+
+.showcase-grid {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-item {
+  width: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  transition: transform 0.3s;
+  position: relative; /* Added for badge positioning */
+}
+
+.commander-featured {
+  transform: rotate(-5deg);
+}
+
+.new-cards-cascade {
+  display: flex;
+  margin-left: -50px;
+}
+
+.new-card-0 { transform: rotate(5deg); z-index: 1; }
+.new-card-1 { transform: rotate(10deg); z-index: 2; margin-left: -100px; }
+.new-card-2 { transform: rotate(15deg); z-index: 3; margin-left: -100px; }
+
+.new-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: red;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
