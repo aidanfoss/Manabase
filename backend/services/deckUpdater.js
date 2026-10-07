@@ -121,19 +121,19 @@ export function getStrictlyBetterUpgrades(deckCardNames) {
 }
 
 /**
- * Fetches EDHRec suggestions (New Cards and High Synergy) for a commander.
+ * Fetches EDHRec suggestions (New Cards and Top/High Synergy Cards) for a commander.
  */
 export async function getEDHRecSuggestions(commanderName, deckCardNames) {
   if (!commanderName) return { newCards: [], highSynergy: [] };
-  
+
   // Format commander name for EDHRec (lowercase, spaces to dashes, remove punctuation)
   let formattedCommander = commanderName.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
-  
+
   try {
     const url = `https://json.edhrec.com/pages/commanders/${formattedCommander}.json`;
     const response = await axios.get(url);
     const cardLists = response.data.container.json_dict.cardlists;
-    
+
     const deckSet = new Set();
     deckCardNames.forEach(c => {
       const lower = c.toLowerCase();
@@ -142,21 +142,33 @@ export async function getEDHRecSuggestions(commanderName, deckCardNames) {
         deckSet.add(lower.split('//')[0].trim());
       }
     });
-    
+
     let newCards = [];
     let highSynergy = [];
 
     for (const list of cardLists) {
-      if (list.header === "New cards") {
+      const header = list.header?.toLowerCase();
+
+      if (header === "new cards") {
         newCards = list.cardviews
           .filter(c => !deckSet.has(c.name.toLowerCase()))
           .map(c => ({ name: c.name, synergy: c.synergy, url: c.url }));
-      } else if (list.header === "High Synergy Cards") {
-        highSynergy = list.cardviews
+      } else if (header === "high synergy cards" || header === "top cards" || header === "high lift cards") {
+        // Collect these into highSynergy, deduplicating just in case
+        const mapped = list.cardviews
           .filter(c => !deckSet.has(c.name.toLowerCase()))
-          .map(c => ({ name: c.name, synergy: c.synergy, url: c.url }));
+          .map(c => ({ name: c.name, synergy: c.synergy || c.lift, url: c.url }));
+
+        for (const card of mapped) {
+          if (!highSynergy.some(c => c.name === card.name)) {
+            highSynergy.push(card);
+          }
+        }
       }
     }
+
+    // Sort highSynergy by synergy/lift score descending
+    highSynergy.sort((a, b) => (b.synergy || 0) - (a.synergy || 0));
 
     return { newCards, highSynergy };
   } catch (error) {
