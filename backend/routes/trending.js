@@ -21,11 +21,11 @@ router.get("/random", async (_, res) => {
     const suggestions = await getEDHRecSuggestions(randomCommander, []);
 
     let selectedCards = suggestions.newCards;
-    if (selectedCards.length < 3) {
-      const needed = 3 - selectedCards.length;
+    if (selectedCards.length < 5) {
+      const needed = 5 - selectedCards.length;
       selectedCards = [...selectedCards, ...suggestions.highSynergy.filter((_, i) => i < needed)];
     } else {
-      selectedCards = selectedCards.sort(() => 0.5 - Math.random()).slice(0, 3);
+      selectedCards = selectedCards.sort(() => 0.5 - Math.random()).slice(0, 5);
     }
 
     const commanderData = await fetchCardData(randomCommander);
