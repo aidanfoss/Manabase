@@ -58,9 +58,17 @@
 }
 
 @keyframes deckFloatAura {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -30px) scale(1.08); }
-  100% { transform: translate(-30px, 40px) scale(0.95); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(40px, -30px) scale(1.08);
+  }
+
+  100% {
+    transform: translate(-30px, 40px) scale(0.95);
+  }
 }
 
 /* === Section Header === */
@@ -220,8 +228,13 @@
   font-weight: 700;
 }
 
-.deck-sync-alert.success .deck-sync-alert-header h4 { color: #34d399; }
-.deck-sync-alert.error .deck-sync-alert-header h4 { color: #f87171; }
+.deck-sync-alert.success .deck-sync-alert-header h4 {
+  color: #34d399;
+}
+
+.deck-sync-alert.error .deck-sync-alert-header h4 {
+  color: #f87171;
+}
 
 .deck-sync-alert-msg {
   margin: 0;
@@ -237,9 +250,17 @@
   flex-wrap: wrap;
 }
 
-.stat-pill-add { color: #34d399; }
-.stat-pill-rem { color: #f87171; }
-.stat-pill-ign { color: #94a3b8; }
+.stat-pill-add {
+  color: #34d399;
+}
+
+.stat-pill-rem {
+  color: #f87171;
+}
+
+.stat-pill-ign {
+  color: #94a3b8;
+}
 
 .deck-alert-close-btn {
   background: none;
@@ -260,8 +281,15 @@
 }
 
 @keyframes slideDownFade {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* === Stat Crystal Bar === */
@@ -467,7 +495,7 @@
   inset: -20px;
   background-size: cover;
   background-position: center 20%;
-  filter: blur(16px) brightness(0.48) saturate(1.45);
+  filter: blur(4px) brightness(0.68) saturate(1.45);
   transform: scale(1.08);
   opacity: 0.92;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease, opacity 0.4s ease;
@@ -476,7 +504,7 @@
 }
 
 .deck-card-frame:hover .deck-card-backdrop {
-  filter: blur(12px) brightness(0.58) saturate(1.55);
+  filter: blur(2px) brightness(0.78) saturate(1.55);
   transform: scale(1.14);
   opacity: 1;
 }
@@ -484,12 +512,10 @@
 .deck-card-gradient-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 15, 28, 0.6) 0%,
-    rgba(10, 15, 28, 0.82) 45%,
-    rgba(6, 10, 20, 0.96) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(10, 15, 28, 0.6) 0%,
+      rgba(10, 15, 28, 0.82) 45%,
+      rgba(6, 10, 20, 0.96) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -638,12 +664,35 @@
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }
 
-.color-pip.W { background: #fef08a; color: #713f12; }
-.color-pip.U { background: #38bdf8; color: #0c4a6e; }
-.color-pip.B { background: #475569; color: #f8fafc; }
-.color-pip.R { background: #f87171; color: #7f1d1d; }
-.color-pip.G { background: #4ade80; color: #14532d; }
-.color-pip.C { background: #94a3b8; color: #1e293b; }
+.color-pip.W {
+  background: #fef08a;
+  color: #713f12;
+}
+
+.color-pip.U {
+  background: #38bdf8;
+  color: #0c4a6e;
+}
+
+.color-pip.B {
+  background: #475569;
+  color: #f8fafc;
+}
+
+.color-pip.R {
+  background: #f87171;
+  color: #7f1d1d;
+}
+
+.color-pip.G {
+  background: #4ade80;
+  color: #14532d;
+}
+
+.color-pip.C {
+  background: #94a3b8;
+  color: #1e293b;
+}
 
 /* === Meta Specs & Badges === */
 .deck-meta-grid {
@@ -771,8 +820,15 @@
 }
 
 @keyframes expandDrawer {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .drawer-filter-pills {
@@ -957,8 +1013,15 @@
 }
 
 @keyframes portalGlowIn {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* === Empty State === */
