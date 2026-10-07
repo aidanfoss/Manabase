@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon
 } from "@heroicons/react/24/solid";
+import CardMagnifier from "../components/CardMagnifier";
 import "./DeckUpdater.css";
 
 export default function DeckUpdater() {
@@ -243,7 +244,9 @@ export default function DeckUpdater() {
                                   <div className="inferior-visual">
                                     <span className="label">Current</span>
                                     {upgrade.currentCardData?.image_uri ? (
-                                      <img src={upgrade.currentCardData.image_uri} alt={upgrade.currentCard} className="card-art" />
+                                      <CardMagnifier cardImageUrl={upgrade.currentCardData.image_uri} cardName={upgrade.currentCard}>
+                                        <img src={upgrade.currentCardData.image_uri} alt={upgrade.currentCard} className="card-art" />
+                                      </CardMagnifier>
                                     ) : (
                                       <div className="card-art-placeholder">{upgrade.currentCard}</div>
                                     )}
@@ -258,7 +261,9 @@ export default function DeckUpdater() {
                                       {upgrade.strictlyBetterCardsData.map((sup, sIdx) => (
                                         <div key={sIdx} className="superior-visual">
                                           {sup.image_uri ? (
-                                            <img src={sup.image_uri} alt={sup.name} className="card-art" />
+                                            <CardMagnifier cardImageUrl={sup.image_uri} cardName={sup.name}>
+                                              <img src={sup.image_uri} alt={sup.name} className="card-art" />
+                                            </CardMagnifier>
                                           ) : (
                                             <div className="card-art-placeholder">{sup.name}</div>
                                           )}
@@ -291,7 +296,9 @@ export default function DeckUpdater() {
                               <div key={idx} className="suggestion-card">
                                 <button className="dismiss-btn-small" onClick={() => handleDismiss(analysis.deck_id, suggestionId)} title="Dismiss">×</button>
                                 {card.image_uri ? (
-                                  <img src={card.image_uri} alt={card.name} className="card-art" />
+                                  <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
+                                    <img src={card.image_uri} alt={card.name} className="card-art" />
+                                  </CardMagnifier>
                                 ) : (
                                   <div className="card-art-placeholder">{card.name}</div>
                                 )}
@@ -322,7 +329,9 @@ export default function DeckUpdater() {
                               <div key={idx} className="suggestion-card">
                                 <button className="dismiss-btn-small" onClick={() => handleDismiss(analysis.deck_id, suggestionId)} title="Dismiss">×</button>
                                 {card.image_uri ? (
-                                  <img src={card.image_uri} alt={card.name} className="card-art" />
+                                  <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
+                                    <img src={card.image_uri} alt={card.name} className="card-art" />
+                                  </CardMagnifier>
                                 ) : (
                                   <div className="card-art-placeholder">{card.name}</div>
                                 )}
