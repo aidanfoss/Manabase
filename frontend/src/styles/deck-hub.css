@@ -464,27 +464,32 @@
 /* === Blurred Commander Art Backdrop === */
 .deck-card-backdrop {
   position: absolute;
-  inset: 0;
+  inset: -20px;
   background-size: cover;
-  background-position: center 25%;
-  filter: blur(14px) brightness(0.35) saturate(1.4);
-  transform: scale(1.15);
-  opacity: 0.88;
+  background-position: center 20%;
+  filter: blur(16px) brightness(0.48) saturate(1.45);
+  transform: scale(1.08);
+  opacity: 0.92;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease, opacity 0.4s ease;
   z-index: 0;
   pointer-events: none;
 }
 
 .deck-card-frame:hover .deck-card-backdrop {
-  filter: blur(10px) brightness(0.45) saturate(1.55);
-  transform: scale(1.22);
-  opacity: 0.98;
+  filter: blur(12px) brightness(0.58) saturate(1.55);
+  transform: scale(1.14);
+  opacity: 1;
 }
 
 .deck-card-gradient-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(13, 18, 31, 0.6) 0%, rgba(13, 18, 31, 0.88) 50%, rgba(8, 11, 20, 0.98) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(10, 15, 28, 0.6) 0%,
+    rgba(10, 15, 28, 0.82) 45%,
+    rgba(6, 10, 20, 0.96) 100%
+  );
   z-index: 1;
   pointer-events: none;
 }
@@ -502,79 +507,74 @@
 /* === Commander Bar === */
 .deck-commander-bar {
   display: flex;
-  align-items: center;
-  gap: 0.85rem;
+  flex-direction: column;
+  gap: 0.35rem;
   padding-bottom: 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.commander-portrait-box {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid rgba(129, 140, 248, 0.5);
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
-  flex-shrink: 0;
-  background: #1e293b;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.deck-commander-bar.no-commander {
+  opacity: 0.75;
 }
 
-.commander-portrait-box:hover {
-  transform: scale(1.08);
-  border-color: #818cf8;
-  box-shadow: 0 0 18px rgba(129, 140, 248, 0.6);
-}
-
-.commander-portrait-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.commander-portrait-placeholder {
-  width: 100%;
-  height: 100%;
+.commander-header-top {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #818cf8;
-}
-
-.commander-info-meta {
-  min-width: 0;
-  flex: 1;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .commander-label-eyebrow {
   font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: #fbbf24;
   font-weight: 700;
-  margin-bottom: 0.15rem;
+}
+
+.commander-mana-cost-badge {
+  font-size: 0.75rem;
+  color: #f1f5f9;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.12rem 0.5rem;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+}
+
+.commander-info-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .commander-name-text {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #f8fafc;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-.commander-mana-cost {
-  font-size: 0.72rem;
-  color: #cbd5e1;
-  margin-top: 0.15rem;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.commander-name-text:hover {
+  color: #a5b4fc;
+  text-shadow: 0 0 12px rgba(165, 180, 252, 0.6);
+}
+
+.commander-type-line {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* === Deck Main Info === */
