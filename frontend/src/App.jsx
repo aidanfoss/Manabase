@@ -1,5 +1,7 @@
+
+
 // src/App.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { CubeIcon, FolderIcon, ArrowPathIcon, MoonIcon, MapPinIcon, BellIcon, ArrowPathRoundedSquareIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
@@ -21,8 +23,12 @@ import { api } from "./api/client";
 import "./styles/nav-auth.css";
 import "./styles/tabs.css";
 import "./styles/new-landing.css";
+import ProAdContainer from "./components/ProAdContainer";
+import CommanderShowcase from "./components/CommanderShowcase";
 
 import { WishlistProvider } from "./context/WishlistProvider";
+
+
 // ...
 export default function App() {
   return (
@@ -156,70 +162,64 @@ function AppContent() {
 
 function LandingDashboard() {
   const navigate = useNavigate();
+  const [showcaseData, setShowcaseData] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/trending/random")
+      .then(r => r.json())
+      .then(setShowcaseData)
+      .catch(console.error);
+  }, []);
+
   return (
     <div className="landing-container">
       <div className="landing-hero">
-        <h1 className="hero-title">Welcome to Manabase Hub</h1>
+        <h1 className="hero-title">Forge Your Manabase</h1>
         <p className="hero-subtitle">
-          Construct the perfect mana foundation, manage collections, plan wishlist proxies, and track trades in one dashboard.
+          Advanced tools for Commander deckbuilding, collection management, and trade orchestration.
         </p>
       </div>
 
+      {showcaseData && <CommanderShowcase commander={showcaseData.commander} cards={showcaseData.cards} />}
+
+      <ProAdContainer id="homepage-top-banner" />
+
       <div className="features-grid">
         {/* Feature 1: Manabase Deckbuilder */}
-        <div className="feature-card">
-          <div className="card-badge-top">Feature 01</div>
+        <div className="feature-card" onClick={() => navigate("/builder")}>
           <div className="card-icon">
             <CubeIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
           </div>
-          <h2 className="card-title-text">Manabase Deckbuilder</h2>
+          <h2 className="card-title-text">Deckbuilder</h2>
           <p className="card-description">
-            Build optimal land bases for your Commander decks. Configure color identities, apply curated land cycle presets, load card packages, and view live price rankings.
+            Build optimal land bases for your Commander decks.
           </p>
-          
-          <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
-            <button className="sub-btn" onClick={() => navigate("/builder")}>Launch Builder</button>
-            <button className="sub-btn" onClick={() => navigate("/presets")}>Land Presets</button>
-            <button className="sub-btn" onClick={() => navigate("/packages")}>Custom Packages</button>
-          </div>
         </div>
 
         {/* Feature 2: Collection & Lists Manager */}
-        <div className="feature-card">
-          <div className="card-badge-top">Feature 02</div>
+        <div className="feature-card" onClick={() => navigate("/collection")}>
           <div className="card-icon">
             <FolderIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
           </div>
-          <h2 className="card-title-text">Collection & Lists Hub</h2>
+          <h2 className="card-title-text">Collection</h2>
           <p className="card-description">
-            Manage your physical owned inventory, organize print set details, configure playgroup proxy rules compliance, and track cards you would like to trade.
+            Manage your physical owned inventory and wishlists.
           </p>
-          
-          <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
-            <button className="sub-btn" onClick={() => navigate("/collection")}>Collection</button>
-            <button className="sub-btn" onClick={() => navigate("/wishlist")}>Proxy Hub</button>
-            <button className="sub-btn" onClick={() => navigate("/trade")}>Trade Hub</button>
-          </div>
         </div>
 
         {/* Feature 3: Archidekt Sync */}
-        <div className="feature-card">
-          <div className="card-badge-top">Feature 03</div>
+        <div className="feature-card" onClick={() => navigate("/decks")}>
           <div className="card-icon">
             <ArrowPathIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
           </div>
-          <h2 className="card-title-text">Archidekt Sync Hub</h2>
+          <h2 className="card-title-text">Sync Hub</h2>
           <p className="card-description">
-            Maintain synchronized copies of your Archidekt decks. Pull lists dynamically based on custom per-card Color Tags and instantly sort them into your Collection, Tradelist, or Wishlist.
+            Maintain synchronized copies of your Archidekt decks.
           </p>
-          
-          <div className="landing-sub-buttons" onClick={(e) => e.stopPropagation()}>
-            <button className="sub-btn" onClick={() => navigate("/decks")}>Saved Decks</button>
-            <button className="sub-btn" onClick={() => navigate("/decks")}>Import New</button>
-            <button className="sub-btn" onClick={() => navigate("/updater")}>Deck Updater</button>
-          </div>
         </div>
       </div>
+
+      <ProAdContainer id="homepage-bottom-banner" />
     </div>
   );
 }
