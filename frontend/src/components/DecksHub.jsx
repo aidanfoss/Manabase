@@ -16,8 +16,7 @@ import {
   XMarkIcon,
   ShieldCheckIcon,
   TagIcon,
-  Square2StackIcon,
-  GlobeAltIcon
+  Square2StackIcon
 } from "@heroicons/react/24/solid";
 
 import { api } from "../api/client";
@@ -660,15 +659,10 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
     || commanderMeta?.image_uris?.normal
     || null;
 
-  const commanderThumb = commanderMeta?.image_uris?.small
-    || commanderMeta?.image_uris?.art_crop
-    || commanderMeta?.card_faces?.[0]?.image_uris?.small
-    || null;
-
   const commanderLarge = commanderMeta?.image_uris?.normal
     || commanderMeta?.image_uris?.large
     || commanderMeta?.card_faces?.[0]?.image_uris?.normal
-    || commanderThumb;
+    || commanderArtCrop;
 
   const colorIdentity = commanderMeta?.color_identity || [];
   const cardCount = typeof deck.cards === 'string'
@@ -693,32 +687,15 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
         {/* Commander Header Bar */}
         {deck.commander ? (
           <div className="deck-commander-bar">
-            <div
-              className="commander-portrait-box"
-              onMouseEnter={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                onHoverCard({
-                  card_name: deck.commander,
-                  image_url: commanderLarge,
-                  type_line: commanderMeta?.type_line,
-                  x: rect.right + 12,
-                  y: rect.top - 50
-                });
-              }}
-              onMouseLeave={() => onHoverCard(null)}
-              title={`Commander: ${deck.commander}`}
-            >
-              {commanderThumb ? (
-                <img src={commanderThumb} alt={deck.commander} className="commander-portrait-img" />
-              ) : (
-                <div className="commander-portrait-placeholder">
-                  <SparklesIcon style={{ width: '1.25rem', height: '1.25rem' }} />
-                </div>
-              )}
-            </div>
-
             <div className="commander-info-meta">
-              <div className="commander-label-eyebrow">Commander</div>
+              <div className="commander-header-top">
+                <span className="commander-label-eyebrow">Commander</span>
+                {commanderMeta?.mana_cost && (
+                  <span className="commander-mana-cost-badge">
+                    {commanderMeta.mana_cost}
+                  </span>
+                )}
+              </div>
               <div
                 className="commander-name-text"
                 onMouseEnter={(e) => {
@@ -732,27 +709,23 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
                   });
                 }}
                 onMouseLeave={() => onHoverCard(null)}
-                title={deck.commander}
+                title={`Hover to preview ${deck.commander}`}
               >
                 {deck.commander}
               </div>
-              {commanderMeta?.mana_cost && (
-                <div className="commander-mana-cost">
-                  <span>{commanderMeta.mana_cost}</span>
-                  {commanderMeta.type_line && <span>• {commanderMeta.type_line.split('—')[0].trim()}</span>}
+              {commanderMeta?.type_line && (
+                <div className="commander-type-line">
+                  {commanderMeta.type_line}
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="deck-commander-bar" style={{ opacity: 0.7 }}>
-            <div className="commander-portrait-box">
-              <div className="commander-portrait-placeholder">
-                <GlobeAltIcon style={{ width: '1.25rem', height: '1.25rem' }} />
-              </div>
-            </div>
+          <div className="deck-commander-bar no-commander">
             <div className="commander-info-meta">
-              <div className="commander-label-eyebrow">Platform Deck</div>
+              <div className="commander-header-top">
+                <span className="commander-label-eyebrow">Platform Deck</span>
+              </div>
               <div className="commander-name-text">{isMoxfield ? "Moxfield List" : "Archidekt List"}</div>
             </div>
           </div>
