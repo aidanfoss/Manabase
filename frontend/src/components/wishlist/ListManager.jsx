@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ClipboardDocumentListIcon,
   CheckCircleIcon,
@@ -17,21 +17,51 @@ import {
   DocumentTextIcon,
   PhotoIcon,
   InformationCircleIcon,
-  HandRaisedIcon
+  HandRaisedIcon,
+  ChevronDownIcon
 } from "@heroicons/react/24/solid";
 
 import { useWishlist } from "../../context/WishlistProvider";
 import ProxyArtSettings from "../ProxyArtSettings";
 import { getCardImageUrl } from "../../utils/WishlistHelpers";
 
-export default function ListManager({...props}) { // Keep props for now
-  const {
-    wishlist,
-    optionalProxies,
-    loading
-  } = useWishlist();
+const ProxyDropdown = ({ id, isOpen, toggleOpen, triggerLabel, triggerIcon: TriggerIcon, children, disabled }) => {
+  const containerRef = useRef(null);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        if (isOpen) toggleOpen(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [containerRef, isOpen, toggleOpen]);
 
-  const activeList = props.selectedList === "optional_proxies" ? optionalProxies : wishlist;
+  return (
+    <div className="proxy-dropdown-container" ref={containerRef}>
+      <button
+        className={`proxy-btn proxy-dropdown-trigger ${isOpen ? "active" : ""}`}
+        onClick={() => toggleOpen(isOpen ? null : id)}
+        disabled={disabled}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        <TriggerIcon className="inline-icon" /> {triggerLabel}
+        <ChevronDownIcon className={`inline-icon dropdown-chevron-icon ${isOpen ? "open" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="proxy-dropdown-menu">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default function ListManager({...props}) {
+  const [isOpen, setIsOpen] = useState(null);
+
+  const toggleOpen = (id) => setIsOpen(id);
 
   // ... rest of the code ...
 
@@ -141,43 +171,44 @@ export default function ListManager({...props}) { // Keep props for now
               </div>
 
               <div className="proxy-actions-row">
-                <button className="proxy-btn import" onClick={() => props.setShowImportModal(true)}>
-                  <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
-                </button>
-                <button className="proxy-btn remove-cheap" onClick={() => props.setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
-                  <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove Cheap Cards
-                </button>
-                <button className="proxy-btn" onClick={props.handleCopyMoxfield} disabled={activeList.length === 0}>
-                  <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
-                </button>
-                <button className="proxy-btn" onClick={props.handleDownloadMpcCsv} disabled={activeList.length === 0}>
-                  <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download CSV
-                </button>
-                <button className="proxy-btn" onClick={props.handleDownloadMyMpcXml} disabled={activeList.length === 0}>
-                  <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download XML
-                </button>
-                <button className="proxy-btn print" onClick={() => props.setShowPrintMode(true)} disabled={activeList.length === 0}>
-                  <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Print Sheets
-                </button>
-                <button className="proxy-btn any-print" onClick={props.handleSetAllAnyPrinting} disabled={activeList.length === 0}>
-                  <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
-                </button>
-                <button
-                  className="proxy-btn"
-                  style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399", color: "#ffffff", fontWeight: "700" }}
-                  onClick={() => {
-                    props.setConfirmTargetScope("personal");
-                    props.setConfirmChecked(false);
-                    props.setShowConfirmModal(true);
-                  }}
+                <ProxyDropdown
+                  id="export"
+                  isOpen={isOpen === "export"}
+                  toggleOpen={toggleOpen}
+                  triggerLabel="Export"
+                  triggerIcon={DocumentArrowDownIcon}
                   disabled={activeList.length === 0}
-                  title="Confirm that you ordered these cards and clear them from your wishlist"
                 >
-                  <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
-                </button>
-                <button className="proxy-btn remove-cheap" onClick={props.handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
-                  <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear All
-                </button>
+                  <button className="proxy-dropdown-item" onClick={props.handleCopyMoxfield}><ClipboardDocumentListIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Copy Decklist</span></button>
+                  <button className="proxy-dropdown-item" onClick={props.handleDownloadMpcCsv}><DocumentArrowDownIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Download CSV</span></button>
+                  <button className="proxy-dropdown-item" onClick={props.handleDownloadMyMpcXml}><WrenchScrewdriverIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Download XML</span></button>
+                </ProxyDropdown>
+
+                <ProxyDropdown
+                  id="actions"
+                  isOpen={isOpen === "actions"}
+                  toggleOpen={toggleOpen}
+                  triggerLabel="Actions"
+                  triggerIcon={WrenchScrewdriverIcon}
+                >
+                  <button className="proxy-dropdown-item" onClick={() => props.setShowImportModal(true)}><InboxIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Bulk Import</span></button>
+                  <button className="proxy-dropdown-item" onClick={() => props.setShowPrintMode(true)} disabled={activeList.length === 0}><PrinterIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Print Sheets</span></button>
+                  <button className="proxy-dropdown-item" onClick={props.handleSetAllAnyPrinting} disabled={activeList.length === 0}><ArrowPathIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Clear Printing Rules</span></button>
+                </ProxyDropdown>
+
+                <ProxyDropdown
+                  id="manage"
+                  isOpen={isOpen === "manage"}
+                  toggleOpen={toggleOpen}
+                  triggerLabel="Manage"
+                  triggerIcon={TagIcon}
+                  disabled={activeList.length === 0}
+                >
+                  <button className="proxy-dropdown-item" style={{ color: "#34d399" }} onClick={() => {props.setConfirmTargetScope("personal"); props.setConfirmChecked(false); props.setShowConfirmModal(true);}}><CheckCircleIcon className="dropdown-item-icon" /> <span className="dropdown-item-title" style={{ color: "#34d399" }}>Confirm Order</span></button>
+                  <button className="proxy-dropdown-item" onClick={() => props.setShowCheapModal(true)}><TagIcon className="dropdown-item-icon" /> <span className="dropdown-item-title">Remove Cheap</span></button>
+                  <div className="proxy-dropdown-divider" />
+                  <button className="proxy-dropdown-item danger" onClick={props.handleClearAll}><TrashIcon className="dropdown-item-icon" /> <span className="dropdown-item-title danger-text">Clear All</span></button>
+                </ProxyDropdown>
               </div>
           </div>
 
