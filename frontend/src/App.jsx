@@ -25,6 +25,7 @@ import "./styles/tabs.css";
 import "./styles/new-landing.css";
 import ProAdContainer from "./components/ProAdContainer";
 import CommanderShowcase from "./components/CommanderShowcase";
+import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
 
 import { WishlistProvider } from "./context/WishlistProvider";
 
@@ -218,6 +219,8 @@ function LandingDashboard() {
           </p>
         </div>
       </div>
+
+      <BuilderAnimationShowcase />
 
       <ProAdContainer id="homepage-bottom-banner" />
     </div>
