@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import PlaygroupNexus from "./wishlist/PlaygroupNexus";
+import ListManager from "./wishlist/ListManager";
 import OrderHistory from "./wishlist/OrderHistory";
 import ProxySettings from "./wishlist/ProxySettings";
 import {
