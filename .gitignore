@@ -157,4 +157,4 @@ cards(4).xml
 /playwright/.cache/
 /test-results/
 
-.claude/worktrees/*
+.claude/
