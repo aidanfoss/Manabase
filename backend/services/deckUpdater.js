@@ -132,6 +132,12 @@ export async function getEDHRecSuggestions(commanderName, deckCardNames) {
   try {
     const url = `https://json.edhrec.com/pages/commanders/${formattedCommander}.json`;
     const response = await axios.get(url);
+
+    if (!response.data || !response.data.container || !response.data.container.json_dict) {
+      console.error(`Received invalid EDHRec response format for ${commanderName}`);
+      return { newCards: [], highSynergy: [] };
+    }
+
     const cardLists = response.data.container.json_dict.cardlists;
 
     const deckSet = new Set();

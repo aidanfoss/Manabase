@@ -131,13 +131,20 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
 
     // Enrich with Scryfall local data
     const scryfallData = await getLocalCardsBatch(Array.from(allUniqueCardNames));
-    
+
+    // Log structure for investigation
+    // console.log("Sample scryfall data:", Object.values(scryfallData)[0]);
+
     const enrichCardObj = (name) => {
       const sf = scryfallData[name];
-      if (!sf) return { name, image_uri: null, price: null };
+      if (!sf) return { name, image_uri: null, price: null, set_type: null, set: null };
+
       const image_uri = sf.image_uris?.normal || sf.card_faces?.[0]?.image_uris?.normal || null;
       const price = sf.prices?.usd || sf.prices?.usd_foil || null;
-      return { name, image_uri, price };
+      const set_type = sf.set_type || null;
+      const set = sf.set || null;
+
+      return { name, image_uri, price, set_type, set };
     };
 
     // Inject data into results
@@ -145,22 +152,32 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
       if (res.commander) {
         res.commanderData = enrichCardObj(res.commander);
       }
-      
-      res.strictlyBetter = res.strictlyBetter.map(sb => ({
-        ...sb,
-        currentCardData: enrichCardObj(sb.currentCard),
-        strictlyBetterCardsData: sb.strictlyBetterCards.map(c => enrichCardObj(c))
-      }));
-      
-      res.edhrec.newCards = res.edhrec.newCards.map(c => ({
-        ...c,
-        ...enrichCardObj(c.name)
-      }));
-      
-      res.edhrec.highSynergy = res.edhrec.highSynergy.map(c => ({
-        ...c,
-        ...enrichCardObj(c.name)
-      }));
+
+      const isDigitalOnly = (card) => {
+        return card.set_type === 'alchemy' || card.set === 'a25' || card.set === 'a26';
+      };
+
+      res.strictlyBetter = res.strictlyBetter
+        .map(sb => ({
+          ...sb,
+          currentCardData: enrichCardObj(sb.currentCard),
+          strictlyBetterCardsData: sb.strictlyBetterCards.map(c => enrichCardObj(c))
+        }))
+        .filter(sb => !isDigitalOnly(sb.currentCardData) && !sb.strictlyBetterCardsData.some(isDigitalOnly));
+
+      res.edhrec.newCards = res.edhrec.newCards
+        .map(c => ({
+          ...c,
+          ...enrichCardObj(c.name)
+        }))
+        .filter(c => !isDigitalOnly(c));
+
+      res.edhrec.highSynergy = res.edhrec.highSynergy
+        .map(c => ({
+          ...c,
+          ...enrichCardObj(c.name)
+        }))
+        .filter(c => !isDigitalOnly(c));
     }
 
     res.json(results);
