@@ -20,11 +20,6 @@ import {
   HandRaisedIcon
 } from "@heroicons/react/24/solid";
 
-import ProxyArtSettings from "../ProxyArtSettings";
-import { getCardImageUrl } from "../../utils/WishlistHelpers";
-
-import React from "react";
-// ... imports ...
 import { useWishlist } from "../../context/WishlistProvider";
 import ProxyArtSettings from "../ProxyArtSettings";
 import { getCardImageUrl } from "../../utils/WishlistHelpers";
@@ -45,26 +40,26 @@ export default function ListManager({...props}) { // Keep props for now
       {/* Sub-tabs Selection */}
       <div className="subtabs-segmented">
         <button
-          className={`subtab-btn ${selectedList === "proxy_wishlist" ? "active" : ""}`}
-          onClick={() => setSelectedList("proxy_wishlist")}
+          className={`subtab-btn ${props.selectedList === "proxy_wishlist" ? "active" : ""}`}
+          onClick={() => props.setSelectedList("proxy_wishlist")}
         >
           <PrinterIcon className="inline-icon" /> Required Proxies
           <span className="subtab-badge">{wishlist.length}</span>
         </button>
         <button
-          className={`subtab-btn ${selectedList === "optional_proxies" ? "active" : ""}`}
-          onClick={() => setSelectedList("optional_proxies")}
+          className={`subtab-btn ${props.selectedList === "optional_proxies" ? "active" : ""}`}
+          onClick={() => props.setSelectedList("optional_proxies")}
         >
           <PrinterIcon className="inline-icon" /> Optional Proxies
           <span className="subtab-badge">{optionalProxies.length}</span>
         </button>
         <button
-          className={`subtab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
-          onClick={() => setSelectedList("proxy_arts")}
+          className={`subtab-btn ${props.selectedList === "proxy_arts" ? "active" : ""}`}
+          onClick={() => props.setSelectedList("proxy_arts")}
         >
           <PaintBrushIcon className="inline-icon" /> Art Selections
-          <span className="subtab-badge">{userProxyArts.length}</span>
-          {missingArtsCount > 0 && <span style={{ marginLeft: '4px', background: '#ef4444', color: 'white', padding: '1px 5px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>{missingArtsCount} missing</span>}
+          <span className="subtab-badge">{props.userProxyArts.length}</span>
+          {props.missingArtsCount > 0 && <span style={{ marginLeft: '4px', background: '#ef4444', color: 'white', padding: '1px 5px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>{props.missingArtsCount} missing</span>}
         </button>
         <button
           className="subtab-btn"
@@ -81,9 +76,9 @@ export default function ListManager({...props}) { // Keep props for now
             fontWeight: "700"
           }}
           onClick={() => {
-            setDrawerCardName("");
-            setDrawerCardList(wishlist);
-            setShowMarketplaceDrawer(true);
+            props.setDrawerCardName("");
+            props.setDrawerCardList(wishlist);
+            props.setShowMarketplaceDrawer(true);
           }}
           title="Compare LotusVault local store stock vs ManaPool live cart shipping estimates"
         >
@@ -92,28 +87,28 @@ export default function ListManager({...props}) { // Keep props for now
       </div>
 
        {/* Search bar */}
-      {(selectedList === "proxy_wishlist" || selectedList === "optional_proxies") && (
+      {(props.selectedList === "proxy_wishlist" || props.selectedList === "optional_proxies") && (
         <>
           <div className="search-bar-row">
             <div className="search-input-wrapper">
               <span className="search-icon"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
               <input
                 type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
+                value={props.searchQuery}
+                onChange={props.handleSearchChange}
                 placeholder="Search card to add to proxy wishlist..."
                 className="collection-search-input"
               />
-              {searching && <span className="search-spinner-inline">Searching...</span>}
+              {props.searching && <span className="search-spinner-inline">Searching...</span>}
             </div>
 
-            {searchResults.length > 0 && (
+            {props.searchResults.length > 0 && (
               <div className="search-suggestions-overlay">
-                {searchResults.map((card) => (
+                {props.searchResults.map((card) => (
                   <div
                     key={card.id}
                     className="suggestion-row"
-                    onClick={() => addCard(card)}
+                    onClick={() => props.addCard(card)}
                   >
                     <span className="name">{card.name}</span>
                     <span className="set">({card.set ? card.set.toUpperCase() : "N/A"})</span>
@@ -146,41 +141,41 @@ export default function ListManager({...props}) { // Keep props for now
               </div>
 
               <div className="proxy-actions-row">
-                <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
+                <button className="proxy-btn import" onClick={() => props.setShowImportModal(true)}>
                   <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
                 </button>
-                <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
+                <button className="proxy-btn remove-cheap" onClick={() => props.setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
                   <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove Cheap Cards
                 </button>
-                <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={activeList.length === 0}>
+                <button className="proxy-btn" onClick={props.handleCopyMoxfield} disabled={activeList.length === 0}>
                   <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
                 </button>
-                <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={activeList.length === 0}>
+                <button className="proxy-btn" onClick={props.handleDownloadMpcCsv} disabled={activeList.length === 0}>
                   <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download CSV
                 </button>
-                <button className="proxy-btn" onClick={handleDownloadMyMpcXml} disabled={activeList.length === 0}>
+                <button className="proxy-btn" onClick={props.handleDownloadMyMpcXml} disabled={activeList.length === 0}>
                   <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download XML
                 </button>
-                <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={activeList.length === 0}>
+                <button className="proxy-btn print" onClick={() => props.setShowPrintMode(true)} disabled={activeList.length === 0}>
                   <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Print Sheets
                 </button>
-                <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={activeList.length === 0}>
+                <button className="proxy-btn any-print" onClick={props.handleSetAllAnyPrinting} disabled={activeList.length === 0}>
                   <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
                 </button>
                 <button
                   className="proxy-btn"
                   style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399", color: "#ffffff", fontWeight: "700" }}
                   onClick={() => {
-                    setConfirmTargetScope("personal");
-                    setConfirmChecked(false);
-                    setShowConfirmModal(true);
+                    props.setConfirmTargetScope("personal");
+                    props.setConfirmChecked(false);
+                    props.setShowConfirmModal(true);
                   }}
                   disabled={activeList.length === 0}
                   title="Confirm that you ordered these cards and clear them from your wishlist"
                 >
                   <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
                 </button>
-                <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
+                <button className="proxy-btn remove-cheap" onClick={props.handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
                   <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear All
                 </button>
               </div>
@@ -195,16 +190,16 @@ export default function ListManager({...props}) { // Keep props for now
                 <label style={{ fontSize: "0.85rem", color: "#f472b6", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
                   <input
                     type="checkbox"
-                    checked={showLotusColumn}
-                    onChange={(e) => setShowLotusColumn(e.target.checked)}
+                    checked={props.showLotusColumn}
+                    onChange={(e) => props.setShowLotusColumn(e.target.checked)}
                   />
                   <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault
                 </label>
                 <label style={{ fontSize: "0.85rem", color: "#818cf8", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
                   <input
                     type="checkbox"
-                    checked={showManaPoolColumn}
-                    onChange={(e) => setShowManaPoolColumn(e.target.checked)}
+                    checked={props.showManaPoolColumn}
+                    onChange={(e) => props.setShowManaPoolColumn(e.target.checked)}
                   />
                   <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool Market
                 </label>
@@ -214,17 +209,17 @@ export default function ListManager({...props}) { // Keep props for now
                 <button
                   className="proxy-btn"
                   style={{ background: "rgba(99,102,241,0.2)", borderColor: "rgba(99,102,241,0.4)", color: "#818cf8", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: "700" }}
-                  onClick={handleBuyCheapCardsOnManaPool}
-                  disabled={wishlist.length === 0 || cheapCardsList.length === 0}
+                  onClick={props.handleBuyCheapCardsOnManaPool}
+                  disabled={wishlist.length === 0 || props.cheapCardsList.length === 0}
                   title="Export cheap cards ( threshold) directly into ManaPool cart"
                 >
-                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Buy Cheap Cards ({cheapCardsList.length})
+                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Buy Cheap Cards ({props.cheapCardsList.length})
                 </button>
 
                 <button
                   className="proxy-btn"
                   style={{ background: "rgba(225,29,72,0.15)", borderColor: "rgba(225,29,72,0.3)", color: "#fb7185", padding: "0.4rem 0.85rem", fontSize: "0.8rem" }}
-                  onClick={() => setShowCheapModal(true)}
+                  onClick={() => props.setShowCheapModal(true)}
                   disabled={wishlist.length === 0}
                 >
                   <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Purge Cheap Cards
@@ -244,38 +239,38 @@ export default function ListManager({...props}) { // Keep props for now
                     <tr>
                       <th className="col-qty">Quantity</th>
                       <th className="col-name">Card Name</th>
-                      {showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault</th>}
-                      {showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}><BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool</th>}
+                      {props.showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault</th>}
+                      {props.showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}><BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool</th>}
                       <th className="col-actions">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeList.map((c) => {
-                      const cardMeta = printsCache[c.card_name];
-                      const rData = retailPrices[c.card_name];
+                      const cardMeta = props.printsCache[c.card_name];
+                      const rData = props.retailPrices[c.card_name];
                       const thumbUrl = getCardImageUrl(c, cardMeta);
 
                       return (
                         <tr key={c.id}>
                           <td className="col-qty">
                             <div className="qty-picker-compact">
-                              <button onClick={() => updateCardDetails(c, { quantity: Math.max(1, c.quantity - 1) })}>-</button>
+                              <button onClick={() => props.updateCardDetails(c, { quantity: Math.max(1, c.quantity - 1) })}>-</button>
                               <span>{c.quantity}</span>
-                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
+                              <button onClick={() => props.updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
                             </div>
                           </td>
                           <td className="col-name font-bold">
                             <div
                               className="proxy-card-cell"
                               onMouseEnter={(e) => {
-                                setHoveredCard(c);
-                                setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
+                                props.setHoveredCard(c);
+                                props.setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
                               }}
                               onMouseMove={(e) => {
-                                setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
+                                props.setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
                               }}
-                              onMouseLeave={() => setHoveredCard(null)}
-                              onClick={() => setModalCard(c)}
+                              onMouseLeave={() => props.setHoveredCard(null)}
+                              onClick={() => props.setModalCard(c)}
                               style={{ cursor: "pointer" }}
                             >
                               {thumbUrl ? (
@@ -294,7 +289,7 @@ export default function ListManager({...props}) { // Keep props for now
                             </div>
                           </td>
 
-                          {showLotusColumn && (
+                          {props.showLotusColumn && (
                             <td className="col-lotus" style={{ textAlign: "center" }}>
                               {rData?.lotusInStock ? (
                                 <span style={{ color: "#34d399", fontWeight: "700" }}>
@@ -303,19 +298,19 @@ export default function ListManager({...props}) { // Keep props for now
                               ) : rData ? (
                                 <span style={{ color: "#f87171", fontSize: "0.75rem" }}>Out of Stock</span>
                               ) : (
-                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
+                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{props.loadingRetail ? "..." : "--"}</span>
                               )}
                             </td>
                           )}
 
-                          {showManaPoolColumn && (
+                          {props.showManaPoolColumn && (
                             <td className="col-manapool" style={{ textAlign: "center" }}>
                               {rData?.manaPrice !== null && rData?.manaPrice !== undefined ? (
                                 <span style={{ color: "#818cf8", fontWeight: "700" }}>
                                   ${rData.manaPrice?.toFixed(2)}
                                 </span>
                               ) : (
-                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
+                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{props.loadingRetail ? "..." : "--"}</span>
                               )}
                             </td>
                           )}
@@ -324,9 +319,9 @@ export default function ListManager({...props}) { // Keep props for now
                               <button
                                 className="table-action-icon-btn retail"
                                 onClick={() => {
-                                  setDrawerCardName(c.card_name);
-                                  setDrawerCardList([]);
-                                  setShowMarketplaceDrawer(true);
+                                  props.setDrawerCardName(c.card_name);
+                                  props.setDrawerCardList([]);
+                                  props.setShowMarketplaceDrawer(true);
                                 }}
                                 title="Retail Check (LotusVault & ManaPool)"
                               >
@@ -335,8 +330,8 @@ export default function ListManager({...props}) { // Keep props for now
                               <button
                                 className="table-action-icon-btn move"
                                 onClick={() => {
-                                  updateCardDetails(c, {}, c.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist")
-                                    .then(() => loadLists());
+                                  props.updateCardDetails(c, {}, c.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist")
+                                    .then(() => props.loadLists()); // Assumed loadLists passed in props, check WishlistHub if missing
                                 }}
                                 title={`Move to ${c.list_type === "wishlist" ? "Optional Proxies" : "Required Proxies"}`}
                               >
@@ -344,14 +339,14 @@ export default function ListManager({...props}) { // Keep props for now
                               </button>
                               <button
                                 className="table-action-icon-btn info"
-                                onClick={() => setModalCard(c)}
+                                onClick={() => props.setModalCard(c)}
                                 title="Card Details & Visual Preview"
                               >
                                 <InformationCircleIcon className="action-icon" />
                               </button>
                               <button
                                 className="table-action-icon-btn delete"
-                                onClick={() => deleteCard(c)}
+                                onClick={() => props.deleteCard(c)}
                                 title="Remove Card"
                               >
                                 <TrashIcon className="action-icon" />
@@ -368,12 +363,12 @@ export default function ListManager({...props}) { // Keep props for now
         </>
       )}
 
-      {selectedList === "proxy_arts" && (
+      {props.selectedList === "proxy_arts" && (
         <ProxyArtSettings
-          userProxyArts={userProxyArts}
-          fetchProxyArts={fetchProxyArts}
-          missingArtsCount={missingArtsCount}
-          onDownloadMissingArts={handleDownloadMissingArtsXml}
+          userProxyArts={props.userProxyArts}
+          fetchProxyArts={props.fetchProxyArts}
+          missingArtsCount={props.missingArtsCount}
+          onDownloadMissingArts={props.handleDownloadMissingArtsXml}
         />
       )}
     </div>
