@@ -5,6 +5,8 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
 
+  const POPUP_WIDTH = 300;
+  const POPUP_HEIGHT = 420;
   const OFFSET = 20;
 
   // Upgrade Scryfall image URLs from small/normal to high-res large images
@@ -30,6 +32,30 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
 
   const highResUrl = getHighResUrl(cardImageUrl);
 
+  // Calculate smart popup placement based on viewport boundaries
+  const getPopupStyle = () => {
+    const { x, y } = position;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    // Horizontal placement: flip to left if too close to right edge
+    let left = x + OFFSET;
+    if (x + OFFSET + POPUP_WIDTH > windowWidth) {
+      left = Math.max(10, x - POPUP_WIDTH - OFFSET);
+    }
+
+    // Vertical placement: flip up if in lower half of screen or near bottom
+    let top = y + OFFSET;
+    if (y + OFFSET + POPUP_HEIGHT > windowHeight) {
+      top = Math.max(10, y - POPUP_HEIGHT - 10);
+    }
+
+    return {
+      top: `${top}px`,
+      left: `${left}px`
+    };
+  };
+
   return (
     <>
       <div
@@ -48,10 +74,7 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
       {isVisible && highResUrl && ReactDOM.createPortal(
         <div
           className="card-magnifier-popup"
-          style={{
-            top: `${Math.max(10, Math.min(position.y + OFFSET, window.innerHeight - 440))}px`,
-            left: `${Math.max(10, Math.min(position.x + OFFSET, window.innerWidth - 320))}px`
-          }}
+          style={getPopupStyle()}
         >
           <img src={highResUrl} alt={cardName} />
         </div>,
