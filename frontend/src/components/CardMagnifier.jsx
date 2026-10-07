@@ -37,18 +37,25 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
     const { x, y } = position;
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
+    const PADDING = 16;
 
-    // Horizontal placement: flip to left if too close to right edge
+    // Horizontal placement:
+    // Place to the right of cursor by default; flip to left if it overflows right edge
     let left = x + OFFSET;
-    if (x + OFFSET + POPUP_WIDTH > windowWidth) {
-      left = Math.max(10, x - POPUP_WIDTH - OFFSET);
+    if (left + POPUP_WIDTH > windowWidth - PADDING) {
+      left = x - POPUP_WIDTH - OFFSET;
     }
+    // Prevent bleeding off left or right edge of viewport
+    left = Math.max(PADDING, Math.min(left, windowWidth - POPUP_WIDTH - PADDING));
 
-    // Vertical placement: flip up if in lower half of screen or near bottom
-    let top = y + OFFSET;
-    if (y + OFFSET + POPUP_HEIGHT > windowHeight) {
-      top = Math.max(10, y - POPUP_HEIGHT - 10);
+    // Vertical placement:
+    // Keep aligned alongside the cursor without jumping wildly above content
+    // Clamp smoothly so the preview remains fully visible in the viewport
+    let top = y - 40;
+    if (top + POPUP_HEIGHT > windowHeight - PADDING) {
+      top = windowHeight - POPUP_HEIGHT - PADDING;
     }
+    top = Math.max(PADDING, top);
 
     return {
       top: `${top}px`,
@@ -66,7 +73,7 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
         tabIndex="0"
         role="button"
         aria-label={`Show high quality preview of ${cardName}`}
-        style={{ display: 'inline-block', cursor: 'zoom-in', outline: 'none' }}
+        style={{ display: 'block', width: '100%', cursor: 'zoom-in', outline: 'none' }}
       >
         {children}
       </div>
