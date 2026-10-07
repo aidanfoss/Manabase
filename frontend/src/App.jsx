@@ -20,6 +20,7 @@ import { ToastProvider } from "./context/ToastContext";
 import { api } from "./api/client";
 import "./styles/nav-auth.css";
 import "./styles/tabs.css";
+import "./styles/new-landing.css";
 
 import { WishlistProvider } from "./context/WishlistProvider";
 // ...
