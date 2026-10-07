@@ -187,6 +187,20 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/deck-updater/dismissals
+// Gets all dismissals for the user
+router.get("/dismissals", requireAuth, async (req, res) => {
+  try {
+    const dismissals = await db("user_deck_dismissals")
+      .where({ user_id: req.user.id })
+      .orderBy("created_at", "desc");
+    res.json(dismissals);
+  } catch (error) {
+    console.error("Failed to fetch dismissals:", error.message);
+    res.status(500).json({ error: "Failed to fetch dismissals" });
+  }
+});
+
 // GET /api/deck-updater/:deckId
 // Returns strictly better upgrades and EDHRec suggestions for the deck
 router.get("/:deckId", requireAuth, async (req, res) => {
@@ -314,20 +328,6 @@ router.post("/undismiss", requireAuth, async (req, res) => {
   } catch (error) {
     console.error("Failed to undismiss:", error.message);
     res.status(500).json({ error: "Failed to undismiss" });
-  }
-});
-
-// GET /api/deck-updater/dismissals
-// Gets all dismissals for the user
-router.get("/dismissals", requireAuth, async (req, res) => {
-  try {
-    const dismissals = await db("user_deck_dismissals")
-      .where({ user_id: req.user.id })
-      .orderBy("created_at", "desc");
-    res.json(dismissals);
-  } catch (error) {
-    console.error("Failed to fetch dismissals:", error.message);
-    res.status(500).json({ error: "Failed to fetch dismissals" });
   }
 });
 
