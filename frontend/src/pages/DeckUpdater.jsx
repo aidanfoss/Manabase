@@ -26,10 +26,13 @@ export default function DeckUpdater() {
   }, []);
 
   const fetchAllDecksAnalysis = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem("token");
-    if (!token) return;
 
     try {
       const res = await fetch("/api/deck-updater/analyze-all", {
@@ -62,8 +65,8 @@ export default function DeckUpdater() {
 
     // Optimistic UI update for dashboard
     setDeckAnalyses(prev => prev.map(deck => {
-      if (deck.deck_id !== deckId) return deck;
-      
+      if (String(deck.deck_id) !== String(deckId)) return deck;
+
       return {
         ...deck,
         strictlyBetter: deck.strictlyBetter.filter(u => `strictly_better:${u.currentCard}` !== suggestionId),
@@ -77,7 +80,7 @@ export default function DeckUpdater() {
     // Optimistic UI update for the options menu
     setDismissals(prev => {
       // Check if it's already there to avoid duplicates
-      if (prev.some(d => d.deck_id === deckId && d.suggestion_id === suggestionId)) return prev;
+      if (prev.some(d => String(d.deck_id) === String(deckId) && d.suggestion_id === suggestionId)) return prev;
       return [{ id: Date.now() + Math.random(), deck_id: deckId, suggestion_id: suggestionId }, ...prev];
     });
 
@@ -119,9 +122,9 @@ export default function DeckUpdater() {
   const handleUndismiss = async (deckId, suggestionId) => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    
+
     // Optimistic UI for modal
-    setDismissals(prev => prev.filter(d => !(d.deck_id === deckId && d.suggestion_id === suggestionId)));
+    setDismissals(prev => prev.filter(d => !(String(d.deck_id) === String(deckId) && d.suggestion_id === suggestionId)));
 
     try {
       await fetch("/api/deck-updater/undismiss", {
@@ -369,7 +372,7 @@ export default function DeckUpdater() {
                   {dismissals.map(d => (
                     <li key={d.id} className="dismissal-item">
                       <div className="dismissal-info">
-                        <span className="dismissal-deck">{deckAnalyses.find(da => da.deck_id === d.deck_id)?.deck_name || d.deck_id}</span>
+                        <span className="dismissal-deck">{deckAnalyses.find(da => String(da.deck_id) === String(d.deck_id))?.deck_name || d.deck_id}</span>
                         <span className="dismissal-id">{d.suggestion_id.replace('strictly_better:', 'Upgrade: ').replace('edhrec_new:', 'New: ').replace('edhrec_synergy:', 'Synergy: ')}</span>
                       </div>
                       <button className="restore-btn" onClick={() => handleUndismiss(d.deck_id, d.suggestion_id)}>Restore</button>
