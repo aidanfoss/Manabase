@@ -7,6 +7,12 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
 
   const OFFSET = 20;
 
+  // Upgrade Scryfall image URLs from small/normal to high-res large images
+  const getHighResUrl = (url) => {
+    if (!url) return '';
+    return url.replace('/normal/', '/large/').replace('/small/', '/large/');
+  };
+
   const handleMouseMove = (e) => {
     setPosition({ x: e.clientX, y: e.clientY });
   };
@@ -21,6 +27,8 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
       setIsVisible(!isVisible);
     }
   };
+
+  const highResUrl = getHighResUrl(cardImageUrl);
 
   return (
     <>
@@ -37,15 +45,15 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
         {children}
       </div>
 
-      {isVisible && cardImageUrl && ReactDOM.createPortal(
+      {isVisible && highResUrl && ReactDOM.createPortal(
         <div
           className="card-magnifier-popup"
           style={{
-            top: `${Math.min(position.y + OFFSET, window.innerHeight - 320)}px`,
-            left: `${Math.min(position.x + OFFSET, window.innerWidth - 320)}px`
+            top: `${Math.max(10, Math.min(position.y + OFFSET, window.innerHeight - 440))}px`,
+            left: `${Math.max(10, Math.min(position.x + OFFSET, window.innerWidth - 320))}px`
           }}
         >
-          <img src={cardImageUrl} alt={cardName} />
+          <img src={highResUrl} alt={cardName} />
         </div>,
         document.body
       )}
