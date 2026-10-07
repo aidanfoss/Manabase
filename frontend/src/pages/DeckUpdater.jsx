@@ -1,37 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
-  Cog6ToothIcon,
   SparklesIcon,
   ExclamationTriangleIcon,
-  StarIcon,
   FireIcon,
   CheckCircleIcon,
-  ChevronDownIcon,
+  XMarkIcon,
+  BookmarkIcon,
+  ArrowPathIcon,
+  ArrowUturnLeftIcon,
+  MagnifyingGlassIcon,
+  AdjustmentsHorizontalIcon,
   ChevronRightIcon
 } from "@heroicons/react/24/solid";
 import CardMagnifier from "../components/CardMagnifier";
+import { useToast } from "../context/ToastContext";
 import "./DeckUpdater.css";
 
 export default function DeckUpdater() {
   const [deckAnalyses, setDeckAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [expandedDeck, setExpandedDeck] = useState(null);
-  
+
+  // Filter & Navigation states
+  const [selectedDeckId, setSelectedDeckId] = useState("all");
+  const [activeTab, setActiveTab] = useState("new"); // "new" | "upgrades" | "synergy"
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Dismissals & Undo states
   const [showOptions, setShowOptions] = useState(false);
   const [dismissals, setDismissals] = useState([]);
+  const [dismissalSearch, setDismissalSearch] = useState("");
+  const [undoAction, setUndoAction] = useState(null);
+  const undoTimerRef = useRef(null);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchAllDecksAnalysis();
   }, []);
 
-  const fetchAllDecksAnalysis = async () => {
+  const fetchAllDecksAnalysis = async (isManualRefresh = false) => {
     const token = localStorage.getItem("token");
     if (!token) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+
+    if (isManualRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -40,7 +60,7 @@ export default function DeckUpdater() {
       });
       const data = await res.json();
       if (res.ok) {
-        setDeckAnalyses(data);
+        setDeckAnalyses(Array.isArray(data) ? data : []);
       } else {
         setError(data.error || "Failed to analyze decks");
       }
@@ -48,54 +68,7 @@ export default function DeckUpdater() {
       setError("Network error while analyzing decks");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const toggleDeck = (deckId) => {
-    if (expandedDeck === deckId) {
-      setExpandedDeck(null);
-    } else {
-      setExpandedDeck(deckId);
-    }
-  };
-
-  const handleDismiss = async (deckId, suggestionId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    // Optimistic UI update for dashboard
-    setDeckAnalyses(prev => prev.map(deck => {
-      if (String(deck.deck_id) !== String(deckId)) return deck;
-
-      return {
-        ...deck,
-        strictlyBetter: deck.strictlyBetter.filter(u => `strictly_better:${u.currentCard}` !== suggestionId),
-        edhrec: {
-          newCards: deck.edhrec.newCards.filter(c => `edhrec_new:${c.name}` !== suggestionId),
-          highSynergy: deck.edhrec.highSynergy.filter(c => `edhrec_synergy:${c.name}` !== suggestionId)
-        }
-      };
-    }));
-
-    // Optimistic UI update for the options menu
-    setDismissals(prev => {
-      // Check if it's already there to avoid duplicates
-      if (prev.some(d => String(d.deck_id) === String(deckId) && d.suggestion_id === suggestionId)) return prev;
-      return [{ id: Date.now() + Math.random(), deck_id: deckId, suggestion_id: suggestionId }, ...prev];
-    });
-
-    try {
-      await fetch("/api/deck-updater/dismiss", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ deck_id: deckId, suggestion_id: suggestionId })
-      });
-    } catch (e) {
-      console.error("Failed to dismiss", e);
-      // Ideally we'd rollback state here on failure, but keeping it simple for now
+      setRefreshing(false);
     }
   };
 
@@ -119,11 +92,94 @@ export default function DeckUpdater() {
     loadDismissals();
   };
 
+  // Triage: "Pass / Say No"
+  const handlePass = async (deckId, suggestionId, cardName, deckName) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    // Optimistic UI removal
+    setDeckAnalyses(prev => prev.map(deck => {
+      if (String(deck.deck_id) !== String(deckId)) return deck;
+
+      return {
+        ...deck,
+        strictlyBetter: deck.strictlyBetter.filter(u => `strictly_better:${u.currentCard}` !== suggestionId),
+        edhrec: {
+          newCards: (deck.edhrec?.newCards || []).filter(c => `edhrec_new:${c.name}` !== suggestionId),
+          highSynergy: (deck.edhrec?.highSynergy || []).filter(c => `edhrec_synergy:${c.name}` !== suggestionId)
+        }
+      };
+    }));
+
+    // Optimistic addition to dismissals
+    setDismissals(prev => {
+      if (prev.some(d => String(d.deck_id) === String(deckId) && d.suggestion_id === suggestionId)) return prev;
+      return [{ id: Date.now() + Math.random(), deck_id: deckId, suggestion_id: suggestionId, created_at: new Date().toISOString() }, ...prev];
+    });
+
+    // Provide Undo notification
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoAction({ deckId, suggestionId, cardName, deckName });
+    undoTimerRef.current = setTimeout(() => {
+      setUndoAction(null);
+    }, 6000);
+
+    try {
+      await fetch("/api/deck-updater/dismiss", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ deck_id: deckId, suggestion_id: suggestionId })
+      });
+    } catch (e) {
+      console.error("Failed to dismiss:", e);
+    }
+  };
+
+  // Undo recent pass
+  const handleUndoRecent = () => {
+    if (!undoAction) return;
+    const { deckId, suggestionId, cardName } = undoAction;
+    setUndoAction(null);
+    handleUndismiss(deckId, suggestionId);
+    showToast(`Restored ${cardName} to queue`, "info");
+  };
+
+  // Triage: "Add to Wishlist"
+  const handleAddToWishlist = async (deckId, suggestionId, cardName, deckName) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      // 1. Add to user wishlist
+      const res = await fetch("/api/collection/wishlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ card_name: cardName, quantity: 1 })
+      });
+
+      if (res.ok) {
+        showToast(`Saved ${cardName} to your Wishlist!`, "success");
+      }
+
+      // 2. Dismiss from recommendation queue so it doesn't linger
+      await handlePass(deckId, suggestionId, cardName, deckName);
+    } catch (e) {
+      console.error("Failed to add to wishlist:", e);
+      showToast("Failed to add to wishlist", "error");
+    }
+  };
+
+  // Undismiss / Restore
   const handleUndismiss = async (deckId, suggestionId) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // Optimistic UI for modal
     setDismissals(prev => prev.filter(d => !(String(d.deck_id) === String(deckId) && d.suggestion_id === suggestionId)));
 
     try {
@@ -135,23 +191,77 @@ export default function DeckUpdater() {
         },
         body: JSON.stringify({ deck_id: deckId, suggestion_id: suggestionId })
       });
-      // Need to reload analysis to show the card again
+      // Refresh analysis to return card to triage feed
       fetchAllDecksAnalysis();
     } catch (e) {
       console.error(e);
     }
   };
 
+  // Calculate summary metrics
+  const summaryMetrics = useMemo(() => {
+    let totalNew = 0;
+    let totalUpgrades = 0;
+    let totalSynergy = 0;
+    let decksWithCandidates = 0;
+
+    for (const d of deckAnalyses) {
+      const newCount = d.edhrec?.newCards?.length || 0;
+      const upgradeCount = d.strictlyBetter?.length || 0;
+      const synergyCount = d.edhrec?.highSynergy?.length || 0;
+
+      totalNew += newCount;
+      totalUpgrades += upgradeCount;
+      totalSynergy += synergyCount;
+
+      if (newCount > 0 || upgradeCount > 0) {
+        decksWithCandidates++;
+      }
+    }
+
+    return {
+      totalNew,
+      totalUpgrades,
+      totalSynergy,
+      decksWithCandidates,
+      totalDecks: deckAnalyses.length
+    };
+  }, [deckAnalyses]);
+
+  // Filter decks according to selection
+  const filteredDecks = useMemo(() => {
+    let list = deckAnalyses;
+    if (selectedDeckId !== "all") {
+      list = list.filter(d => String(d.deck_id) === String(selectedDeckId));
+    }
+    return list;
+  }, [deckAnalyses, selectedDeckId]);
+
+  // Filter dismissal search
+  const filteredDismissals = useMemo(() => {
+    if (!dismissalSearch.trim()) return dismissals;
+    const q = dismissalSearch.toLowerCase();
+    return dismissals.filter(d => {
+      const deckName = deckAnalyses.find(da => String(da.deck_id) === String(d.deck_id))?.deck_name || "";
+      return d.suggestion_id.toLowerCase().includes(q) || deckName.toLowerCase().includes(q);
+    });
+  }, [dismissals, dismissalSearch, deckAnalyses]);
+
   if (loading) {
     return (
-      <div className="deck-updater-container fade-in">
-        <div className="updater-header">
-          <h1>Deck Upgrades & Analysis</h1>
-          <p>Analyzing all your decks across strictlybetter.eu and EDHRec...</p>
-        </div>
-        <div className="loading-state glass-panel">
-          <div className="spinner"></div>
-          <p>Please wait, fetching massive data...</p>
+      <div className="radar-container fade-in">
+        <header className="radar-header">
+          <div className="radar-title-group">
+            <span className="radar-tag">
+              <SparklesIcon className="icon-sm" /> Release Radar
+            </span>
+            <h1>Deck Inclusions & Release Radar</h1>
+            <p className="radar-subtitle">Scanning latest card printings, EDHRec trends, and powercreep upgrades...</p>
+          </div>
+        </header>
+        <div className="radar-panel radar-loading">
+          <div className="radar-spinner"></div>
+          <p>Analyzing decks against Scryfall & EDHRec...</p>
         </div>
       </div>
     );
@@ -159,225 +269,608 @@ export default function DeckUpdater() {
 
   if (error) {
     return (
-      <div className="deck-updater-container fade-in">
-        <div className="error-state glass-panel">
-          <h2>Oops!</h2>
+      <div className="radar-container fade-in">
+        <div className="radar-panel radar-error">
+          <ExclamationTriangleIcon className="icon-lg text-amber" />
+          <h2>Unable to Load Release Radar</h2>
           <p>{error}</p>
+          <button className="btn-secondary" onClick={() => fetchAllDecksAnalysis()}>
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="deck-updater-container fade-in">
-      <div className="updater-header">
-        <h1>Deck Upgrades & Analysis</h1>
-        <p>At a glance overview of upgrades and new synergy cards for all your decks.</p>
-        <button className="options-btn" onClick={openOptions}>
-          <Cog6ToothIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Options & Dismissals
-        </button>
-      </div>
-
-      {deckAnalyses.length === 0 ? (
-        <div className="empty-state glass-panel">
-          <div className="empty-icon"><SparklesIcon style={{ width: '2.5rem', height: '2.5rem', color: '#818cf8' }} /></div>
-          <h2>No decks found</h2>
-          <p>Import decks from Archidekt to see upgrades here.</p>
+    <div className="radar-container fade-in">
+      {/* Header & Primary Actions */}
+      <header className="radar-header">
+        <div className="radar-title-group">
+          <span className="radar-tag">
+            <SparklesIcon className="icon-sm text-cyan" /> Release Radar
+          </span>
+          <h1>New Cards & Inclusions Dashboard</h1>
+          <p className="radar-subtitle">
+            Evaluate newly released cards for your Commander decks. Pass on cards you don't want to keep your radar clean.
+          </p>
         </div>
-      ) : (
-        <div className="dashboard-grid">
-          {deckAnalyses.map((analysis, index) => {
-            const hasStrictlyBetter = analysis.strictlyBetter?.length > 0;
-            const hasNewCards = analysis.edhrec?.newCards?.length > 0;
-            const hasSynergy = analysis.edhrec?.highSynergy?.length > 0;
-            const isExpanded = expandedDeck === analysis.deck_id;
+
+        <div className="radar-header-actions">
+          <button
+            className="btn-ghost"
+            onClick={openOptions}
+            title="View cards you previously passed on"
+          >
+            <AdjustmentsHorizontalIcon className="icon-sm" />
+            <span>Passed Cards</span>
+            {dismissals.length > 0 && <span className="counter-pill">{dismissals.length}</span>}
+          </button>
+
+          <button
+            className={`btn-ghost ${refreshing ? "spinning" : ""}`}
+            onClick={() => fetchAllDecksAnalysis(true)}
+            disabled={refreshing}
+            title="Refresh recommendations"
+          >
+            <ArrowPathIcon className="icon-sm" />
+            <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Summary KPI Strip */}
+      <section className="kpi-strip">
+        <div
+          className={`kpi-card ${activeTab === "new" ? "active" : ""}`}
+          onClick={() => setActiveTab("new")}
+        >
+          <div className="kpi-icon-wrap cyan">
+            <SparklesIcon className="icon-md" />
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-value">{summaryMetrics.totalNew}</span>
+            <span className="kpi-label">New Printings</span>
+          </div>
+        </div>
+
+        <div
+          className={`kpi-card ${activeTab === "upgrades" ? "active" : ""}`}
+          onClick={() => setActiveTab("upgrades")}
+        >
+          <div className="kpi-icon-wrap amber">
+            <ExclamationTriangleIcon className="icon-md" />
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-value">{summaryMetrics.totalUpgrades}</span>
+            <span className="kpi-label">Direct Upgrades</span>
+          </div>
+        </div>
+
+        <div
+          className={`kpi-card ${activeTab === "synergy" ? "active" : ""}`}
+          onClick={() => setActiveTab("synergy")}
+        >
+          <div className="kpi-icon-wrap rose">
+            <FireIcon className="icon-md" />
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-value">{summaryMetrics.totalSynergy}</span>
+            <span className="kpi-label">High Synergy</span>
+          </div>
+        </div>
+
+        <div className="kpi-card neutral">
+          <div className="kpi-icon-wrap emerald">
+            <CheckCircleIcon className="icon-md" />
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-value">
+              {summaryMetrics.decksWithCandidates} / {summaryMetrics.totalDecks}
+            </span>
+            <span className="kpi-label">Decks with Updates</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Deck Selector Filter Bar */}
+      <section className="deck-selector-bar">
+        <div className="deck-selector-scroll">
+          <button
+            className={`deck-pill ${selectedDeckId === "all" ? "active" : ""}`}
+            onClick={() => setSelectedDeckId("all")}
+          >
+            <span>All Decks</span>
+            <span className="deck-pill-count">{summaryMetrics.totalNew}</span>
+          </button>
+
+          {deckAnalyses.map(deck => {
+            const newCount = deck.edhrec?.newCards?.length || 0;
+            const isSelected = String(deck.deck_id) === String(selectedDeckId);
 
             return (
-              <div
-                key={analysis.deck_id}
-                className={`dashboard-card glass-panel slide-up ${isExpanded ? 'expanded' : ''}`}
-                style={{ animationDelay: `${index * 0.05}s` }}
+              <button
+                key={deck.deck_id}
+                className={`deck-pill ${isSelected ? "active" : ""}`}
+                onClick={() => setSelectedDeckId(deck.deck_id)}
               >
-                <div className="card-header" onClick={() => toggleDeck(analysis.deck_id)}>
-                  <div className="card-header-info">
-                    <h2>{analysis.deck_name}</h2>
-                    <span className="commander-subtitle">Cmdr: {analysis.commander || 'Unknown'}</span>
-                  </div>
-
-                  <div className="card-badges">
-                    {hasStrictlyBetter && (
-                      <span className="badge warning" title="Powercrept cards or variations detected">
-                        <ExclamationTriangleIcon style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle', marginRight: '3px' }} /> {analysis.strictlyBetter.length} Upgrades
-                      </span>
-                    )}
-                    {hasNewCards && (
-                      <span className="badge success" title="New EDHRec cards">
-                        <StarIcon style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle', marginRight: '3px' }} /> {analysis.edhrec.newCards.length} New
-                      </span>
-                    )}
-                    {!hasStrictlyBetter && !hasNewCards && (
-                      <span className="badge neutral">
-                        <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle', marginRight: '3px' }} /> Optimal
-                      </span>
-                    )}
-                    <span className="expand-icon">{isExpanded ? <ChevronDownIcon style={{ width: '1.1em', height: '1.1em' }} /> : <ChevronRightIcon style={{ width: '1.1em', height: '1.1em' }} />}</span>
-                  </div>
-                </div>
-
-                {isExpanded && (
-                  <div className="card-expanded-content fade-in">
-
-                    {/* Strictly Better Section */}
-                    {hasStrictlyBetter && (
-                      <section className="analysis-section strictly-better">
-                        <div className="section-header">
-                          <h3>
-                            <ExclamationTriangleIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: '#f59e0b' }} />
-                            Potential Upgrades / Variations
-                          </h3>
-                        </div>
-                        <div className="upgrade-grid">
-                          {analysis.strictlyBetter.map((upgrade, idx) => {
-                            const suggestionId = `strictly_better:${upgrade.currentCard}`;
-                            return (
-                              <div key={idx} className="upgrade-card rich-card">
-                                <button className="dismiss-btn" onClick={() => handleDismiss(analysis.deck_id, suggestionId)} title="Dismiss">×</button>
-
-                                <div className="card-visuals">
-                                  <div className="inferior-visual">
-                                    <span className="label">Current</span>
-                                    {upgrade.currentCardData?.image_uri ? (
-                                      <CardMagnifier cardImageUrl={upgrade.currentCardData.image_uri} cardName={upgrade.currentCard}>
-                                        <img src={upgrade.currentCardData.image_uri} alt={upgrade.currentCard} className="card-art" />
-                                      </CardMagnifier>
-                                    ) : (
-                                      <div className="card-art-placeholder">{upgrade.currentCard}</div>
-                                    )}
-                                    <div className="card-price">{upgrade.currentCardData?.price ? `$${upgrade.currentCardData.price}` : '--'}</div>
-                                  </div>
-
-                                  <div className="upgrade-arrow">→</div>
-
-                                  <div className="superior-visuals">
-                                    <span className="label">Better Options</span>
-                                    <div className="superior-list">
-                                      {upgrade.strictlyBetterCardsData.map((sup, sIdx) => (
-                                        <div key={sIdx} className="superior-visual">
-                                          {sup.image_uri ? (
-                                            <CardMagnifier cardImageUrl={sup.image_uri} cardName={sup.name}>
-                                              <img src={sup.image_uri} alt={sup.name} className="card-art" />
-                                            </CardMagnifier>
-                                          ) : (
-                                            <div className="card-art-placeholder">{sup.name}</div>
-                                          )}
-                                          <div className="card-price">{sup.price ? `$${sup.price}` : '--'}</div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    )}
-
-                    {/* EDHRec New Cards Section */}
-                    {hasNewCards && (
-                      <section className="analysis-section edhrec-new">
-                        <div className="section-header">
-                          <h3>
-                            <StarIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: '#38bdf8' }} />
-                            New Additions
-                          </h3>
-                        </div>
-                        <div className="suggestion-grid">
-                          {analysis.edhrec.newCards.slice(0, 12).map((card, idx) => {
-                            const suggestionId = `edhrec_new:${card.name}`;
-                            return (
-                              <div key={idx} className="suggestion-card">
-                                <button className="dismiss-btn-small" onClick={() => handleDismiss(analysis.deck_id, suggestionId)} title="Dismiss">×</button>
-                                {card.image_uri ? (
-                                  <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
-                                    <img src={card.image_uri} alt={card.name} className="card-art" />
-                                  </CardMagnifier>
-                                ) : (
-                                  <div className="card-art-placeholder">{card.name}</div>
-                                )}
-                                <div className="card-info-row">
-                                  <span className="card-price">{card.price ? `$${card.price}` : '--'}</span>
-                                  <span className="card-synergy">{Math.round((card.synergy || 0) * 100)}%</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    )}
-
-                    {/* EDHRec High Synergy Section */}
-                    {hasSynergy && (
-                      <section className="analysis-section edhrec-synergy">
-                        <div className="section-header">
-                          <h3>
-                            <FireIcon style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px', color: '#f87171' }} />
-                            High Synergy Missing
-                          </h3>
-                        </div>
-                        <div className="suggestion-grid">
-                          {analysis.edhrec.highSynergy.slice(0, 12).map((card, idx) => {
-                            const suggestionId = `edhrec_synergy:${card.name}`;
-                            return (
-                              <div key={idx} className="suggestion-card">
-                                <button className="dismiss-btn-small" onClick={() => handleDismiss(analysis.deck_id, suggestionId)} title="Dismiss">×</button>
-                                {card.image_uri ? (
-                                  <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
-                                    <img src={card.image_uri} alt={card.name} className="card-art" />
-                                  </CardMagnifier>
-                                ) : (
-                                  <div className="card-art-placeholder">{card.name}</div>
-                                )}
-                                <div className="card-info-row">
-                                  <span className="card-price">{card.price ? `$${card.price}` : '--'}</span>
-                                  <span className="card-synergy">{Math.round((card.synergy || 0) * 100)}%</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    )}
-                  </div>
+                {deck.commanderData?.image_uri && (
+                  <img
+                    src={deck.commanderData.image_uri}
+                    alt={deck.commander || deck.deck_name}
+                    className="deck-pill-avatar"
+                  />
                 )}
-              </div>
+                <span className="deck-pill-name">{deck.deck_name}</span>
+                {newCount > 0 ? (
+                  <span className="deck-pill-badge">{newCount}</span>
+                ) : (
+                  <CheckCircleIcon className="icon-xs text-emerald" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Control Bar: Mode Switcher + Live Card Search */}
+      <section className="control-bar">
+        <div className="mode-tabs">
+          <button
+            className={`mode-tab ${activeTab === "new" ? "active" : ""}`}
+            onClick={() => setActiveTab("new")}
+          >
+            <SparklesIcon className="icon-sm" />
+            <span>New Releases</span>
+            <span className="tab-badge">{summaryMetrics.totalNew}</span>
+          </button>
+
+          <button
+            className={`mode-tab ${activeTab === "upgrades" ? "active" : ""}`}
+            onClick={() => setActiveTab("upgrades")}
+          >
+            <ExclamationTriangleIcon className="icon-sm" />
+            <span>Strictly Better</span>
+            <span className="tab-badge">{summaryMetrics.totalUpgrades}</span>
+          </button>
+
+          <button
+            className={`mode-tab ${activeTab === "synergy" ? "active" : ""}`}
+            onClick={() => setActiveTab("synergy")}
+          >
+            <FireIcon className="icon-sm" />
+            <span>High Synergy</span>
+            <span className="tab-badge">{summaryMetrics.totalSynergy}</span>
+          </button>
+        </div>
+
+        <div className="search-wrap">
+          <MagnifyingGlassIcon className="search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search cards in view..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="search-clear" onClick={() => setSearchQuery("")}>
+              <XMarkIcon className="icon-xs" />
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Main Content Area */}
+      {filteredDecks.length === 0 ? (
+        <div className="radar-panel empty-deck-state">
+          <SparklesIcon className="icon-xl text-muted" />
+          <h2>No Decks Imported</h2>
+          <p>Import decks from Archidekt or Moxfield to receive real-time release recommendations.</p>
+        </div>
+      ) : (
+        <div className="deck-feed">
+          {filteredDecks.map(deck => {
+            const rawNewCards = deck.edhrec?.newCards || [];
+            const rawUpgrades = deck.strictlyBetter || [];
+            const rawSynergy = deck.edhrec?.highSynergy || [];
+
+            // Apply search filtering
+            const q = searchQuery.toLowerCase().trim();
+            const newCards = q ? rawNewCards.filter(c => c.name.toLowerCase().includes(q)) : rawNewCards;
+            const upgrades = q
+              ? rawUpgrades.filter(
+                  u =>
+                    u.currentCard.toLowerCase().includes(q) ||
+                    u.strictlyBetterCards.some(s => s.toLowerCase().includes(q))
+                )
+              : rawUpgrades;
+            const synergyCards = q ? rawSynergy.filter(c => c.name.toLowerCase().includes(q)) : rawSynergy;
+
+            const isCurrentTabEmpty =
+              (activeTab === "new" && newCards.length === 0) ||
+              (activeTab === "upgrades" && upgrades.length === 0) ||
+              (activeTab === "synergy" && synergyCards.length === 0);
+
+            // Skip rendering empty decks in "All Decks" view if not actively searching
+            if (selectedDeckId === "all" && isCurrentTabEmpty && !searchQuery) {
+              return null;
+            }
+
+            return (
+              <article key={deck.deck_id} className="deck-section-card">
+                {/* Deck Card Header */}
+                <header className="deck-section-header">
+                  <div className="deck-identity">
+                    {deck.commanderData?.image_uri && (
+                      <CardMagnifier
+                        cardImageUrl={deck.commanderData.image_uri}
+                        cardName={deck.commander || deck.deck_name}
+                      >
+                        <img
+                          src={deck.commanderData.image_uri}
+                          alt={deck.commander || deck.deck_name}
+                          className="commander-art-thumb"
+                        />
+                      </CardMagnifier>
+                    )}
+                    <div>
+                      <h2>{deck.deck_name}</h2>
+                      <span className="deck-commander-tag">
+                        Commander: <strong>{deck.commander || "Unknown"}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="deck-header-meta">
+                    {activeTab === "new" && (
+                      <span className="section-count-tag cyan">
+                        <SparklesIcon className="icon-xs" /> {newCards.length} New Candidates
+                      </span>
+                    )}
+                    {activeTab === "upgrades" && (
+                      <span className="section-count-tag amber">
+                        <ExclamationTriangleIcon className="icon-xs" /> {upgrades.length} Upgrades
+                      </span>
+                    )}
+                    {activeTab === "synergy" && (
+                      <span className="section-count-tag rose">
+                        <FireIcon className="icon-xs" /> {synergyCards.length} Staples
+                      </span>
+                    )}
+                  </div>
+                </header>
+
+                {/* Content based on Active Tab */}
+                {activeTab === "new" && (
+                  <>
+                    {newCards.length === 0 ? (
+                      <div className="all-caught-up-banner">
+                        <CheckCircleIcon className="icon-md text-emerald" />
+                        <div>
+                          <strong>All caught up on new releases</strong>
+                          <p>No unreviewed new card printings for this deck. New cards will appear here as sets drop.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="triage-grid">
+                        {newCards.map((card, idx) => {
+                          const suggestionId = `edhrec_new:${card.name}`;
+                          return (
+                            <div key={idx} className="triage-card">
+                              {/* Visual Presentation */}
+                              <div className="triage-visual-wrap">
+                                {card.image_uri ? (
+                                  <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
+                                    <img src={card.image_uri} alt={card.name} className="triage-card-img" />
+                                  </CardMagnifier>
+                                ) : (
+                                  <div className="triage-placeholder">{card.name}</div>
+                                )}
+
+                                <div className="triage-floating-meta">
+                                  <span className="price-tag">
+                                    {card.price ? `$${card.price}` : "--"}
+                                  </span>
+                                  {card.synergy !== null && card.synergy !== undefined && (
+                                    <span className="synergy-tag" title="EDHRec Synergy Score">
+                                      {Math.round(card.synergy * 100)}% Syn
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Card Title */}
+                              <div className="triage-details">
+                                <h3 className="triage-card-name" title={card.name}>
+                                  {card.name}
+                                </h3>
+                              </div>
+
+                              {/* Direct Triage Actions */}
+                              <div className="triage-actions-bar">
+                                <button
+                                  className="action-btn pass-btn"
+                                  onClick={() => handlePass(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                  title="Pass on this card (Say No)"
+                                >
+                                  <XMarkIcon className="icon-sm" />
+                                  <span>Pass</span>
+                                </button>
+
+                                <button
+                                  className="action-btn wishlist-btn"
+                                  onClick={() => handleAddToWishlist(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                  title="Add to Wishlist & mark reviewed"
+                                >
+                                  <BookmarkIcon className="icon-sm" />
+                                  <span>Wishlist</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Strictly Better Upgrades Tab */}
+                {activeTab === "upgrades" && (
+                  <>
+                    {upgrades.length === 0 ? (
+                      <div className="all-caught-up-banner">
+                        <CheckCircleIcon className="icon-md text-emerald" />
+                        <div>
+                          <strong>No powercreep replacements detected</strong>
+                          <p>All cards in this deck hold their ground against strictly better variations.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="upgrades-feed">
+                        {upgrades.map((upgrade, idx) => {
+                          const suggestionId = `strictly_better:${upgrade.currentCard}`;
+                          return (
+                            <div key={idx} className="upgrade-pair-card">
+                              {/* Left: Inferior / Current Card */}
+                              <div className="upgrade-side inferior">
+                                <span className="side-label">Current in Deck</span>
+                                {upgrade.currentCardData?.image_uri ? (
+                                  <CardMagnifier
+                                    cardImageUrl={upgrade.currentCardData.image_uri}
+                                    cardName={upgrade.currentCard}
+                                  >
+                                    <img
+                                      src={upgrade.currentCardData.image_uri}
+                                      alt={upgrade.currentCard}
+                                      className="upgrade-thumb"
+                                    />
+                                  </CardMagnifier>
+                                ) : (
+                                  <div className="triage-placeholder">{upgrade.currentCard}</div>
+                                )}
+                                <span className="upgrade-card-name">{upgrade.currentCard}</span>
+                                <span className="price-tag">
+                                  {upgrade.currentCardData?.price ? `$${upgrade.currentCardData.price}` : "--"}
+                                </span>
+                              </div>
+
+                              <div className="upgrade-divider">
+                                <ChevronRightIcon className="icon-md text-amber" />
+                              </div>
+
+                              {/* Right: Strictly Better Cards */}
+                              <div className="upgrade-side superior">
+                                <span className="side-label">Direct Upgrades / Variations</span>
+                                <div className="superior-options">
+                                  {upgrade.strictlyBetterCardsData.map((sup, sIdx) => (
+                                    <div key={sIdx} className="superior-item">
+                                      {sup.image_uri ? (
+                                        <CardMagnifier cardImageUrl={sup.image_uri} cardName={sup.name}>
+                                          <img src={sup.image_uri} alt={sup.name} className="upgrade-thumb" />
+                                        </CardMagnifier>
+                                      ) : (
+                                        <div className="triage-placeholder">{sup.name}</div>
+                                      )}
+                                      <span className="upgrade-card-name">{sup.name}</span>
+                                      <div className="superior-footer">
+                                        <span className="price-tag">
+                                          {sup.price ? `$${sup.price}` : "--"}
+                                        </span>
+                                        <button
+                                          className="btn-mini-wishlist"
+                                          onClick={() =>
+                                            handleAddToWishlist(deck.deck_id, suggestionId, sup.name, deck.deck_name)
+                                          }
+                                          title={`Add ${sup.name} to Wishlist`}
+                                        >
+                                          <BookmarkIcon className="icon-xs" /> Wishlist
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Pass button for upgrade pair */}
+                              <button
+                                className="upgrade-dismiss-btn"
+                                onClick={() =>
+                                  handlePass(deck.deck_id, suggestionId, upgrade.currentCard, deck.deck_name)
+                                }
+                                title="Pass on this upgrade suggestion"
+                              >
+                                <XMarkIcon className="icon-sm" /> Pass
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* High Synergy Tab */}
+                {activeTab === "synergy" && (
+                  <>
+                    {synergyCards.length === 0 ? (
+                      <div className="all-caught-up-banner">
+                        <CheckCircleIcon className="icon-md text-emerald" />
+                        <div>
+                          <strong>High synergy staples accounted for</strong>
+                          <p>This deck already includes the top synergistic cards registered for this commander.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="triage-grid">
+                        {synergyCards.map((card, idx) => {
+                          const suggestionId = `edhrec_synergy:${card.name}`;
+                          return (
+                            <div key={idx} className="triage-card">
+                              <div className="triage-visual-wrap">
+                                {card.image_uri ? (
+                                  <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
+                                    <img src={card.image_uri} alt={card.name} className="triage-card-img" />
+                                  </CardMagnifier>
+                                ) : (
+                                  <div className="triage-placeholder">{card.name}</div>
+                                )}
+
+                                <div className="triage-floating-meta">
+                                  <span className="price-tag">
+                                    {card.price ? `$${card.price}` : "--"}
+                                  </span>
+                                  {card.synergy !== null && card.synergy !== undefined && (
+                                    <span className="synergy-tag rose">
+                                      {Math.round(card.synergy * 100)}% Syn
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="triage-details">
+                                <h3 className="triage-card-name" title={card.name}>
+                                  {card.name}
+                                </h3>
+                              </div>
+
+                              <div className="triage-actions-bar">
+                                <button
+                                  className="action-btn pass-btn"
+                                  onClick={() => handlePass(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                  title="Pass on this synergy recommendation"
+                                >
+                                  <XMarkIcon className="icon-sm" />
+                                  <span>Pass</span>
+                                </button>
+
+                                <button
+                                  className="action-btn wishlist-btn"
+                                  onClick={() => handleAddToWishlist(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                  title="Add to Wishlist"
+                                >
+                                  <BookmarkIcon className="icon-sm" />
+                                  <span>Wishlist</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+              </article>
             );
           })}
         </div>
       )}
 
-      {/* Options Modal */}
+      {/* Floating Undo Notification */}
+      {undoAction && (
+        <aside className="undo-toast-banner" role="status">
+          <div className="undo-toast-content">
+            <span className="undo-label">
+              Passed on <strong>{undoAction.cardName}</strong> ({undoAction.deckName})
+            </span>
+          </div>
+          <button className="btn-undo" onClick={handleUndoRecent}>
+            <ArrowUturnLeftIcon className="icon-xs" /> Undo
+          </button>
+        </aside>
+      )}
+
+      {/* Review History / Passed Cards Modal */}
       {showOptions && (
         <div className="modal-overlay" onClick={() => setShowOptions(false)}>
-          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Dismissed Suggestions</h2>
-              <button className="modal-close" onClick={() => setShowOptions(false)}>×</button>
-            </div>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <header className="modal-header">
+              <div>
+                <h2>Passed Cards History</h2>
+                <p className="modal-subtext">Cards you previously passed on. Restore any card to bring it back to your dashboard.</p>
+              </div>
+              <button className="modal-close" onClick={() => setShowOptions(false)} aria-label="Close dialog">
+                <XMarkIcon className="icon-sm" />
+              </button>
+            </header>
+
+            {dismissals.length > 0 && (
+              <div className="modal-search-wrap">
+                <MagnifyingGlassIcon className="search-icon" />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Filter passed cards..."
+                  value={dismissalSearch}
+                  onChange={e => setDismissalSearch(e.target.value)}
+                />
+              </div>
+            )}
+
             <div className="modal-body">
-              {dismissals.length === 0 ? (
-                <p>No dismissed suggestions.</p>
+              {filteredDismissals.length === 0 ? (
+                <div className="empty-dismissals-state">
+                  <CheckCircleIcon className="icon-lg text-muted" />
+                  <p>{dismissals.length === 0 ? "You haven't passed on any cards yet." : "No passed cards match your filter."}</p>
+                </div>
               ) : (
                 <ul className="dismissals-list">
-                  {dismissals.map(d => (
-                    <li key={d.id} className="dismissal-item">
-                      <div className="dismissal-info">
-                        <span className="dismissal-deck">{deckAnalyses.find(da => String(da.deck_id) === String(d.deck_id))?.deck_name || d.deck_id}</span>
-                        <span className="dismissal-id">{d.suggestion_id.replace('strictly_better:', 'Upgrade: ').replace('edhrec_new:', 'New: ').replace('edhrec_synergy:', 'Synergy: ')}</span>
-                      </div>
-                      <button className="restore-btn" onClick={() => handleUndismiss(d.deck_id, d.suggestion_id)}>Restore</button>
-                    </li>
-                  ))}
+                  {filteredDismissals.map(d => {
+                    const deck = deckAnalyses.find(da => String(da.deck_id) === String(d.deck_id));
+                    const deckName = deck?.deck_name || `Deck #${d.deck_id}`;
+
+                    let label = d.suggestion_id;
+                    let typeTag = "Recommendation";
+                    if (d.suggestion_id.startsWith("strictly_better:")) {
+                      typeTag = "Upgrade";
+                      label = d.suggestion_id.replace("strictly_better:", "");
+                    } else if (d.suggestion_id.startsWith("edhrec_new:")) {
+                      typeTag = "New Release";
+                      label = d.suggestion_id.replace("edhrec_new:", "");
+                    } else if (d.suggestion_id.startsWith("edhrec_synergy:")) {
+                      typeTag = "Synergy";
+                      label = d.suggestion_id.replace("edhrec_synergy:", "");
+                    }
+
+                    return (
+                      <li key={d.id} className="dismissal-item">
+                        <div className="dismissal-info">
+                          <div className="dismissal-header-row">
+                            <span className="dismissal-card-title">{label}</span>
+                            <span className="dismissal-type-tag">{typeTag}</span>
+                          </div>
+                          <span className="dismissal-deck-name">{deckName}</span>
+                        </div>
+                        <button
+                          className="restore-btn"
+                          onClick={() => handleUndismiss(d.deck_id, d.suggestion_id)}
+                          title="Restore to Dashboard"
+                        >
+                          <ArrowUturnLeftIcon className="icon-xs" /> Restore
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
