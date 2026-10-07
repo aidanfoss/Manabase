@@ -21,13 +21,17 @@ import { api } from "./api/client";
 import "./styles/nav-auth.css";
 import "./styles/tabs.css";
 
+import { WishlistProvider } from "./context/WishlistProvider";
+// ...
 export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <WishlistProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </WishlistProvider>
       </ToastProvider>
     </AuthProvider>
   );

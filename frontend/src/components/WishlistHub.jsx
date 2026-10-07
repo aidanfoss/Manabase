@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import PlaygroupNexus from "./wishlist/PlaygroupNexus";
+import OrderHistory from "./wishlist/OrderHistory";
+import ProxySettings from "./wishlist/ProxySettings";
 import {
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
@@ -48,6 +50,7 @@ import {
 import MarketplacePriceDrawer from "./MarketplacePriceDrawer";
 import ProxyArtSettings from "./ProxyArtSettings";
 import { useToast } from "../context/ToastContext";
+import { useWishlist } from "../context/WishlistProvider";
 import "../styles/wishlist.css";
 
 export default function WishlistHub() {
@@ -66,16 +69,13 @@ export default function WishlistHub() {
   // Retail provider toggle states & retail price cache (defaulting to both true)
   const [showLotusColumn, setShowLotusColumn] = useState(true);
   const [showManaPoolColumn, setShowManaPoolColumn] = useState(true);
-  const [retailPrices, setRetailPrices] = useState({});
-  const [loadingRetail, setLoadingRetail] = useState(false);
+  const { retailPrices, setRetailPrices, loadingRetail, setLoadingRetail } = useWishlist();
   const [activeTrades, setActiveTrades] = useState([]);
   const [counterTrade, setCounterTrade] = useState(null);
   const [counterOffer, setCounterOffer] = useState([]);
   const [counterDemand, setCounterDemand] = useState([]);
   // Lists data states
-  const [wishlist, setWishlist] = useState([]);
-  const [optionalProxies, setOptionalProxies] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { wishlist, setWishlist, optionalProxies, setOptionalProxies, loading, setLoading } = useWishlist();
 
   // Bulk import states
   const [showImportModal, setShowImportModal] = useState(false);
@@ -85,7 +85,7 @@ export default function WishlistHub() {
   const [isDragging, setIsDragging] = useState(false);
 
   // User Proxy Arts
-  const [userProxyArts, setUserProxyArts] = useState([]);
+  const { userProxyArts, setUserProxyArts } = useWishlist();
   const [missingArtsCount, setMissingArtsCount] = useState(0);
 
   // Autocomplete search states
@@ -95,10 +95,12 @@ export default function WishlistHub() {
   const searchTimeoutRef = useRef(null);
 
   // Playgroups states
-  const [playgroups, setPlaygroups] = useState([]);
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [groupMembers, setGroupMembers] = useState([]);
-  const [groupWishlist, setGroupWishlist] = useState([]);
+  const {
+    playgroups, setPlaygroups,
+    activeGroup, setActiveGroup,
+    groupMembers, setGroupMembers,
+    groupWishlist, setGroupWishlist
+  } = useWishlist();
   const [newGroupName, setNewGroupName] = useState("");
 
   // Print view state
@@ -110,8 +112,7 @@ export default function WishlistHub() {
   const [deletingCheap, setDeletingCheap] = useState(false);
 
   // Prints resolution cache
-  const [printsCache, setPrintsCache] = useState({});
-  const [selectedPrints, setSelectedPrints] = useState({}); // cardName -> print index
+  const { printsCache, setPrintsCache, selectedPrints, setSelectedPrints } = useWishlist();
 
   // MPC print cost config (default $0.25)
   const [mpcUnitCost, setMpcUnitCost] = useState(0.25);
@@ -125,8 +126,7 @@ export default function WishlistHub() {
   const [togglingOptOut, setTogglingOptOut] = useState(false);
 
   // Order History & Order Confirmation States
-  const [orderHistory, setOrderHistory] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  const { orderHistory, setOrderHistory, loadingHistory, setLoadingHistory } = useWishlist();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmingOrder, setConfirmingOrder] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
@@ -324,12 +324,12 @@ export default function WishlistHub() {
   };
 
   // Default Proxy Card Back preference (defaulting to Black Lotus)
-  const [defaultCardBack, setDefaultCardBack] = useState(() => {
-    return localStorage.getItem("manabase_default_card_back") || "b:black lotus";
-  });
+  const { defaultCardBack, setDefaultCardBack } = useWishlist();
+  //   return localStorage.getItem("manabase_default_card_back") || "b:black lotus";
+  // });
 
   // Prebuilt cardbacks list loaded from webserver
-  const [prebuiltCardbacks, setPrebuiltCardbacks] = useState([]);
+  const { prebuiltCardbacks, setPrebuiltCardbacks } = useWishlist();
 
   useEffect(() => {
     loadLists();
@@ -1911,365 +1911,51 @@ export default function WishlistHub() {
 
       {/* VIEW 1: MY THREE LISTS */}
       {activeTab === "lists" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          {/* Sub-tabs Selection */}
-          <div className="subtabs-segmented">
-            <button
-              className={`subtab-btn ${selectedList === "proxy_wishlist" ? "active" : ""}`}
-              onClick={() => setSelectedList("proxy_wishlist")}
-            >
-              <PrinterIcon className="inline-icon" /> Required Proxies
-              <span className="subtab-badge">{wishlist.length}</span>
-            </button>
-            <button
-              className={`subtab-btn ${selectedList === "optional_proxies" ? "active" : ""}`}
-              onClick={() => setSelectedList("optional_proxies")}
-            >
-              <PrinterIcon className="inline-icon" /> Optional Proxies
-              <span className="subtab-badge">{optionalProxies.length}</span>
-            </button>
-            <button
-              className={`subtab-btn ${selectedList === "proxy_arts" ? "active" : ""}`}
-              onClick={() => setSelectedList("proxy_arts")}
-            >
-              <PaintBrushIcon className="inline-icon" /> Art Selections
-              <span className="subtab-badge">{userProxyArts.length}</span>
-              {missingArtsCount > 0 && <span style={{ marginLeft: '4px', background: '#ef4444', color: 'white', padding: '1px 5px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>{missingArtsCount} missing</span>}
-            </button>
-            <button
-              className="subtab-btn"
-              onClick={() => window.location.href = "/trade"}
-            >
-              <HandRaisedIcon className="inline-icon" /> Trade Hub 
-            </button>
-            <button
-              className="subtab-btn"
-              style={{
-                background: "linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(99, 102, 241, 0.15))",
-                border: "1px solid rgba(236, 72, 153, 0.4)",
-                color: "#f472b6",
-                fontWeight: "700"
-              }}
-              onClick={() => {
-                setDrawerCardName("");
-                setDrawerCardList(wishlist);
-                setShowMarketplaceDrawer(true);
-              }}
-              title="Compare LotusVault local store stock vs ManaPool live cart shipping estimates"
-            >
-              <SparklesIcon className="inline-icon" /> Retail Deals & Live Shipping <BoltIcon className="inline-icon" />
-            </button>
-          </div>
-
-          {/* Quick descriptions */}
-          {selectedList === "proxy_wishlist" && (
-            <div className="compliance-banner compliant" style={{ background: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.2)", color: "#93c5fd" }}>
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Wishlist: Cards you want to print. Pooled chronologically with playgroup wishlists to hit bulk brackets.
-            </div>
-          )}
-          {selectedList === "optional_proxies" && (
-            <div className="compliance-banner compliant" style={{ background: "rgba(107,114,128,0.06)", borderColor: "rgba(107,114,128,0.2)", color: "#9ca3af" }}>
-              <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Optional Proxies: Lower priority cards used to fill out the remaining slots of a bulk print bracket.
-            </div>
-          )}
-          {selectedList === "proxy_arts" && (
-            <div className="compliance-banner compliant" style={{ background: "rgba(236,72,153,0.06)", borderColor: "rgba(236,72,153,0.2)", color: "#f472b6" }}>
-              <PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Art Selections: Ensure your specific cards always use the proxy art you want.
-            </div>
-          )}
-
-          {/* Search bar */}
-          {(selectedList === "proxy_wishlist" || selectedList === "optional_proxies") && (
-            <>
-              <div className="search-bar-row">
-            <div className="search-input-wrapper">
-              <span className="search-icon"><MagnifyingGlassIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Search card to add to proxy wishlist..."
-                className="collection-search-input"
-              />
-              {searching && <span className="search-spinner-inline">Searching...</span>}
-            </div>
-
-            {searchResults.length > 0 && (
-              <div className="search-suggestions-overlay">
-                {searchResults.map((card) => (
-                  <div
-                    key={card.id}
-                    className="suggestion-row"
-                    onClick={() => addCard(card)}
-                  >
-                    <span className="name">{card.name}</span>
-                    <span className="set">({card.set ? card.set.toUpperCase() : "N/A"})</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Lists Views */}
-            {/* Summary Bar */}
-            {(() => {
-              const activeList = selectedList === "optional_proxies" ? optionalProxies : wishlist;
-              return (
-                <div className="wishlist-summary-bar">
-                  <div className="stat-cards-row">
-                    <div className="summary-stat-card">
-                      <span className="label">Unique Cards</span>
-                      <span className="val">{activeList.length}</span>
-                    </div>
-                    <div className="summary-stat-card">
-                      <span className="label">Total Quantity</span>
-                      <span className="val">
-                        {activeList.reduce((sum, c) => sum + c.quantity, 0)}
-                      </span>
-                    </div>
-                    <div className="summary-stat-card">
-                      <span className="label">Est. Cost</span>
-                      <span className="val">
-                        ${(
-                          activeList.reduce((sum, c) => sum + c.quantity, 0) * 0.25
-                        ).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="proxy-actions-row">
-                    <button className="proxy-btn import" onClick={() => setShowImportModal(true)}>
-                      <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
-                    </button>
-                    <button className="proxy-btn remove-cheap" onClick={() => setShowCheapModal(true)} disabled={activeList.length === 0} title="Purge cards cheap enough to buy directly">
-                      <TagIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Remove Cheap Cards
-                    </button>
-                    <button className="proxy-btn" onClick={handleCopyMoxfield} disabled={activeList.length === 0}>
-                      <ClipboardDocumentListIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Decklist
-                    </button>
-                    <button className="proxy-btn" onClick={handleDownloadMpcCsv} disabled={activeList.length === 0}>
-                      <DocumentArrowDownIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download CSV
-                    </button>
-                    <button className="proxy-btn" onClick={handleDownloadMyMpcXml} disabled={activeList.length === 0}>
-                      <WrenchScrewdriverIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Download XML
-                    </button>
-                    <button className="proxy-btn print" onClick={() => setShowPrintMode(true)} disabled={activeList.length === 0}>
-                      <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Print Sheets
-                    </button>
-                    <button className="proxy-btn any-print" onClick={handleSetAllAnyPrinting} disabled={activeList.length === 0}>
-                      <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Specific Trade Printing Rules
-                    </button>
-                    <button
-                      className="proxy-btn"
-                      style={{ background: "linear-gradient(135deg, #059669, #10b981)", borderColor: "#34d399", color: "#ffffff", fontWeight: "700" }}
-                      onClick={() => {
-                        setConfirmTargetScope("personal");
-                        setConfirmChecked(false);
-                        setShowConfirmModal(true);
-                      }}
-                      disabled={activeList.length === 0}
-                      title="Confirm that you ordered these cards and clear them from your wishlist"
-                    >
-                      <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Confirm Order
-                    </button>
-                    <button className="proxy-btn remove-cheap" onClick={handleClearAll} disabled={activeList.length === 0} title="Clear all cards from your proxy wishlist">
-                      <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear All
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Retail Provider Toggles Bar */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", background: "rgba(15,23,42,0.7)", padding: "0.6rem 1rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Retail Providers:
-                </span>
-                <label style={{ fontSize: "0.85rem", color: "#f472b6", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={showLotusColumn}
-                    onChange={(e) => setShowLotusColumn(e.target.checked)}
-                  />
-                  <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault
-                </label>
-                <label style={{ fontSize: "0.85rem", color: "#818cf8", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={showManaPoolColumn}
-                    onChange={(e) => setShowManaPoolColumn(e.target.checked)}
-                  />
-                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool Market
-                </label>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "auto" }}>
-                <button
-                  className="proxy-btn"
-                  style={{ background: "rgba(99,102,241,0.2)", borderColor: "rgba(99,102,241,0.4)", color: "#818cf8", padding: "0.4rem 0.85rem", fontSize: "0.8rem", fontWeight: "700" }}
-                  onClick={handleBuyCheapCardsOnManaPool}
-                  disabled={wishlist.length === 0 || cheapCardsList.length === 0}
-                  title="Export cheap cards ( threshold) directly into ManaPool cart"
-                >
-                  <BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Buy Cheap Cards ({cheapCardsList.length})
-                </button>
-
-                <button
-                  className="proxy-btn"
-                  style={{ background: "rgba(225,29,72,0.15)", borderColor: "rgba(225,29,72,0.3)", color: "#fb7185", padding: "0.4rem 0.85rem", fontSize: "0.8rem" }}
-                  onClick={() => setShowCheapModal(true)}
-                  disabled={wishlist.length === 0}
-                >
-                  <SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Purge Cheap Cards
-                </button>
-              </div>
-            </div>
-
-            {/* Grid cards */}
-            {(selectedList === "optional_proxies" ? optionalProxies : wishlist).length === 0 ? (
-              <div className="empty-wishlist-box">
-                This list is empty. Search cards above to add them.
-              </div>
-            ) : (
-              <div className="csv-table-wrapper">
-                <table className="csv-table">
-                  <thead>
-                    <tr>
-                      <th className="col-qty">Quantity</th>
-                      <th className="col-name">Card Name</th>
-                      {showLotusColumn && <th className="col-lotus" style={{ background: "rgba(236,72,153,0.1)", color: "#f472b6" }}><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> LotusVault</th>}
-                      {showManaPoolColumn && <th className="col-manapool" style={{ background: "rgba(99,102,241,0.1)", color: "#818cf8" }}><BoltIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> ManaPool</th>}
-                      <th className="col-actions">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(selectedList === "optional_proxies" ? optionalProxies : wishlist).map((c) => {
-                      const cardMeta = printsCache[c.card_name];
-                      const rData = retailPrices[c.card_name];
-                      const thumbUrl = getCardImageUrl(c, cardMeta);
-
-                      return (
-                        <tr key={c.id}>
-                          <td className="col-qty">
-                            <div className="qty-picker-compact">
-                              <button onClick={() => updateCardDetails(c, { quantity: Math.max(1, c.quantity - 1) })}>-</button>
-                              <span>{c.quantity}</span>
-                              <button onClick={() => updateCardDetails(c, { quantity: c.quantity + 1 })}>+</button>
-                            </div>
-                          </td>
-                          <td className="col-name font-bold">
-                            <div
-                              className="proxy-card-cell"
-                              onMouseEnter={(e) => {
-                                setHoveredCard(c);
-                                setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
-                              }}
-                              onMouseMove={(e) => {
-                                setHoverPosition({ x: e.clientX + 16, y: e.clientY - 120 });
-                              }}
-                              onMouseLeave={() => setHoveredCard(null)}
-                              onClick={() => setModalCard(c)}
-                              style={{ cursor: "pointer" }}
-                            >
-                              {thumbUrl ? (
-                                <img src={thumbUrl} alt={c.card_name} className="proxy-card-thumb" loading="lazy" />
-                              ) : (
-                                <div className="proxy-card-thumb-placeholder">
-                                  <PhotoIcon style={{ width: "16px", height: "16px", color: "#64748b" }} />
-                                </div>
-                              )}
-                              <div className="proxy-card-info">
-                                <span className="proxy-card-name-text">{c.card_name}</span>
-                                {cardMeta?.type_line && (
-                                  <span className="proxy-card-type-subtext">{cardMeta.type_line}</span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-
-                          {showLotusColumn && (
-                            <td className="col-lotus" style={{ textAlign: "center" }}>
-                              {rData?.lotusInStock ? (
-                                <span style={{ color: "#34d399", fontWeight: "700" }}>
-                                  ${rData.lotusPrice?.toFixed(2)}
-                                </span>
-                              ) : rData ? (
-                                <span style={{ color: "#f87171", fontSize: "0.75rem" }}>Out of Stock</span>
-                              ) : (
-                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
-                              )}
-                            </td>
-                          )}
-
-                          {showManaPoolColumn && (
-                            <td className="col-manapool" style={{ textAlign: "center" }}>
-                              {rData?.manaPrice !== null && rData?.manaPrice !== undefined ? (
-                                <span style={{ color: "#818cf8", fontWeight: "700" }}>
-                                  ${rData.manaPrice?.toFixed(2)}
-                                </span>
-                              ) : (
-                                <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{loadingRetail ? "..." : "--"}</span>
-                              )}
-                            </td>
-                          )}
-                          <td className="col-actions">
-                            <div className="table-actions-group">
-                              <button
-                                className="table-action-icon-btn retail"
-                                onClick={() => {
-                                  setDrawerCardName(c.card_name);
-                                  setDrawerCardList([]);
-                                  setShowMarketplaceDrawer(true);
-                                }}
-                                title="Retail Check (LotusVault & ManaPool)"
-                              >
-                                <SparklesIcon className="action-icon" />
-                              </button>
-                              <button
-                                className="table-action-icon-btn move"
-                                onClick={() => {
-                                  updateCardDetails(c, {}, c.list_type === "wishlist" ? "optional_proxies" : "proxy_wishlist")
-                                    .then(() => loadLists());
-                                }}
-                                title={`Move to ${c.list_type === "wishlist" ? "Optional Proxies" : "Required Proxies"}`}
-                              >
-                                <ArrowsRightLeftIcon className="action-icon" />
-                              </button>
-                              <button
-                                className="table-action-icon-btn info"
-                                onClick={() => setModalCard(c)}
-                                title="Card Details & Visual Preview"
-                              >
-                                <InformationCircleIcon className="action-icon" />
-                              </button>
-                              <button
-                                className="table-action-icon-btn delete"
-                                onClick={() => deleteCard(c)}
-                                title="Remove Card"
-                              >
-                                <TrashIcon className="action-icon" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            </>
-          )}
-
-          {selectedList === "proxy_arts" && (
-            <ProxyArtSettings 
-              userProxyArts={userProxyArts} 
-              fetchProxyArts={fetchProxyArts} 
-              missingArtsCount={missingArtsCount}
-              onDownloadMissingArts={handleDownloadMissingArtsXml} 
-            />
-          )}
-        </div>
+        <ListManager
+          selectedList={selectedList}
+          setSelectedList={setSelectedList}
+          wishlist={wishlist}
+          optionalProxies={optionalProxies}
+          userProxyArts={userProxyArts}
+          missingArtsCount={missingArtsCount}
+          fetchProxyArts={fetchProxyArts}
+          handleDownloadMissingArtsXml={handleDownloadMissingArtsXml}
+          searchQuery={searchQuery}
+          handleSearchChange={handleSearchChange}
+          searching={searching}
+          searchResults={searchResults}
+          addCard={addCard}
+          loading={loading}
+          setShowImportModal={setShowImportModal}
+          setShowCheapModal={setShowCheapModal}
+          handleCopyMoxfield={handleCopyMoxfield}
+          handleDownloadMpcCsv={handleDownloadMpcCsv}
+          handleDownloadMyMpcXml={handleDownloadMyMpcXml}
+          setShowPrintMode={setShowPrintMode}
+          handleSetAllAnyPrinting={handleSetAllAnyPrinting}
+          setConfirmTargetScope={setConfirmTargetScope}
+          setConfirmChecked={setConfirmChecked}
+          setShowConfirmModal={setShowConfirmModal}
+          handleClearAll={handleClearAll}
+          showLotusColumn={showLotusColumn}
+          setShowLotusColumn={setShowLotusColumn}
+          showManaPoolColumn={showManaPoolColumn}
+          setShowManaPoolColumn={setShowManaPoolColumn}
+          handleBuyCheapCardsOnManaPool={handleBuyCheapCardsOnManaPool}
+          cheapCardsList={cheapCardsList}
+          printsCache={printsCache}
+          retailPrices={retailPrices}
+          setHoveredCard={setHoveredCard}
+          setHoverPosition={setHoverPosition}
+          setModalCard={setModalCard}
+          updateCardDetails={updateCardDetails}
+          loadingRetail={loadingRetail}
+          deleteCard={deleteCard}
+          setDrawerCardName={setDrawerCardName}
+          setDrawerCardList={setDrawerCardList}
+          setShowMarketplaceDrawer={setShowMarketplaceDrawer}
+          loadLists={loadLists}
+        />
       )}
 
       {/* VIEW 2: PLAYGROUP NEXUS */}
@@ -2288,401 +1974,10 @@ export default function WishlistHub() {
       )}
 
       {/* VIEW 3: PROXY SETTINGS */}
-      {activeTab === "settings" && (
-        <div className="proxy-settings-container">
-
-          {/* Card 1: Active Playgroup Selection */}
-          <div className="settings-card">
-            <div className="settings-card-header">
-              <h3 className="settings-card-title"><UserGroupIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Active Playgroup Selection</h3>
-              {activeGroup && (
-                <span className="mpc-alert-badge met">
-                  Current: {activeGroup.name}
-                </span>
-              )}
-            </div>
-            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
-              Select which playgroup is currently active for shared wishlist calculation and proxy manifests.
-            </p>
-
-            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center", marginBottom: "1rem" }}>
-              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#cbd5e1" }}>Active Playgroup:</label>
-              <select
-                className="setup-input"
-                style={{ minWidth: "220px" }}
-                value={activeGroup?.id || ""}
-                onChange={(e) => {
-                  const sel = playgroups.find((g) => g.id === e.target.value);
-                  if (sel) setActiveGroup(sel);
-                }}
-              >
-                {playgroups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name} ({g.member_count || 1} members)
-                  </option>
-                ))}
-                {playgroups.length === 0 && <option value="">No playgroups joined</option>}
-              </select>
-            </div>
-
-            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: "240px" }}>
-                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Create New Playgroup</h4>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <input
-                    type="text"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    placeholder="New playgroup name..."
-                    className="setup-input"
-                    style={{ flex: 1 }}
-                  />
-                  <button onClick={handleCreateGroup} className="setup-btn">Create</button>
-                </div>
-              </div>
-
-              <div style={{ flex: 1, minWidth: "240px" }}>
-                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.9rem", color: "#e2e8f0" }}>Manage Group Access</h4>
-                <p style={{ margin: "0 0 0.75rem 0", fontSize: "0.8rem", color: "#94a3b8" }}>
-                  Invite friends via link or leave this playgroup.
-                </p>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button
-                    onClick={handleGenerateInviteLink}
-                    className="setup-btn"
-                    style={{ background: "#3b82f6", flex: 1 }}
-                    disabled={!activeGroup}
-                  >
-                    <LinkIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Copy Invite Link
-                  </button>
-                  <button
-                    onClick={handleLeaveGroup}
-                    className="setup-btn"
-                    style={{ background: "transparent", border: "1px solid #ef4444", color: "#f87171" }}
-                    disabled={!activeGroup}
-                  >
-                    <ArrowRightOnRectangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Leave Group
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 1.5: Proxy Manifest Participation */}
-          <div className="settings-card" style={{ border: manifestOptedOut ? "1px solid rgba(245,158,11,0.35)" : "1px solid rgba(52,211,153,0.25)" }}>
-            <div className="settings-card-header">
-              <h3 className="settings-card-title">
-                <PrinterIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Manifest Participation
-              </h3>
-              <span
-                className="mpc-alert-badge"
-                style={{
-                  background: manifestOptedOut ? "rgba(146,64,14,0.3)" : "rgba(6,78,59,0.3)",
-                  color: manifestOptedOut ? "#fbbf24" : "#34d399",
-                  border: `1px solid ${manifestOptedOut ? "rgba(245,158,11,0.4)" : "rgba(52,211,153,0.4)"}`
-                }}
-              >
-                {manifestOptedOut ? "Not  Opted Out" : "Active  Opted In"}
-              </span>
-            </div>
-
-            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0, marginBottom: "1.25rem" }}>
-              Control whether your wishlist cards are included in your playgroup's combined print manifest (the 612-card MPCfill order).
-              {manifestOptedOut
-                ? <><br /><span style={{ color: "#f59e0b", fontWeight: 600 }}>You are currently opted OUT  your cards will not appear in the next print order.</span></>
-                : <><br /><span style={{ color: "#34d399", fontWeight: 600 }}>You are currently opted IN  your cards will be included in the next print order.</span></>
-              }
-            </p>
-
-            <button
-              onClick={handleToggleManifestOptOut}
-              disabled={!activeGroup || togglingOptOut}
-              className="setup-btn"
-              style={{
-                background: manifestOptedOut
-                  ? "linear-gradient(135deg, #065f46, #047857)"
-                  : "linear-gradient(135deg, #78350f, #92400e)",
-                border: "none",
-                color: "white",
-                fontWeight: 700,
-                fontSize: "0.95rem",
-                padding: "0.65rem 1.5rem",
-                borderRadius: "8px",
-                cursor: (!activeGroup || togglingOptOut) ? "not-allowed" : "pointer",
-                opacity: (!activeGroup || togglingOptOut) ? 0.6 : 1,
-                transition: "all 0.2s ease",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}
-              title={!activeGroup ? "Select an active playgroup first" : ""}
-            >
-              {togglingOptOut
-                ? "Saving..."
-                : manifestOptedOut
-                  ? "Active  Opt In to Proxy Manifest"
-                  : "Not  Opt Out of Proxy Manifest"
-              }
-            </button>
-
-            {!activeGroup && (
-              <p style={{ fontSize: "0.78rem", color: "#64748b", marginTop: "0.5rem" }}>
-                Select an active playgroup above to manage your manifest participation.
-              </p>
-            )}
-          </div>
-
-          {/* Card 2: Playgroup Cost Per Proxy */}
-          <div className="settings-card">
-            <div className="settings-card-header">
-              <h3 className="settings-card-title"><CurrencyDollarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Cost per Proxy</h3>
-              <span className="mpc-alert-badge met" style={{ background: "rgba(59, 130, 246, 0.15)", color: "#93c5fd" }}>
-                Estimated Cost: ${(mpcActiveCards.length * mpcUnitCost).toFixed(2)}
-              </span>
-            </div>
-            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
-              Set your target per-card print cost for MakePlayingCards orders (default is $0.25/card).
-            </p>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#cbd5e1" }}>Cost Per Proxy ($):</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={mpcUnitCost}
-                onChange={(e) => setMpcUnitCost(parseFloat(e.target.value) || 0)}
-                className="setup-input"
-                style={{ width: "120px" }}
-              />
-              <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                (Calculates individual member cost splitting for {mpcListCount} total cards)
-              </span>
-            </div>
-          </div>
-
-          {/* Card 3: Individual Cardback Options & Prebuilt Defaults */}
-          <div className="settings-card">
-            <div className="settings-card-header">
-              <h3 className="settings-card-title"><PaintBrushIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Individual Cardback Preferences</h3>
-              {defaultCardBack && (
-                <span className="mpc-alert-badge met" style={{ background: "rgba(16, 185, 129, 0.15)" }}>
-                  Active Cardback Selected
-                </span>
-              )}
-            </div>
-            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
-              Choose your default cardback for proxy orders. Pick from prebuilt defaults below or input a custom Google Drive ID / search query string.
-            </p>
-
-            {/* Custom Input */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
-              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#cbd5e1", whiteSpace: "nowrap" }}>
-                Custom ID / Query String:
-              </label>
-              <input
-                type="text"
-                className="setup-input"
-                style={{ flex: 1, minWidth: "260px" }}
-                placeholder="e.g. Google Drive ID, image URL, or search query (e.g. b:black lotus)"
-                value={defaultCardBack}
-                onChange={(e) => handleSaveCardBack(e.target.value)}
-              />
-              {defaultCardBack && (
-                <button
-                  className="btn-secondary"
-                  onClick={() => handleSaveCardBack("")}
-                  style={{ padding: "0.4rem 0.75rem" }}
-                >
-                  Clear Selection
-                </button>
-              )}
-            </div>
-
-            {/* Prebuilt Cardbacks Grid */}
-            <h4 style={{ margin: "1rem 0 0.5rem 0", fontSize: "0.95rem", color: "#f1f5f9" }}>
-              Prebuilt Cardback Defaults ({prebuiltCardbacks.length}):
-            </h4>
-            <div className="cardback-grid">
-              {prebuiltCardbacks.map((cb) => {
-                const isSelected =
-                  (cb.driveId && defaultCardBack === cb.driveId) ||
-                  (cb.query && defaultCardBack === cb.query) ||
-                  (cb.id && defaultCardBack === cb.id);
-
-                return (
-                  <div
-                    key={cb.id}
-                    className={`cardback-option-card ${isSelected ? "selected" : ""}`}
-                    onClick={() => handleSaveCardBack(cb.driveId || cb.query || cb.name)}
-                  >
-                    {isSelected && <span className="cardback-selected-badge"> Active</span>}
-                    <div className="cardback-preview-wrapper">
-                      <img
-                        src={cb.previewUrl || "https://cards.scryfall.io/card_back.png"}
-                        alt={cb.name}
-                        className="cardback-preview-img"
-                        onError={(e) => { e.target.src = "https://cards.scryfall.io/card_back.png"; }}
-                      />
-                    </div>
-                    <div className="cardback-name">{cb.name}</div>
-                    <div className="cardback-author">{cb.author || "Default"}</div>
-                    <div className="cardback-dpi">{cb.dpi || "800 DPI"}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-      )}
+      {activeTab === "settings" && <ProxySettings />}
 
       {/* VIEW 4: ORDER HISTORY */}
-      {activeTab === "history" && (
-        <div className="proxy-settings-container">
-          <div className="settings-card">
-            <div className="settings-card-header">
-              <h3 className="settings-card-title">
-                <ClockIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Proxy Order History
-              </h3>
-              <button
-                className="setup-btn"
-                style={{ fontSize: "0.8rem", padding: "0.3rem 0.75rem" }}
-                onClick={loadOrderHistory}
-                disabled={loadingHistory}
-              >
-                <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {loadingHistory ? "Refreshing..." : "Refresh"}
-              </button>
-            </div>
-            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: 0 }}>
-              View past confirmed proxy orders, restore order cards back to wishlists, or add ordered cards to your tradelist.
-            </p>
-
-            {loadingHistory ? (
-              <div style={{ color: "#94a3b8", padding: "2rem", textAlign: "center" }}>Loading order history...</div>
-            ) : orderHistory.length === 0 ? (
-              <div className="empty-wishlist-box">
-                No past orders found. When you confirm an order from My Lists or Playgroup Nexus, it will appear here.
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
-                {orderHistory.map((order) => {
-                  const isExpanded = expandedOrderId === order.id;
-                  const orderCards = Array.isArray(order.cards) ? order.cards : [];
-                  const dateStr = new Date(order.created_at).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  });
-
-                  return (
-                    <div
-                      key={order.id}
-                      style={{
-                        background: "rgba(15,23,42,0.8)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: "10px",
-                        padding: "1.25rem"
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <h4 style={{ margin: 0, fontSize: "1.1rem", color: "#f8fafc" }}>
-                              {order.title || `Order #${order.id}`}
-                            </h4>
-                            <span
-                              style={{
-                                background: "rgba(6,78,59,0.4)",
-                                color: "#34d399",
-                                border: "1px solid rgba(52,211,153,0.3)",
-                                fontSize: "0.72rem",
-                                padding: "0.15rem 0.5rem",
-                                borderRadius: "4px",
-                                fontWeight: "700",
-                                textTransform: "uppercase"
-                              }}
-                            >
-                              Confirmed
-                            </span>
-                          </div>
-                          <p style={{ margin: "0.3rem 0 0 0", fontSize: "0.82rem", color: "#94a3b8" }}>
-                            Ordered on <strong>{dateStr}</strong> by <strong>{order.creator_username || "User"}</strong> {order.playgroup_name ? ` Playgroup: ${order.playgroup_name}` : " Personal Wishlist"}
-                          </p>
-                          <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
-                            <span><strong>{order.total_cards}</strong> total cards</span>
-                            <span>Est. cost: <strong style={{ color: "#34d399" }}>${Number(order.total_cost || 0).toFixed(2)}</strong></span>
-                          </div>
-                        </div>
-
-                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          <button
-                            className="setup-btn"
-                            style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.4)", color: "#93c5fd", fontSize: "0.8rem" }}
-                            onClick={() => handleRestoreOrder(order.id)}
-                            title="Re-add all cards from this order back into your proxy wishlist"
-                          >
-                            <ArrowPathIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Restore to Wishlist
-                          </button>
-
-                          <button
-                            className="setup-btn"
-                            style={{ background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.4)", color: "#c084fc", fontSize: "0.8rem" }}
-                            onClick={() => handleMoveToTradelist(order.id)}
-                            title="Add all cards from this order to your tradelist"
-                          >
-                            <ArrowsRightLeftIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Add to Tradelist
-                          </button>
-
-                          <button
-                            className="setup-btn"
-                            style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "#94a3b8", fontSize: "0.8rem" }}
-                            onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                          >
-                            {isExpanded ? "Hide Cards " : `View Cards (${orderCards.length}) `}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Collapsible cards list */}
-                      {isExpanded && (
-                        <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.75rem" }}>
-                          <h5 style={{ margin: "0 0 0.5rem 0", fontSize: "0.85rem", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                            Cards in this Order ({orderCards.length} unique)
-                          </h5>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "0.5rem" }}>
-                            {orderCards.map((c, idx) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  background: "rgba(30,41,59,0.5)",
-                                  padding: "0.4rem 0.6rem",
-                                  borderRadius: "6px",
-                                  fontSize: "0.8rem",
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center"
-                                }}
-                              >
-                                <span>
-                                  <strong>{c.quantity || 1}x</strong> {c.card_name} {c.is_foil && <span style={{ color: "#f59e0b", fontSize: "0.7rem" }}> (Foil)</span>}
-                                </span>
-                                {c.username && <span style={{ color: "#64748b", fontSize: "0.72rem" }}>{c.username}</span>}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {activeTab === "history" && <OrderHistory />}
 
       {/* Bulk Import Modal */}
       {showImportModal && (
