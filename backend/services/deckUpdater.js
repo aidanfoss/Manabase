@@ -163,7 +163,8 @@ export async function getEDHRecSuggestions(commanderName, deckCardNames) {
         // Collect these into highSynergy, deduplicating just in case
         const mapped = list.cardviews
           .filter(c => !deckSet.has(c.name.toLowerCase()))
-          .map(c => ({ name: c.name, synergy: c.synergy || c.lift, url: c.url }));
+          .map(c => ({ name: c.name, synergy: c.synergy || c.lift, url: c.url }))
+          .filter(c => (c.synergy || 0) >= 0.5); // THRESHOLD 50%
 
         for (const card of mapped) {
           if (!highSynergy.some(c => c.name === card.name)) {

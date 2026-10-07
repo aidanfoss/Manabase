@@ -504,3 +504,20 @@
     transform: translateY(0);
   }
 }
+
+/* Magnifier Popup */
+.card-magnifier-popup {
+  position: absolute;
+  z-index: 1000;
+  width: 300px;
+  pointer-events: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  transition: opacity 0.2s;
+}
+
+.card-magnifier-popup img {
+  width: 100%;
+  display: block;
+}
