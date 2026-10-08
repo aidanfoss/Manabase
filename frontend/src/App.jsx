@@ -174,14 +174,9 @@ function LandingDashboard() {
 
   return (
     <div className="landing-container">
-      <div className="landing-hero">
-        <h1 className="hero-title">Forge Your Manabase</h1>
-        <p className="hero-subtitle">
-          Advanced tools for Commander deckbuilding, collection management, and trade orchestration.
-        </p>
-      </div>
-
       {showcaseData && <CommanderShowcase commander={showcaseData.commander} cards={showcaseData.cards} />}
+
+      <BuilderAnimationShowcase />
 
       <ProAdContainer id="homepage-top-banner" />
 
@@ -219,8 +214,6 @@ function LandingDashboard() {
           </p>
         </div>
       </div>
-
-      <BuilderAnimationShowcase />
 
       <ProAdContainer id="homepage-bottom-banner" />
     </div>
