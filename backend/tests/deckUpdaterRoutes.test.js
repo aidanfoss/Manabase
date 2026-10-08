@@ -74,4 +74,126 @@ describe('Deck Updater Routes & Dismissals', () => {
     expect(finalListRes.status).toBe(200);
     expect(finalListRes.body.length).toBe(0);
   });
+
+  describe('Land Preferences API Pipeline', () => {
+    it('should return default land preferences when none have been saved', async () => {
+      const res = await request(app)
+        .get('/api/deck-updater/land-preferences')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.preferences).toBeDefined();
+      expect(res.body.preferences.budgetTier).toBe('all');
+      expect(res.body.preferences.excludeReservedList).toBe(true);
+      expect(res.body.preferences.excludeTapped).toBe(true);
+      expect(res.body.preferences.likedCycles).toEqual([]);
+      expect(res.body.preferences.dislikedCycles).toEqual([]);
+    });
+
+    it('should save and update land preferences via PUT and retrieve them via GET', async () => {
+      const newPrefs = {
+        budgetTier: 'budget',
+        maxPricePerLand: 3.5,
+        excludeReservedList: true,
+        excludeTapped: true,
+        likedCycles: ['cycle-fetchland', 'cycle-rav-shockland'],
+        dislikedCycles: ['cycle-guildgate']
+      };
+
+      // 1. Save preferences via PUT /api/deck-updater/land-preferences
+      const putRes = await request(app)
+        .put('/api/deck-updater/land-preferences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ preferences: newPrefs });
+
+      expect(putRes.status).toBe(200);
+      expect(putRes.body.success).toBe(true);
+      expect(putRes.body.preferences.budgetTier).toBe('budget');
+      expect(putRes.body.preferences.maxPricePerLand).toBe(3.5);
+      expect(putRes.body.preferences.likedCycles).toEqual(['cycle-fetchland', 'cycle-rav-shockland']);
+      expect(putRes.body.preferences.dislikedCycles).toEqual(['cycle-guildgate']);
+
+      // 2. Fetch preferences via GET
+      const getRes = await request(app)
+        .get('/api/deck-updater/land-preferences')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.preferences.budgetTier).toBe('budget');
+      expect(getRes.body.preferences.maxPricePerLand).toBe(3.5);
+      expect(getRes.body.preferences.likedCycles).toEqual(['cycle-fetchland', 'cycle-rav-shockland']);
+      expect(getRes.body.preferences.dislikedCycles).toEqual(['cycle-guildgate']);
+
+      // 3. Update existing preferences with flat body payload
+      const updateRes = await request(app)
+        .put('/api/deck-updater/land-preferences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          budgetTier: 'high',
+          maxPricePerLand: 25.0,
+          excludeReservedList: false,
+          excludeTapped: false,
+          likedCycles: ['cycle-bondland'],
+          dislikedCycles: []
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.success).toBe(true);
+      expect(updateRes.body.preferences.budgetTier).toBe('high');
+      expect(updateRes.body.preferences.excludeReservedList).toBe(false);
+
+      // 4. Verify updated values persisted
+      const getUpdatedRes = await request(app)
+        .get('/api/deck-updater/land-preferences')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(getUpdatedRes.status).toBe(200);
+      expect(getUpdatedRes.body.preferences.budgetTier).toBe('high');
+      expect(getUpdatedRes.body.preferences.excludeReservedList).toBe(false);
+      expect(getUpdatedRes.body.preferences.likedCycles).toEqual(['cycle-bondland']);
+    });
+
+    it('should save land preferences via POST /api/deck-updater/land-preferences', async () => {
+      const postRes = await request(app)
+        .post('/api/deck-updater/land-preferences')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          preferences: {
+            budgetTier: 'ultra_budget',
+            maxPricePerLand: 1.0,
+            excludeReservedList: true,
+            excludeTapped: true,
+            likedCycles: [],
+            dislikedCycles: []
+          }
+        });
+
+      expect(postRes.status).toBe(200);
+      expect(postRes.body.success).toBe(true);
+      expect(postRes.body.preferences.budgetTier).toBe('ultra_budget');
+    });
+
+    it('should route /analyze-lands correctly without being intercepted by /:deckId', async () => {
+      // 1. Create a test deck
+      await db('user_archidekt_decks').insert({
+        user_id: userId,
+        deck_id: '99999',
+        deck_name: 'Test Radha Deck',
+        commander: 'Grand Warlord Radha',
+        cards: JSON.stringify(['Forest', 'Mountain', 'Gruul Turf', 'Gruul Guildgate']),
+        source: 'archidekt'
+      });
+
+      // 2. Call GET /api/deck-updater/analyze-lands?deckId=99999
+      const res = await request(app)
+        .get('/api/deck-updater/analyze-lands?deckId=99999')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.cuts).toBeDefined();
+      expect(res.body.adds).toBeDefined();
+      expect(res.body.colorIdentity).toBeDefined();
+      expect(res.body.preferencesApplied).toBeDefined();
+    });
+  });
 });
