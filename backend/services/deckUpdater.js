@@ -124,7 +124,14 @@ export function getStrictlyBetterUpgrades(deckCardNames) {
  * Fetches EDHRec suggestions (New Cards and Top/High Synergy Cards) for a commander.
  */
 export async function getEDHRecSuggestions(commanderName, deckCardNames) {
-  if (!commanderName) return { newCards: [], highSynergy: [] };
+  if (
+    !commanderName ||
+    typeof commanderName !== "string" ||
+    !commanderName.trim() ||
+    ["none", "unknown", "n/a", "no commander", "null", "undefined"].includes(commanderName.trim().toLowerCase())
+  ) {
+    return { newCards: [], highSynergy: [] };
+  }
 
   // Format commander name for EDHRec (lowercase, spaces to dashes, remove punctuation)
   let formattedCommander = commanderName.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");

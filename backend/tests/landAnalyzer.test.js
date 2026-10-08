@@ -104,4 +104,31 @@ describe("landAnalyzer - Deduplication & Suggestions", () => {
     const shockAdd = resultWithDislikedShocks.adds.find(a => a.cycle.toLowerCase().includes("shock"));
     expect(shockAdd).toBeUndefined();
   });
+
+  it("should gracefully handle decks without a defined commander by inferring colors from cards", () => {
+    // Deck with no commander, but Dimir basic lands (Island + Swamp)
+    const deckCards = ["Island", "Swamp", "Dismal Backwater", "Sol Ring"];
+
+    // Null commander
+    const nullCmdResult = analyzeLands(null, deckCards);
+    expect(nullCmdResult.colorIdentity).toEqual(expect.arrayContaining(["B", "U"]));
+    expect(nullCmdResult.cuts.some(c => c.name.toLowerCase() === "dismal backwater")).toBe(true);
+    expect(nullCmdResult.adds.some(a => a.name.toLowerCase() === "watery grave" || a.name.toLowerCase() === "morphic pool" || a.name.toLowerCase() === "underground river")).toBe(true);
+
+    // "Unknown" / "None" / empty string commander
+    const unknownCmdResult = analyzeLands("Unknown", deckCards);
+    expect(unknownCmdResult.colorIdentity).toEqual(expect.arrayContaining(["B", "U"]));
+
+    const emptyCmdResult = analyzeLands("", deckCards);
+    expect(emptyCmdResult.colorIdentity).toEqual(expect.arrayContaining(["B", "U"]));
+
+    // Completely empty deck
+    const emptyDeckResult = analyzeLands(null, []);
+    expect(emptyDeckResult.colorIdentity).toEqual([]);
+    expect(emptyDeckResult.cuts).toEqual([]);
+    // Any suggested adds in a 0-color deck must have reqColors: [] (colorless only)
+    for (const add of emptyDeckResult.adds) {
+      expect(getLandRequiredColors(add.name, null)).toEqual([]);
+    }
+  });
 });

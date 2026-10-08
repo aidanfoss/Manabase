@@ -205,7 +205,10 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
 
     for (const deck of decks) {
       let deckCardNames = [];
-      let commanderName = deck.commander;
+      let commanderName = deck.commander && typeof deck.commander === "string" && deck.commander.trim() ? deck.commander.trim() : null;
+      if (commanderName && ["none", "unknown", "n/a", "no commander", "null", "undefined"].includes(commanderName.toLowerCase())) {
+        commanderName = null;
+      }
 
       // If the deck is missing the 'cards' JSON array (e.g. older sync), fetch directly to heal it
       if (!deck.cards) {
@@ -213,7 +216,7 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
           if (deck.source === "moxfield") {
             const moxfieldData = await fetchMoxfieldDeck(deck.deck_id);
             deckCardNames = moxfieldData.cards.map(c => c.cardName);
-            if (!commanderName) commanderName = moxfieldData.commander;
+            if (!commanderName && moxfieldData.commander) commanderName = moxfieldData.commander;
           } else {
             const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deck.deck_id}/`);
             const archidektDeck = archidektRes.data;
@@ -224,7 +227,7 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
 
               if (!commanderName) {
                 for (const item of archidektDeck.cards) {
-                  if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
+                  if (item.categories && item.categories.some(cat => typeof cat === "string" && (cat.toLowerCase().includes("commander") || cat.toLowerCase().includes("general"))) && item.card && item.card.oracleCard) {
                     commanderName = item.card.oracleCard.name;
                     break;
                   }
@@ -241,13 +244,22 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
               commander: commanderName
             });
         } catch (e) {
-          console.warn(`Could not heal missing cache for deck ${deck.deck_id}`);
+          console.warn(`[DeckUpdater:AnalyzeAll] Could not heal missing cache for deck ${deck.deck_id}: ${e.message}`);
           // Fallback to deck items just in case
           const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: deck.deck_id });
           deckCardNames = items.map(i => i.card_name);
         }
       } else {
-        deckCardNames = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
+        try {
+          deckCardNames = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
+        } catch (e) {
+          console.warn(`[DeckUpdater:AnalyzeAll] Failed to parse cards JSON for deck ${deck.deck_id}: ${e.message}`);
+          deckCardNames = [];
+        }
+      }
+
+      if (!Array.isArray(deckCardNames)) {
+        deckCardNames = [];
       }
 
       const strictlyBetterRaw = getStrictlyBetterUpgrades(deckCardNames);
@@ -257,11 +269,11 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
       const landUpgrades = {
         cuts: landAnalysis.cuts.filter(c => !dismissalsSet.has(`${deck.deck_id}::land_cut:${c.name}`)),
         adds: landAnalysis.adds.filter(a => !dismissalsSet.has(`${deck.deck_id}::land_add:${a.name}`)),
-        colorIdentity: landAnalysis.colorIdentity,
+        colorIdentity: landAnalysis.colorIdentity || [],
         preferencesApplied: landAnalysis.preferencesApplied
       };
 
-      console.log(`[DeckUpdater:AnalyzeAll] Deck '${deck.deck_name}' (${deck.deck_id}) analysis result: ${landUpgrades.cuts.length} cuts, ${landUpgrades.adds.length} adds. Commander: '${commanderName}' (Colors: ${JSON.stringify(landUpgrades.colorIdentity)})`);
+      console.log(`[DeckUpdater:AnalyzeAll] Deck '${deck.deck_name}' (${deck.deck_id}) analysis result: ${landUpgrades.cuts.length} cuts, ${landUpgrades.adds.length} adds. Commander: '${commanderName || "None (Inferred)"}' (Colors: ${JSON.stringify(landUpgrades.colorIdentity)})`);
 
       for (const cut of landUpgrades.cuts) allUniqueCardNames.add(cut.name);
       for (const add of landUpgrades.adds) allUniqueCardNames.add(add.name);
@@ -323,6 +335,8 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
     for (const res of results) {
       if (res.commander) {
         res.commanderData = enrichCardObj(res.commander);
+      } else {
+        res.commanderData = { name: null, image_uri: null, price: null, set_type: null, set: null };
       }
 
       const isDigitalOnly = (card) => {

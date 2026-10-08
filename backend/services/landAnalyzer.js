@@ -176,7 +176,136 @@ export const LAND_COLOR_REQUIREMENTS = {
   "raffine's tower": ["W", "U", "B"],
   "spara's headquarters": ["G", "W", "U"],
   "xander's lounge": ["U", "B", "R"],
-  "ziatora's proving ground": ["B", "R", "G"]
+  "ziatora's proving ground": ["B", "R", "G"],
+
+  // Hybrid Filterlands
+  "cascade bluffs": ["U", "R"],
+  "fetid heath": ["W", "B"],
+  "fire-lit thicket": ["R", "G"],
+  "flooded grove": ["U", "G"],
+  "graven cairns": ["B", "R"],
+  "mystic gate": ["W", "U"],
+  "rugged prairie": ["W", "R"],
+  "sunken ruins": ["U", "B"],
+  "twilight mire": ["B", "G"],
+  "wooded bastion": ["W", "G"],
+
+  // Horizon lands
+  "fiery islet": ["U", "R"],
+  "horizon canopy": ["W", "G"],
+  "nurturing peatland": ["B", "G"],
+  "silent clearing": ["W", "B"],
+  "sunbaked canyon": ["W", "R"],
+  "waterlogged grove": ["U", "G"],
+  "grove of the burnwillows": ["R", "G"],
+
+  // Verges
+  "blazemire verge": ["B", "R"],
+  "bleachbone verge": ["W", "B"],
+  "floodfarm verge": ["W", "U"],
+  "gloomlake verge": ["U", "B"],
+  "hushwood verge": ["W", "G"],
+  "riverpyre verge": ["U", "R"],
+  "sunbillow verge": ["W", "R"],
+  "thornspire verge": ["R", "G"],
+  "wastewood verge": ["B", "G"],
+  "willowrush verge": ["U", "G"],
+
+  // Pathways (including MDFC split notation)
+  "barkchannel pathway": ["G", "U"],
+  "barkchannel pathway // tidechannel pathway": ["G", "U"],
+  "tidechannel pathway": ["G", "U"],
+  "blightstep pathway": ["B", "R"],
+  "blightstep pathway // searstep pathway": ["B", "R"],
+  "searstep pathway": ["B", "R"],
+  "branchloft pathway": ["G", "W"],
+  "branchloft pathway // boulderloft pathway": ["G", "W"],
+  "boulderloft pathway": ["G", "W"],
+  "brightclimb pathway": ["W", "B"],
+  "brightclimb pathway // grimclimb pathway": ["W", "B"],
+  "grimclimb pathway": ["W", "B"],
+  "clearwater pathway": ["U", "B"],
+  "clearwater pathway // murkwater pathway": ["U", "B"],
+  "murkwater pathway": ["U", "B"],
+  "cragcrown pathway": ["R", "G"],
+  "cragcrown pathway // timbercrown pathway": ["R", "G"],
+  "timbercrown pathway": ["R", "G"],
+  "darkbore pathway": ["B", "G"],
+  "darkbore pathway // slitherbore pathway": ["B", "G"],
+  "slitherbore pathway": ["B", "G"],
+  "hengegate pathway": ["W", "U"],
+  "hengegate pathway // mistgate pathway": ["W", "U"],
+  "mistgate pathway": ["W", "U"],
+  "needleverge pathway": ["R", "W"],
+  "needleverge pathway // pillarverge pathway": ["R", "W"],
+  "pillarverge pathway": ["R", "W"],
+  "riverglide pathway": ["U", "R"],
+  "riverglide pathway // lavaglide pathway": ["U", "R"],
+  "lavaglide pathway": ["U", "R"],
+
+  // Surveil lands
+  "commercial district": ["R", "G"],
+  "elegant parlor": ["W", "R"],
+  "hedge maze": ["U", "G"],
+  "lush portico": ["W", "G"],
+  "raucous theater": ["B", "R"],
+  "shadowy backstreet": ["W", "B"],
+  "thundering falls": ["U", "R"],
+  "undercity sewers": ["U", "B"],
+  "underground morgue": ["B", "G"],
+
+  // Tango / Battle lands
+  "canopy vista": ["W", "G"],
+  "cinder glade": ["R", "G"],
+  "prairie stream": ["W", "U"],
+  "smoldering marsh": ["B", "R"],
+  "sunken hollow": ["U", "B"],
+
+  // Reveal / Snarl lands
+  "choked estuary": ["U", "B"],
+  "foreboding ruins": ["B", "R"],
+  "fortified village": ["W", "G"],
+  "game trail": ["R", "G"],
+  "port town": ["W", "U"],
+  "frostboil snarl": ["U", "R"],
+  "furycalm snarl": ["W", "R"],
+  "necroblossom snarl": ["B", "G"],
+  "shineshadow snarl": ["W", "B"],
+  "vineglimmer snarl": ["U", "G"],
+
+  // Utility lands
+  "alchemist's refuge": ["U", "G"],
+  "desolate lighthouse": ["U", "R"],
+  "grim backwoods": ["B", "G"],
+  "slayers' stronghold": ["W", "R"],
+  "vault of the archangel": ["W", "B"],
+  "gavony township": ["W", "G"],
+  "kessig wolf run": ["R", "G"],
+  "moorland haunt": ["W", "U"],
+  "nephalia drownyard": ["U", "B"],
+  "stensia bloodhall": ["B", "R"],
+
+  // Artifact lands
+  "ancient den": ["W"],
+  "great furnace": ["R"],
+  "seat of the synod": ["U"],
+  "tree of tales": ["G"],
+  "vault of whispers": ["B"],
+  "darksteel citadel": [],
+
+  // Vivid lands
+  "vivid crag": ["R"],
+  "vivid creek": ["U"],
+  "vivid grove": ["G"],
+  "vivid marsh": ["B"],
+  "vivid meadow": ["W"],
+
+  // Strixhaven Campuses
+  "quandrix campus": ["U", "G"],
+  "prismari campus": ["U", "R"],
+  "silverquill campus": ["W", "B"],
+  "lorehold campus": ["W", "R"],
+  "witherbloom campus": ["B", "G"]
 };
 
 export const FALLBACK_LAND_CYCLES = [
@@ -452,10 +581,16 @@ function loadLandcycles() {
 
 /**
  * Parses commander names (handles partner / background commanders) and extracts color identity.
+ * Gracefully falls back to inferring deck colors from deck cards when no commander is defined.
  */
 function extractCommanderColors(commanderName, cardMap, deckCardNames) {
   const colors = new Set();
-  if (!commanderName || typeof commanderName !== "string") {
+  if (
+    !commanderName ||
+    typeof commanderName !== "string" ||
+    !commanderName.trim() ||
+    ["none", "unknown", "n/a", "no commander", "null", "undefined"].includes(commanderName.trim().toLowerCase())
+  ) {
     return inferDeckColors(deckCardNames, cardMap);
   }
 
@@ -484,17 +619,21 @@ function extractCommanderColors(commanderName, cardMap, deckCardNames) {
   }
 
   if (foundAny) {
-    return Array.from(colors);
+    return Array.from(colors).sort();
   }
 
   return inferDeckColors(deckCardNames, cardMap);
 }
 
 /**
- * Fallback to infer deck colors from distinct deck cards.
+ * Fallback to infer deck colors from distinct deck cards (basics, duals, fetches, known cards, and cached scryfall data).
  */
 function inferDeckColors(deckCardNames, cardMap) {
   const colors = new Set();
+  if (!Array.isArray(deckCardNames) || deckCardNames.length === 0) {
+    return [];
+  }
+
   for (const name of deckCardNames) {
     if (!name || typeof name !== "string") continue;
     const lower = name.toLowerCase().trim();
@@ -506,12 +645,16 @@ function inferDeckColors(deckCardNames, cardMap) {
       LAND_COLOR_REQUIREMENTS[lower].forEach(c => colors.add(c));
       continue;
     }
+    if (KNOWN_COMMANDER_COLORS[lower]) {
+      KNOWN_COMMANDER_COLORS[lower].forEach(c => colors.add(c));
+      continue;
+    }
     const card = cardMap.get(lower);
     if (card && Array.isArray(card.color_identity)) {
       card.color_identity.forEach(c => colors.add(c.toUpperCase()));
     }
   }
-  return Array.from(colors);
+  return Array.from(colors).sort();
 }
 
 /**

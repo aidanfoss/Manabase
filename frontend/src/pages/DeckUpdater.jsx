@@ -607,12 +607,16 @@ export default function DeckUpdater() {
                 className={`deck-pill ${isSelected ? "active" : ""}`}
                 onClick={() => setSelectedDeckId(deck.deck_id)}
               >
-                {deck.commanderData?.image_uri && (
+                {deck.commanderData?.image_uri ? (
                   <img
                     src={deck.commanderData.image_uri}
                     alt={deck.commander || deck.deck_name}
                     className="deck-pill-avatar"
                   />
+                ) : (
+                  <span className="deck-pill-avatar-placeholder">
+                    {deck.deck_name ? deck.deck_name.charAt(0).toUpperCase() : "D"}
+                  </span>
                 )}
                 <span className="deck-pill-name">{deck.deck_name}</span>
                 {count > 0 ? (
@@ -756,7 +760,7 @@ export default function DeckUpdater() {
                 {/* Deck Card Header */}
                 <header className="deck-section-header">
                   <div className="deck-identity">
-                    {deck.commanderData?.image_uri && (
+                    {deck.commanderData?.image_uri ? (
                       <CardMagnifier
                         cardImageUrl={deck.commanderData.image_uri}
                         cardName={deck.commander || deck.deck_name}
@@ -768,12 +772,29 @@ export default function DeckUpdater() {
                           className="commander-art-thumb"
                         />
                       </CardMagnifier>
+                    ) : (
+                      <div className="commander-art-placeholder" title="No Commander Image">
+                        <SparklesIcon className="icon-sm text-muted" />
+                      </div>
                     )}
                     <div>
                       <h2>{deck.deck_name}</h2>
-                      <span className="deck-commander-tag">
-                        Commander: <strong>{deck.commander || "Unknown"}</strong>
-                      </span>
+                      <div className="deck-commander-tag-row">
+                        <span className="deck-commander-tag">
+                          {deck.commander ? (
+                            <>Commander: <strong>{deck.commander}</strong></>
+                          ) : (
+                            <span className="no-commander-badge">No Commander Assigned</span>
+                          )}
+                        </span>
+                        {deck.landUpgrades?.colorIdentity?.length > 0 && (
+                          <div className="deck-color-identity-pills" title={`Color Identity: ${deck.landUpgrades.colorIdentity.join(", ")}`}>
+                            {deck.landUpgrades.colorIdentity.map(c => (
+                              <span key={c} className={`mana-pip pip-${c.toLowerCase()}`}>{c}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -927,7 +948,7 @@ export default function DeckUpdater() {
                         <span className="category-pill rose">{landCuts.length + landAdds.length}</span>
                       </div>
                       <p className="category-subtitle">
-                        Recommended land cuts and tier-tested cycle alternatives tailored to your commander's color identity.
+                        Recommended land cuts and tier-tested cycle alternatives tailored to your deck's color identity.
                       </p>
                     </div>
 
@@ -1067,7 +1088,7 @@ export default function DeckUpdater() {
                         <span className="category-pill cyan">{newCards.length}</span>
                       </div>
                       <p className="category-subtitle">
-                        Fresh printings and recent set additions trending in this commander's archetype.
+                        Fresh printings and recent set additions trending in this archetype.
                       </p>
                     </div>
 
@@ -1139,7 +1160,7 @@ export default function DeckUpdater() {
                         <span className="category-pill purple">{synergyCards.length}</span>
                       </div>
                       <p className="category-subtitle">
-                        Highly synergistic staple cards registered across EDHRec for this commander.
+                        Highly synergistic staple cards registered across EDHRec.
                       </p>
                     </div>
 

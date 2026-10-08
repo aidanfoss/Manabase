@@ -282,6 +282,20 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.deck-pill-avatar-placeholder {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--radar-cyan);
+}
+
 .deck-pill-name {
   max-width: 170px;
   overflow: hidden;
@@ -468,6 +482,17 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
+.commander-art-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.8);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .deck-identity h2 {
   font-size: 1.35rem;
   font-weight: 700;
@@ -476,16 +501,61 @@
   letter-spacing: -0.015em;
 }
 
+.deck-commander-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
 .deck-commander-tag {
   font-size: 0.85rem;
   color: var(--radar-text-muted);
-  margin-top: 0.15rem;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .deck-commander-tag strong {
   color: var(--radar-text-secondary);
 }
+
+.no-commander-badge {
+  color: var(--radar-text-muted);
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.deck-color-identity-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.mana-pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.mana-pip.pip-w { background: #f8e7b9; color: #332d18; }
+.mana-pip.pip-u { background: #0e68ab; }
+.mana-pip.pip-b { background: #150b00; }
+.mana-pip.pip-r { background: #d3202a; }
+.mana-pip.pip-g { background: #00733e; }
+.mana-pip.pip-c { background: #ccc2c0; color: #222; }
 
 .deck-header-meta {
   display: flex;
