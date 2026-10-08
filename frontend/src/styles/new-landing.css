@@ -2,7 +2,7 @@
   min-height: 100vh;
   background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #050810 80%);
   color: #f1f5f9;
-  padding: 4rem 2rem;
+  padding: 2rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -99,7 +99,7 @@
 
 /* Commander Showcase Styles */
 .commander-showcase {
-  margin: 4rem auto;
+  margin: 1.5rem auto;
   max-width: 1200px;
   padding: 0 2rem;
 }
@@ -159,16 +159,16 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 3rem 1rem;
+  padding: 1rem 1rem;
   gap: 0; /* Let margin handle overlap */
 }
 
 /* Arc cards sizing mechanics */
 .arc-layout .card-item {
-  width: 220px;
+  width: 210px;
   box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   transform-origin: bottom center;
-  margin-left: -80px; /* Base overlap */
+  margin-left: -75px; /* Base overlap */
 }
 
 .arc-layout .card-item:first-child {
@@ -182,11 +182,11 @@
 }
 
 /* Geometry */
-.arc-card-0 { transform: rotate(-16deg) translateY(30px); z-index: 1; }
-.arc-card-1 { transform: rotate(-8deg) translateY(10px); z-index: 2; margin-left: -50px; }
-.arc-card-2 { transform: rotate(0deg) translateY(-10px); z-index: 5; margin-left: -50px; } /* Commander */
-.arc-card-3 { transform: rotate(8deg) translateY(10px); z-index: 2; margin-left: -50px; }
-.arc-card-4 { transform: rotate(16deg) translateY(30px); z-index: 1; margin-left: -50px; }
+.arc-card-0 { transform: rotate(-4deg) translateY(-5px); z-index: 10; } /* Commander */
+.arc-card-1 { transform: rotate(3deg) translateY(5px); z-index: 4; margin-left: -75px; }
+.arc-card-2 { transform: rotate(9deg) translateY(15px); z-index: 3; margin-left: -75px; }
+.arc-card-3 { transform: rotate(15deg) translateY(27px); z-index: 2; margin-left: -75px; }
+.arc-card-4 { transform: rotate(22deg) translateY(42px); z-index: 1; margin-left: -75px; }
 
 /* Hover Physics */
 .arc-layout .card-item:hover,
@@ -265,20 +265,22 @@
 @media (max-width: 900px) {
   .arc-layout .card-item { width: 180px; }
   .arc-layout .commander-featured { width: 220px; }
-  .arc-card-1, .arc-card-2, .arc-card-3, .arc-card-4 { margin-left: -80px; }
+  .arc-card-1, .arc-card-2, .arc-card-3, .arc-card-4 { margin-left: -70px; }
 }
 
 @media (max-width: 600px) {
   /* Compress arc stack on narrow phones to avoid overflow */
-  .arc-layout { padding: 2rem 0; }
+  .arc-layout { padding: 1rem 0; }
   .arc-layout .card-item { width: 140px; }
-  .arc-layout .commander-featured { width: 160px; }
-  .arc-card-1, .arc-card-2, .arc-card-3, .arc-card-4 { margin-left: -90px; }
+  .arc-layout .commander-featured { width: 170px; }
+  .arc-card-1, .arc-card-2, .arc-card-3, .arc-card-4 { margin-left: -70px; }
 
   /* Straighten angle severity tightly so they fit */
-  .arc-card-0 { transform: rotate(-20deg) translateY(20px); }
-  .arc-card-1 { transform: rotate(-10deg) translateY(5px); }
-  .arc-card-4 { transform: rotate(20deg) translateY(20px); }
+  .arc-card-0 { transform: rotate(-3deg) translateY(-2px); }
+  .arc-card-1 { transform: rotate(2deg) translateY(2px); }
+  .arc-card-2 { transform: rotate(6deg) translateY(6px); }
+  .arc-card-3 { transform: rotate(10deg) translateY(12px); }
+  .arc-card-4 { transform: rotate(14deg) translateY(20px); }
 }
 
 

@@ -2,22 +2,19 @@ import React from 'react';
 import { MagnifyingGlassIcon, ChartBarIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
 
 export default function CommanderShowcase({ commander, cards }) {
-  // Grab up to 4 companion cards and strictly inject the commander in center (index 2)
+  // Grab up to 4 companion cards
   const validCards = Array.isArray(cards) ? cards.slice(0, 4) : [];
 
-  // Construct arc: [card0, card1, commander, card2, card3]
-  const arcArray = [];
-  if (validCards[0]) arcArray.push({ ...validCards[0], isCommander: false });
-  if (validCards[1]) arcArray.push({ ...validCards[1], isCommander: false });
-
-  arcArray.push({
-    name: commander?.name || 'Unknown Commander',
-    image: commander?.image || '',
-    isCommander: true
-  });
-
-  if (validCards[2]) arcArray.push({ ...validCards[2], isCommander: false });
-  if (validCards[3]) arcArray.push({ ...validCards[3], isCommander: false });
+  // Construct arc: [commander, card0, card1, card2, card3]
+  // Commander is placed on the left, other cards curve out to the right
+  const arcArray = [
+    {
+      name: commander?.name || 'Unknown Commander',
+      image: commander?.image || '',
+      isCommander: true
+    },
+    ...validCards.map(c => ({ ...c, isCommander: false }))
+  ];
 
   // URL Helpers
   const getScryfallUrl = (name) => `https://scryfall.com/search?q=!"${encodeURIComponent(name)}"`;
