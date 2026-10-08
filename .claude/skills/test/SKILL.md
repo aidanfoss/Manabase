@@ -1,27 +1,53 @@
 ---
 name: test
-description: Use when the user types /test or asks to spin up a bounded backend and frontend to test manually in the browser.
+description: Use when the user types /test or asks to run tests with Playwright visually so they can watch the app being tested in real-time.
 ---
 
-# Test Local Branch Safely
+# Test with Playwright (Visual UI / Headed Mode)
 
 ## Overview
-Spins up an isolated instance of the backend and frontend on fresh ports without colliding with existing development servers, links local Scryfall bulk data and parsed caches from the main repository (preventing massive dataset re-downloads), and launches the browser to test the active branch or worktree.
+Links local `node_modules`, Scryfall bulk data, and parsed caches from the main repository (preventing massive dataset re-downloads and npm installs), and launches Playwright Test UI (`npm run test:e2e:ui`) so you can see the E2E test suite execute visually in real-time.
 
 ## Implementation
 
-When you are invoked via `/test` or asked to spin up the servers:
+When you are invoked via `/test` or asked to run tests with Playwright:
 
-1. **Find available ports, link Scryfall data, and launch both servers:**
-   Use the `PowerShell` tool to link Scryfall bulk datasets/caches if running inside a worktree, choose random free ports, start the backend and frontend in detached `cmd` windows, and launch the browser.
+1. **Link `node_modules`, Scryfall bulk data/caches, and launch Playwright Test UI:**
+   Use the `PowerShell` tool to link `node_modules` and Scryfall bulk datasets/caches if running inside a worktree, and launch Playwright Test UI (`npm run test:e2e:ui`) in a new detached terminal window.
 
    **Run this exact PowerShell snippet in ONE tool call:**
 
    ```powershell
-   # 1. Link Scryfall bulk data and caches from main repo if in an isolated worktree
+   # 1. Link node_modules and Scryfall data from main repo if in an isolated worktree
    $gitCommon = git rev-parse --git-common-dir 2>$null
    if ($gitCommon) {
        $mainRepo = (Split-Path (Resolve-Path $gitCommon) -Parent)
+       
+       # Link backend node_modules
+       $mainBackMod = Join-Path $mainRepo "backend\node_modules"
+       $targetBackMod = Join-Path (Get-Location) "backend\node_modules"
+       if ((Test-Path $mainBackMod) -and (-not (Test-Path $targetBackMod))) {
+           try {
+               New-Item -ItemType SymbolicLink -Path $targetBackMod -Target $mainBackMod -Force -ErrorAction Stop | Out-Null
+               Write-Host "Linked backend\node_modules"
+           } catch {
+               Write-Warning "Could not link backend\node_modules`: $($_.Exception.Message)"
+           }
+       }
+
+       # Link frontend node_modules
+       $mainFrontMod = Join-Path $mainRepo "frontend\node_modules"
+       $targetFrontMod = Join-Path (Get-Location) "frontend\node_modules"
+       if ((Test-Path $mainFrontMod) -and (-not (Test-Path $targetFrontMod))) {
+           try {
+               New-Item -ItemType SymbolicLink -Path $targetFrontMod -Target $mainFrontMod -Force -ErrorAction Stop | Out-Null
+               Write-Host "Linked frontend\node_modules"
+           } catch {
+               Write-Warning "Could not link frontend\node_modules`: $($_.Exception.Message)"
+           }
+       }
+
+       # Link Scryfall bulk data and caches
        $mainData = Join-Path $mainRepo "backend\data"
        $targetData = if (Test-Path "backend\data") { (Resolve-Path "backend\data").Path } else { (New-Item -ItemType Directory -Path "backend\data" -Force).FullName }
        if ((Test-Path $mainData) -and ($mainData -ne $targetData)) {
@@ -46,35 +72,13 @@ When you are invoked via `/test` or asked to spin up the servers:
        }
    }
 
-   # 2. Find Random Free Ports
-   $backPort = Get-Random -Minimum 8000 -Maximum 9000
-   $frontPort = Get-Random -Minimum 5000 -Maximum 6000
-
-   Write-Host "Chosen Backend Port: $backPort"
-   Write-Host "Chosen Frontend Port: $frontPort"
-
-   # 3. Launch Backend
-   $env:PORT = $backPort
-   $env:NODE_ENV = "development"
-   $env:ENABLE_DEV_LOGIN = "true"
-   # Start the backend in a new detached terminal 
-   Start-Process cmd -ArgumentList "/k", "title Backend (Port $backPort) && cd backend && npm.cmd start"
-
-   # 4. Launch Frontend
-   $env:VITE_API_BASE = "http://localhost:$backPort"
-   # Start the frontend in a new detached terminal
-   Start-Process cmd -ArgumentList "/k", "title Frontend (Port $frontPort) && cd frontend && npm.cmd run dev -- --port $frontPort"
-
-   # 5. Give the frontend a few seconds to start, then open the browser
-   Start-Sleep -Seconds 3
-   Start-Process "http://localhost:$frontPort"
+   # 2. Launch Playwright Test UI (interactive dashboard where you can see tests run, watch browser actions, inspect state, etc.)
+   Start-Process cmd -ArgumentList "/k", "title Playwright Test UI && npm.cmd run test:e2e:ui"
    ```
 
 2. **Wait for confirmation:**
-   The servers will launch in new detached terminal windows. Tell the user the servers are running on the chosen ports, Scryfall data is linked, and the browser has been opened.
+   Tell the user that `node_modules` and Scryfall data have been linked (if applicable) and Playwright Test UI has been launched in a new terminal window so they can watch the E2E tests run visually.
 
 ## Red Flags
-- **DO NOT** skip linking Scryfall bulk data/caches in worktrees; without it, the backend will attempt a ~550MB download on boot.
-- **DO NOT** use default ports 8080 and 5173, as they will collide if the user has the main branch running.
-- **DO NOT** run the servers in the foreground or background inside the Claude process itself via `monitor` or `run_in_background` with `npm`—use `Start-Process cmd` so they have their own command prompt windows that the user can close manually.
-- **DO NOT** skip `$env:ENABLE_DEV_LOGIN = "true"`; it is required for local dev login capability.
+- **DO NOT** skip linking `node_modules` and Scryfall bulk data/caches in worktrees; without them, backend/frontend startup fails or attempts massive downloads/installs.
+- **DO NOT** run tests blindly without UI or headed mode when the user wants to see it test. Use `npm run test:e2e:ui` (`playwright test --ui`) so the test execution is fully visual and interactive.
