@@ -35,11 +35,6 @@ export default function BuilderAnimationShowcase() {
 
   return (
     <div className="builder-anim-container">
-      <div className="builder-anim-header">
-        <h3 className="builder-anim-title">Optimize Your Manabase</h3>
-        <p className="builder-anim-subtitle">Automatically identify slow lands and upgrade them to optimal duals.</p>
-      </div>
-
       <div className="builder-anim-stage">
         {/* Scanner Line */}
         <div className={`scanner-line ${phase === 'scanning' ? 'active' : ''}`}></div>

@@ -14,6 +14,8 @@ import {
   Squares2X2Icon
 } from "@heroicons/react/24/solid";
 import CardMagnifier from "../components/CardMagnifier";
+import LandPreferencesBar from "../components/land-suggester/LandPreferencesBar";
+import LandSuggesterConfigModal from "../components/land-suggester/LandSuggesterConfigModal";
 import { useToast } from "../context/ToastContext";
 import "./DeckUpdater.css";
 
@@ -28,6 +30,18 @@ export default function DeckUpdater() {
   const [activeFilter, setActiveFilter] = useState("all"); // "all" | "upgrades" | "lands" | "new" | "synergy"
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Land Preferences & Configuration states
+  const [landPreferences, setLandPreferences] = useState({
+    budgetTier: "budget",
+    maxPricePerLand: null,
+    excludeReservedList: true,
+    excludeTapped: true,
+    likedCycles: [],
+    dislikedCycles: []
+  });
+  const [isLandConfigOpen, setIsLandConfigOpen] = useState(false);
+  const [isSavingLandPrefs, setIsSavingLandPrefs] = useState(false);
+
   // Dismissals & Undo states
   const [showOptions, setShowOptions] = useState(false);
   const [dismissals, setDismissals] = useState([]);
@@ -38,8 +52,27 @@ export default function DeckUpdater() {
   const { showToast } = useToast();
 
   useEffect(() => {
+    fetchLandPreferences();
     fetchAllDecksAnalysis();
   }, []);
+
+  const fetchLandPreferences = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await fetch("/api/deck-updater/land-preferences", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.preferences) {
+          setLandPreferences(data.preferences);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load land preferences:", e);
+    }
+  };
 
   const fetchAllDecksAnalysis = async (isManualRefresh = false) => {
     const token = localStorage.getItem("token");
@@ -70,6 +103,66 @@ export default function DeckUpdater() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleSaveLandPreferences = async (newPreferences) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setIsSavingLandPrefs(true);
+    try {
+      const res = await fetch("/api/deck-updater/land-preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences: newPreferences })
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setLandPreferences(result.preferences || newPreferences);
+        setIsLandConfigOpen(false);
+        showToast("Land preferences updated successfully!", "success");
+        // Re-analyze all decks with new preferences
+        await fetchAllDecksAnalysis(true);
+      } else {
+        showToast("Failed to save land preferences", "error");
+      }
+    } catch (e) {
+      console.error("Error saving land preferences:", e);
+      showToast("Network error saving preferences", "error");
+    } finally {
+      setIsSavingLandPrefs(false);
+    }
+  };
+
+  const handleQuickChangeBudget = async (tierId, maxPrice) => {
+    const updated = {
+      ...landPreferences,
+      budgetTier: tierId,
+      maxPricePerLand: maxPrice
+    };
+    setLandPreferences(updated);
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      await fetch("/api/deck-updater/land-preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences: updated })
+      });
+      showToast(`Budget changed to ${tierId === "all" ? "Unlimited" : `< $${maxPrice}`}`, "info");
+      fetchAllDecksAnalysis(true);
+    } catch (e) {
+      console.error("Failed to quick update budget tier:", e);
     }
   };
 
@@ -110,6 +203,7 @@ export default function DeckUpdater() {
           highSynergy: (deck.edhrec?.highSynergy || []).filter(c => `edhrec_synergy:${c.name}` !== suggestionId)
         },
         landUpgrades: deck.landUpgrades ? {
+          ...deck.landUpgrades,
           cuts: (deck.landUpgrades.cuts || []).filter(c => `land_cut:${c.name}` !== suggestionId),
           adds: (deck.landUpgrades.adds || []).filter(a => `land_add:${a.name}` !== suggestionId)
         } : deck.landUpgrades
@@ -394,18 +488,6 @@ export default function DeckUpdater() {
             <span className="kpi-label">High Synergy</span>
           </div>
         </div>
-
-        <div className="kpi-card neutral">
-          <div className="kpi-icon-wrap emerald">
-            <CheckCircleIcon className="icon-md" />
-          </div>
-          <div className="kpi-info">
-            <span className="kpi-value">
-              {summaryMetrics.decksWithCandidates} / {summaryMetrics.totalDecks}
-            </span>
-            <span className="kpi-label">Decks with Updates</span>
-          </div>
-        </div>
       </section>
 
       {/* Deck Selector Filter Bar */}
@@ -519,6 +601,16 @@ export default function DeckUpdater() {
           )}
         </div>
       </section>
+
+      {/* Land Base Preference Quick Bar (rendered when Land Base is visible) */}
+      {(activeFilter === "all" || activeFilter === "lands") && (
+        <LandPreferencesBar
+          preferences={landPreferences}
+          onOpenConfigModal={() => setIsLandConfigOpen(true)}
+          onQuickChangeBudget={handleQuickChangeBudget}
+          isLoading={refreshing}
+        />
+      )}
 
       {/* Main Content Area */}
       {filteredDecks.length === 0 ? (
@@ -826,6 +918,9 @@ export default function DeckUpdater() {
                                       <div className="triage-placeholder">{card.name}</div>
                                     )}
                                     <div className="triage-floating-meta">
+                                      <span className="price-tag">
+                                        {card.price !== null && card.price !== undefined ? `$${card.price.toFixed(2)}` : "--"}
+                                      </span>
                                       {card.tier && (
                                         <span className="tier-badge">{card.tier.toUpperCase()}</span>
                                       )}
@@ -1034,6 +1129,15 @@ export default function DeckUpdater() {
           </button>
         </aside>
       )}
+
+      {/* Land Suggester Configuration Modal */}
+      <LandSuggesterConfigModal
+        isOpen={isLandConfigOpen}
+        onClose={() => setIsLandConfigOpen(false)}
+        initialPreferences={landPreferences}
+        onSavePreferences={handleSaveLandPreferences}
+        isSaving={isSavingLandPrefs}
+      />
 
       {/* Review History / Passed Cards Modal */}
       {showOptions && (

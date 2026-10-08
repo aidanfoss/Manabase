@@ -1,18 +1,14 @@
 .builder-anim-container {
   margin: 4rem auto;
   max-width: 1000px;
-  padding: 3rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 24px;
-  backdrop-filter: blur(10px);
+  padding: 2rem 0;
   text-align: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .builder-anim-header {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .builder-anim-title {
