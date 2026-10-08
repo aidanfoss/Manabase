@@ -37,6 +37,7 @@ function loadLandcycles() {
 }
 
 export function analyzeLands(commanderName, deckCardNames) {
+  console.log(`[LandAnalyzer] Analyzing for commander: ${commanderName}`);
   const cardsCache = loadScryfallCache();
   const landCycles = loadLandcycles();
 
@@ -54,10 +55,12 @@ export function analyzeLands(commanderName, deckCardNames) {
 
   // Ensure card names subset
   const deckSet = new Set(deckCardNames.map(n => n.toLowerCase()));
+  console.log(`[LandAnalyzer] Deck has ${deckSet.size} unique cards.`);
 
   // Find the commander
   let commanderIdentity = new Set();
   const commanderCard = cardsCache.find(c => c.name.toLowerCase() === (commanderName || '').toLowerCase());
+  console.log(`[LandAnalyzer] Commander card found: ${!!commanderCard}`);
 
   if (commanderCard && commanderCard.color_identity) {
     commanderCard.color_identity.forEach(color => commanderIdentity.add(color));
@@ -72,6 +75,7 @@ export function analyzeLands(commanderName, deckCardNames) {
 
   // Colorless commanders have size 0 identity, which is tricky. Let's make an array to easily pass around.
   const deckColors = Array.from(commanderIdentity);
+  console.log(`[LandAnalyzer] Detected colors: ${deckColors.join(', ')}`);
 
   const deckLands = [];
   cardsCache.forEach(c => {
@@ -79,6 +83,7 @@ export function analyzeLands(commanderName, deckCardNames) {
       deckLands.push(c);
     }
   });
+  console.log(`[LandAnalyzer] Found ${deckLands.length} lands in deck: ${deckLands.map(l => l.name).join(', ')}`);
 
   const cuts = [];
   const adds = [];
@@ -86,6 +91,8 @@ export function analyzeLands(commanderName, deckCardNames) {
   // Identify cuts
   deckLands.forEach(land => {
     const cycleData = cycleLookup[land.name.toLowerCase()];
+    console.log(`[LandAnalyzer] Land: ${land.name}, cycleData: ${!!cycleData}`);
+
     if (cycleData && cycleData.tier === "bottom") {
       cuts.push({
         name: land.name,
