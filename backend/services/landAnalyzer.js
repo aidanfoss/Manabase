@@ -8,19 +8,156 @@ const LANDCYCLES_FILE = path.join(__dirname, "../data/landcycles.json");
 const SCRYFALL_CACHE_FILE = path.join(__dirname, "../data/scryfall-parsed-cache.json");
 
 let landcyclesCache = null;
-let scryfallCache = null;
+let scryfallMapCache = null;
+let scryfallArrayCache = null;
 
-function loadScryfallCache() {
-  if (scryfallCache) return scryfallCache;
+// Explicit color mappings for cycles with colorless color_identity (fetches, landscapes, etc.)
+export const LAND_COLOR_REQUIREMENTS = {
+  // Fetchlands (exact 2 fetched colors)
+  "arid mesa": ["W", "R"],
+  "bloodstained mire": ["B", "R"],
+  "flooded strand": ["W", "U"],
+  "marsh flats": ["W", "B"],
+  "misty rainforest": ["U", "G"],
+  "polluted delta": ["U", "B"],
+  "scalding tarn": ["U", "R"],
+  "verdant catacombs": ["B", "G"],
+  "windswept heath": ["W", "G"],
+  "wooded foothills": ["R", "G"],
+  "prismatic vista": [],
+  "fabled passage": [],
+
+  // MH3 Landscapes (3 colors)
+  "bountiful landscape": ["W", "U", "G"],
+  "contaminated landscape": ["U", "B", "R"],
+  "deceptive landscape": ["G", "W", "U"],
+  "foreboding landscape": ["B", "R", "G"],
+  "perilous landscape": ["R", "G", "W"],
+  "seething landscape": ["B", "R", "G"],
+  "shattered landscape": ["W", "B", "R"],
+  "sheltering landscape": ["G", "W", "B"],
+  "tranquil landscape": ["W", "U", "B"],
+  "twisted landscape": ["U", "B", "G"],
+
+  // ABU Dual Lands (OG Duals)
+  "badlands": ["B", "R"],
+  "bayou": ["B", "G"],
+  "plateau": ["W", "R"],
+  "savannah": ["W", "G"],
+  "scrubland": ["W", "B"],
+  "taiga": ["R", "G"],
+  "tropical island": ["U", "G"],
+  "tundra": ["W", "U"],
+  "underground sea": ["U", "B"],
+  "volcanic island": ["U", "R"],
+
+  // Shards Panoramas (3 colors)
+  "bant panorama": ["G", "W", "U"],
+  "esper panorama": ["W", "U", "B"],
+  "grixis panorama": ["U", "B", "R"],
+  "jund panorama": ["B", "R", "G"],
+  "naya panorama": ["R", "G", "W"],
+
+  // Triomes & New Capenna 3-color lands
+  "indatha triome": ["W", "B", "G"],
+  "ketria triome": ["G", "U", "R"],
+  "raugrin triome": ["U", "R", "W"],
+  "savai triome": ["R", "W", "B"],
+  "zagoth triome": ["B", "G", "U"],
+  "jetmir's garden": ["R", "G", "W"],
+  "raffine's tower": ["W", "U", "B"],
+  "spara's headquarters": ["G", "W", "U"],
+  "xander's lounge": ["U", "B", "R"],
+  "ziatora's proving ground": ["B", "R", "G"]
+};
+
+// Reserved List lands (OG ABU Duals, etc.)
+export const RESERVED_LIST_LANDS = new Set([
+  "badlands",
+  "bayou",
+  "plateau",
+  "savannah",
+  "scrubland",
+  "taiga",
+  "tropical island",
+  "tundra",
+  "underground sea",
+  "volcanic island",
+  "lake of the dead",
+  "volrath's stronghold",
+  "diamond valley",
+  "bazaar of baghdad",
+  "the tabernacle at pendrell vale",
+  "scorched ruins",
+  "city of shadows"
+]);
+
+// Cycle priority scores for sorting recommendations (higher = higher recommendation priority)
+export const CYCLE_PRIORITY_SCORES = {
+  "cycle-rav-shockland": 100,
+  "cycle-abu-dual-land": 98,
+  "cycle-bondland": 95,
+  "cycle-fetchland": 90,
+  "cycle-dual-surveil-land": 88,
+  "cycle-painland": 85,
+  "cycle-slowland": 82,
+  "cycle-fastland": 80,
+  "cycle-hybrid-filterland": 78,
+  "cycle-pathway": 76,
+  "cycle-checkland": 75,
+  "cycle-verge": 74,
+  "cycle-horizon-land": 72,
+  "tricycle-land": 70,
+  "cycle-tangoland": 68,
+  "cycle-mh3-landscape": 65,
+  "cycle-ody-filterland": 60,
+  "cycle-reveal-land": 58,
+  "cycle-tor-tainted-land": 55,
+  "cycle-restless-land": 52,
+  "cycle-rav-bounceland": 45,
+  "cycle-block-ths-scry-land": 40,
+  "cycle-ala-panorama": 35,
+  "cycle-mrd-artifact-land": 30
+};
+
+// Budget tier price thresholds (USD)
+export const BUDGET_TIER_THRESHOLDS = {
+  ultra_budget: 1.0,
+  budget: 3.5,
+  mid: 10.0,
+  high: 25.0,
+  all: Infinity
+};
+
+function loadScryfallData() {
+  if (scryfallMapCache && scryfallArrayCache) {
+    return { map: scryfallMapCache, array: scryfallArrayCache };
+  }
+
+  const map = new Map();
+  const array = [];
+
   if (fs.existsSync(SCRYFALL_CACHE_FILE)) {
     try {
-      scryfallCache = JSON.parse(fs.readFileSync(SCRYFALL_CACHE_FILE, "utf-8"));
-      return scryfallCache;
+      const raw = JSON.parse(fs.readFileSync(SCRYFALL_CACHE_FILE, "utf-8"));
+      if (Array.isArray(raw)) {
+        for (const card of raw) {
+          if (!card || !card.name) continue;
+          const key = card.name.toLowerCase();
+          if (!map.has(key)) {
+            map.set(key, card);
+            array.push(card);
+          }
+        }
+      }
     } catch (e) {
       console.error("Error loading scryfall cache in landAnalyzer", e);
     }
   }
-  return [];
+
+  scryfallMapCache = map;
+  scryfallArrayCache = array;
+  return { map, array };
 }
 
 function loadLandcycles() {
@@ -30,139 +167,346 @@ function loadLandcycles() {
       landcyclesCache = JSON.parse(fs.readFileSync(LANDCYCLES_FILE, "utf-8"));
       return landcyclesCache;
     } catch (e) {
-      console.error("Error loading land cycles", e);
+      console.error("Error loading land cycles in landAnalyzer", e);
     }
   }
   return [];
 }
 
-export function analyzeLands(commanderName, deckCardNames) {
-  console.log(`[LandAnalyzer] Analyzing for commander: ${commanderName}`);
-  const cardsCache = loadScryfallCache();
-  const landCycles = loadLandcycles();
-
-  // Create lookup for cycles
-  const cycleLookup = {};
-  landCycles.forEach(cycle => {
-    cycle.cards.forEach(cardName => {
-      cycleLookup[cardName.toLowerCase()] = {
-        cycleName: cycle.name,
-        tier: cycle.tier,
-        id: cycle.id
-      };
-    });
-  });
-
-  // Ensure card names subset
-  const deckSet = new Set(deckCardNames.map(n => n.toLowerCase()));
-  console.log(`[LandAnalyzer] Deck has ${deckSet.size} unique cards.`);
-
-  // Find the commander
-  let commanderIdentity = new Set();
-  const commanderCard = cardsCache.find(c => c.name.toLowerCase() === (commanderName || '').toLowerCase());
-  console.log(`[LandAnalyzer] Commander card found: ${!!commanderCard}`);
-
-  if (commanderCard && commanderCard.color_identity) {
-    commanderCard.color_identity.forEach(color => commanderIdentity.add(color));
-  } else {
-    // If no commander, compute identity from the deck
-    cardsCache.forEach(c => {
-      if (deckSet.has(c.name.toLowerCase()) && c.color_identity) {
-        c.color_identity.forEach(color => commanderIdentity.add(color));
-      }
-    });
+/**
+ * Parses commander names (handles partner / background commanders) and extracts color identity.
+ */
+function extractCommanderColors(commanderName, cardMap, deckCardNames) {
+  const colors = new Set();
+  if (!commanderName || typeof commanderName !== "string") {
+    return inferDeckColors(deckCardNames, cardMap);
   }
 
-  // Colorless commanders have size 0 identity, which is tricky. Let's make an array to easily pass around.
-  const deckColors = Array.from(commanderIdentity);
-  console.log(`[LandAnalyzer] Detected colors: ${deckColors.join(', ')}`);
+  // Handle partner commanders e.g. "Thrasios, Triton Hero / Tymna the Weaver" or "Thrasios, Triton Hero // Tymna the Weaver"
+  const parts = commanderName.split(/\s*(?:\/|\/\/|\+)\s*/).map(p => p.trim()).filter(Boolean);
+  let foundAny = false;
 
-  const deckLands = [];
-  cardsCache.forEach(c => {
-    if (deckSet.has(c.name.toLowerCase()) && c.type_line && c.type_line.includes("Land")) {
-      deckLands.push(c);
+  for (const part of parts) {
+    const card = cardMap.get(part.toLowerCase());
+    if (card && Array.isArray(card.color_identity)) {
+      foundAny = true;
+      card.color_identity.forEach(c => colors.add(c.toUpperCase()));
     }
-  });
-  console.log(`[LandAnalyzer] Found ${deckLands.length} lands in deck: ${deckLands.map(l => l.name).join(', ')}`);
+  }
 
-  const cuts = [];
-  const adds = [];
+  if (foundAny) {
+    return Array.from(colors);
+  }
 
-  // Identify cuts
-  deckLands.forEach(land => {
-    const cycleData = cycleLookup[land.name.toLowerCase()];
-    console.log(`[LandAnalyzer] Land: ${land.name}, cycleData: ${!!cycleData}`);
+  return inferDeckColors(deckCardNames, cardMap);
+}
 
-    if (cycleData && cycleData.tier === "bottom") {
-      cuts.push({
-        name: land.name,
-        reason: `bottom tier land cycle (${cycleData.cycleName})`,
-        image_uri: land.image_uris ? land.image_uris.normal : null
-      });
-    } else if (land.type_line && land.type_line.includes("Gate") && !commanderCard?.name?.includes("Nine-Fingers")) {
-       cuts.push({
-         name: land.name,
-         reason: "enters tapped / Guildgate",
-         image_uri: land.image_uris ? land.image_uris.normal : null
-       });
+/**
+ * Fallback to infer deck colors from distinct deck cards.
+ */
+function inferDeckColors(deckCardNames, cardMap) {
+  const colors = new Set();
+  for (const name of deckCardNames) {
+    const card = cardMap.get(name.toLowerCase());
+    if (card && Array.isArray(card.color_identity)) {
+      card.color_identity.forEach(c => colors.add(c.toUpperCase()));
     }
-  });
+  }
+  return Array.from(colors);
+}
 
-  // Identify adds
-  // We want to suggest lands from "top" tier cycles
-  // if their color identity is a subset of the deck's color identity.
-  const topCycles = landCycles.filter(c => c.tier === "top" && c.cards && c.cards.length > 0);
+/**
+ * Gets the required colors for a land card.
+ */
+export function getLandRequiredColors(cardName, card) {
+  const lower = cardName.toLowerCase();
+  if (LAND_COLOR_REQUIREMENTS[lower] !== undefined) {
+    return LAND_COLOR_REQUIREMENTS[lower];
+  }
 
-  topCycles.forEach(cycle => {
-    cycle.cards.forEach(cardName => {
-      // Find card in cache
-      const cardRef = cardsCache.find(c => c.name.toLowerCase() === cardName.toLowerCase());
-      if (!cardRef) return;
+  if (card && Array.isArray(card.color_identity) && card.color_identity.length > 0) {
+    return card.color_identity.map(c => c.toUpperCase());
+  }
 
-      // If already in deck, skip
-      if (deckSet.has(cardName.toLowerCase())) return;
+  return [];
+}
 
-      // Check color identity: card color identity must be subset of deck color identity
-      let isSubset = true;
-      if (cardRef.color_identity && cardRef.color_identity.length > 0) {
-        for (const ci of cardRef.color_identity) {
-          if (!deckColors.includes(ci)) {
-            isSubset = false;
-            break;
-          }
-        }
-      } else if (cardRef.oracle_text || cardRef.type_line) {
-         // for fetch lands and similar, they don't have color identity (they're colorless)
-         // we might need to look at what they produce or fetch
-         const magicColors = ['white', 'blue', 'black', 'red', 'green', 'plains', 'island', 'swamp', 'mountain', 'forest'];
-         const text = ((cardRef.oracle_text || '') + ' ' + (cardRef.type_line || '')).toLowerCase();
-         // Basic matching for fetchlands: if it name-drops basic types the deck doesn't have, it's probably wrong.
-         let matchingWords = 0;
-         let mismatchingWords = 0;
-         const typeMap = { 'plains': 'W', 'island': 'U', 'swamp': 'B', 'mountain': 'R', 'forest': 'G' };
-         for (const [word, color] of Object.entries(typeMap)) {
-           if (text.includes(word)) {
-             if (deckColors.includes(color)) matchingWords++;
-             else mismatchingWords++;
-           }
-         }
+/**
+ * Checks if a land's color requirements are a valid subset of the deck's color identity.
+ */
+export function isLandColorCompatible(cardName, card, deckColors) {
+  const reqColors = getLandRequiredColors(cardName, card);
 
-         // If it specifically references basic types and NONE are in our deck, drop it.
-         if (mismatchingWords > 0 && matchingWords === 0 && cycle.name.toLowerCase().includes('fetch')) {
-           isSubset = false;
-         }
-      }
+  // Colorless lands (e.g. Reliquary Tower, Command Tower, Prismatic Vista) are always compatible
+  if (reqColors.length === 0) {
+    return true;
+  }
 
-      if (isSubset) {
-        adds.push({
-          name: cardRef.name,
-          cycle: cycle.name,
+  // Dual or multi-color lands in a 1-color deck: skip dual/multi lands requiring multiple colors
+  if (deckColors.length < reqColors.length && reqColors.length > 1) {
+    return false;
+  }
+
+  // Every required color must be in the deck's color identity
+  return reqColors.every(color => deckColors.includes(color));
+}
+
+/**
+ * Core land analyzer function supporting user preferences, budget tiers, and deduplicated recommendations.
+ *
+ * @param {string} commanderName - Commander name (or combined partner names)
+ * @param {string[]} deckCardNames - Array of card names in the deck
+ * @param {object} [options={}] - Custom configuration/preferences
+ * @param {string} [options.budgetTier='all'] - 'all' | 'high' | 'mid' | 'budget' | 'ultra_budget'
+ * @param {number|null} [options.maxPricePerLand=null] - Maximum USD price per land
+ * @param {boolean} [options.excludeReservedList=true] - Exclude ABU Duals and Reserved List lands
+ * @param {boolean} [options.excludeTapped=true] - Exclude generic tapped lands from adds, suggest cutting them
+ * @param {string[]} [options.likedCycles=[]] - Explicitly included cycle IDs or names
+ * @param {string[]} [options.dislikedCycles=[]] - Explicitly excluded cycle IDs or names
+ * @param {number} [options.maxSuggestions=14] - Maximum number of suggested adds
+ */
+export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
+  const { map: cardMap } = loadScryfallData();
+  const landCycles = loadLandcycles();
+
+  const deckNamesSet = new Set(
+    (deckCardNames || []).map(n => (typeof n === "string" ? n.toLowerCase() : ""))
+  );
+
+  // Determine preferences with sensible defaults
+  const budgetTier = options.budgetTier || "all";
+  const budgetThreshold =
+    options.maxPricePerLand !== null && options.maxPricePerLand !== undefined
+      ? parseFloat(options.maxPricePerLand)
+      : BUDGET_TIER_THRESHOLDS[budgetTier] || Infinity;
+
+  const isBudgetRestricted = budgetTier !== "all" || budgetThreshold < 100;
+  const excludeReservedList =
+    options.excludeReservedList !== undefined
+      ? !!options.excludeReservedList
+      : isBudgetRestricted; // default true if budget-conscious, false if unlimited
+
+  const excludeTapped = options.excludeTapped !== undefined ? !!options.excludeTapped : true;
+
+  const likedCyclesSet = new Set(
+    (options.likedCycles || []).map(c => c.toLowerCase())
+  );
+  const dislikedCyclesSet = new Set(
+    (options.dislikedCycles || []).map(c => c.toLowerCase())
+  );
+
+  const maxSuggestions = options.maxSuggestions || 14;
+
+  // 1. Determine Deck Color Identity
+  const deckColors = extractCommanderColors(commanderName, cardMap, deckCardNames);
+
+  // 2. Build Cycle Lookup Maps
+  // cardLower -> { cycleId, cycleName, tier, fetchable }
+  const cycleLookup = new Map();
+  for (const cycle of landCycles) {
+    const cycleId = (cycle.id || "").toLowerCase();
+    const cycleName = (cycle.name || "").toLowerCase();
+    const cards = Array.isArray(cycle.cards) ? cycle.cards : [];
+
+    for (const cardItem of cards) {
+      const cardName = typeof cardItem === "string" ? cardItem : cardItem?.name;
+      if (!cardName) continue;
+      const key = cardName.toLowerCase();
+      if (!cycleLookup.has(key)) {
+        cycleLookup.set(key, {
+          cycleId: cycle.id,
+          cycleName: cycle.name,
           tier: cycle.tier,
-          image_uri: cardRef.image_uris ? cardRef.image_uris.normal : null
+          fetchable: !!cycle.fetchable
         });
       }
-    });
-  });
+    }
+  }
 
-  return { cuts, adds, colorIdentity: deckColors };
+  // 3. Identify Unique Lands in the Deck
+  const deckLands = [];
+  const seenDeckLandNames = new Set();
+
+  for (const rawName of deckCardNames) {
+    if (!rawName || typeof rawName !== "string") continue;
+    const lower = rawName.toLowerCase();
+    if (seenDeckLandNames.has(lower)) continue;
+
+    const card = cardMap.get(lower);
+    const isLand =
+      (card && card.type_line && card.type_line.includes("Land")) ||
+      cycleLookup.has(lower);
+
+    if (isLand) {
+      seenDeckLandNames.add(lower);
+      deckLands.push({
+        name: card ? card.name : rawName,
+        lower,
+        card
+      });
+    }
+  }
+
+  // 4. Identify Suggested Cuts (Deduplicated)
+  const cuts = [];
+  const seenCutNames = new Set();
+
+  const isNineFingersKeene =
+    commanderName && commanderName.toLowerCase().includes("nine-fingers keene");
+
+  for (const deckLand of deckLands) {
+    const { name, lower, card } = deckLand;
+    if (seenCutNames.has(lower)) continue;
+
+    const cycleData = cycleLookup.get(lower);
+    const cycleIdLower = cycleData ? cycleData.cycleId.toLowerCase() : "";
+    const cycleNameLower = cycleData ? cycleData.cycleName.toLowerCase() : "";
+
+    const isDislikedCycle =
+      dislikedCyclesSet.has(cycleIdLower) || dislikedCyclesSet.has(cycleNameLower);
+    const isLikedCycle =
+      likedCyclesSet.has(cycleIdLower) || likedCyclesSet.has(cycleNameLower);
+
+    let cutReason = null;
+
+    if (isDislikedCycle) {
+      cutReason = `Disliked cycle (${cycleData.cycleName})`;
+    } else if (isLikedCycle) {
+      // User explicitly likes this cycle, do not suggest cutting it
+      continue;
+    } else if (
+      cycleData &&
+      cycleData.tier === "bottom" &&
+      !isLikedCycle
+    ) {
+      cutReason = `Enters tapped / low tempo (${cycleData.cycleName})`;
+    } else if (
+      card &&
+      card.type_line &&
+      card.type_line.includes("Gate") &&
+      !isNineFingersKeene
+    ) {
+      cutReason = "Enters tapped Guildgate";
+    } else if (
+      excludeTapped &&
+      cycleData &&
+      (cycleNameLower.includes("gainland") ||
+        cycleNameLower.includes("tapland") ||
+        cycleNameLower.includes("campus") ||
+        cycleNameLower.includes("refugeland"))
+    ) {
+      cutReason = `Enters tapped (${cycleData.cycleName})`;
+    }
+
+    if (cutReason) {
+      seenCutNames.add(lower);
+      cuts.push({
+        name: card ? card.name : name,
+        reason: cutReason,
+        cycle: cycleData ? cycleData.cycleName : null,
+        tier: cycleData ? cycleData.tier : "bottom",
+        image_uri: card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.normal || null
+      });
+    }
+  }
+
+  // 5. Identify Suggested Adds (Deduplicated, Color-Matching, Budget-Conscious)
+  const candidateAdds = [];
+  const seenAddNames = new Set();
+
+  for (const cycle of landCycles) {
+    const cycleIdLower = (cycle.id || "").toLowerCase();
+    const cycleNameLower = (cycle.name || "").toLowerCase();
+
+    // Check if this cycle is disliked / excluded
+    if (dislikedCyclesSet.has(cycleIdLower) || dislikedCyclesSet.has(cycleNameLower)) {
+      continue;
+    }
+
+    // Check Reserved List exclusion
+    if (excludeReservedList && cycleIdLower.includes("abu-dual")) {
+      continue;
+    }
+
+    // Check Tapped exclusion
+    if (
+      excludeTapped &&
+      cycle.tier === "bottom" &&
+      !likedCyclesSet.has(cycleIdLower) &&
+      !likedCyclesSet.has(cycleNameLower)
+    ) {
+      continue;
+    }
+
+    const cards = Array.isArray(cycle.cards) ? cycle.cards : [];
+    const isExplicitlyLiked =
+      likedCyclesSet.has(cycleIdLower) || likedCyclesSet.has(cycleNameLower);
+
+    for (const cardItem of cards) {
+      const cardName = typeof cardItem === "string" ? cardItem : cardItem?.name;
+      if (!cardName) continue;
+      const lower = cardName.toLowerCase();
+
+      // Skip if already in deck or already candidate
+      if (deckNamesSet.has(lower) || seenAddNames.has(lower)) {
+        continue;
+      }
+
+      // Check Reserved List on individual card
+      if (excludeReservedList && RESERVED_LIST_LANDS.has(lower)) {
+        continue;
+      }
+
+      const card = cardMap.get(lower);
+
+      // Color compatibility check (strict on-color)
+      if (!isLandColorCompatible(cardName, card, deckColors)) {
+        continue;
+      }
+
+      // Estimate card price for budget checks if available
+      const rawPrice = card?.prices?.usd || card?.prices?.usd_foil || null;
+      const priceNum = rawPrice ? parseFloat(rawPrice) : null;
+
+      if (priceNum !== null && priceNum > budgetThreshold) {
+        // Exceeds user budget threshold
+        continue;
+      }
+
+      // Calculate priority score for recommendation ordering
+      let basePriority = CYCLE_PRIORITY_SCORES[cycle.id] || 50;
+      if (cycle.tier === "top") basePriority += 20;
+      if (cycle.tier === "bottom") basePriority -= 30;
+      if (isExplicitlyLiked) basePriority += 200; // Boost explicitly liked cycles
+
+      seenAddNames.add(lower);
+      candidateAdds.push({
+        name: card ? card.name : cardName,
+        cycle: cycle.name,
+        tier: cycle.tier || "mid",
+        image_uri: card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.normal || null,
+        priority: basePriority,
+        price: priceNum
+      });
+    }
+  }
+
+  // Sort candidate adds by priority score descending
+  candidateAdds.sort((a, b) => b.priority - a.priority);
+
+  const adds = candidateAdds.slice(0, maxSuggestions);
+
+  return {
+    cuts,
+    adds,
+    colorIdentity: deckColors,
+    preferencesApplied: {
+      budgetTier,
+      budgetThreshold: isFinite(budgetThreshold) ? budgetThreshold : null,
+      excludeReservedList,
+      excludeTapped,
+      likedCyclesCount: likedCyclesSet.size,
+      dislikedCyclesCount: dislikedCyclesSet.size
+    }
+  };
 }

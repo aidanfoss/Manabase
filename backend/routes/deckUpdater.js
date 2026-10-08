@@ -7,8 +7,71 @@ import { fetchMoxfieldDeck } from "../services/moxfieldSync.js";
 import axios from "axios";
 import { analyzeLands } from "../services/landAnalyzer.js";
 
-
 const router = express.Router();
+
+const DEFAULT_LAND_PREFERENCES = {
+  budgetTier: "all",
+  maxPricePerLand: null,
+  excludeReservedList: true,
+  excludeTapped: true,
+  likedCycles: [],
+  dislikedCycles: []
+};
+
+async function getUserLandPreferences(userId) {
+  try {
+    const row = await db("user_land_preferences").where({ user_id: userId }).first();
+    if (row && row.preferences) {
+      const parsed = typeof row.preferences === "string" ? JSON.parse(row.preferences) : row.preferences;
+      return { ...DEFAULT_LAND_PREFERENCES, ...parsed };
+    }
+  } catch (e) {
+    console.warn("Could not fetch user land preferences:", e.message);
+  }
+  return { ...DEFAULT_LAND_PREFERENCES };
+}
+
+// GET /api/deck-updater/land-preferences
+router.get("/land-preferences", requireAuth, async (req, res) => {
+  try {
+    const preferences = await getUserLandPreferences(req.user.id);
+    res.json({ preferences });
+  } catch (error) {
+    console.error("Failed to fetch land preferences:", error.message);
+    res.status(500).json({ error: "Failed to fetch land preferences" });
+  }
+});
+
+// PUT & POST /api/deck-updater/land-preferences
+const saveLandPreferences = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const preferences = req.body.preferences || req.body;
+
+    const existing = await db("user_land_preferences").where({ user_id: userId }).first();
+    if (existing) {
+      await db("user_land_preferences")
+        .where({ user_id: userId })
+        .update({
+          preferences: JSON.stringify(preferences),
+          updated_at: new Date()
+        });
+    } else {
+      await db("user_land_preferences").insert({
+        user_id: userId,
+        preferences: JSON.stringify(preferences)
+      });
+    }
+
+    res.json({ success: true, preferences });
+  } catch (error) {
+    console.error("Failed to save land preferences:", error.message);
+    res.status(500).json({ error: "Failed to save land preferences" });
+  }
+};
+
+router.put("/land-preferences", requireAuth, saveLandPreferences);
+router.post("/land-preferences", requireAuth, saveLandPreferences);
 
 // GET /api/deck-updater/decks
 // Get a list of the user's cached decks with commanders
@@ -24,9 +87,7 @@ router.get("/decks", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/deck-updater/analyze-all
-// Analyzes all user decks using DB cached items and returns a summary
-router.get("/analyze-all", requireAuth, async (req, res) => {
+async function runAnalyzeAll(req, res, customPreferences = null) {
   try {
     const userId = req.user.id;
     const decks = await db("user_archidekt_decks")
@@ -36,10 +97,32 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
     // Fetch user dismissals
     const userDismissals = await db("user_deck_dismissals")
       .where({ user_id: userId });
-      
+
     const dismissalsSet = new Set(
       userDismissals.map(d => `${d.deck_id}::${d.suggestion_id}`)
     );
+
+    // Resolve land preferences
+    const dbPreferences = await getUserLandPreferences(userId);
+    let resolvedLandPreferences = { ...dbPreferences };
+
+    if (customPreferences && typeof customPreferences === "object") {
+      resolvedLandPreferences = { ...resolvedLandPreferences, ...customPreferences };
+    } else if (req.query.preferences) {
+      try {
+        const queryPrefs = JSON.parse(req.query.preferences);
+        resolvedLandPreferences = { ...resolvedLandPreferences, ...queryPrefs };
+      } catch (e) {
+        // ignore JSON parse errors from query params
+      }
+    }
+
+    if (req.query.budgetTier) {
+      resolvedLandPreferences.budgetTier = req.query.budgetTier;
+    }
+    if (req.query.maxPricePerLand !== undefined) {
+      resolvedLandPreferences.maxPricePerLand = req.query.maxPricePerLand;
+    }
 
     const results = [];
     const allUniqueCardNames = new Set();
@@ -47,7 +130,7 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
     for (const deck of decks) {
       let deckCardNames = [];
       let commanderName = deck.commander;
-      
+
       // If the deck is missing the 'cards' JSON array (e.g. older sync), fetch directly to heal it
       if (!deck.cards) {
         try {
@@ -62,7 +145,7 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
               deckCardNames = archidektDeck.cards
                 .filter(item => item.card && item.card.oracleCard)
                 .map(item => item.card.oracleCard.name);
-              
+
               if (!commanderName) {
                 for (const item of archidektDeck.cards) {
                   if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
@@ -94,27 +177,28 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
       const strictlyBetterRaw = getStrictlyBetterUpgrades(deckCardNames);
       const edhrecRaw = await getEDHRecSuggestions(commanderName, deckCardNames);
 
-      const landAnalysis = analyzeLands(commanderName, deckCardNames);
+      const landAnalysis = analyzeLands(commanderName, deckCardNames, resolvedLandPreferences);
       const landUpgrades = {
         cuts: landAnalysis.cuts.filter(c => !dismissalsSet.has(`${deck.deck_id}::land_cut:${c.name}`)),
-        adds: landAnalysis.adds.filter(a => !dismissalsSet.has(`${deck.deck_id}::land_add:${a.name}`))
+        adds: landAnalysis.adds.filter(a => !dismissalsSet.has(`${deck.deck_id}::land_add:${a.name}`)),
+        colorIdentity: landAnalysis.colorIdentity,
+        preferencesApplied: landAnalysis.preferencesApplied
       };
 
       for (const cut of landUpgrades.cuts) allUniqueCardNames.add(cut.name);
       for (const add of landUpgrades.adds) allUniqueCardNames.add(add.name);
-
 
       // Filter out dismissals
       const strictlyBetter = strictlyBetterRaw.filter(u => {
         const id = `strictly_better:${u.currentCard}`;
         return !dismissalsSet.has(`${deck.deck_id}::${id}`);
       });
-      
+
       const newCards = (edhrecRaw.newCards || []).filter(c => {
         const id = `edhrec_new:${c.name}`;
         return !dismissalsSet.has(`${deck.deck_id}::${id}`);
       });
-      
+
       const highSynergy = (edhrecRaw.highSynergy || []).filter(c => {
         const id = `edhrec_synergy:${c.name}`;
         return !dismissalsSet.has(`${deck.deck_id}::${id}`);
@@ -144,9 +228,6 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
 
     // Enrich with Scryfall local data
     const scryfallData = await getLocalCardsBatch(Array.from(allUniqueCardNames));
-
-    // Log structure for investigation
-    // console.log("Sample scryfall data:", Object.values(scryfallData)[0]);
 
     const enrichCardObj = (name) => {
       const sf = scryfallData[name];
@@ -193,6 +274,7 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
         .filter(c => !isDigitalOnly(c));
 
       res.landUpgrades = {
+        ...res.landUpgrades,
         cuts: res.landUpgrades.cuts.map(c => ({ ...c, ...enrichCardObj(c.name) })),
         adds: res.landUpgrades.adds.map(a => ({ ...a, ...enrichCardObj(a.name) }))
       };
@@ -203,7 +285,13 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
     console.error("Failed to analyze all decks:", error.message);
     res.status(500).json({ error: "Failed to analyze all decks" });
   }
-});
+}
+
+// GET /api/deck-updater/analyze-all
+router.get("/analyze-all", requireAuth, (req, res) => runAnalyzeAll(req, res));
+
+// POST /api/deck-updater/analyze-all
+router.post("/analyze-all", requireAuth, (req, res) => runAnalyzeAll(req, res, req.body.preferences));
 
 // GET /api/deck-updater/dismissals
 // Gets all dismissals for the user
@@ -226,7 +314,6 @@ router.get("/:deckId", requireAuth, async (req, res) => {
     const { deckId } = req.params;
     const userId = req.user.id;
 
-    // Fetch the deck to ensure it belongs to the user and get commander
     const deck = await db("user_archidekt_decks")
       .where({ user_id: userId, deck_id: String(deckId) })
       .first();
@@ -235,11 +322,6 @@ router.get("/:deckId", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "Deck not found" });
     }
 
-    // Instead of querying user_cards (which is filtered by sync mappings),
-    // we should ideally query Archidekt again, OR use the `user_archidekt_deck_items` if it contains ALL cards.
-    // However, `user_archidekt_deck_items` only tracks mapped cards. 
-    // To be perfectly accurate for the whole deck, we will re-fetch from Archidekt here just for analysis.
-    // (We cache the commander in the DB, but pulling the live deck is best for fresh analysis)
     let deckCardNames = [];
     let commanderName = deck.commander;
 
@@ -251,13 +333,12 @@ router.get("/:deckId", requireAuth, async (req, res) => {
       } else {
         const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
         const archidektDeck = archidektRes.data;
-        
+
         if (archidektDeck.cards) {
           deckCardNames = archidektDeck.cards
             .filter(item => item.card && item.card.oracleCard)
             .map(item => item.card.oracleCard.name);
-            
-          // Re-check commander if it was missing in DB
+
           if (!commanderName) {
             for (const item of archidektDeck.cards) {
               if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
@@ -270,12 +351,10 @@ router.get("/:deckId", requireAuth, async (req, res) => {
       }
     } catch (e) {
       console.warn(`Could not fetch live deck ${deckId} (${deck.source || "archidekt"}), falling back to DB items.`);
-      // Fallback to db
       const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
       deckCardNames = items.map(i => i.card_name);
     }
 
-    // Process upgrades
     const strictlyBetter = getStrictlyBetterUpgrades(deckCardNames);
     const edhrec = await getEDHRecSuggestions(commanderName, deckCardNames);
 
@@ -292,15 +371,12 @@ router.get("/:deckId", requireAuth, async (req, res) => {
 });
 
 // POST /api/deck-updater/sync
-// Admin/Background route to trigger a re-download of strictly better data
 router.post("/sync", async (req, res) => {
-  // Usually this would be protected by an admin token, but for now we'll just trigger it
   syncStrictlyBetterData();
   res.json({ message: "Strictly better sync started in background." });
 });
 
 // POST /api/deck-updater/dismiss
-// Dismisses a suggestion for a deck
 router.post("/dismiss", requireAuth, async (req, res) => {
   try {
     const { deck_id, suggestion_id } = req.body;
@@ -317,12 +393,10 @@ router.post("/dismiss", requireAuth, async (req, res) => {
 });
 
 // POST /api/deck-updater/undismiss
-// Undismisses a suggestion for a deck
 router.post("/undismiss", requireAuth, async (req, res) => {
   try {
     const { deck_id, suggestion_id } = req.body;
-    console.log(`[DeckUpdater] Attempting to undismiss deck_id: ${deck_id} (${typeof deck_id}), suggestion_id: ${suggestion_id}`);
-    
+
     const count = await db("user_deck_dismissals")
       .where({
         user_id: req.user.id,
@@ -330,8 +404,7 @@ router.post("/undismiss", requireAuth, async (req, res) => {
         suggestion_id: String(suggestion_id)
       })
       .delete();
-      
-    // If it failed to delete by string, try by integer just in case it was stored that way
+
     if (count === 0 && !isNaN(Number(deck_id))) {
       await db("user_deck_dismissals")
         .where({
@@ -341,14 +414,13 @@ router.post("/undismiss", requireAuth, async (req, res) => {
         })
         .delete();
     }
-      
+
     res.json({ success: true });
   } catch (error) {
     console.error("Failed to undismiss:", error.message);
     res.status(500).json({ error: "Failed to undismiss" });
   }
 });
-
 
 // GET /api/deck-updater/analyze-lands
 router.get("/analyze-lands", requireAuth, async (req, res) => {
@@ -358,7 +430,6 @@ router.get("/analyze-lands", requireAuth, async (req, res) => {
 
     if (!deckId) return res.status(400).json({ error: "Missing deckId" });
 
-    // Fetch deck
     const deck = await db("user_archidekt_decks")
       .where({ user_id: userId, deck_id: String(deckId) })
       .first();
@@ -376,14 +447,13 @@ router.get("/analyze-lands", requireAuth, async (req, res) => {
        const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
        deckCardNames = items.map(i => i.card_name);
     }
-    
-    // Also fetch user dismissals for filtering
+
     const userDismissals = await db("user_deck_dismissals").where({ user_id: userId, deck_id: String(deckId) });
     const dismissalsSet = new Set(userDismissals.map(d => d.suggestion_id));
 
-    const analysis = analyzeLands(commanderName, deckCardNames);
-    
-    // Filter cuts and adds using dismissalsSet
+    const preferences = await getUserLandPreferences(userId);
+    const analysis = analyzeLands(commanderName, deckCardNames, preferences);
+
     analysis.cuts = analysis.cuts.filter(c => !dismissalsSet.has(`land_cut:${c.name}`));
     analysis.adds = analysis.adds.filter(a => !dismissalsSet.has(`land_add:${a.name}`));
 

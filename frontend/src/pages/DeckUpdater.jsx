@@ -13,6 +13,8 @@ import {
   ChevronRightIcon
 } from "@heroicons/react/24/solid";
 import CardMagnifier from "../components/CardMagnifier";
+import LandPreferencesBar from "../components/land-suggester/LandPreferencesBar";
+import LandSuggesterConfigModal from "../components/land-suggester/LandSuggesterConfigModal";
 import { useToast } from "../context/ToastContext";
 import "./DeckUpdater.css";
 
@@ -24,8 +26,20 @@ export default function DeckUpdater() {
 
   // Filter & Navigation states
   const [selectedDeckId, setSelectedDeckId] = useState("all");
-  const [activeTab, setActiveTab] = useState("new"); // "new" | "upgrades" | "synergy"
+  const [activeTab, setActiveTab] = useState("new"); // "new" | "upgrades" | "synergy" | "lands"
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Land Preferences & Configuration states
+  const [landPreferences, setLandPreferences] = useState({
+    budgetTier: "budget",
+    maxPricePerLand: null,
+    excludeReservedList: true,
+    excludeTapped: true,
+    likedCycles: [],
+    dislikedCycles: []
+  });
+  const [isLandConfigOpen, setIsLandConfigOpen] = useState(false);
+  const [isSavingLandPrefs, setIsSavingLandPrefs] = useState(false);
 
   // Dismissals & Undo states
   const [showOptions, setShowOptions] = useState(false);
@@ -37,8 +51,27 @@ export default function DeckUpdater() {
   const { showToast } = useToast();
 
   useEffect(() => {
+    fetchLandPreferences();
     fetchAllDecksAnalysis();
   }, []);
+
+  const fetchLandPreferences = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await fetch("/api/deck-updater/land-preferences", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.preferences) {
+          setLandPreferences(data.preferences);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load land preferences:", e);
+    }
+  };
 
   const fetchAllDecksAnalysis = async (isManualRefresh = false) => {
     const token = localStorage.getItem("token");
@@ -69,6 +102,66 @@ export default function DeckUpdater() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleSaveLandPreferences = async (newPreferences) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setIsSavingLandPrefs(true);
+    try {
+      const res = await fetch("/api/deck-updater/land-preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences: newPreferences })
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setLandPreferences(result.preferences || newPreferences);
+        setIsLandConfigOpen(false);
+        showToast("Land preferences updated successfully!", "success");
+        // Re-analyze all decks with new preferences
+        await fetchAllDecksAnalysis(true);
+      } else {
+        showToast("Failed to save land preferences", "error");
+      }
+    } catch (e) {
+      console.error("Error saving land preferences:", e);
+      showToast("Network error saving preferences", "error");
+    } finally {
+      setIsSavingLandPrefs(false);
+    }
+  };
+
+  const handleQuickChangeBudget = async (tierId, maxPrice) => {
+    const updated = {
+      ...landPreferences,
+      budgetTier: tierId,
+      maxPricePerLand: maxPrice
+    };
+    setLandPreferences(updated);
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      await fetch("/api/deck-updater/land-preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences: updated })
+      });
+      showToast(`Budget changed to ${tierId === "all" ? "Unlimited" : `< $${maxPrice}`}`, "info");
+      fetchAllDecksAnalysis(true);
+    } catch (e) {
+      console.error("Failed to quick update budget tier:", e);
     }
   };
 
@@ -103,11 +196,16 @@ export default function DeckUpdater() {
 
       return {
         ...deck,
-        strictlyBetter: deck.strictlyBetter.filter(u => `strictly_better:${u.currentCard}` !== suggestionId),
+        strictlyBetter: (deck.strictlyBetter || []).filter(u => `strictly_better:${u.currentCard}` !== suggestionId),
         edhrec: {
           newCards: (deck.edhrec?.newCards || []).filter(c => `edhrec_new:${c.name}` !== suggestionId),
           highSynergy: (deck.edhrec?.highSynergy || []).filter(c => `edhrec_synergy:${c.name}` !== suggestionId)
-        }
+        },
+        landUpgrades: deck.landUpgrades ? {
+          ...deck.landUpgrades,
+          cuts: (deck.landUpgrades.cuts || []).filter(c => `land_cut:${c.name}` !== suggestionId),
+          adds: (deck.landUpgrades.adds || []).filter(a => `land_add:${a.name}` !== suggestionId)
+        } : deck.landUpgrades
       };
     }));
 
@@ -203,18 +301,23 @@ export default function DeckUpdater() {
     let totalNew = 0;
     let totalUpgrades = 0;
     let totalSynergy = 0;
+    let totalLands = 0;
     let decksWithCandidates = 0;
 
     for (const d of deckAnalyses) {
       const newCount = d.edhrec?.newCards?.length || 0;
       const upgradeCount = d.strictlyBetter?.length || 0;
       const synergyCount = d.edhrec?.highSynergy?.length || 0;
+      const landCuts = d.landUpgrades?.cuts?.length || 0;
+      const landAdds = d.landUpgrades?.adds?.length || 0;
+      const deckLandTotal = landCuts + landAdds;
 
       totalNew += newCount;
       totalUpgrades += upgradeCount;
       totalSynergy += synergyCount;
+      totalLands += deckLandTotal;
 
-      if (newCount > 0 || upgradeCount > 0) {
+      if (newCount > 0 || upgradeCount > 0 || deckLandTotal > 0) {
         decksWithCandidates++;
       }
     }
@@ -223,6 +326,7 @@ export default function DeckUpdater() {
       totalNew,
       totalUpgrades,
       totalSynergy,
+      totalLands,
       decksWithCandidates,
       totalDecks: deckAnalyses.length
     };
@@ -256,7 +360,7 @@ export default function DeckUpdater() {
               <SparklesIcon className="icon-sm" /> Release Radar
             </span>
             <h1>Deck Inclusions & Release Radar</h1>
-            <p className="radar-subtitle">Scanning latest card printings, EDHRec trends, and powercreep upgrades...</p>
+            <p className="radar-subtitle">Scanning latest card printings, EDHRec trends, and land upgrades...</p>
           </div>
         </header>
         <div className="radar-panel radar-loading">
@@ -292,7 +396,7 @@ export default function DeckUpdater() {
           </span>
           <h1>New Cards & Inclusions Dashboard</h1>
           <p className="radar-subtitle">
-            Evaluate newly released cards for your Commander decks. Pass on cards you don't want to keep your radar clean.
+            Evaluate newly released cards and optimal land base upgrades for your Commander decks.
           </p>
         </div>
 
@@ -360,15 +464,16 @@ export default function DeckUpdater() {
           </div>
         </div>
 
-        <div className="kpi-card neutral">
+        <div
+          className={`kpi-card ${activeTab === "lands" ? "active" : ""}`}
+          onClick={() => setActiveTab("lands")}
+        >
           <div className="kpi-icon-wrap emerald">
-            <CheckCircleIcon className="icon-md" />
+            <AdjustmentsHorizontalIcon className="icon-md" />
           </div>
           <div className="kpi-info">
-            <span className="kpi-value">
-              {summaryMetrics.decksWithCandidates} / {summaryMetrics.totalDecks}
-            </span>
-            <span className="kpi-label">Decks with Updates</span>
+            <span className="kpi-value">{summaryMetrics.totalLands}</span>
+            <span className="kpi-label">Land Upgrades</span>
           </div>
         </div>
       </section>
@@ -381,18 +486,21 @@ export default function DeckUpdater() {
             onClick={() => setSelectedDeckId("all")}
           >
             <span>All Decks</span>
-            <span className="deck-pill-count">{summaryMetrics.totalNew}</span>
-          </button>
-          <button
-            className={`mode-tab ${activeTab === "lands" ? "active" : ""}`}
-            onClick={() => setActiveTab("lands")}
-          >
-            <AdjustmentsHorizontalIcon className="icon-sm" />
-            <span>Land Base</span>
+            <span className="deck-pill-count">
+              {activeTab === "lands" ? summaryMetrics.totalLands : summaryMetrics.totalNew}
+            </span>
           </button>
 
           {deckAnalyses.map(deck => {
-            const newCount = deck.edhrec?.newCards?.length || 0;
+            const count =
+              activeTab === "lands"
+                ? (deck.landUpgrades?.cuts?.length || 0) + (deck.landUpgrades?.adds?.length || 0)
+                : activeTab === "upgrades"
+                ? (deck.strictlyBetter?.length || 0)
+                : activeTab === "synergy"
+                ? (deck.edhrec?.highSynergy?.length || 0)
+                : (deck.edhrec?.newCards?.length || 0);
+
             const isSelected = String(deck.deck_id) === String(selectedDeckId);
 
             return (
@@ -409,8 +517,8 @@ export default function DeckUpdater() {
                   />
                 )}
                 <span className="deck-pill-name">{deck.deck_name}</span>
-                {newCount > 0 ? (
-                  <span className="deck-pill-badge">{newCount}</span>
+                {count > 0 ? (
+                  <span className="deck-pill-badge">{count}</span>
                 ) : (
                   <CheckCircleIcon className="icon-xs text-emerald" />
                 )}
@@ -440,13 +548,6 @@ export default function DeckUpdater() {
             <span>Strictly Better</span>
             <span className="tab-badge">{summaryMetrics.totalUpgrades}</span>
           </button>
-          <button
-            className={`mode-tab ${activeTab === "lands" ? "active" : ""}`}
-            onClick={() => setActiveTab("lands")}
-          >
-            <AdjustmentsHorizontalIcon className="icon-sm" />
-            <span>Land Base</span>
-          </button>
 
           <button
             className={`mode-tab ${activeTab === "synergy" ? "active" : ""}`}
@@ -455,6 +556,15 @@ export default function DeckUpdater() {
             <FireIcon className="icon-sm" />
             <span>High Synergy</span>
             <span className="tab-badge">{summaryMetrics.totalSynergy}</span>
+          </button>
+
+          <button
+            className={`mode-tab ${activeTab === "lands" ? "active" : ""}`}
+            onClick={() => setActiveTab("lands")}
+          >
+            <AdjustmentsHorizontalIcon className="icon-sm" />
+            <span>Land Base</span>
+            <span className="tab-badge">{summaryMetrics.totalLands}</span>
           </button>
         </div>
 
@@ -475,6 +585,16 @@ export default function DeckUpdater() {
         </div>
       </section>
 
+      {/* Land Base Preference Quick Bar (rendered when Land Base tab is active) */}
+      {activeTab === "lands" && (
+        <LandPreferencesBar
+          preferences={landPreferences}
+          onOpenConfigModal={() => setIsLandConfigOpen(true)}
+          onQuickChangeBudget={handleQuickChangeBudget}
+          isLoading={refreshing}
+        />
+      )}
+
       {/* Main Content Area */}
       {filteredDecks.length === 0 ? (
         <div className="radar-panel empty-deck-state">
@@ -488,6 +608,8 @@ export default function DeckUpdater() {
             const rawNewCards = deck.edhrec?.newCards || [];
             const rawUpgrades = deck.strictlyBetter || [];
             const rawSynergy = deck.edhrec?.highSynergy || [];
+            const rawLandCuts = deck.landUpgrades?.cuts || [];
+            const rawLandAdds = deck.landUpgrades?.adds || [];
 
             // Apply search filtering
             const q = searchQuery.toLowerCase().trim();
@@ -500,11 +622,18 @@ export default function DeckUpdater() {
                 )
               : rawUpgrades;
             const synergyCards = q ? rawSynergy.filter(c => c.name.toLowerCase().includes(q)) : rawSynergy;
+            const landCuts = q
+              ? rawLandCuts.filter(c => c.name.toLowerCase().includes(q) || (c.reason && c.reason.toLowerCase().includes(q)))
+              : rawLandCuts;
+            const landAdds = q
+              ? rawLandAdds.filter(a => a.name.toLowerCase().includes(q) || (a.cycle && a.cycle.toLowerCase().includes(q)))
+              : rawLandAdds;
 
             const isCurrentTabEmpty =
               (activeTab === "new" && newCards.length === 0) ||
               (activeTab === "upgrades" && upgrades.length === 0) ||
-              (activeTab === "synergy" && synergyCards.length === 0);
+              (activeTab === "synergy" && synergyCards.length === 0) ||
+              (activeTab === "lands" && landCuts.length === 0 && landAdds.length === 0);
 
             // Skip rendering empty decks in "All Decks" view if not actively searching
             if (selectedDeckId === "all" && isCurrentTabEmpty && !searchQuery) {
@@ -553,6 +682,11 @@ export default function DeckUpdater() {
                         <FireIcon className="icon-xs" /> {synergyCards.length} Staples
                       </span>
                     )}
+                    {activeTab === "lands" && (
+                      <span className="section-count-tag emerald">
+                        <AdjustmentsHorizontalIcon className="icon-xs" /> {landCuts.length} Cuts / {landAdds.length} Adds
+                      </span>
+                    )}
                   </div>
                 </header>
 
@@ -573,7 +707,6 @@ export default function DeckUpdater() {
                           const suggestionId = `edhrec_new:${card.name}`;
                           return (
                             <div key={idx} className="triage-card">
-                              {/* Visual Presentation */}
                               <div className="triage-visual-wrap">
                                 {card.image_uri ? (
                                   <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
@@ -595,14 +728,12 @@ export default function DeckUpdater() {
                                 </div>
                               </div>
 
-                              {/* Card Title */}
                               <div className="triage-details">
                                 <h3 className="triage-card-name" title={card.name}>
                                   {card.name}
                                 </h3>
                               </div>
 
-                              {/* Direct Triage Actions */}
                               <div className="triage-actions-bar">
                                 <button
                                   className="action-btn pass-btn"
@@ -647,7 +778,6 @@ export default function DeckUpdater() {
                           const suggestionId = `strictly_better:${upgrade.currentCard}`;
                           return (
                             <div key={idx} className="upgrade-pair-card">
-                              {/* Left: Inferior / Current Card */}
                               <div className="upgrade-side inferior">
                                 <span className="side-label">Current in Deck</span>
                                 {upgrade.currentCardData?.image_uri ? (
@@ -674,7 +804,6 @@ export default function DeckUpdater() {
                                 <ChevronRightIcon className="icon-md text-amber" />
                               </div>
 
-                              {/* Right: Strictly Better Cards */}
                               <div className="upgrade-side superior">
                                 <span className="side-label">Direct Upgrades / Variations</span>
                                 <div className="superior-options">
@@ -707,7 +836,6 @@ export default function DeckUpdater() {
                                 </div>
                               </div>
 
-                              {/* Pass button for upgrade pair */}
                               <button
                                 className="upgrade-dismiss-btn"
                                 onClick={() =>
@@ -795,52 +923,139 @@ export default function DeckUpdater() {
                     )}
                   </>
                 )}
+
                 {/* Land Base Tab */}
-                {activeTab === "lands" && deck.landUpgrades && (
+                {activeTab === "lands" && (
                   <div className="land-analyzer">
+                    {/* Suggested Cuts */}
                     <div className="land-section">
-                      <h3><ExclamationTriangleIcon className="icon-sm text-rose" /> Suggested Cuts</h3>
-                      {deck.landUpgrades.cuts.length === 0 ? <p className="empty-state">No cuts suggested.</p> : (
+                      <div className="land-section-header-wrap">
+                        <h3>
+                          <ExclamationTriangleIcon className="icon-sm text-rose" />
+                          <span>Suggested Cuts</span>
+                        </h3>
+                        <span className="land-count-badge rose">{landCuts.length} Slow Lands</span>
+                      </div>
+
+                      {landCuts.length === 0 ? (
+                        <div className="all-caught-up-banner">
+                          <CheckCircleIcon className="icon-md text-emerald" />
+                          <div>
+                            <strong>No slow or tapped lands to cut</strong>
+                            <p>Your current land base does not contain any flagged slowlands or disliked cycles.</p>
+                          </div>
+                        </div>
+                      ) : (
                         <div className="triage-grid">
-                          {deck.landUpgrades.cuts.map((card, idx) => (
-                             <div key={idx} className="triage-card">
-                               <div className="triage-visual-wrap">
+                          {landCuts.map((card, idx) => {
+                            const suggestionId = `land_cut:${card.name}`;
+                            return (
+                              <div key={idx} className="triage-card">
+                                <div className="triage-visual-wrap">
                                   {card.image_uri ? (
                                     <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
-                                        <img src={card.image_uri} alt={card.name} className="triage-card-img" />
+                                      <img src={card.image_uri} alt={card.name} className="triage-card-img" />
                                     </CardMagnifier>
                                   ) : (
                                     <div className="triage-placeholder">{card.name}</div>
                                   )}
-                               </div>
-                               <h3 className="triage-card-name" title={card.name}>{card.name}</h3>
-                               <p className="triage-description">{card.reason}</p>
-                             </div>
-                          ))}
+                                </div>
+
+                                <div className="triage-details">
+                                  <h3 className="triage-card-name" title={card.name}>
+                                    {card.name}
+                                  </h3>
+                                  <p className="land-card-reason">{card.reason}</p>
+                                </div>
+
+                                <div className="triage-actions-bar">
+                                  <button
+                                    className="action-btn pass-btn"
+                                    onClick={() => handlePass(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                    title="Keep in deck & hide this cut suggestion"
+                                  >
+                                    <XMarkIcon className="icon-sm" />
+                                    <span>Keep Land</span>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
+
+                    {/* Better Alternatives / Suggested Adds */}
                     <div className="land-section">
-                       <h3><CheckCircleIcon className="icon-sm text-emerald" /> Better Alternatives</h3>
-                       {deck.landUpgrades.adds.length === 0 ? <p className="empty-state">No adds suggested.</p> : (
-                         <div className="triage-grid">
-                           {deck.landUpgrades.adds.map((card, idx) => (
-                             <div key={idx} className="triage-card">
-                               <div className="triage-visual-wrap">
+                      <div className="land-section-header-wrap">
+                        <h3>
+                          <CheckCircleIcon className="icon-sm text-emerald" />
+                          <span>Better Alternatives (On-Color & In Budget)</span>
+                        </h3>
+                        <span className="land-count-badge emerald">{landAdds.length} Recommendations</span>
+                      </div>
+
+                      {landAdds.length === 0 ? (
+                        <div className="all-caught-up-banner">
+                          <CheckCircleIcon className="icon-md text-emerald" />
+                          <div>
+                            <strong>Optimal land base reached</strong>
+                            <p>No additional budget-compatible lands recommended for this color identity.</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="triage-grid">
+                          {landAdds.map((card, idx) => {
+                            const suggestionId = `land_add:${card.name}`;
+                            return (
+                              <div key={idx} className="triage-card">
+                                <div className="triage-visual-wrap">
                                   {card.image_uri ? (
                                     <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
-                                        <img src={card.image_uri} alt={card.name} className="triage-card-img" />
+                                      <img src={card.image_uri} alt={card.name} className="triage-card-img" />
                                     </CardMagnifier>
                                   ) : (
                                     <div className="triage-placeholder">{card.name}</div>
                                   )}
-                               </div>
-                               <h3 className="triage-card-name" title={card.name}>{card.name}</h3>
-                               <p className="triage-description">{card.cycle} ({card.tier})</p>
-                             </div>
-                           ))}
-                         </div>
-                       )}
+
+                                  <div className="triage-floating-meta">
+                                    <span className="price-tag">
+                                      {card.price !== null && card.price !== undefined ? `$${card.price.toFixed(2)}` : "--"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="triage-details">
+                                  <h3 className="triage-card-name" title={card.name}>
+                                    {card.name}
+                                  </h3>
+                                  <p className="land-card-cycle">{card.cycle} ({card.tier})</p>
+                                </div>
+
+                                <div className="triage-actions-bar">
+                                  <button
+                                    className="action-btn pass-btn"
+                                    onClick={() => handlePass(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                    title="Pass on this land suggestion"
+                                  >
+                                    <XMarkIcon className="icon-sm" />
+                                    <span>Pass</span>
+                                  </button>
+
+                                  <button
+                                    className="action-btn wishlist-btn"
+                                    onClick={() => handleAddToWishlist(deck.deck_id, suggestionId, card.name, deck.deck_name)}
+                                    title="Add to Wishlist & mark reviewed"
+                                  >
+                                    <BookmarkIcon className="icon-sm" />
+                                    <span>Wishlist</span>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -863,6 +1078,15 @@ export default function DeckUpdater() {
           </button>
         </aside>
       )}
+
+      {/* Land Suggester Configuration Modal */}
+      <LandSuggesterConfigModal
+        isOpen={isLandConfigOpen}
+        onClose={() => setIsLandConfigOpen(false)}
+        initialPreferences={landPreferences}
+        onSavePreferences={handleSaveLandPreferences}
+        isSaving={isSavingLandPrefs}
+      />
 
       {/* Review History / Passed Cards Modal */}
       {showOptions && (
@@ -914,6 +1138,12 @@ export default function DeckUpdater() {
                     } else if (d.suggestion_id.startsWith("edhrec_synergy:")) {
                       typeTag = "Synergy";
                       label = d.suggestion_id.replace("edhrec_synergy:", "");
+                    } else if (d.suggestion_id.startsWith("land_cut:")) {
+                      typeTag = "Land Cut";
+                      label = d.suggestion_id.replace("land_cut:", "");
+                    } else if (d.suggestion_id.startsWith("land_add:")) {
+                      typeTag = "Land Add";
+                      label = d.suggestion_id.replace("land_add:", "");
                     }
 
                     return (
