@@ -295,7 +295,7 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
 router.get("/analyze-all", requireAuth, (req, res) => runAnalyzeAll(req, res));
 
 // POST /api/deck-updater/analyze-all
-router.post("/analyze-all", requireAuth, (req, res) => runAnalyzeAll(req, res, req.body.preferences));
+router.post("/analyze-all", requireAuth, (req, res) => runAnalyzeAll(req, res, req.body?.preferences || req.body));
 
 // GET /api/deck-updater/dismissals
 // Gets all dismissals for the user
