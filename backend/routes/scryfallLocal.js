@@ -287,4 +287,32 @@ router.get("/", async (req, res) => {
   res.json(results);
 });
 
+export async function getRandomCommanderCard() {
+  await ensureLoaded();
+  const commanders = dedupedCards.filter(c => {
+    const type = (c.type_line || "").toLowerCase();
+    return type.includes("legendary") && (type.includes("creature") || type.includes("planeswalker"));
+  });
+  if (commanders.length === 0) return dedupedCards[Math.floor(Math.random() * dedupedCards.length)];
+  return commanders[Math.floor(Math.random() * commanders.length)];
+}
+
+export async function getRandomCards(count = 4) {
+  await ensureLoaded();
+  const results = [];
+  const shuffled = [...dedupedCards].sort(() => 0.5 - Math.random());
+  for (const card of shuffled) {
+    if (results.length >= count) break;
+    const image = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || card.image_uris?.small || card.card_faces?.[0]?.image_uris?.small;
+    if (image) {
+      results.push({
+        name: card.name,
+        image,
+        synergy: 0.8
+      });
+    }
+  }
+  return results;
+}
+
 export default router;
