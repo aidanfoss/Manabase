@@ -807,8 +807,8 @@ export default function TradelistManager() {
   const offerValue = offer.reduce((sum, item) => sum + (getCardPrice(item) * item.quantity), 0);
   const demandValue = demand.reduce((sum, item) => sum + (getCardPrice(item) * item.quantity), 0);
 
-  // Render Steam grid slots (fixed 8 slots, or more if offer length > 8)
-  const renderSteamSlots = (items, onRemove, isMine) => {
+  // Render Arcane grid slots (fixed 8 slots, or more if offer length > 8)
+  const renderArcaneSlots = (items, onRemove, isMine) => {
     const slotCount = Math.max(8, items.length);
     const slots = [];
     
@@ -820,20 +820,20 @@ export default function TradelistManager() {
         slots.push(
           <div 
             key={i} 
-            className={`steam-slot filled ${item.is_foil ? "foil-rainbow" : ""}`}
+            className={`arcane-slot filled ${item.is_foil ? "foil-rainbow" : ""}`}
             onClick={() => onRemove(item)}
             onMouseEnter={() => setInspectedCard(item)}
           >
-            <img src={image} alt={item.card_name} className="steam-slot-img" />
-            <div className="steam-slot-price-badge">
+            <img src={image} alt={item.card_name} className="arcane-slot-img" />
+            <div className="arcane-slot-price-badge">
               {formatPrice(itemPrice * item.quantity)}
             </div>
-            <div className="steam-slot-badge">x{item.quantity}</div>
+            <div className="arcane-slot-badge">x{item.quantity}</div>
           </div>
         );
       } else {
         slots.push(
-          <div key={i} className="steam-slot empty">
+          <div key={i} className="arcane-slot empty">
             <span className="plus">+</span>
           </div>
         );
@@ -897,7 +897,7 @@ export default function TradelistManager() {
   });
 
   return (
-    <div className="collection-page-container steam-theme">
+    <div className="collection-page-container arcane-theme">
       {/* Upper Navigation Tabs */}
       <div className="tabs-header">
         <button
@@ -1320,7 +1320,7 @@ export default function TradelistManager() {
             <div className="setup-card" style={{ padding: "1.5rem", background: "rgba(30, 41, 59, 0.6)", borderRadius: "12px", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                 <h3 style={{ margin: 0, color: "#60a5fa" }}><PencilIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Construct Counter Offer for {counterTrade.partner_username}</h3>
-                <button className="steam-btn secondary compact" onClick={() => setCounterTrade(null)}>Cancel</button>
+                <button className="arcane-btn secondary compact" onClick={() => setCounterTrade(null)}>Cancel</button>
               </div>
               <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
                 Modify the offered and requested cards to send a revised counter-proposal.
@@ -1469,12 +1469,12 @@ export default function TradelistManager() {
                       </div>
                       <div style={{ display: "flex", gap: "0.75rem" }}>
                         <button
-                          className="steam-btn primary"
+                          className="arcane-btn primary"
                           onClick={() => handleTradeAction(counterTrade.id, "counter", counterOffer, counterDemand)}
                         >
                           <RocketLaunchIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Send Counter Proposal
                         </button>
-                        <button className="steam-btn secondary" onClick={() => setCounterTrade(null)}>
+                        <button className="arcane-btn secondary" onClick={() => setCounterTrade(null)}>
                           Cancel
                         </button>
                       </div>
@@ -1496,7 +1496,7 @@ export default function TradelistManager() {
                   <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.85rem", color: "#64748b" }}>
                     Use the Playgroup Trading tab to find matches and propose a new trade.
                   </p>
-                  <button className="steam-btn primary" style={{ marginTop: "1rem", display: "inline-block" }} onClick={() => setActiveTab("trading")}>
+                  <button className="arcane-btn primary" style={{ marginTop: "1rem", display: "inline-block" }} onClick={() => setActiveTab("trading")}>
                     <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Find Trade Matches
                   </button>
                 </div>
@@ -1620,13 +1620,13 @@ export default function TradelistManager() {
                           {trade.status === "accepted" ? (
                             <>
                               <button
-                                className="steam-btn primary compact"
+                                className="arcane-btn primary compact"
                                 onClick={() => handleTradeAction(trade.id, "complete")}
                               >
                                  Mark as Completed
                               </button>
                               <button
-                                className="steam-btn secondary compact"
+                                className="arcane-btn secondary compact"
                                 onClick={() => handleTradeAction(trade.id, "decline")}
                               >
                                 Cancel Trade
@@ -1636,14 +1636,14 @@ export default function TradelistManager() {
                             /* Inbound Trade Actions */
                             <>
                               <button
-                                className="steam-btn primary compact"
+                                className="arcane-btn primary compact"
                                 style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}
                                 onClick={() => handleTradeAction(trade.id, "accept")}
                               >
                                 <CheckCircleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Accept Trade
                               </button>
                               <button
-                                className="steam-btn secondary compact"
+                                className="arcane-btn secondary compact"
                                 style={{ borderColor: "#3b82f6", color: "#60a5fa" }}
                                 onClick={() => {
                                   setCounterTrade(trade);
@@ -1655,7 +1655,7 @@ export default function TradelistManager() {
                                 <PencilIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Counter Offer
                               </button>
                               <button
-                                className="steam-btn secondary compact"
+                                className="arcane-btn secondary compact"
                                 style={{ borderColor: "#ef4444", color: "#f87171" }}
                                 onClick={() => handleTradeAction(trade.id, "decline")}
                               >
@@ -1666,7 +1666,7 @@ export default function TradelistManager() {
                             /* Outbound Trade Actions */
                             <>
                               <button
-                                className="steam-btn secondary compact"
+                                className="arcane-btn secondary compact"
                                 style={{ borderColor: "#3b82f6", color: "#60a5fa" }}
                                 onClick={() => {
                                   setCounterTrade(trade);
@@ -1678,7 +1678,7 @@ export default function TradelistManager() {
                                 <PencilIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Revise Offer
                               </button>
                               <button
-                                className="steam-btn secondary compact"
+                                className="arcane-btn secondary compact"
                                 style={{ borderColor: "#ef4444", color: "#f87171" }}
                                 onClick={() => handleTradeAction(trade.id, "decline")}
                               >
@@ -1706,7 +1706,7 @@ export default function TradelistManager() {
               </p>
             </div>
             <button 
-              className="steam-btn secondary"
+              className="arcane-btn secondary"
               onClick={loadHistoryAndLedger}
               disabled={loadingHistory}
             >
@@ -1716,7 +1716,7 @@ export default function TradelistManager() {
 
           {/* Section 1: Per-User Ledger */}
           <div className="ledger-section">
-            <div className="steam-section-header">
+            <div className="arcane-section-header">
               <h2><ChartBarIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Per-User Debt & Credit Ledger</h2>
               <p>Net card value balances calculated from completed and accepted trades.</p>
             </div>
@@ -1768,7 +1768,7 @@ export default function TradelistManager() {
 
                       <div className="ledger-card-actions">
                         <button 
-                          className="steam-btn primary compact flex-1"
+                          className="arcane-btn primary compact flex-1"
                           onClick={() => {
                             const p = partners.find(usr => String(usr.id) === String(userLedger.partner_id)) || { id: userLedger.partner_id, username: userLedger.partner_username };
                             setActivePartner(p);
@@ -1778,7 +1778,7 @@ export default function TradelistManager() {
                           <HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Trade with {userLedger.partner_username}
                         </button>
                         <button
-                          className="steam-btn secondary compact flex-1"
+                          className="arcane-btn secondary compact flex-1"
                           onClick={() => {
                             setHistoryPartnerFilter(String(userLedger.partner_id));
                           }}
@@ -1796,7 +1796,7 @@ export default function TradelistManager() {
           {/* Section 2: History Log */}
           <div className="history-log-section" style={{ marginTop: "2.5rem" }}>
             <div className="history-log-header">
-              <div className="steam-section-header" style={{ marginBottom: 0 }}>
+              <div className="arcane-section-header" style={{ marginBottom: 0 }}>
                 <h2> All Trades Log ({filteredTradeHistory.length})</h2>
                 <p>Complete history of proposed, accepted, counter-offered, and completed trades.</p>
               </div>
@@ -1808,7 +1808,7 @@ export default function TradelistManager() {
                   <select 
                     value={historyPartnerFilter} 
                     onChange={(e) => setHistoryPartnerFilter(e.target.value)}
-                    className="steam-select"
+                    className="arcane-select"
                   >
                     <option value="all">All Partners</option>
                     {partners.map(p => (
@@ -1822,7 +1822,7 @@ export default function TradelistManager() {
                   <select 
                     value={historyStatusFilter} 
                     onChange={(e) => setHistoryStatusFilter(e.target.value)}
-                    className="steam-select"
+                    className="arcane-select"
                   >
                     <option value="all">All Statuses</option>
                     <option value="completed">Completed</option>
@@ -1884,18 +1884,18 @@ export default function TradelistManager() {
                               {trade.offer?.length === 0 ? (
                                 <div className="empty-subtext">No cards offered</div>
                               ) : (
-                                <div className="steam-slots-grid mini">
+                                <div className="arcane-slots-grid mini">
                                   {trade.offer.map((item, idx) => {
                                     const price = getCardPrice(item);
                                     return (
                                       <div 
                                         key={idx} 
-                                        className={`steam-slot filled compact ${item.is_foil ? "foil-rainbow" : ""}`}
+                                        className={`arcane-slot filled compact ${item.is_foil ? "foil-rainbow" : ""}`}
                                         onMouseEnter={() => setInspectedCard(item)}
                                       >
-                                        <img src={getCardImage(item.card_name, item.set_code)} alt={item.card_name} className="steam-slot-img" />
-                                        <div className="steam-slot-price-badge">{formatPrice(price * item.quantity)}</div>
-                                        <div className="steam-slot-badge">x{item.quantity}</div>
+                                        <img src={getCardImage(item.card_name, item.set_code)} alt={item.card_name} className="arcane-slot-img" />
+                                        <div className="arcane-slot-price-badge">{formatPrice(price * item.quantity)}</div>
+                                        <div className="arcane-slot-badge">x{item.quantity}</div>
                                         <div className="card-name-hover-tooltip">{item.card_name}</div>
                                       </div>
                                     );
@@ -1909,18 +1909,18 @@ export default function TradelistManager() {
                               {trade.demand?.length === 0 ? (
                                 <div className="empty-subtext">No cards demanded</div>
                               ) : (
-                                <div className="steam-slots-grid mini">
+                                <div className="arcane-slots-grid mini">
                                   {trade.demand.map((item, idx) => {
                                     const price = getCardPrice(item);
                                     return (
                                       <div 
                                         key={idx} 
-                                        className={`steam-slot filled compact ${item.is_foil ? "foil-rainbow" : ""}`}
+                                        className={`arcane-slot filled compact ${item.is_foil ? "foil-rainbow" : ""}`}
                                         onMouseEnter={() => setInspectedCard(item)}
                                       >
-                                        <img src={getCardImage(item.card_name, item.set_code)} alt={item.card_name} className="steam-slot-img" />
-                                        <div className="steam-slot-price-badge">{formatPrice(price * item.quantity)}</div>
-                                        <div className="steam-slot-badge">x{item.quantity}</div>
+                                        <img src={getCardImage(item.card_name, item.set_code)} alt={item.card_name} className="arcane-slot-img" />
+                                        <div className="arcane-slot-price-badge">{formatPrice(price * item.quantity)}</div>
+                                        <div className="arcane-slot-badge">x{item.quantity}</div>
                                         <div className="card-name-hover-tooltip">{item.card_name}</div>
                                       </div>
                                     );
@@ -1940,12 +1940,12 @@ export default function TradelistManager() {
         </div>
       ) : (
         /* PLAYGROUP TRADING (STEAM STYLE) TAB */
-        <div className="steam-trading-layout">
+        <div className="arcane-trading-layout">
           
           {!activePartner ? (
             /* WISH LIST MATCHMAKER SCREEN */
-            <div className="steam-matchmaker-container">
-              <div className="steam-section-header">
+            <div className="arcane-matchmaker-container">
+              <div className="arcane-section-header">
                 <h2><HandRaisedIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Playgroup Wishlist Matches</h2>
                 <p>These are cards on your wishlist that members in your playgroup currently have in their collection.</p>
               </div>
@@ -1968,15 +1968,15 @@ export default function TradelistManager() {
               </div>
 
               {loadingMatches ? (
-                <div className="steam-loader">Scanning playgroup wishlist matches...</div>
+                <div className="arcane-loader">Scanning playgroup wishlist matches...</div>
               ) : wishlistMatches.length === 0 ? (
-                <div className="steam-empty-box">
+                <div className="arcane-empty-box">
                   No wishlist matches found. Either your wishlist is empty, or no one in your playgroup has those cards in their collection.
                   <br />
                   <span className="sub">Tip: Go to the Wishlist tab and add cards, or have other members add cards to their collection!</span>
                 </div>
               ) : (
-                <div className="steam-user-matches-grid">
+                <div className="arcane-user-matches-grid">
                   {wishlistMatches.map((match) => {
                     const { user, youWant, theyWant } = match;
                     const theyWantValue = theyWant.reduce((sum, c) => sum + (getCardPrice(c) * (c.quantity || 1)), 0);
@@ -1984,7 +1984,7 @@ export default function TradelistManager() {
                     const matchDiff = youWantValue - theyWantValue;
 
                     return (
-                      <div key={user.id} className="steam-user-match-row">
+                      <div key={user.id} className="arcane-user-match-row">
                         <div className="user-match-header">
                           <div>
                             <h3><UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> {user.username}</h3>
@@ -2070,26 +2070,26 @@ export default function TradelistManager() {
             </div>
           ) : (
             /* ACTIVE STEAM INTERACTIVE TRADE SCREEN */
-            <div className="steam-trade-screen">
+            <div className="arcane-trade-screen">
               {/* Back to matchmaker */}
-              <button className="steam-back-btn" onClick={() => setActivePartner(null)}>
+              <button className="arcane-back-btn" onClick={() => setActivePartner(null)}>
                 ← Back to Matchmaker
               </button>
 
-              <div className="steam-trade-header">
+              <div className="arcane-trade-header">
                 <h2>Trading with <span className="partner-name">{activePartner.username}</span></h2>
                 <p>Construct your offer by adding items from the inventory bins below.</p>
               </div>
 
-              {/* Steam layout split screen */}
-              <div className="steam-split-container">
+              {/* Arcane layout split screen */}
+              <div className="arcane-split-container">
                 {/* Left section: Trade Board & Inventories */}
-                <div className="steam-main-panel">
+                <div className="arcane-main-panel">
                   
                   {/* Two-Column Trade Board */}
-                  <div className="steam-trade-slots-board">
+                  <div className="arcane-trade-slots-board">
                     {/* Left Column: Your Offer */}
-                    <div className="steam-offer-side">
+                    <div className="arcane-offer-side">
                       <h3>Your Trade Offer</h3>
                       <p className="subtitle">
                         Cards you are giving {offerValue > 0 && <span className="offer-total-txt">• Total: {formatPrice(offerValue)}</span>}
@@ -2126,24 +2126,24 @@ export default function TradelistManager() {
                         return null;
                       })()}
                       <div className="slots-grid">
-                        {renderSteamSlots(offer, handleRemoveFromOffer, true)}
+                        {renderArcaneSlots(offer, handleRemoveFromOffer, true)}
                       </div>
                     </div>
 
                     {/* Right Column: Their Offer */}
-                    <div className="steam-offer-side">
+                    <div className="arcane-offer-side">
                       <h3>{activePartner.username}'s Offer</h3>
                       <p className="subtitle">
                         Cards you are receiving {demandValue > 0 && <span className="demand-total-txt">• Total: {formatPrice(demandValue)}</span>}
                       </p>
                       <div className="slots-grid">
-                        {renderSteamSlots(demand, handleRemoveFromDemand, false)}
+                        {renderArcaneSlots(demand, handleRemoveFromDemand, false)}
                       </div>
                     </div>
                   </div>
 
                   {/* Center Actions Bar */}
-                  <div className="steam-actions-bar">
+                  <div className="arcane-actions-bar">
                     {/* Trade Balance Summary */}
                     {(offer.length > 0 || demand.length > 0) && (
                       <div className="trade-balance-box">
@@ -2173,7 +2173,7 @@ export default function TradelistManager() {
                     )}
                     {Math.abs(demandValue - offerValue) > 0.01 && (
                       <button 
-                        className="steam-btn secondary compact" 
+                        className="arcane-btn secondary compact" 
                         style={{ marginTop: '0.75rem', width: '100%', maxWidth: '200px', alignSelf: 'center' }} 
                         onClick={handleAutoFill}
                       >
@@ -2208,35 +2208,35 @@ export default function TradelistManager() {
                   </div>
 
                   {/* Lower Inventories Bin */}
-                  <div className="steam-inventories-section">
-                    <div className="steam-inventory-tabs">
+                  <div className="arcane-inventories-section">
+                    <div className="arcane-inventory-tabs">
                       <button 
-                        className={`steam-inv-tab ${activeInventoryTab === "mine_owned" ? "active" : ""}`}
+                        className={`arcane-inv-tab ${activeInventoryTab === "mine_owned" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("mine_owned")}
                       >
                         <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Inventory
                       </button>
                       <button 
-                        className={`steam-inv-tab ${activeInventoryTab === "mine_proxy" ? "active" : ""}`}
+                        className={`arcane-inv-tab ${activeInventoryTab === "mine_proxy" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("mine_proxy")}
                       >
                         <BriefcaseIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Your Proxies
                       </button>
                       <button 
-                        className={`steam-inv-tab ${activeInventoryTab === "partner_owned" ? "active" : ""}`}
+                        className={`arcane-inv-tab ${activeInventoryTab === "partner_owned" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("partner_owned")}
                       >
                         <UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Their Inventory
                       </button>
                       <button 
-                        className={`steam-inv-tab ${activeInventoryTab === "partner_proxy" ? "active" : ""}`}
+                        className={`arcane-inv-tab ${activeInventoryTab === "partner_proxy" ? "active" : ""}`}
                         onClick={() => setActiveInventoryTab("partner_proxy")}
                       >
                         <UserIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Their Proxies
                       </button>
                     </div>
 
-                    <div className="steam-inventory-pane">
+                    <div className="arcane-inventory-pane">
                       <div className="inventory-pane-content">
                         <div className="filter-row">
                           <label className="checkbox-label">
@@ -2264,13 +2264,13 @@ export default function TradelistManager() {
                         </div>
 
                         {activeInventoryTab.startsWith("partner") && loadingPartner ? (
-                          <div className="steam-loader">Loading partner inventory...</div>
+                          <div className="arcane-loader">Loading partner inventory...</div>
                         ) : activeDisplayedInventory.length === 0 ? (
-                          <div className="steam-empty-box py-6">
+                          <div className="arcane-empty-box py-6">
                             No cards found. Try unchecking the wishlist filter!
                           </div>
                         ) : (
-                          <div className="steam-inv-grid">
+                          <div className="arcane-inv-grid">
                             {activeDisplayedInventory.map((card) => {
                               const image = getCardImage(card.card_name, card.set_code);
                               const isMine = activeInventoryTab.startsWith("mine");
@@ -2283,7 +2283,7 @@ export default function TradelistManager() {
                               return (
                                 <div 
                                   key={card.id} 
-                                  className={`steam-inv-card ${card.is_foil ? "foil-rainbow" : ""} ${remainingQty <= 0 ? "depleted" : ""}`}
+                                  className={`arcane-inv-card ${card.is_foil ? "foil-rainbow" : ""} ${remainingQty <= 0 ? "depleted" : ""}`}
                                   onClick={() => remainingQty > 0 && (isMine ? handleAddToOffer(card) : handleAddToDemand(card))}
                                   onMouseEnter={() => setInspectedCard(card)}
                                 >
@@ -2309,7 +2309,7 @@ export default function TradelistManager() {
                 </div>
 
                 {/* Right section: Selected Card Inspector Sidebar */}
-                <div className="steam-inspector-sidebar">
+                <div className="arcane-inspector-sidebar">
                   <h3>Card Inspector</h3>
                   {inspectedCard ? (
                     <div className="inspector-card-details">

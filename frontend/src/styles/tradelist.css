@@ -303,47 +303,47 @@
    ========================================================================== */
 
 :root {
-  --steam-bg-dark: #171a21;
-  --steam-bg-mid: #1b2838;
-  --steam-bg-light: #2a475e;
-  --steam-blue-accent: #66c0f4;
-  --steam-green-ready: #a3cf06;
-  --steam-green-ready-hover: #bbf808;
-  --steam-text-muted: #c6d4df;
-  --steam-border-dark: #121821;
+  --arcane-bg-dark: #050810;
+  --arcane-bg-mid: #1e1b4b;
+  --arcane-bg-light: #312e81;
+  --arcane-blue-accent: #818cf8;
+  --arcane-green-ready: #34d399;
+  --arcane-green-ready-hover: #10b981;
+  --arcane-text-muted: #cbd5e1;
+  --arcane-border-dark: #0f172a;
 }
 
 /* Steam Layouts */
-.steam-trading-layout {
+.arcane-trading-layout {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
 /* Wishlist Matchmaker layout */
-.steam-matchmaker-container {
-  background: var(--steam-bg-mid);
+.arcane-matchmaker-container {
+  background: var(--arcane-bg-mid);
   border: 1px solid rgba(102, 192, 244, 0.15);
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
-.steam-section-header {
+.arcane-section-header {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 1rem;
 }
 
-.steam-section-header h2 {
+.arcane-section-header h2 {
   font-size: 1.5rem;
   margin: 0;
   font-weight: 700;
   color: #ffffff;
 }
 
-.steam-section-header p {
-  color: var(--steam-text-muted);
+.arcane-section-header p {
+  color: var(--arcane-text-muted);
   margin: 0.35rem 0 0 0;
   font-size: 0.9rem;
 }
@@ -352,7 +352,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: var(--steam-bg-dark);
+  background: var(--arcane-bg-dark);
   border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 1rem;
   border-radius: 8px;
@@ -360,7 +360,7 @@
 }
 
 .direct-partner-select select {
-  background: var(--steam-bg-light);
+  background: var(--arcane-bg-light);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 0.5rem 1rem;
@@ -370,14 +370,14 @@
   cursor: pointer;
 }
 
-.steam-user-matches-grid {
+.arcane-user-matches-grid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.steam-user-match-row {
-  background: var(--steam-bg-dark);
+.arcane-user-match-row {
+  background: var(--arcane-bg-dark);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   overflow: hidden;
@@ -478,7 +478,7 @@
 }
 
 .trade-initiate-btn {
-  background: var(--steam-blue-accent);
+  background: var(--arcane-blue-accent);
   color: white;
   border: none;
   border-radius: 4px;
@@ -493,17 +493,17 @@
 }
 
 /* Loader / Empty States */
-.steam-loader,
-.steam-empty-box {
+.arcane-loader,
+.arcane-empty-box {
   padding: 4rem 2rem;
   text-align: center;
-  background: var(--steam-bg-dark);
+  background: var(--arcane-bg-dark);
   border-radius: 8px;
   border: 1px dashed rgba(255, 255, 255, 0.08);
-  color: var(--steam-text-muted);
+  color: var(--arcane-text-muted);
 }
 
-.steam-empty-box .sub {
+.arcane-empty-box .sub {
   display: block;
   margin-top: 0.75rem;
   font-size: 0.82rem;
@@ -514,16 +514,16 @@
    STEAM TRADE SCREEN
    ========================== */
 
-.steam-trade-screen {
+.arcane-trade-screen {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.steam-back-btn {
+.arcane-back-btn {
   align-self: flex-start;
-  background: var(--steam-bg-dark);
-  color: var(--steam-text-muted);
+  background: var(--arcane-bg-dark);
+  color: var(--arcane-text-muted);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -532,35 +532,35 @@
   transition: all 0.15s ease;
 }
 
-.steam-back-btn:hover {
-  background: var(--steam-bg-light);
+.arcane-back-btn:hover {
+  background: var(--arcane-bg-light);
   color: #ffffff;
 }
 
-.steam-trade-header h2 {
+.arcane-trade-header h2 {
   font-size: 1.8rem;
   font-weight: 800;
   margin: 0;
 }
 
-.steam-trade-header .partner-name {
-  color: var(--steam-blue-accent);
+.arcane-trade-header .partner-name {
+  color: var(--arcane-blue-accent);
 }
 
-.steam-trade-header p {
-  color: var(--steam-text-muted);
+.arcane-trade-header p {
+  color: var(--arcane-text-muted);
   margin: 0.25rem 0 0 0;
   font-size: 0.92rem;
 }
 
 /* Split Panel View */
-.steam-split-container {
+.arcane-split-container {
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
 }
 
-.steam-main-panel {
+.arcane-main-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -568,24 +568,24 @@
 }
 
 /* Trade slots board */
-.steam-trade-slots-board {
+.arcane-trade-slots-board {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  background: var(--steam-bg-mid);
+  background: var(--arcane-bg-mid);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-.steam-offer-side h3 {
+.arcane-offer-side h3 {
   margin: 0 0 0.2rem 0;
   font-size: 1.15rem;
   color: #ffffff;
 }
 
-.steam-offer-side .subtitle {
+.arcane-offer-side .subtitle {
   margin: 0 0 1rem 0;
   font-size: 0.8rem;
   color: #64748b;
@@ -595,14 +595,14 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
-  background: var(--steam-bg-dark);
-  border: 1px solid var(--steam-border-dark);
+  background: var(--arcane-bg-dark);
+  border: 1px solid var(--arcane-border-dark);
   padding: 1rem;
   border-radius: 8px;
 }
 
 /* Steam slot item */
-.steam-slot {
+.arcane-slot {
   aspect-ratio: 0.73;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.35);
@@ -616,30 +616,30 @@
   transition: all 0.15s ease;
 }
 
-.steam-slot.empty {
+.arcane-slot.empty {
   border-style: dashed;
 }
 
-.steam-slot.empty .plus {
+.arcane-slot.empty .plus {
   font-size: 1.5rem;
   color: rgba(255, 255, 255, 0.08);
 }
 
-.steam-slot.filled:hover {
+.arcane-slot.filled:hover {
   border-color: #ef4444; /* red delete overlay highlight */
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
 }
 
-.steam-slot-img {
+.arcane-slot-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.steam-slot-badge {
+.arcane-slot-badge {
   position: absolute;
   bottom: 4px; right: 4px;
-  background: var(--steam-bg-dark);
+  background: var(--arcane-bg-dark);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   font-size: 0.72rem;
@@ -681,12 +681,12 @@
 }
 
 /* Actions bar in trade */
-.steam-actions-bar {
+.arcane-actions-bar {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  background: var(--steam-bg-mid);
+  background: var(--arcane-bg-mid);
   border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 1.25rem;
   border-radius: 12px;
@@ -726,7 +726,7 @@
 }
 
 .execute-trade-btn {
-  background: linear-gradient(180deg, var(--steam-green-ready) 0%, #7d9e03 100%);
+  background: linear-gradient(180deg, var(--arcane-green-ready) 0%, #7d9e03 100%);
   color: #ffffff;
   border: 1px solid #c1f802;
   font-weight: 800;
@@ -739,7 +739,7 @@
 }
 
 .execute-trade-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, var(--steam-green-ready-hover) 0%, var(--steam-green-ready) 100%);
+  background: linear-gradient(180deg, var(--arcane-green-ready-hover) 0%, var(--arcane-green-ready) 100%);
   box-shadow: 0 6px 20px rgba(163, 207, 6, 0.5);
   transform: translateY(-1px);
 }
@@ -753,7 +753,7 @@
 }
 
 .cancel-trade-btn {
-  background: var(--steam-bg-light);
+  background: var(--arcane-bg-light);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.9rem 1.5rem;
@@ -768,23 +768,23 @@
 }
 
 /* Lower Inventories Bin */
-.steam-inventories-section {
-  background: var(--steam-bg-mid);
+.arcane-inventories-section {
+  background: var(--arcane-bg-mid);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   overflow: hidden;
 }
 
-.steam-inventory-tabs {
+.arcane-inventory-tabs {
   display: flex;
   background: rgba(0, 0, 0, 0.25);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.steam-inv-tab {
+.arcane-inv-tab {
   background: transparent;
   border: none;
-  color: var(--steam-text-muted);
+  color: var(--arcane-text-muted);
   padding: 1rem 1.5rem;
   font-weight: 700;
   font-size: 0.92rem;
@@ -793,25 +793,25 @@
   position: relative;
 }
 
-.steam-inv-tab:hover {
+.arcane-inv-tab:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.02);
 }
 
-.steam-inv-tab.active {
+.arcane-inv-tab.active {
   color: #ffffff;
   background: rgba(42, 71, 94, 0.25);
 }
 
-.steam-inv-tab.active::after {
+.arcane-inv-tab.active::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
   height: 3px;
-  background: var(--steam-blue-accent);
+  background: var(--arcane-blue-accent);
 }
 
-.steam-inventory-pane {
+.arcane-inventory-pane {
   padding: 1.5rem;
 }
 
@@ -831,7 +831,7 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 0.88rem;
-  color: var(--steam-text-muted);
+  color: var(--arcane-text-muted);
 }
 
 .checkbox-label input {
@@ -843,31 +843,31 @@
   color: #64748b;
 }
 
-.steam-inv-grid {
+.arcane-inv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 0.75rem;
 }
 
 /* Steam inventory grid card */
-.steam-inv-card {
+.arcane-inv-card {
   aspect-ratio: 0.73;
   border-radius: 6px;
   border: 2px solid rgba(255, 255, 255, 0.08);
-  background: var(--steam-bg-dark);
+  background: var(--arcane-bg-dark);
   position: relative;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.15s ease;
 }
 
-.steam-inv-card:hover:not(.depleted) {
-  border-color: var(--steam-blue-accent);
+.arcane-inv-card:hover:not(.depleted) {
+  border-color: var(--arcane-blue-accent);
   box-shadow: 0 0 10px rgba(102, 192, 244, 0.4);
   transform: translateY(-2px);
 }
 
-.steam-inv-card.depleted {
+.arcane-inv-card.depleted {
   opacity: 0.25;
   cursor: not-allowed;
   border-style: dotted;
@@ -923,7 +923,7 @@
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(102, 192, 244, 0.2);
-  border: 1px solid var(--steam-blue-accent);
+  border: 1px solid var(--arcane-blue-accent);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -939,9 +939,9 @@
    SELECTED CARD INSPECTOR SIDEBAR
    ============================== */
 
-.steam-inspector-sidebar {
+.arcane-inspector-sidebar {
   width: 280px;
-  background: var(--steam-bg-mid);
+  background: var(--arcane-bg-mid);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 1.5rem;
@@ -954,7 +954,7 @@
   top: 100px;
 }
 
-.steam-inspector-sidebar h3 {
+.arcane-inspector-sidebar h3 {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 800;
@@ -1010,7 +1010,7 @@
 }
 
 .detail-item .val {
-  color: var(--steam-text-muted);
+  color: var(--arcane-text-muted);
   font-weight: 600;
 }
 
@@ -1018,7 +1018,7 @@
   background: rgba(255, 255, 255, 0.02);
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
-  border-left: 2px solid var(--steam-blue-accent);
+  border-left: 2px solid var(--arcane-blue-accent);
 }
 
 .inspector-price-section {
@@ -1085,10 +1085,10 @@
 }
 
 @media (max-width: 992px) {
-  .steam-split-container {
+  .arcane-split-container {
     flex-direction: column;
   }
-  .steam-inspector-sidebar {
+  .arcane-inspector-sidebar {
     width: 100%;
     position: relative;
     top: 0;
@@ -1096,7 +1096,7 @@
 }
 
 @media (max-width: 600px) {
-  .steam-trade-slots-board {
+  .arcane-trade-slots-board {
     grid-template-columns: 1fr;
   }
 }
@@ -1138,7 +1138,7 @@
 }
 
 /* Steam slot price tag */
-.steam-slot-price-badge {
+.arcane-slot-price-badge {
   position: absolute;
   top: 4px;
   left: 4px;
@@ -1203,7 +1203,7 @@
 }
 
 .balance-col .val.offer-val {
-  color: var(--steam-blue-accent);
+  color: var(--arcane-blue-accent);
 }
 
 .balance-col .val.demand-val {
@@ -1293,7 +1293,7 @@
 }
 
 .offer-total-txt {
-  color: var(--steam-blue-accent);
+  color: var(--arcane-blue-accent);
   font-weight: 700;
 }
 
@@ -1313,8 +1313,8 @@
 }
 
 .ledger-section {
-  background: var(--steam-panel-bg);
-  border: var(--steam-border);
+  background: var(--arcane-panel-bg);
+  border: var(--arcane-border);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
@@ -1501,15 +1501,63 @@
   justify-content: center;
 }
 
-.steam-btn.compact {
+.arcane-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  font-family: 'Inter', sans-serif;
+}
+
+.arcane-btn.primary {
+  background: linear-gradient(135deg, #4f46e5, #818cf8);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(129, 140, 248, 0.3);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.arcane-btn.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(129, 140, 248, 0.5);
+  background: linear-gradient(135deg, #6366f1, #a5b4fc);
+}
+
+.arcane-btn.primary:disabled {
+  background: #312e81;
+  color: #6366f1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.arcane-btn.secondary {
+  background: rgba(30, 27, 75, 0.6);
+  color: #c7d2fe;
+  border-color: rgba(129, 140, 248, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.arcane-btn.secondary:hover {
+  background: rgba(49, 46, 129, 0.8);
+  color: #ffffff;
+  border-color: rgba(129, 140, 248, 0.6);
+  transform: translateY(-1px);
+}
+
+.arcane-btn.compact {
   padding: 0.4rem 0.75rem;
   font-size: 0.8rem;
 }
 
 /* History Log Section */
 .history-log-section {
-  background: var(--steam-panel-bg);
-  border: var(--steam-border);
+  background: var(--arcane-panel-bg);
+  border: var(--arcane-border);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
@@ -1543,7 +1591,7 @@
   font-weight: 600;
 }
 
-.steam-select {
+.arcane-select {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
@@ -1748,12 +1796,12 @@
   font-style: italic;
 }
 
-.steam-slots-grid.mini {
+.arcane-slots-grid.mini {
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 0.5rem;
 }
 
-.steam-slot.compact {
+.arcane-slot.compact {
   height: 95px;
 }
 
@@ -1775,7 +1823,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.steam-slot.compact:hover .card-name-hover-tooltip {
+.arcane-slot.compact:hover .card-name-hover-tooltip {
   display: block;
 }
 

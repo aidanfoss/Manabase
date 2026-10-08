@@ -26,7 +26,7 @@
 
 .tabs-header,
 .nexus-tabs-header,
-.steam-tabs-container,
+.arcane-tabs-container,
 .collection-tabs,
 .presets-tabs,
 .packages-tabs {
@@ -46,7 +46,7 @@
 
 .tabs-header::-webkit-scrollbar,
 .nexus-tabs-header::-webkit-scrollbar,
-.steam-tabs-container::-webkit-scrollbar,
+.arcane-tabs-container::-webkit-scrollbar,
 .collection-tabs::-webkit-scrollbar,
 .presets-tabs::-webkit-scrollbar,
 .packages-tabs::-webkit-scrollbar {
@@ -56,7 +56,7 @@
 /* Base Tab Button */
 .tab-btn,
 .nexus-tab-btn,
-.steam-tab-btn,
+.arcane-tab-btn,
 .presets-tabs button,
 .packages-tabs button {
   display: inline-flex;
@@ -84,10 +84,10 @@
 /* Tab Icon */
 .tab-btn .inline-icon,
 .nexus-tab-btn .inline-icon,
-.steam-tab-btn .inline-icon,
+.arcane-tab-btn .inline-icon,
 .tab-btn svg,
 .nexus-tab-btn svg,
-.steam-tab-btn svg {
+.arcane-tab-btn svg {
   width: 1.15rem;
   height: 1.15rem;
   flex-shrink: 0;
@@ -99,7 +99,7 @@
 /* Hover State */
 .tab-btn:hover:not(:disabled),
 .nexus-tab-btn:hover:not(:disabled),
-.steam-tab-btn:hover:not(:disabled),
+.arcane-tab-btn:hover:not(:disabled),
 .presets-tabs button:hover:not(:disabled):not(.active),
 .packages-tabs button:hover:not(:disabled):not(.active) {
   color: var(--tab-text-hover);
@@ -108,14 +108,14 @@
 
 .tab-btn:hover:not(:disabled) svg,
 .nexus-tab-btn:hover:not(:disabled) svg,
-.steam-tab-btn:hover:not(:disabled) svg {
+.arcane-tab-btn:hover:not(:disabled) svg {
   opacity: 0.95;
 }
 
 /* Focus Visible */
 .tab-btn:focus-visible,
 .nexus-tab-btn:focus-visible,
-.steam-tab-btn:focus-visible,
+.arcane-tab-btn:focus-visible,
 .presets-tabs button:focus-visible,
 .packages-tabs button:focus-visible {
   outline: 2px solid var(--tab-accent-indigo);
@@ -125,7 +125,7 @@
 /* Active State */
 .tab-btn.active,
 .nexus-tab-btn.active,
-.steam-tab-btn.active,
+.arcane-tab-btn.active,
 .presets-tabs button.active,
 .packages-tabs button.active {
   color: var(--tab-text-active);
@@ -136,14 +136,14 @@
 
 .tab-btn.active svg,
 .nexus-tab-btn.active svg,
-.steam-tab-btn.active svg {
+.arcane-tab-btn.active svg {
   opacity: 1;
   color: #818cf8;
 }
 
 /* Clear legacy pseudo-elements */
 .nexus-tab-btn.active::after,
-.steam-inv-tab.active::after {
+.arcane-inv-tab.active::after {
   display: none !important;
 }
 
@@ -168,7 +168,7 @@
 
 .tab-btn.active .tab-badge,
 .nexus-tab-btn.active .tab-badge,
-.steam-tab-btn.active .tab-badge,
+.arcane-tab-btn.active .tab-badge,
 .tab-btn.active .tab-counter,
 .nexus-tab-btn.active .tab-counter {
   background: rgba(99, 102, 241, 0.22);
@@ -184,7 +184,7 @@
 
 .subtabs-segmented,
 .sub-tabs-row,
-.steam-filter-row {
+.arcane-filter-row {
   display: inline-flex;
   align-items: center;
   background: var(--subtab-bg);
@@ -202,7 +202,7 @@
 
 .subtab-btn,
 .sub-tab-btn,
-.steam-filter-btn {
+.arcane-filter-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -223,7 +223,7 @@
 
 .subtab-btn svg,
 .sub-tab-btn svg,
-.steam-filter-btn svg {
+.arcane-filter-btn svg {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
@@ -233,21 +233,21 @@
 
 .subtab-btn:hover:not(:disabled),
 .sub-tab-btn:hover:not(:disabled),
-.steam-filter-btn:hover:not(:disabled) {
+.arcane-filter-btn:hover:not(:disabled) {
   color: var(--tab-text-hover);
   background: rgba(255, 255, 255, 0.05);
 }
 
 .subtab-btn:focus-visible,
 .sub-tab-btn:focus-visible,
-.steam-filter-btn:focus-visible {
+.arcane-filter-btn:focus-visible {
   outline: 2px solid var(--tab-accent-indigo);
   outline-offset: 1px;
 }
 
 .subtab-btn.active,
 .sub-tab-btn.active,
-.steam-filter-btn.active {
+.arcane-filter-btn.active {
   color: #ffffff;
   background: var(--subtab-active-bg);
   border-color: var(--subtab-active-border);
@@ -256,7 +256,7 @@
 
 .subtab-btn.active svg,
 .sub-tab-btn.active svg,
-.steam-filter-btn.active svg {
+.arcane-filter-btn.active svg {
   opacity: 1;
   color: #818cf8;
 }
@@ -277,7 +277,7 @@
 
 .subtab-btn.active .subtab-badge,
 .sub-tab-btn.active .subtab-badge,
-.steam-filter-btn.active .subtab-badge {
+.arcane-filter-btn.active .subtab-badge {
   background: rgba(99, 102, 241, 0.25);
   color: #a5b4fc;
 }
@@ -287,7 +287,7 @@
    ========================================================================== */
 
 .modal-tabs-header,
-.steam-inventory-tabs {
+.arcane-inventory-tabs {
   display: flex;
   background: rgba(10, 15, 26, 0.7);
   border-bottom: 1px solid var(--tab-border-color);
@@ -296,7 +296,7 @@
 }
 
 .modal-tab-btn,
-.steam-inv-tab {
+.arcane-inv-tab {
   background: transparent;
   border: none;
   border-bottom: 2.5px solid transparent;
@@ -315,13 +315,13 @@
 }
 
 .modal-tab-btn:hover,
-.steam-inv-tab:hover {
+.arcane-inv-tab:hover {
   color: var(--tab-text-hover);
   background: rgba(255, 255, 255, 0.03);
 }
 
 .modal-tab-btn.active,
-.steam-inv-tab.active {
+.arcane-inv-tab.active {
   color: #ffffff;
   border-bottom-color: var(--tab-accent-indigo);
   background: rgba(99, 102, 241, 0.08);
@@ -334,7 +334,7 @@
 @media (max-width: 768px) {
   .tabs-header,
   .nexus-tabs-header,
-  .steam-tabs-container,
+  .arcane-tabs-container,
   .collection-tabs,
   .presets-tabs,
   .packages-tabs {
@@ -345,7 +345,7 @@
 
   .tab-btn,
   .nexus-tab-btn,
-  .steam-tab-btn,
+  .arcane-tab-btn,
   .presets-tabs button,
   .packages-tabs button {
     padding: 0.65rem 0.85rem;
@@ -355,7 +355,7 @@
 
   .subtabs-segmented,
   .sub-tabs-row,
-  .steam-filter-row {
+  .arcane-filter-row {
     width: 100%;
     display: flex;
     overflow-x: auto;
@@ -364,7 +364,7 @@
 
   .subtab-btn,
   .sub-tab-btn,
-  .steam-filter-btn {
+  .arcane-filter-btn {
     padding: 0.4rem 0.75rem;
     font-size: 0.78rem;
     flex-shrink: 0;
