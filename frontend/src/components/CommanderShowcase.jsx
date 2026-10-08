@@ -2,61 +2,56 @@ import React from 'react';
 import { MagnifyingGlassIcon, ChartBarIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
 
 export default function CommanderShowcase({ commander, cards }) {
+  // Grab up to 4 companion cards and strictly inject the commander in center (index 2)
+  const validCards = Array.isArray(cards) ? cards.slice(0, 4) : [];
+
+  // Construct arc: [card0, card1, commander, card2, card3]
+  const arcArray = [];
+  if (validCards[0]) arcArray.push({ ...validCards[0], isCommander: false });
+  if (validCards[1]) arcArray.push({ ...validCards[1], isCommander: false });
+
+  arcArray.push({
+    name: commander?.name || 'Unknown Commander',
+    image: commander?.image || '',
+    isCommander: true
+  });
+
+  if (validCards[2]) arcArray.push({ ...validCards[2], isCommander: false });
+  if (validCards[3]) arcArray.push({ ...validCards[3], isCommander: false });
+
+  // URL Helpers
   const getScryfallUrl = (name) => `https://scryfall.com/search?q=!"${encodeURIComponent(name)}"`;
   const getGathererUrl = (name) => `https://gatherer.wizards.com/Pages/Card/Details.aspx?name=${encodeURIComponent(name)}`;
   const getEdhrecUrl = (card) => {
     if (card.url) return `https://edhrec.com${card.url}`;
-    return `https://edhrec.com/commanders/${card.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+    return `https://edhrec.com/commanders/${(card.name || '').toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
   };
 
   return (
     <div className="commander-showcase">
-      <div className="showcase-header">
-        <h2 className="showcase-title">Update your decks</h2>
-        <span className="showcase-source">Trending on EDHRec</span>
-      </div>
-
-      <div className="showcase-grid">
-        {/* Featured Commander */}
-        <div className="card-item commander-featured">
-          <a href={getScryfallUrl(commander.name)} target="_blank" rel="noopener noreferrer" className="card-image-link">
-            <img src={commander.image} alt={commander.name} />
-          </a>
-          <div className="card-actions">
-            <a href={getScryfallUrl(commander.name)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label="Scryfall">
-              <MagnifyingGlassIcon className="action-icon" />
+      <div className="showcase-grid arc-layout">
+        {arcArray.map((item, idx) => (
+          <div
+            key={`${item.name}-${idx}`}
+            className={`card-item arc-card-${idx} ${item.isCommander ? 'commander-featured' : ''}`}
+          >
+            {!item.isCommander && <span className="new-badge">NEW</span>}
+            <a href={getScryfallUrl(item.name)} target="_blank" rel="noopener noreferrer" className="card-image-link" tabIndex="0">
+              <img src={item.image} alt={item.name} />
             </a>
-            <a href={getEdhrecUrl(commander)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label="EDHRec">
-              <ChartBarIcon className="action-icon" />
-            </a>
-            <a href={getGathererUrl(commander.name)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label="Gatherer">
-              <GlobeAltIcon className="action-icon" />
-            </a>
-          </div>
-        </div>
-
-        {/* New Cards Cascade */}
-        <div className="new-cards-cascade">
-          {cards.map((card, i) => (
-            <div key={card.name} className={`card-item new-card-${i}`}>
-              <span className="new-badge">NEW</span>
-              <a href={getScryfallUrl(card.name)} target="_blank" rel="noopener noreferrer" className="card-image-link">
-                <img src={card.image} alt={card.name} />
+            <div className="card-actions">
+              <a href={getScryfallUrl(item.name)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label={`View ${item.name} on Scryfall`}>
+                <MagnifyingGlassIcon className="action-icon" />
               </a>
-              <div className="card-actions">
-                <a href={getScryfallUrl(card.name)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label="Scryfall">
-                  <MagnifyingGlassIcon className="action-icon" />
-                </a>
-                <a href={getEdhrecUrl(card)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label="EDHRec">
-                  <ChartBarIcon className="action-icon" />
-                </a>
-                <a href={getGathererUrl(card.name)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label="Gatherer">
-                  <GlobeAltIcon className="action-icon" />
-                </a>
-              </div>
+              <a href={getEdhrecUrl(item)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label={`View ${item.name} on EDHREC`}>
+                <ChartBarIcon className="action-icon" />
+              </a>
+              <a href={getGathererUrl(item.name)} target="_blank" rel="noopener noreferrer" className="icon-action" aria-label={`View ${item.name} on Gatherer`}>
+                <GlobeAltIcon className="action-icon" />
+              </a>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

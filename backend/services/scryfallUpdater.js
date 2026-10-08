@@ -88,96 +88,104 @@ export async function loadCardData() {
             crlfDelay: Infinity
         });
 
-        rl.on("error", (err) => {
-            console.error("[scryfallUpdater] readline interface error (likely corrupt bulk data):", err.message);
-            // Error is handled; resolve with empty to avoid crashing
-        });
-
+        let hasError = false;
         const TEMP_CACHE_PATH = PARSED_CACHE_PATH + ".tmp";
         const writeStream = fs.createWriteStream(TEMP_CACHE_PATH);
         writeStream.write('[\n');
         let isFirst = true;
         let count = 0;
 
-        rl.on("line", (line) => {
-            if (!line.trim()) return;
-            const c = JSON.parse(line);
-            // Only keep fields needed by scryfallLocal.js to prevent OOM
-            const stripped = {
-                id: c.id,
-                oracle_id: c.oracle_id,
-                name: c.name,
-                layout: c.layout,
-                released_at: c.released_at,
-                set: c.set,
-                set_name: c.set_name,
-                promo: c.promo,
-                full_art: c.full_art,
-                border_color: c.border_color,
-                collector_number: c.collector_number,
-                prices: c.prices,
-                type_line: c.type_line,
-                color_identity: c.color_identity,
-                scryfall_uri: c.scryfall_uri,
-                rulings_uri: c.rulings_uri,
-                purchase_uris: c.purchase_uris,
-            };
-            
-            if (c.image_uris) {
-                stripped.image_uris = {
-                    normal: c.image_uris.normal,
-                    small: c.image_uris.small
-                };
-            }
-            
-            if (c.card_faces) {
-                stripped.card_faces = c.card_faces.map(f => ({
-                    image_uris: f.image_uris ? { normal: f.image_uris.normal } : null
-                }));
-            }
+        const handleError = (err, source) => {
+            if (hasError) return;
+            hasError = true;
+            console.error(`[scryfallUpdater] ${source}:`, err.message || err);
+            try {
+                writeStream.destroy();
+                if (fs.existsSync(TEMP_CACHE_PATH)) {
+                    fs.unlinkSync(TEMP_CACHE_PATH);
+                }
+            } catch {}
+            resolve([]);
+        };
 
-            count++;
-            const prefix = isFirst ? "" : ",\n";
-            isFirst = false;
-            
-            // Write directly to file stream to avoid generating a massive JSON string in memory
-            const canWrite = writeStream.write(prefix + JSON.stringify(stripped));
-            if (!canWrite) {
-                rl.pause();
-                writeStream.once("drain", () => rl.resume());
+        rl.on("error", (err) => handleError(err, "readline interface error"));
+        readStream.on("error", (err) => handleError(err, "Failed to read raw bulk data"));
+        gunzip.on("error", (err) => handleError(err, "Failed to decompress bulk data"));
+        writeStream.on("error", (err) => handleError(err, "Failed to write pre-parsed cache file"));
+
+        rl.on("line", (line) => {
+            if (hasError || !line.trim()) return;
+            try {
+                const c = JSON.parse(line);
+                // Only keep fields needed by scryfallLocal.js to prevent OOM
+                const stripped = {
+                    id: c.id,
+                    oracle_id: c.oracle_id,
+                    name: c.name,
+                    layout: c.layout,
+                    released_at: c.released_at,
+                    set: c.set,
+                    set_name: c.set_name,
+                    promo: c.promo,
+                    full_art: c.full_art,
+                    border_color: c.border_color,
+                    collector_number: c.collector_number,
+                    prices: c.prices,
+                    type_line: c.type_line,
+                    color_identity: c.color_identity,
+                    scryfall_uri: c.scryfall_uri,
+                    rulings_uri: c.rulings_uri,
+                    purchase_uris: c.purchase_uris,
+                };
+
+                if (c.image_uris) {
+                    stripped.image_uris = {
+                        normal: c.image_uris.normal,
+                        small: c.image_uris.small
+                    };
+                }
+
+                if (c.card_faces) {
+                    stripped.card_faces = c.card_faces.map(f => ({
+                        image_uris: f.image_uris ? { normal: f.image_uris.normal } : null
+                    }));
+                }
+
+                count++;
+                const prefix = isFirst ? "" : ",\n";
+                isFirst = false;
+
+                // Write directly to file stream to avoid generating a massive JSON string in memory
+                const canWrite = writeStream.write(prefix + JSON.stringify(stripped));
+                if (!canWrite) {
+                    rl.pause();
+                    writeStream.once("drain", () => rl.resume());
+                }
+            } catch (err) {
+                // Ignore single card parse errors in raw stream
             }
         });
 
         rl.on("close", () => {
+            if (hasError) return;
             console.log(`[scryfallUpdater] Streamed ${count.toLocaleString()} cards. Saving fast cache...`);
             writeStream.write('\n]');
             writeStream.end(() => {
-                // Atomic rename so cache is never malformed
-                fs.renameSync(TEMP_CACHE_PATH, PARSED_CACHE_PATH);
-                console.log("[scryfallUpdater] Saved pre-parsed cache for instant future startups.");
                 try {
-                    const parsedCards = JSON.parse(fs.readFileSync(PARSED_CACHE_PATH, "utf8"));
-                    resolve(parsedCards);
+                    if (fs.existsSync(TEMP_CACHE_PATH)) {
+                        // Atomic rename so cache is never malformed
+                        fs.renameSync(TEMP_CACHE_PATH, PARSED_CACHE_PATH);
+                        console.log("[scryfallUpdater] Saved pre-parsed cache for instant future startups.");
+                        const parsedCards = JSON.parse(fs.readFileSync(PARSED_CACHE_PATH, "utf8"));
+                        resolve(parsedCards);
+                    } else {
+                        resolve([]);
+                    }
                 } catch (err) {
-                    console.error("[scryfallUpdater] Failed to parse newly created cache:", err);
+                    console.error("[scryfallUpdater] Failed to finalize/parse cache:", err);
                     resolve([]);
                 }
             });
-        });
-
-        readStream.on("error", (err) => {
-            console.error("[scryfallUpdater] Failed to read raw bulk data:", err);
-            resolve([]); // fallback
-        });
-
-        gunzip.on("error", (err) => {
-            console.error("[scryfallUpdater] Failed to decompress bulk data:", err);
-            resolve([]); // fallback
-        });
-
-        writeStream.on("error", (err) => {
-            console.warn("[scryfallUpdater] Failed to write pre-parsed cache file:", err.message);
-            resolve([]);
         });
     });
 }
