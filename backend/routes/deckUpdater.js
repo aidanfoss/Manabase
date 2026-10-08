@@ -5,6 +5,8 @@ import { getStrictlyBetterUpgrades, getEDHRecSuggestions, syncStrictlyBetterData
 import { getLocalCardsBatch } from "./scryfallLocal.js";
 import { fetchMoxfieldDeck } from "../services/moxfieldSync.js";
 import axios from "axios";
+import { analyzeLands } from "../services/landAnalyzer.js";
+
 
 const router = express.Router();
 
@@ -91,6 +93,16 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
 
       const strictlyBetterRaw = getStrictlyBetterUpgrades(deckCardNames);
       const edhrecRaw = await getEDHRecSuggestions(commanderName, deckCardNames);
+
+      const landAnalysis = analyzeLands(commanderName, deckCardNames);
+      const landUpgrades = {
+        cuts: landAnalysis.cuts.filter(c => !dismissalsSet.has(`${deck.deck_id}::land_cut:${c.name}`)),
+        adds: landAnalysis.adds.filter(a => !dismissalsSet.has(`${deck.deck_id}::land_add:${a.name}`))
+      };
+
+      for (const cut of landUpgrades.cuts) allUniqueCardNames.add(cut.name);
+      for (const add of landUpgrades.adds) allUniqueCardNames.add(add.name);
+
 
       // Filter out dismissals
       const strictlyBetter = strictlyBetterRaw.filter(u => {
@@ -328,6 +340,52 @@ router.post("/undismiss", requireAuth, async (req, res) => {
   } catch (error) {
     console.error("Failed to undismiss:", error.message);
     res.status(500).json({ error: "Failed to undismiss" });
+  }
+});
+
+
+// GET /api/deck-updater/analyze-lands
+router.get("/analyze-lands", requireAuth, async (req, res) => {
+  try {
+    const { deckId } = req.query;
+    const userId = req.user.id;
+
+    if (!deckId) return res.status(400).json({ error: "Missing deckId" });
+
+    // Fetch deck
+    const deck = await db("user_archidekt_decks")
+      .where({ user_id: userId, deck_id: String(deckId) })
+      .first();
+
+    if (!deck) {
+      return res.status(404).json({ error: "Deck not found" });
+    }
+
+    let deckCardNames = [];
+    let commanderName = deck.commander;
+
+    if (deck.cards) {
+       deckCardNames = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
+    } else {
+       const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
+       deckCardNames = items.map(i => i.card_name);
+    }
+    
+    // Also fetch user dismissals for filtering
+    const userDismissals = await db("user_deck_dismissals").where({ user_id: userId, deck_id: String(deckId) });
+    const dismissalsSet = new Set(userDismissals.map(d => d.suggestion_id));
+
+    const analysis = analyzeLands(commanderName, deckCardNames);
+    
+    // Filter cuts and adds using dismissalsSet
+    analysis.cuts = analysis.cuts.filter(c => !dismissalsSet.has(`land_cut:${c.name}`));
+    analysis.adds = analysis.adds.filter(a => !dismissalsSet.has(`land_add:${a.name}`));
+
+    res.json(analysis);
+
+  } catch (error) {
+    console.error("Land analysis error:", error);
+    res.status(500).json({ error: "Failed to analyze lands" });
   }
 });
 

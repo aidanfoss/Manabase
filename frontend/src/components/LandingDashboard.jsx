@@ -132,7 +132,7 @@ export default function LandingDashboard({ onSelectPreset }) {
           <span>The Commander Mana Matrix & Collection Forge</span>
         </div>
 
-        <h1 className="hero-mythic-title">
+        <h1 className="hero-mythic-title animate-in">
           Architect the Perfect <span className="title-gradient-mana">Manabase</span>
         </h1>
 
@@ -250,7 +250,7 @@ export default function LandingDashboard({ onSelectPreset }) {
       {/* Main 4 Clean Feature Boxes with Sample Visual Previews */}
       <section className="clean-modules-grid">
         {/* Box 1: Manabase Architecture & Presets */}
-        <div className="clean-box" onClick={() => navigate("/builder")}>
+        <div className="clean-box animate-in" onClick={() => navigate("/builder")}>
           <div className="box-glass-accent"></div>
 
           <div className="box-header">
@@ -305,7 +305,7 @@ export default function LandingDashboard({ onSelectPreset }) {
         </div>
 
         {/* Box 2: Collection Forge & MPC Proxy Vault */}
-        <div className="clean-box" onClick={() => navigate("/wishlist")}>
+        <div className="clean-box animate-in" onClick={() => navigate("/wishlist")}>
           <div className="box-glass-accent"></div>
 
           <div className="box-header">
@@ -365,7 +365,7 @@ export default function LandingDashboard({ onSelectPreset }) {
         </div>
 
         {/* Box 3: Synchronized Grimoire */}
-        <div className="clean-box" onClick={() => navigate("/decks")}>
+        <div className="clean-box animate-in" onClick={() => navigate("/decks")}>
           <div className="box-glass-accent"></div>
 
           <div className="box-header">
@@ -420,7 +420,7 @@ export default function LandingDashboard({ onSelectPreset }) {
         </div>
 
         {/* Box 4: Playgroup Trade Ledger */}
-        <div className="clean-box" onClick={() => navigate("/trade")}>
+        <div className="clean-box animate-in" onClick={() => navigate("/trade")}>
           <div className="box-glass-accent"></div>
 
           <div className="box-header">

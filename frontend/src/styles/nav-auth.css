@@ -3,9 +3,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(10, 13, 20, 0.88);
+    background: var(--surface-glass);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--border-glass);
     padding: 0 1.75rem;
     height: 64px;
     color: #f8fafc;
