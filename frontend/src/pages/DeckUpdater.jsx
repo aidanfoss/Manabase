@@ -383,6 +383,13 @@ export default function DeckUpdater() {
             <span>All Decks</span>
             <span className="deck-pill-count">{summaryMetrics.totalNew}</span>
           </button>
+          <button
+            className={`mode-tab ${activeTab === "lands" ? "active" : ""}`}
+            onClick={() => setActiveTab("lands")}
+          >
+            <AdjustmentsHorizontalIcon className="icon-sm" />
+            <span>Land Base</span>
+          </button>
 
           {deckAnalyses.map(deck => {
             const newCount = deck.edhrec?.newCards?.length || 0;
@@ -432,6 +439,13 @@ export default function DeckUpdater() {
             <ExclamationTriangleIcon className="icon-sm" />
             <span>Strictly Better</span>
             <span className="tab-badge">{summaryMetrics.totalUpgrades}</span>
+          </button>
+          <button
+            className={`mode-tab ${activeTab === "lands" ? "active" : ""}`}
+            onClick={() => setActiveTab("lands")}
+          >
+            <AdjustmentsHorizontalIcon className="icon-sm" />
+            <span>Land Base</span>
           </button>
 
           <button
@@ -567,6 +581,35 @@ export default function DeckUpdater() {
                                 ) : (
                                   <div className="triage-placeholder">{card.name}</div>
                                 )}
+                {activeTab === "lands" && deck.landUpgrades && (
+                  <div className="land-upgrades-container animate-in" style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
+                    <div className="land-cuts" style={{ flex: 1 }}>
+                      <h4 style={{ color: '#f87171', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Suggested Cuts</h4>
+                      {deck.landUpgrades.cuts.length === 0 ? (
+                        <div className="empty-state">No suggested cuts. Your land base is solid!</div>
+                      ) : (
+                        <div className="card-grid">
+                          {deck.landUpgrades.cuts.map((card) =>
+                            renderSuggestionCard({...card, price: card.reason || "Cut"}, deck.deck_id, "land_cut")
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="land-adds" style={{ flex: 1 }}>
+                      <h4 style={{ color: '#4ade80', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Better Alternatives</h4>
+                      {deck.landUpgrades.adds.length === 0 ? (
+                        <div className="empty-state">No adds suggested.</div>
+                      ) : (
+                        <div className="card-grid">
+                          {deck.landUpgrades.adds.map((card) =>
+                            renderSuggestionCard({...card, price: `${card.cycle} (${card.tier})`}, deck.deck_id, "land_add")
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                                 <div className="triage-floating-meta">
                                   <span className="price-tag">
@@ -735,6 +778,35 @@ export default function DeckUpdater() {
                                 ) : (
                                   <div className="triage-placeholder">{card.name}</div>
                                 )}
+                {activeTab === "lands" && deck.landUpgrades && (
+                  <div className="land-upgrades-container animate-in" style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
+                    <div className="land-cuts" style={{ flex: 1 }}>
+                      <h4 style={{ color: '#f87171', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Suggested Cuts</h4>
+                      {deck.landUpgrades.cuts.length === 0 ? (
+                        <div className="empty-state">No suggested cuts. Your land base is solid!</div>
+                      ) : (
+                        <div className="card-grid">
+                          {deck.landUpgrades.cuts.map((card) =>
+                            renderSuggestionCard({...card, price: card.reason || "Cut"}, deck.deck_id, "land_cut")
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="land-adds" style={{ flex: 1 }}>
+                      <h4 style={{ color: '#4ade80', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Better Alternatives</h4>
+                      {deck.landUpgrades.adds.length === 0 ? (
+                        <div className="empty-state">No adds suggested.</div>
+                      ) : (
+                        <div className="card-grid">
+                          {deck.landUpgrades.adds.map((card) =>
+                            renderSuggestionCard({...card, price: `${card.cycle} (${card.tier})`}, deck.deck_id, "land_add")
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                                 <div className="triage-floating-meta">
                                   <span className="price-tag">
