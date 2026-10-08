@@ -175,18 +175,18 @@
   margin-left: 0;
 }
 
-/* Commander elevation baseline */
+/* Commander elevation baseline (Center card at index 2) */
 .arc-layout .commander-featured {
   width: 260px; /* Specifically bigger */
   z-index: 10;
 }
 
-/* Geometry */
-.arc-card-0 { transform: rotate(-4deg) translateY(-5px); z-index: 10; } /* Commander */
-.arc-card-1 { transform: rotate(3deg) translateY(5px); z-index: 4; margin-left: -75px; }
-.arc-card-2 { transform: rotate(9deg) translateY(15px); z-index: 3; margin-left: -75px; }
-.arc-card-3 { transform: rotate(15deg) translateY(27px); z-index: 2; margin-left: -75px; }
-.arc-card-4 { transform: rotate(22deg) translateY(42px); z-index: 1; margin-left: -75px; }
+/* Symmetric Arc Geometry for 5 cards: [0, 1, 2(Commander), 3, 4] */
+.arc-card-0 { transform: rotate(-8deg) translateY(12px); z-index: 2; }
+.arc-card-1 { transform: rotate(-4deg) translateY(4px); z-index: 5; margin-left: -75px; }
+.arc-card-2 { transform: rotate(0deg) translateY(-8px); z-index: 10; margin-left: -75px; } /* Commander center */
+.arc-card-3 { transform: rotate(4deg) translateY(4px); z-index: 5; margin-left: -75px; }
+.arc-card-4 { transform: rotate(8deg) translateY(12px); z-index: 2; margin-left: -75px; }
 
 /* Hover Physics */
 .arc-layout .card-item:hover,

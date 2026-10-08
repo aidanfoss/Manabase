@@ -5,15 +5,19 @@ export default function CommanderShowcase({ commander, cards }) {
   // Grab up to 4 companion cards
   const validCards = Array.isArray(cards) ? cards.slice(0, 4) : [];
 
-  // Construct arc: [commander, card0, card1, card2, card3]
-  // Commander is placed on the left, other cards curve out to the right
+  // Split into 2 left cards and 2 right cards to flank the commander in the center
+  const leftCards = validCards.slice(0, 2);
+  const rightCards = validCards.slice(2, 4);
+
+  // Construct arc: [left1, left2, commander (center), right1, right2] -> exactly 5 total cards
   const arcArray = [
+    ...leftCards.map(c => ({ ...c, isCommander: false })),
     {
       name: commander?.name || 'Unknown Commander',
       image: commander?.image || '',
       isCommander: true
     },
-    ...validCards.map(c => ({ ...c, isCommander: false }))
+    ...rightCards.map(c => ({ ...c, isCommander: false }))
   ];
 
   // URL Helpers
