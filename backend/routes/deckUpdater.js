@@ -137,7 +137,8 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
         edhrec: {
           newCards,
           highSynergy
-        }
+        },
+        landUpgrades
       });
     }
 
@@ -190,6 +191,11 @@ router.get("/analyze-all", requireAuth, async (req, res) => {
           ...enrichCardObj(c.name)
         }))
         .filter(c => !isDigitalOnly(c));
+
+      res.landUpgrades = {
+        cuts: res.landUpgrades.cuts.map(c => ({ ...c, ...enrichCardObj(c.name) })),
+        adds: res.landUpgrades.adds.map(a => ({ ...a, ...enrichCardObj(a.name) }))
+      };
     }
 
     res.json(results);
