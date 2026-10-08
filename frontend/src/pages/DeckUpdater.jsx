@@ -90,8 +90,18 @@ export default function DeckUpdater() {
           console.warn("[DeckUpdater:LandPreferences] Response OK but missing data.preferences property:", data);
         }
       } else {
-        const errText = await res.text();
-        console.error(`[DeckUpdater:LandPreferences] GET failed with HTTP ${res.status}:`, errText);
+        let errDetails = null;
+        try {
+          const rawText = await res.text();
+          try {
+            errDetails = JSON.parse(rawText);
+          } catch {
+            errDetails = rawText ? { error: rawText } : null;
+          }
+        } catch {
+          errDetails = { error: "Failed to read response" };
+        }
+        console.error(`[DeckUpdater:LandPreferences] GET failed with HTTP ${res.status}:`, errDetails);
       }
     } catch (e) {
       console.error("[DeckUpdater:LandPreferences] Exception in fetchLandPreferences:", e);
@@ -126,9 +136,9 @@ export default function DeckUpdater() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const elapsed = Math.round(performance.now() - startTime);
-      const data = await res.json();
-      console.log(`[DeckUpdater] GET /api/deck-updater/analyze-all responded in ${elapsed}ms with status ${res.status}`);
       if (res.ok) {
+        const data = await res.json();
+        console.log(`[DeckUpdater] GET /api/deck-updater/analyze-all responded in ${elapsed}ms with status ${res.status}`);
         const analyses = Array.isArray(data) ? data : [];
         console.log(`[DeckUpdater] Successfully loaded analyses for ${analyses.length} decks:`, analyses.map(d => ({
           deck_id: d.deck_id,
@@ -143,8 +153,19 @@ export default function DeckUpdater() {
         })));
         setDeckAnalyses(analyses);
       } else {
-        console.error(`[DeckUpdater] Failed to analyze decks (HTTP ${res.status}):`, data);
-        setError(data.error || "Failed to analyze decks");
+        let errDetails = null;
+        try {
+          const rawText = await res.text();
+          try {
+            errDetails = JSON.parse(rawText);
+          } catch {
+            errDetails = rawText ? { error: rawText } : null;
+          }
+        } catch {
+          errDetails = { error: "Failed to read response" };
+        }
+        console.error(`[DeckUpdater] Failed to analyze decks (HTTP ${res.status}):`, errDetails);
+        setError(errDetails?.error || "Failed to analyze decks");
       }
     } catch (e) {
       console.error("[DeckUpdater] Network error in fetchAllDecksAnalysis:", e);
@@ -207,12 +228,17 @@ export default function DeckUpdater() {
       } else {
         let errDetails = null;
         try {
-          errDetails = await res.json();
+          const rawText = await res.text();
+          try {
+            errDetails = JSON.parse(rawText);
+          } catch {
+            errDetails = rawText ? { error: rawText } : null;
+          }
         } catch {
-          errDetails = await res.text();
+          errDetails = { error: "Failed to read response" };
         }
         console.error(`[DeckUpdater:LandPreferences] Server rejected land preferences save (HTTP ${res.status}):`, errDetails);
-        showToast(errDetails?.error || "Failed to save land preferences", "error");
+        showToast(errDetails?.error || (typeof errDetails === "string" ? errDetails : "Failed to save land preferences"), "error");
       }
     } catch (e) {
       console.error("[DeckUpdater:LandPreferences] Network/runtime exception while saving land preferences:", e);
@@ -248,9 +274,25 @@ export default function DeckUpdater() {
         body: JSON.stringify({ preferences: updated })
       });
       console.log(`[DeckUpdater:LandPreferences] Quick budget update HTTP response status: ${res.status}`);
-      showToast(`Budget changed to ${tierId === "all" ? "Unlimited" : `< $${maxPrice}`}`, "info");
-      console.log("[DeckUpdater:LandPreferences] Triggering re-analysis of decks after quick budget change...");
-      fetchAllDecksAnalysis(true);
+      if (res.ok) {
+        showToast(`Budget changed to ${tierId === "all" ? "Unlimited" : `< $${maxPrice}`}`, "info");
+        console.log("[DeckUpdater:LandPreferences] Triggering re-analysis of decks after quick budget change...");
+        fetchAllDecksAnalysis(true);
+      } else {
+        let errDetails = null;
+        try {
+          const rawText = await res.text();
+          try {
+            errDetails = JSON.parse(rawText);
+          } catch {
+            errDetails = rawText ? { error: rawText } : null;
+          }
+        } catch {
+          errDetails = { error: "Failed to read response" };
+        }
+        console.error(`[DeckUpdater:LandPreferences] Quick budget update failed (HTTP ${res.status}):`, errDetails);
+        showToast(errDetails?.error || (typeof errDetails === "string" ? errDetails : "Failed to update budget tier"), "error");
+      }
     } catch (e) {
       console.error("[DeckUpdater:LandPreferences] Failed to quick update budget tier:", e);
     }
