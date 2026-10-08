@@ -201,6 +201,16 @@ export async function initDB() {
     });
   }
 
+  // Create user_land_preferences table for Land Suggester preferences
+  const hasLandPrefs = await db.schema.hasTable("user_land_preferences");
+  if (!hasLandPrefs) {
+    await db.schema.createTable("user_land_preferences", (t) => {
+      t.uuid("user_id").primary().references("id").inTable("users").onDelete("CASCADE");
+      t.json("preferences").notNullable();
+      t.timestamps(true, true);
+    });
+  }
+
   const hasPackages = await db.schema.hasTable("packages");
   if (!hasPackages) {
     await db.schema.createTable("packages", (t) => {
