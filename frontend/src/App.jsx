@@ -22,6 +22,7 @@ import "./styles/nav-auth.css";
 import "./styles/tabs.css";
 import "./styles/new-landing.css";
 import CommanderShowcase from "./components/CommanderShowcase";
+import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
 import { WishlistProvider } from "./context/WishlistProvider";
 import OnboardingModal from "./components/OnboardingModal";
 
@@ -198,6 +199,7 @@ function LandingDashboard() {
 
       {showcaseData && <CommanderShowcase commander={showcaseData.commander} cards={showcaseData.cards} />}
 
+      <BuilderAnimationShowcase />
 
       <div className="features-grid">
         {/* Feature 1: Manabase Deckbuilder */}
