@@ -1,35 +1,36 @@
 import express from "express";
 import { getEDHRecSuggestions } from "../services/deckUpdater.js";
 import { fetchCardData } from "../services/scryfall.js";
+import { getRandomCommanderCard, getRandomCards } from "./scryfallLocal.js";
 
 const router = express.Router();
-
-const POPULAR_COMMANDERS = [
-  "Atraxa, Praetors' Voice",
-  "The Ur-Dragon",
-  "Wilhelt, the Rotcleaver",
-  "Prosper, Tome-Bound",
-  "Kinnan, Bonder Prodigy",
-  "Niv-Mizzet, Parun"
-];
 
 const getFallbackImage = (cardName) => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image`;
 
 router.get("/random", async (_, res) => {
   try {
-    const randomCommander = POPULAR_COMMANDERS[Math.floor(Math.random() * POPULAR_COMMANDERS.length)];
-    const suggestions = await getEDHRecSuggestions(randomCommander, []);
+    const randomCommanderCard = await getRandomCommanderCard();
+    const commanderName = randomCommanderCard?.name || "Atraxa, Praetors' Voice";
+    const commanderImage = randomCommanderCard?.image_uris?.normal ||
+                           randomCommanderCard?.card_faces?.[0]?.image_uris?.normal ||
+                           randomCommanderCard?.image_uris?.small ||
+                           getFallbackImage(commanderName);
 
-    let selectedCards = suggestions.newCards;
-    if (selectedCards.length < 5) {
-      const needed = 5 - selectedCards.length;
-      selectedCards = [...selectedCards, ...suggestions.highSynergy.filter((_, i) => i < needed)];
-    } else {
-      selectedCards = selectedCards.sort(() => 0.5 - Math.random()).slice(0, 5);
+    const suggestions = await getEDHRecSuggestions(commanderName, []);
+
+    let selectedCards = suggestions.newCards || [];
+    if (selectedCards.length < 4) {
+      const needed = 4 - selectedCards.length;
+      const synergyCards = (suggestions.highSynergy || []).filter(c => !selectedCards.some(sc => sc.name.toLowerCase() === c.name.toLowerCase()));
+      selectedCards = [...selectedCards, ...synergyCards.slice(0, needed)];
     }
 
-    const commanderData = await fetchCardData(randomCommander);
-    const commanderImage = commanderData?.image || getFallbackImage(randomCommander);
+    if (selectedCards.length < 4) {
+      const randomFallback = await getRandomCards(4 - selectedCards.length);
+      selectedCards = [...selectedCards, ...randomFallback];
+    } else {
+      selectedCards = selectedCards.sort(() => 0.5 - Math.random()).slice(0, 4);
+    }
 
     const cardsWithImages = await Promise.all(selectedCards.map(async (card) => {
       const cardData = await fetchCardData(card.name);
@@ -41,7 +42,7 @@ router.get("/random", async (_, res) => {
 
     res.json({
       commander: {
-        name: randomCommander,
+        name: commanderName,
         image: commanderImage
       },
       cards: cardsWithImages
