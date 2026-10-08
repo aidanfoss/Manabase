@@ -25,6 +25,9 @@ import CommanderShowcase from "./components/CommanderShowcase";
 import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
 import { WishlistProvider } from "./context/WishlistProvider";
 import OnboardingModal from "./components/OnboardingModal";
+import CookieConsentBanner from "./components/CookieConsentBanner";
+import CookiePolicy from "./pages/CookiePolicy";
+import RefundPolicy from "./pages/RefundPolicy";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsPage from "./pages/TermsPage";
 import FAQ from "./pages/FAQ";
@@ -182,9 +185,13 @@ function AppContent() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
+
+      <CookieConsentBanner />
     </>
   );
 }
@@ -283,24 +290,35 @@ function LandingDashboard() {
       <footer style={{
         marginTop: '5rem',
         borderTop: '1px solid #334155',
-        padding: '2.5rem 2rem',
+        padding: '3rem 2rem',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1rem',
+        gap: '1.5rem',
         color: '#94a3b8',
         fontSize: '0.9rem',
         textAlign: 'center'
       }}>
-        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'center', fontWeight: '500' }}>
           <Link to="/faq" style={{ color: '#cbd5e1', textDecoration: 'none' }}>FAQ</Link>
           <Link to="/privacy" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Privacy Policy</Link>
           <Link to="/terms" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Terms of Service</Link>
+          <Link to="/cookie-policy" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Cookie Policy</Link>
+          <Link to="/refund-policy" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Refund Policy</Link>
           <a href="/sitemap.xml" target="_blank" rel="noreferrer" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Sitemap</a>
         </div>
-        <p style={{ margin: 0 }}>
-          &copy; {new Date().getFullYear()} Manabase. Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
-        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', opacity: 0.8 }}>
+          <p style={{ margin: 0 }}>
+            <strong>Manabase Open Source Project</strong> &bull; Contact: <a href="mailto:support@manabase.com" style={{ color: '#60a5fa' }}>support@manabase.com</a> &bull; Jurisdiction: Delaware, USA
+          </p>
+          <p style={{ margin: 0 }}>
+            &copy; {new Date().getFullYear()} Manabase. Magic: The Gathering is a trademark of Wizards of the Coast LLC, a subsidiary of Hasbro, Inc.
+          </p>
+          <p style={{ margin: 0 }}>
+            Manabase is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
+          </p>
+        </div>
       </footer>
     </div>
   );

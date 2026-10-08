@@ -105,6 +105,12 @@ export default function Card({ item, userCollection = [], imageOverlay }) {
                 setShowPrices(false);
             }}
             onClick={handleCardClick}
+            role="link"
+            tabIndex="0"
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCardClick();
+            }}
+            aria-label={`View ${name} on Scryfall (opens in new tab)`}
         >
             <div className="card-image">
                 {isOwned && (
@@ -115,6 +121,7 @@ export default function Card({ item, userCollection = [], imageOverlay }) {
                         key={showBack ? "back" : "front"}
                         src={image}
                         alt={name}
+                        loading="lazy"
                         className={`card-face ${showBack ? "back" : "front"}`}
                     />
                 ) : (
