@@ -275,10 +275,16 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
 
   // Determine preferences with sensible defaults
   const budgetTier = options.budgetTier || "all";
-  const budgetThreshold =
-    options.maxPricePerLand !== null && options.maxPricePerLand !== undefined
-      ? parseFloat(options.maxPricePerLand)
-      : BUDGET_TIER_THRESHOLDS[budgetTier] || Infinity;
+  const rawMaxPrice = options.maxPricePerLand;
+  const hasValidMaxPrice =
+    rawMaxPrice !== null &&
+    rawMaxPrice !== undefined &&
+    rawMaxPrice !== "" &&
+    !isNaN(Number(rawMaxPrice));
+
+  const budgetThreshold = hasValidMaxPrice
+    ? parseFloat(rawMaxPrice)
+    : BUDGET_TIER_THRESHOLDS[budgetTier] || Infinity;
 
   const isBudgetRestricted = budgetTier !== "all" || budgetThreshold < 100;
   const excludeReservedList =
@@ -289,10 +295,10 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
   const excludeTapped = options.excludeTapped !== undefined ? !!options.excludeTapped : true;
 
   const likedCyclesSet = new Set(
-    (options.likedCycles || []).map(c => c.toLowerCase())
+    (options.likedCycles || []).map(c => (typeof c === "string" ? c.toLowerCase() : ""))
   );
   const dislikedCyclesSet = new Set(
-    (options.dislikedCycles || []).map(c => c.toLowerCase())
+    (options.dislikedCycles || []).map(c => (typeof c === "string" ? c.toLowerCase() : ""))
   );
 
   const maxSuggestions = options.maxSuggestions || 14;

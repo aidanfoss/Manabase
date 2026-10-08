@@ -46,7 +46,11 @@ router.get("/land-preferences", requireAuth, async (req, res) => {
 const saveLandPreferences = async (req, res) => {
   try {
     const userId = req.user.id;
-    const preferences = req.body.preferences || req.body;
+    const rawPreferences = req.body?.preferences || req.body || {};
+    const preferences = {
+      ...DEFAULT_LAND_PREFERENCES,
+      ...rawPreferences
+    };
 
     const existing = await db("user_land_preferences").where({ user_id: userId }).first();
     if (existing) {
@@ -307,69 +311,6 @@ router.get("/dismissals", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/deck-updater/:deckId
-// Returns strictly better upgrades and EDHRec suggestions for the deck
-router.get("/:deckId", requireAuth, async (req, res) => {
-  try {
-    const { deckId } = req.params;
-    const userId = req.user.id;
-
-    const deck = await db("user_archidekt_decks")
-      .where({ user_id: userId, deck_id: String(deckId) })
-      .first();
-
-    if (!deck) {
-      return res.status(404).json({ error: "Deck not found" });
-    }
-
-    let deckCardNames = [];
-    let commanderName = deck.commander;
-
-    try {
-      if (deck.source === "moxfield") {
-        const moxfieldData = await fetchMoxfieldDeck(deckId);
-        deckCardNames = moxfieldData.cards.map(c => c.cardName);
-        if (!commanderName) commanderName = moxfieldData.commander;
-      } else {
-        const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
-        const archidektDeck = archidektRes.data;
-
-        if (archidektDeck.cards) {
-          deckCardNames = archidektDeck.cards
-            .filter(item => item.card && item.card.oracleCard)
-            .map(item => item.card.oracleCard.name);
-
-          if (!commanderName) {
-            for (const item of archidektDeck.cards) {
-              if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
-                commanderName = item.card.oracleCard.name;
-                break;
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn(`Could not fetch live deck ${deckId} (${deck.source || "archidekt"}), falling back to DB items.`);
-      const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
-      deckCardNames = items.map(i => i.card_name);
-    }
-
-    const strictlyBetter = getStrictlyBetterUpgrades(deckCardNames);
-    const edhrec = await getEDHRecSuggestions(commanderName, deckCardNames);
-
-    res.json({
-      commander: commanderName,
-      strictlyBetter,
-      edhrec
-    });
-
-  } catch (error) {
-    console.error("Deck Updater analysis error:", error.message);
-    res.status(500).json({ error: "Failed to analyze deck" });
-  }
-});
-
 // POST /api/deck-updater/sync
 router.post("/sync", async (req, res) => {
   syncStrictlyBetterData();
@@ -462,6 +403,69 @@ router.get("/analyze-lands", requireAuth, async (req, res) => {
   } catch (error) {
     console.error("Land analysis error:", error);
     res.status(500).json({ error: "Failed to analyze lands" });
+  }
+});
+
+// GET /api/deck-updater/:deckId
+// Returns strictly better upgrades and EDHRec suggestions for the deck
+router.get("/:deckId", requireAuth, async (req, res) => {
+  try {
+    const { deckId } = req.params;
+    const userId = req.user.id;
+
+    const deck = await db("user_archidekt_decks")
+      .where({ user_id: userId, deck_id: String(deckId) })
+      .first();
+
+    if (!deck) {
+      return res.status(404).json({ error: "Deck not found" });
+    }
+
+    let deckCardNames = [];
+    let commanderName = deck.commander;
+
+    try {
+      if (deck.source === "moxfield") {
+        const moxfieldData = await fetchMoxfieldDeck(deckId);
+        deckCardNames = moxfieldData.cards.map(c => c.cardName);
+        if (!commanderName) commanderName = moxfieldData.commander;
+      } else {
+        const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
+        const archidektDeck = archidektRes.data;
+
+        if (archidektDeck.cards) {
+          deckCardNames = archidektDeck.cards
+            .filter(item => item.card && item.card.oracleCard)
+            .map(item => item.card.oracleCard.name);
+
+          if (!commanderName) {
+            for (const item of archidektDeck.cards) {
+              if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
+                commanderName = item.card.oracleCard.name;
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Could not fetch live deck ${deckId} (${deck.source || "archidekt"}), falling back to DB items.`);
+      const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
+      deckCardNames = items.map(i => i.card_name);
+    }
+
+    const strictlyBetter = getStrictlyBetterUpgrades(deckCardNames);
+    const edhrec = await getEDHRecSuggestions(commanderName, deckCardNames);
+
+    res.json({
+      commander: commanderName,
+      strictlyBetter,
+      edhrec
+    });
+
+  } catch (error) {
+    console.error("Deck Updater analysis error:", error.message);
+    res.status(500).json({ error: "Failed to analyze deck" });
   }
 });
 
