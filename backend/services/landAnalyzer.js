@@ -11,7 +11,7 @@ let landcyclesCache = null;
 let scryfallMapCache = null;
 let scryfallArrayCache = null;
 
-// Explicit color mappings for cycles with colorless color_identity (fetches, landscapes, etc.)
+// Explicit color mappings for cycles with colorless color_identity (fetches, landscapes, etc.) and standard duals
 export const LAND_COLOR_REQUIREMENTS = {
   // Fetchlands (exact 2 fetched colors)
   "arid mesa": ["W", "R"],
@@ -51,6 +51,114 @@ export const LAND_COLOR_REQUIREMENTS = {
   "underground sea": ["U", "B"],
   "volcanic island": ["U", "R"],
 
+  // Shocklands
+  "blood crypt": ["B", "R"],
+  "breeding pool": ["U", "G"],
+  "godless shrine": ["W", "B"],
+  "hallowed fountain": ["W", "U"],
+  "overgrown tomb": ["B", "G"],
+  "sacred foundry": ["W", "R"],
+  "steam vents": ["U", "R"],
+  "stomping ground": ["R", "G"],
+  "temple garden": ["W", "G"],
+  "watery grave": ["U", "B"],
+
+  // Crowd / Bondlands
+  "sea of clouds": ["W", "U"],
+  "morphic pool": ["U", "B"],
+  "luxury suite": ["B", "R"],
+  "spire garden": ["R", "G"],
+  "bountiful promenade": ["W", "G"],
+  "undergrowth stadium": ["B", "G"],
+  "spectator seating": ["W", "R"],
+  "training center": ["U", "R"],
+  "vault of champions": ["W", "B"],
+  "rejuvenating springs": ["U", "G"],
+
+  // Guildgates
+  "azorius guildgate": ["W", "U"],
+  "dimir guildgate": ["U", "B"],
+  "rakdos guildgate": ["B", "R"],
+  "gruul guildgate": ["R", "G"],
+  "selesnya guildgate": ["W", "G"],
+  "orzhov guildgate": ["W", "B"],
+  "izzet guildgate": ["U", "R"],
+  "golgari guildgate": ["B", "G"],
+  "boros guildgate": ["W", "R"],
+  "simic guildgate": ["U", "G"],
+
+  // Ravnica Bouncelands
+  "azorius chancery": ["W", "U"],
+  "dimir aqueduct": ["U", "B"],
+  "rakdos carnarium": ["B", "R"],
+  "gruul turf": ["R", "G"],
+  "selesnya sanctuary": ["W", "G"],
+  "orzhov basilica": ["W", "B"],
+  "izzet boilerworks": ["U", "R"],
+  "golgari rot farm": ["B", "G"],
+  "boros garrison": ["W", "R"],
+  "simic growth chamber": ["U", "G"],
+
+  // Painlands
+  "adarkar wastes": ["W", "U"],
+  "underground river": ["U", "B"],
+  "sulfurous springs": ["B", "R"],
+  "karplusan forest": ["R", "G"],
+  "brushland": ["W", "G"],
+  "caves of koilos": ["W", "B"],
+  "shivan reef": ["U", "R"],
+  "llanowar wastes": ["B", "G"],
+  "battlefield forge": ["W", "R"],
+  "yavimaya coast": ["U", "G"],
+
+  // Fastlands
+  "seachrome coast": ["W", "U"],
+  "darkslick shores": ["U", "B"],
+  "blackcleave cliffs": ["B", "R"],
+  "copperline gorge": ["R", "G"],
+  "razorverge thicket": ["W", "G"],
+  "concealed courtyard": ["W", "B"],
+  "spirebluff canal": ["U", "R"],
+  "blooming marsh": ["B", "G"],
+  "inspiring vantage": ["W", "R"],
+  "botanical sanctum": ["U", "G"],
+
+  // Slowlands
+  "deserted beach": ["W", "U"],
+  "shipwreck marsh": ["U", "B"],
+  "haunted ridge": ["B", "R"],
+  "rockfall vale": ["R", "G"],
+  "overgrown farmland": ["W", "G"],
+  "shattered sanctuary": ["W", "B"],
+  "stormcarved coast": ["U", "R"],
+  "deathcap glade": ["B", "G"],
+  "sundown pass": ["W", "R"],
+  "dreamroot cascade": ["U", "G"],
+
+  // Checklands
+  "glacial fortress": ["W", "U"],
+  "drowned catacomb": ["U", "B"],
+  "dragonskull summit": ["B", "R"],
+  "rootbound crag": ["R", "G"],
+  "sunpetal grove": ["W", "G"],
+  "isolated chapel": ["W", "B"],
+  "sulfur falls": ["U", "R"],
+  "woodland cemetery": ["B", "G"],
+  "clifftop retreat": ["W", "R"],
+  "hinterland harbor": ["U", "G"],
+
+  // Gainlands / Refuges
+  "tranquil cove": ["W", "U"],
+  "dismal backwater": ["U", "B"],
+  "bloodfell caves": ["B", "R"],
+  "rugged highlands": ["R", "G"],
+  "blossoming sands": ["W", "G"],
+  "scoured barrens": ["W", "B"],
+  "swiftwater cliffs": ["U", "R"],
+  "jungle hollow": ["B", "G"],
+  "wind-scarred crag": ["W", "R"],
+  "thornwood falls": ["U", "G"],
+
   // Shards Panoramas (3 colors)
   "bant panorama": ["G", "W", "U"],
   "esper panorama": ["W", "U", "B"],
@@ -69,6 +177,175 @@ export const LAND_COLOR_REQUIREMENTS = {
   "spara's headquarters": ["G", "W", "U"],
   "xander's lounge": ["U", "B", "R"],
   "ziatora's proving ground": ["B", "R", "G"]
+};
+
+export const FALLBACK_LAND_CYCLES = [
+  {
+    id: "cycle-fetchland",
+    name: "Fetchlands",
+    tier: "top",
+    speed: "untapped",
+    cards: [
+      { name: "Polluted Delta" }, { name: "Wooded Foothills" }, { name: "Scalding Tarn" },
+      { name: "Flooded Strand" }, { name: "Bloodstained Mire" }, { name: "Misty Rainforest" },
+      { name: "Arid Mesa" }, { name: "Marsh Flats" }, { name: "Verdant Catacombs" }, { name: "Windswept Heath" }
+    ]
+  },
+  {
+    id: "cycle-rav-shockland",
+    name: "Shocklands",
+    tier: "top",
+    speed: "untapped",
+    cards: [
+      { name: "Blood Crypt" }, { name: "Overgrown Tomb" }, { name: "Steam Vents" },
+      { name: "Stomping Ground" }, { name: "Watery Grave" }, { name: "Breeding Pool" },
+      { name: "Godless Shrine" }, { name: "Hallowed Fountain" }, { name: "Sacred Foundry" }, { name: "Temple Garden" }
+    ]
+  },
+  {
+    id: "cycle-bondland",
+    name: "Crowd / Bondlands",
+    tier: "top",
+    speed: "untapped",
+    cards: [
+      { name: "Sea of Clouds" }, { name: "Morphic Pool" }, { name: "Luxury Suite" },
+      { name: "Spire Garden" }, { name: "Bountiful Promenade" }, { name: "Undergrowth Stadium" },
+      { name: "Spectator Seating" }, { name: "Training Center" }, { name: "Vault of Champions" }, { name: "Rejuvenating Springs" }
+    ]
+  },
+  {
+    id: "cycle-painland",
+    name: "Painlands",
+    tier: "mid",
+    speed: "untapped",
+    cards: [
+      { name: "Karplusan Forest" }, { name: "Sulfurous Springs" }, { name: "Underground River" },
+      { name: "Yavimaya Coast" }, { name: "Caves of Koilos" }, { name: "Llanowar Wastes" },
+      { name: "Battlefield Forge" }, { name: "Brushland" }, { name: "Adarkar Wastes" }, { name: "Shivan Reef" }
+    ]
+  },
+  {
+    id: "cycle-abu-dual-land",
+    name: "Original ABU Dual Lands",
+    tier: "top",
+    speed: "untapped",
+    cards: [
+      { name: "Badlands" }, { name: "Bayou" }, { name: "Plateau" }, { name: "Savannah" },
+      { name: "Scrubland" }, { name: "Taiga" }, { name: "Tropical Island" }, { name: "Tundra" },
+      { name: "Underground Sea" }, { name: "Volcanic Island" }
+    ]
+  },
+  {
+    id: "cycle-guildgate",
+    name: "Guildgates",
+    tier: "bottom",
+    speed: "tapped",
+    cards: [
+      { name: "Gruul Guildgate" }, { name: "Rakdos Guildgate" }, { name: "Dimir Guildgate" },
+      { name: "Azorius Guildgate" }, { name: "Selesnya Guildgate" }, { name: "Golgari Guildgate" },
+      { name: "Izzet Guildgate" }, { name: "Boros Guildgate" }, { name: "Orzhov Guildgate" }, { name: "Simic Guildgate" }
+    ]
+  },
+  {
+    id: "cycle-rav-bounceland",
+    name: "Ravnica Bouncelands",
+    tier: "bottom",
+    speed: "tapped",
+    cards: [
+      { name: "Gruul Turf" }, { name: "Rakdos Carnarium" }, { name: "Dimir Aqueduct" },
+      { name: "Azorius Chancery" }, { name: "Selesnya Sanctuary" }, { name: "Golgari Rot Farm" },
+      { name: "Izzet Boilerworks" }, { name: "Boros Garrison" }, { name: "Orzhov Basilica" }, { name: "Simic Growth Chamber" }
+    ]
+  },
+  {
+    id: "cycle-ktk-gainland",
+    name: "Gainlands / Refuges",
+    tier: "bottom",
+    speed: "tapped",
+    cards: [
+      { name: "Rugged Highlands" }, { name: "Bloodfell Caves" }, { name: "Dismal Backwater" },
+      { name: "Tranquil Cove" }, { name: "Blossoming Sands" }, { name: "Jungle Hollow" },
+      { name: "Swiftwater Cliffs" }, { name: "Wind-Scarred Crag" }, { name: "Scoured Barrens" }, { name: "Thornwood Falls" }
+    ]
+  },
+  {
+    id: "cycle-stx-campus",
+    name: "Strixhaven Campuses",
+    tier: "bottom",
+    speed: "tapped",
+    cards: [
+      { name: "Quandrix Campus" }, { name: "Prismari Campus" }, { name: "Silverquill Campus" },
+      { name: "Lorehold Campus" }, { name: "Witherbloom Campus" }
+    ]
+  },
+  {
+    id: "cycle-ala-panorama",
+    name: "Shards Panoramas",
+    tier: "bottom",
+    speed: "untapped",
+    cards: [
+      { name: "Jund Panorama" }, { name: "Grixis Panorama" }, { name: "Esper Panorama" },
+      { name: "Bant Panorama" }, { name: "Naya Panorama" }
+    ]
+  },
+  {
+    id: "cycle-slowland",
+    name: "Slowlands",
+    tier: "mid",
+    speed: "conditional",
+    cards: [
+      { name: "Rockfall Vale" }, { name: "Shipwreck Marsh" }, { name: "Haunted Ridge" },
+      { name: "Overgrown Farmland" }, { name: "Deserted Beach" }, { name: "Deathcap Glade" }
+    ]
+  },
+  {
+    id: "cycle-fastland",
+    name: "Fastlands",
+    tier: "mid",
+    speed: "conditional",
+    cards: [
+      { name: "Copperline Gorge" }, { name: "Blackcleave Cliffs" }, { name: "Darkslick Shores" },
+      { name: "Seachrome Coast" }, { name: "Razorverge Thicket" }, { name: "Blooming Marsh" }
+    ]
+  },
+  {
+    id: "cycle-checkland",
+    name: "Checklands",
+    tier: "mid",
+    speed: "conditional",
+    cards: [
+      { name: "Rootbound Crag" }, { name: "Dragonskull Summit" }, { name: "Drowned Catacomb" },
+      { name: "Glacial Fortress" }, { name: "Sunpetal Grove" }, { name: "Sulfur Falls" }
+    ]
+  }
+];
+
+const KNOWN_COMMANDER_COLORS = {
+  "grand warlord radha": ["R", "G"],
+  "atraxa, praetors' voice": ["W", "U", "B", "G"],
+  "edgar markov": ["R", "W", "B"],
+  "the ur-dragon": ["W", "U", "B", "R", "G"],
+  "lathril, blade of the elves": ["B", "G"],
+  "krenko, mob boss": ["R"],
+  "korvold, fae-cursed king": ["B", "R", "G"],
+  "miirym, sentinel wyrm": ["G", "U", "R"],
+  "wilhelt, the rotcleaver": ["U", "B"],
+  "prosper, tome-bound": ["B", "R"],
+  "yuriko, the tiger's shadow": ["U", "B"],
+  "nine-fingers keene": ["B", "G", "U"]
+};
+
+const BASIC_LAND_COLORS = {
+  forest: ["G"],
+  mountain: ["R"],
+  plains: ["W"],
+  island: ["U"],
+  swamp: ["B"],
+  "snow-covered forest": ["G"],
+  "snow-covered mountain": ["R"],
+  "snow-covered plains": ["W"],
+  "snow-covered island": ["U"],
+  "snow-covered swamp": ["B"]
 };
 
 // Reserved List lands (OG ABU Duals, etc.)
@@ -167,10 +444,10 @@ function loadLandcycles() {
       landcyclesCache = JSON.parse(fs.readFileSync(LANDCYCLES_FILE, "utf-8"));
       return landcyclesCache;
     } catch (e) {
-      console.error("Error loading land cycles in landAnalyzer", e);
+      console.error("[LandAnalyzer] Error loading land cycles from file, using fallback catalog:", e);
     }
   }
-  return [];
+  return FALLBACK_LAND_CYCLES;
 }
 
 /**
@@ -182,12 +459,24 @@ function extractCommanderColors(commanderName, cardMap, deckCardNames) {
     return inferDeckColors(deckCardNames, cardMap);
   }
 
+  // Check known commander colors first
+  const lowerCmd = commanderName.toLowerCase().trim();
+  if (KNOWN_COMMANDER_COLORS[lowerCmd]) {
+    return [...KNOWN_COMMANDER_COLORS[lowerCmd]];
+  }
+
   // Handle partner commanders e.g. "Thrasios, Triton Hero / Tymna the Weaver" or "Thrasios, Triton Hero // Tymna the Weaver"
   const parts = commanderName.split(/\s*(?:\/|\/\/|\+)\s*/).map(p => p.trim()).filter(Boolean);
   let foundAny = false;
 
   for (const part of parts) {
-    const card = cardMap.get(part.toLowerCase());
+    const partLower = part.toLowerCase();
+    if (KNOWN_COMMANDER_COLORS[partLower]) {
+      foundAny = true;
+      KNOWN_COMMANDER_COLORS[partLower].forEach(c => colors.add(c.toUpperCase()));
+      continue;
+    }
+    const card = cardMap.get(partLower);
     if (card && Array.isArray(card.color_identity)) {
       foundAny = true;
       card.color_identity.forEach(c => colors.add(c.toUpperCase()));
@@ -207,7 +496,17 @@ function extractCommanderColors(commanderName, cardMap, deckCardNames) {
 function inferDeckColors(deckCardNames, cardMap) {
   const colors = new Set();
   for (const name of deckCardNames) {
-    const card = cardMap.get(name.toLowerCase());
+    if (!name || typeof name !== "string") continue;
+    const lower = name.toLowerCase().trim();
+    if (BASIC_LAND_COLORS[lower]) {
+      BASIC_LAND_COLORS[lower].forEach(c => colors.add(c));
+      continue;
+    }
+    if (LAND_COLOR_REQUIREMENTS[lower]) {
+      LAND_COLOR_REQUIREMENTS[lower].forEach(c => colors.add(c));
+      continue;
+    }
+    const card = cardMap.get(lower);
     if (card && Array.isArray(card.color_identity)) {
       card.color_identity.forEach(c => colors.add(c.toUpperCase()));
     }
@@ -303,6 +602,15 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
 
   const maxSuggestions = options.maxSuggestions || 14;
 
+  console.log(`[LandAnalyzer] analyzeLands started for commander='${commanderName || "unknown"}' (deck cards: ${deckCardNames?.length || 0})`, {
+    budgetTier,
+    budgetThreshold: isFinite(budgetThreshold) ? budgetThreshold : null,
+    excludeReservedList,
+    excludeTapped,
+    likedCycles: Array.from(likedCyclesSet),
+    dislikedCycles: Array.from(dislikedCyclesSet)
+  });
+
   // 1. Determine Deck Color Identity
   const deckColors = extractCommanderColors(commanderName, cardMap, deckCardNames);
 
@@ -339,9 +647,12 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
     if (seenDeckLandNames.has(lower)) continue;
 
     const card = cardMap.get(lower);
+    const isBasicLand = !!BASIC_LAND_COLORS[lower];
     const isLand =
+      isBasicLand ||
       (card && card.type_line && card.type_line.includes("Land")) ||
-      cycleLookup.has(lower);
+      cycleLookup.has(lower) ||
+      LAND_COLOR_REQUIREMENTS[lower] !== undefined;
 
     if (isLand) {
       seenDeckLandNames.add(lower);
@@ -501,6 +812,8 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
   candidateAdds.sort((a, b) => b.priority - a.priority);
 
   const adds = candidateAdds.slice(0, maxSuggestions);
+
+  console.log(`[LandAnalyzer] analyzeLands completed for '${commanderName || "unknown"}': ${adds.length} adds, ${cuts.length} cuts, colors=[${deckColors.join(", ")}]`);
 
   return {
     cuts,

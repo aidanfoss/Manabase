@@ -19,58 +19,112 @@ const DEFAULT_LAND_PREFERENCES = {
 };
 
 async function getUserLandPreferences(userId) {
+  const startTime = Date.now();
+  console.log(`[LandPreferences:Backend] Fetching land preferences for user_id='${userId}'`);
   try {
     const row = await db("user_land_preferences").where({ user_id: userId }).first();
     if (row && row.preferences) {
       const parsed = typeof row.preferences === "string" ? JSON.parse(row.preferences) : row.preferences;
-      return { ...DEFAULT_LAND_PREFERENCES, ...parsed };
+      const merged = { ...DEFAULT_LAND_PREFERENCES, ...parsed };
+      console.log(`[LandPreferences:Backend] Found existing preferences for user_id='${userId}' (${Date.now() - startTime}ms):`, {
+        budgetTier: merged.budgetTier,
+        maxPricePerLand: merged.maxPricePerLand,
+        excludeReservedList: merged.excludeReservedList,
+        excludeTapped: merged.excludeTapped,
+        likedCyclesCount: (merged.likedCycles || []).length,
+        likedCycles: merged.likedCycles,
+        dislikedCyclesCount: (merged.dislikedCycles || []).length,
+        dislikedCycles: merged.dislikedCycles
+      });
+      return merged;
     }
+    console.log(`[LandPreferences:Backend] No saved preferences record for user_id='${userId}' (${Date.now() - startTime}ms), returning defaults:`, DEFAULT_LAND_PREFERENCES);
   } catch (e) {
-    console.warn("Could not fetch user land preferences:", e.message);
+    console.warn(`[LandPreferences:Backend] Error fetching user land preferences for user_id='${userId}':`, e.message, e.stack);
   }
   return { ...DEFAULT_LAND_PREFERENCES };
 }
 
 // GET /api/deck-updater/land-preferences
 router.get("/land-preferences", requireAuth, async (req, res) => {
+  const userId = req.user?.id;
+  console.log(`[LandPreferences:Backend] GET /api/deck-updater/land-preferences requested by user_id='${userId}'`);
   try {
-    const preferences = await getUserLandPreferences(req.user.id);
+    const preferences = await getUserLandPreferences(userId);
+    console.log(`[LandPreferences:Backend] GET /api/deck-updater/land-preferences returning 200 OK for user_id='${userId}' with preferences:`, preferences);
     res.json({ preferences });
   } catch (error) {
-    console.error("Failed to fetch land preferences:", error.message);
-    res.status(500).json({ error: "Failed to fetch land preferences" });
+    console.error(`[LandPreferences:Backend] GET /api/deck-updater/land-preferences failed for user_id='${userId}':`, error.message, error.stack);
+    res.status(500).json({ error: "Failed to fetch land preferences", details: error.message });
   }
 });
 
 // PUT & POST /api/deck-updater/land-preferences
 const saveLandPreferences = async (req, res) => {
+  const startTime = Date.now();
+  const userId = req.user?.id;
+  const method = req.method;
+  console.log(`[LandPreferences:Backend] ${method} /api/deck-updater/land-preferences initiated by user_id='${userId}'`);
+  console.log(`[LandPreferences:Backend] Incoming request body:`, JSON.stringify(req.body));
+
   try {
-    const userId = req.user.id;
+    if (!userId) {
+      console.error("[LandPreferences:Backend] Authentication failure: user_id is missing from req.user");
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const rawPreferences = req.body?.preferences || req.body || {};
     const preferences = {
       ...DEFAULT_LAND_PREFERENCES,
-      ...rawPreferences
+      ...rawPreferences,
+      likedCycles: Array.isArray(rawPreferences.likedCycles) ? rawPreferences.likedCycles.map(c => String(c).toLowerCase()) : [],
+      dislikedCycles: Array.isArray(rawPreferences.dislikedCycles) ? rawPreferences.dislikedCycles.map(c => String(c).toLowerCase()) : []
     };
 
+    console.log(`[LandPreferences:Backend] Normalized preferences to persist for user_id='${userId}':`, {
+      budgetTier: preferences.budgetTier,
+      maxPricePerLand: preferences.maxPricePerLand,
+      excludeReservedList: preferences.excludeReservedList,
+      excludeTapped: preferences.excludeTapped,
+      likedCyclesCount: preferences.likedCycles.length,
+      likedCycles: preferences.likedCycles,
+      dislikedCyclesCount: preferences.dislikedCycles.length,
+      dislikedCycles: preferences.dislikedCycles
+    });
+
+    const serializedPrefs = JSON.stringify(preferences);
+    console.log(`[LandPreferences:Backend] Serialized JSON string (${serializedPrefs.length} chars):`, serializedPrefs);
+
     const existing = await db("user_land_preferences").where({ user_id: userId }).first();
+    let dbOp = "insert";
     if (existing) {
+      dbOp = "update";
+      console.log(`[LandPreferences:Backend] Updating existing record in user_land_preferences for user_id='${userId}'`);
       await db("user_land_preferences")
         .where({ user_id: userId })
         .update({
-          preferences: JSON.stringify(preferences),
+          preferences: serializedPrefs,
           updated_at: new Date()
         });
     } else {
+      console.log(`[LandPreferences:Backend] Inserting new record into user_land_preferences for user_id='${userId}'`);
       await db("user_land_preferences").insert({
         user_id: userId,
-        preferences: JSON.stringify(preferences)
+        preferences: serializedPrefs
       });
     }
 
+    const elapsed = Date.now() - startTime;
+    console.log(`[LandPreferences:Backend] Successfully persisted land preferences (op=${dbOp}) for user_id='${userId}' in ${elapsed}ms`);
     res.json({ success: true, preferences });
   } catch (error) {
-    console.error("Failed to save land preferences:", error.message);
-    res.status(500).json({ error: "Failed to save land preferences" });
+    const elapsed = Date.now() - startTime;
+    console.error(`[LandPreferences:Backend] Failed to save land preferences for user_id='${userId}' in ${elapsed}ms:`, {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
+    res.status(500).json({ error: "Failed to save land preferences", details: error.message });
   }
 };
 
@@ -92,11 +146,15 @@ router.get("/decks", requireAuth, async (req, res) => {
 });
 
 async function runAnalyzeAll(req, res, customPreferences = null) {
+  const startTime = Date.now();
   try {
     const userId = req.user.id;
+    console.log(`[DeckUpdater:AnalyzeAll] Starting analyze-all request for user_id='${userId}' (method=${req.method})`);
     const decks = await db("user_archidekt_decks")
       .where({ user_id: userId })
       .orderBy("updated_at", "desc");
+
+    console.log(`[DeckUpdater:AnalyzeAll] Found ${decks.length} registered decks in database for user_id='${userId}'`);
 
     // Fetch user dismissals
     const userDismissals = await db("user_deck_dismissals")
@@ -105,19 +163,22 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
     const dismissalsSet = new Set(
       userDismissals.map(d => `${d.deck_id}::${d.suggestion_id}`)
     );
+    console.log(`[DeckUpdater:AnalyzeAll] Loaded ${userDismissals.length} active dismissals for user_id='${userId}'`);
 
     // Resolve land preferences
     const dbPreferences = await getUserLandPreferences(userId);
     let resolvedLandPreferences = { ...dbPreferences };
 
     if (customPreferences && typeof customPreferences === "object") {
+      console.log("[DeckUpdater:AnalyzeAll] Merging customPreferences from request body:", customPreferences);
       resolvedLandPreferences = { ...resolvedLandPreferences, ...customPreferences };
     } else if (req.query.preferences) {
       try {
         const queryPrefs = JSON.parse(req.query.preferences);
+        console.log("[DeckUpdater:AnalyzeAll] Merging customPreferences from query params:", queryPrefs);
         resolvedLandPreferences = { ...resolvedLandPreferences, ...queryPrefs };
       } catch (e) {
-        // ignore JSON parse errors from query params
+        console.warn("[DeckUpdater:AnalyzeAll] Failed to parse req.query.preferences:", e.message);
       }
     }
 
@@ -127,6 +188,17 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
     if (req.query.maxPricePerLand !== undefined) {
       resolvedLandPreferences.maxPricePerLand = req.query.maxPricePerLand;
     }
+
+    console.log("[DeckUpdater:AnalyzeAll] Final resolved land preferences used for all decks:", {
+      budgetTier: resolvedLandPreferences.budgetTier,
+      maxPricePerLand: resolvedLandPreferences.maxPricePerLand,
+      excludeReservedList: resolvedLandPreferences.excludeReservedList,
+      excludeTapped: resolvedLandPreferences.excludeTapped,
+      likedCyclesCount: (resolvedLandPreferences.likedCycles || []).length,
+      likedCycles: resolvedLandPreferences.likedCycles,
+      dislikedCyclesCount: (resolvedLandPreferences.dislikedCycles || []).length,
+      dislikedCycles: resolvedLandPreferences.dislikedCycles
+    });
 
     const results = [];
     const allUniqueCardNames = new Set();
@@ -188,6 +260,8 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
         colorIdentity: landAnalysis.colorIdentity,
         preferencesApplied: landAnalysis.preferencesApplied
       };
+
+      console.log(`[DeckUpdater:AnalyzeAll] Deck '${deck.deck_name}' (${deck.deck_id}) analysis result: ${landUpgrades.cuts.length} cuts, ${landUpgrades.adds.length} adds. Commander: '${commanderName}' (Colors: ${JSON.stringify(landUpgrades.colorIdentity)})`);
 
       for (const cut of landUpgrades.cuts) allUniqueCardNames.add(cut.name);
       for (const add of landUpgrades.adds) allUniqueCardNames.add(add.name);

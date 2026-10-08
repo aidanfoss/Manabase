@@ -52,31 +52,57 @@ export default function DeckUpdater() {
   const { showToast } = useToast();
 
   useEffect(() => {
+    console.log("[DeckUpdater] Initializing DeckUpdater page - loading land preferences and deck analyses");
     fetchLandPreferences();
     fetchAllDecksAnalysis();
   }, []);
 
   const fetchLandPreferences = async () => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    console.log("[DeckUpdater:LandPreferences] Fetching land preferences from backend. Token present:", !!token);
+    if (!token) {
+      console.warn("[DeckUpdater:LandPreferences] Cannot fetch land preferences - no auth token found in localStorage");
+      return;
+    }
+    const startTime = performance.now();
     try {
       const res = await fetch("/api/deck-updater/land-preferences", {
         headers: { Authorization: `Bearer ${token}` }
       });
+      const elapsed = Math.round(performance.now() - startTime);
+      console.log(`[DeckUpdater:LandPreferences] GET /api/deck-updater/land-preferences responded in ${elapsed}ms with HTTP status ${res.status} (${res.statusText})`);
       if (res.ok) {
         const data = await res.json();
+        console.log("[DeckUpdater:LandPreferences] Received land preferences payload:", data);
         if (data && data.preferences) {
+          console.log("[DeckUpdater:LandPreferences] Updating local state with preferences:", {
+            budgetTier: data.preferences.budgetTier,
+            maxPricePerLand: data.preferences.maxPricePerLand,
+            excludeReservedList: data.preferences.excludeReservedList,
+            excludeTapped: data.preferences.excludeTapped,
+            likedCyclesCount: (data.preferences.likedCycles || []).length,
+            likedCycles: data.preferences.likedCycles,
+            dislikedCyclesCount: (data.preferences.dislikedCycles || []).length,
+            dislikedCycles: data.preferences.dislikedCycles
+          });
           setLandPreferences(data.preferences);
+        } else {
+          console.warn("[DeckUpdater:LandPreferences] Response OK but missing data.preferences property:", data);
         }
+      } else {
+        const errText = await res.text();
+        console.error(`[DeckUpdater:LandPreferences] GET failed with HTTP ${res.status}:`, errText);
       }
     } catch (e) {
-      console.error("Failed to load land preferences:", e);
+      console.error("[DeckUpdater:LandPreferences] Exception in fetchLandPreferences:", e);
     }
   };
 
   const fetchAllDecksAnalysis = async (isManualRefresh = false) => {
     const token = localStorage.getItem("token");
+    console.log(`[DeckUpdater] Running fetchAllDecksAnalysis (isManualRefresh=${isManualRefresh}). Token present:`, !!token);
     if (!token) {
+      console.warn("[DeckUpdater] Cannot analyze decks - no auth token");
       setLoading(false);
       return;
     }
@@ -88,17 +114,40 @@ export default function DeckUpdater() {
     }
     setError(null);
 
+    const startTime = performance.now();
     try {
+      console.log("[DeckUpdater] Sending GET /api/deck-updater/analyze-all with current land preferences snapshot:", {
+        budgetTier: landPreferences.budgetTier,
+        maxPricePerLand: landPreferences.maxPricePerLand,
+        likedCycles: landPreferences.likedCycles,
+        dislikedCycles: landPreferences.dislikedCycles
+      });
       const res = await fetch("/api/deck-updater/analyze-all", {
         headers: { Authorization: `Bearer ${token}` }
       });
+      const elapsed = Math.round(performance.now() - startTime);
       const data = await res.json();
+      console.log(`[DeckUpdater] GET /api/deck-updater/analyze-all responded in ${elapsed}ms with status ${res.status}`);
       if (res.ok) {
-        setDeckAnalyses(Array.isArray(data) ? data : []);
+        const analyses = Array.isArray(data) ? data : [];
+        console.log(`[DeckUpdater] Successfully loaded analyses for ${analyses.length} decks:`, analyses.map(d => ({
+          deck_id: d.deck_id,
+          deck_name: d.deck_name,
+          commander: d.commander,
+          strictlyBetterCount: d.strictlyBetter?.length || 0,
+          newCardsCount: d.edhrec?.newCards?.length || 0,
+          synergyCount: d.edhrec?.highSynergy?.length || 0,
+          landCutsCount: d.landUpgrades?.cuts?.length || 0,
+          landAddsCount: d.landUpgrades?.adds?.length || 0,
+          landPrefsApplied: d.landUpgrades?.preferencesApplied
+        })));
+        setDeckAnalyses(analyses);
       } else {
+        console.error(`[DeckUpdater] Failed to analyze decks (HTTP ${res.status}):`, data);
         setError(data.error || "Failed to analyze decks");
       }
     } catch (e) {
+      console.error("[DeckUpdater] Network error in fetchAllDecksAnalysis:", e);
       setError("Network error while analyzing decks");
     } finally {
       setLoading(false);
@@ -108,31 +157,65 @@ export default function DeckUpdater() {
 
   const handleSaveLandPreferences = async (newPreferences) => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    console.log("[DeckUpdater:LandPreferences] handleSaveLandPreferences called with payload:", {
+      budgetTier: newPreferences?.budgetTier,
+      maxPricePerLand: newPreferences?.maxPricePerLand,
+      excludeReservedList: newPreferences?.excludeReservedList,
+      excludeTapped: newPreferences?.excludeTapped,
+      likedCount: newPreferences?.likedCycles?.length || 0,
+      likedCycles: newPreferences?.likedCycles,
+      dislikedCount: newPreferences?.dislikedCycles?.length || 0,
+      dislikedCycles: newPreferences?.dislikedCycles,
+      tokenPresent: !!token
+    });
+
+    if (!token) {
+      console.error("[DeckUpdater:LandPreferences] Cannot save land preferences - no auth token available");
+      showToast("Authentication required to save preferences", "error");
+      return;
+    }
 
     setIsSavingLandPrefs(true);
+    const startTime = performance.now();
     try {
+      const serializedBody = JSON.stringify({ preferences: newPreferences });
+      console.log(`[DeckUpdater:LandPreferences] Dispatching PUT /api/deck-updater/land-preferences (payload size: ${serializedBody.length} bytes):`, serializedBody);
+
       const res = await fetch("/api/deck-updater/land-preferences", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ preferences: newPreferences })
+        body: serializedBody
       });
+
+      const elapsed = Math.round(performance.now() - startTime);
+      console.log(`[DeckUpdater:LandPreferences] PUT responded in ${elapsed}ms with HTTP status ${res.status} (${res.statusText})`);
 
       if (res.ok) {
         const result = await res.json();
-        setLandPreferences(result.preferences || newPreferences);
+        console.log("[DeckUpdater:LandPreferences] Server successfully saved land preferences. Response:", result);
+        const savedPrefs = result.preferences || newPreferences;
+        console.log("[DeckUpdater:LandPreferences] Updating client state with saved preferences:", savedPrefs);
+        setLandPreferences(savedPrefs);
         setIsLandConfigOpen(false);
         showToast("Land preferences updated successfully!", "success");
         // Re-analyze all decks with new preferences
+        console.log("[DeckUpdater:LandPreferences] Triggering re-analysis of all decks with newly saved preferences...");
         await fetchAllDecksAnalysis(true);
       } else {
-        showToast("Failed to save land preferences", "error");
+        let errDetails = null;
+        try {
+          errDetails = await res.json();
+        } catch {
+          errDetails = await res.text();
+        }
+        console.error(`[DeckUpdater:LandPreferences] Server rejected land preferences save (HTTP ${res.status}):`, errDetails);
+        showToast(errDetails?.error || "Failed to save land preferences", "error");
       }
     } catch (e) {
-      console.error("Error saving land preferences:", e);
+      console.error("[DeckUpdater:LandPreferences] Network/runtime exception while saving land preferences:", e);
       showToast("Network error saving preferences", "error");
     } finally {
       setIsSavingLandPrefs(false);
@@ -145,13 +228,18 @@ export default function DeckUpdater() {
       budgetTier: tierId,
       maxPricePerLand: maxPrice
     };
+    console.log(`[DeckUpdater:LandPreferences] handleQuickChangeBudget: changing budget to tier='${tierId}', maxPrice=${maxPrice}`);
     setLandPreferences(updated);
 
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      console.warn("[DeckUpdater:LandPreferences] Quick budget update skipped backend call - no auth token");
+      return;
+    }
 
     try {
-      await fetch("/api/deck-updater/land-preferences", {
+      console.log("[DeckUpdater:LandPreferences] Dispatching quick budget update to backend via PUT /api/deck-updater/land-preferences");
+      const res = await fetch("/api/deck-updater/land-preferences", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -159,10 +247,12 @@ export default function DeckUpdater() {
         },
         body: JSON.stringify({ preferences: updated })
       });
+      console.log(`[DeckUpdater:LandPreferences] Quick budget update HTTP response status: ${res.status}`);
       showToast(`Budget changed to ${tierId === "all" ? "Unlimited" : `< $${maxPrice}`}`, "info");
+      console.log("[DeckUpdater:LandPreferences] Triggering re-analysis of decks after quick budget change...");
       fetchAllDecksAnalysis(true);
     } catch (e) {
-      console.error("Failed to quick update budget tier:", e);
+      console.error("[DeckUpdater:LandPreferences] Failed to quick update budget tier:", e);
     }
   };
 
