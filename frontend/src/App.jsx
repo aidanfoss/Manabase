@@ -178,8 +178,6 @@ function LandingDashboard() {
 
       <BuilderAnimationShowcase />
 
-      <ProAdContainer id="homepage-top-banner" />
-
       <div className="features-grid">
         {/* Feature 1: Manabase Deckbuilder */}
         <div className="feature-card" onClick={() => navigate("/builder")}>
@@ -214,8 +212,6 @@ function LandingDashboard() {
           </p>
         </div>
       </div>
-
-      <ProAdContainer id="homepage-bottom-banner" />
     </div>
   );
 }
