@@ -520,6 +520,7 @@ export default function DeckUpdater() {
                       <CardMagnifier
                         cardImageUrl={deck.commanderData.image_uri}
                         cardName={deck.commander || deck.deck_name}
+                        style={{ width: 'auto', display: 'inline-flex', flexShrink: 0 }}
                       >
                         <img
                           src={deck.commanderData.image_uri}

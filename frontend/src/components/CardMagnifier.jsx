@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 
-const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
+const CardMagnifier = ({ cardImageUrl, cardName, children, className = '', style = {} }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
 
@@ -66,6 +66,7 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
   return (
     <>
       <div
+        className={className}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -73,7 +74,7 @@ const CardMagnifier = ({ cardImageUrl, cardName, children }) => {
         tabIndex="0"
         role="button"
         aria-label={`Show high quality preview of ${cardName}`}
-        style={{ display: 'block', width: '100%', cursor: 'zoom-in', outline: 'none' }}
+        style={{ display: 'block', width: '100%', cursor: 'zoom-in', outline: 'none', ...style }}
       >
         {children}
       </div>
