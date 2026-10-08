@@ -1,10 +1,8 @@
-
-
 // src/App.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { CubeIcon, FolderIcon, ArrowPathIcon, MoonIcon, MapPinIcon, BellIcon, ArrowPathRoundedSquareIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
+import { CubeIcon, FolderIcon, ArrowPathIcon, MoonIcon, MapPinIcon, BellIcon, ArrowPathRoundedSquareIcon, Bars3Icon, XMarkIcon, ChevronDownIcon, SparklesIcon } from "@heroicons/react/24/solid";
 
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Link } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import BuilderView from "./components/BuilderView";
@@ -25,12 +23,9 @@ import "./styles/tabs.css";
 import "./styles/new-landing.css";
 import ProAdContainer from "./components/ProAdContainer";
 import CommanderShowcase from "./components/CommanderShowcase";
-import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
-
 import { WishlistProvider } from "./context/WishlistProvider";
+import OnboardingModal from "./components/OnboardingModal";
 
-
-// ...
 export default function App() {
   return (
     <AuthProvider>
@@ -49,6 +44,7 @@ function AppContent() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showLogin, setShowLogin] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [landcycles, setLandcycles] = useState([]);
   const [builderData, setBuilderData] = useState({ lands: [], nonlands: [] });
   const [userCollection, setUserCollection] = useState([]);
@@ -104,6 +100,22 @@ function AppContent() {
     loadLandcycles();
   }, []);
 
+  // Check if onboarding needs to be shown for the current user
+  React.useEffect(() => {
+    if (user) {
+      const userKey = `onboarding_seen_${user.id || user.username}`;
+      if (!localStorage.getItem(userKey)) {
+        // Show after a brief delay so the user lands in the app first
+        const timer = setTimeout(() => {
+          setShowOnboarding(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [user]);
+
   const applyPreset = (preset) => {
     setSelected({
       packages: new Set(preset.packages || []),
@@ -132,14 +144,18 @@ function AppContent() {
         </div>
       )}
 
+      {showOnboarding && user && (
+        <OnboardingModal user={user} onClose={() => setShowOnboarding(false)} />
+      )}
+
       <div className="main-viewport-content">
         <Routes>
           <Route path="/" element={<LandingDashboard />} />
           <Route path="/builder" element={
-            <BuilderView 
-              selected={selected} 
-              setSelected={setSelected} 
-              onSetMainScreen={() => navigate("/builder")} 
+            <BuilderView
+              selected={selected}
+              setSelected={setSelected}
+              onSetMainScreen={() => navigate("/builder")}
               onDataLoaded={setBuilderData}
               userCollection={userCollection}
             />
@@ -174,15 +190,21 @@ function LandingDashboard() {
 
   return (
     <div className="landing-container">
+      <div className="landing-hero">
+        <h1 className="hero-title">Forge Your Manabase</h1>
+        <p className="hero-subtitle">
+          Advanced tools for Commander deckbuilding, collection management, and trade orchestration.
+        </p>
+      </div>
+
       {showcaseData && <CommanderShowcase commander={showcaseData.commander} cards={showcaseData.cards} />}
 
-      <BuilderAnimationShowcase />
 
       <ProAdContainer id="homepage-top-banner" />
 
       <div className="features-grid">
         {/* Feature 1: Manabase Deckbuilder */}
-        <div className="feature-card" onClick={() => navigate("/builder")}>
+        <button className="feature-card" onClick={() => navigate("/builder")}>
           <div className="card-icon">
             <CubeIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
           </div>
@@ -190,10 +212,10 @@ function LandingDashboard() {
           <p className="card-description">
             Build optimal land bases for your Commander decks.
           </p>
-        </div>
+        </button>
 
         {/* Feature 2: Collection & Lists Manager */}
-        <div className="feature-card" onClick={() => navigate("/collection")}>
+        <button className="feature-card" onClick={() => navigate("/collection")}>
           <div className="card-icon">
             <FolderIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
           </div>
@@ -201,10 +223,10 @@ function LandingDashboard() {
           <p className="card-description">
             Manage your physical owned inventory and wishlists.
           </p>
-        </div>
+        </button>
 
         {/* Feature 3: Archidekt Sync */}
-        <div className="feature-card" onClick={() => navigate("/decks")}>
+        <button className="feature-card" onClick={() => navigate("/decks")}>
           <div className="card-icon">
             <ArrowPathIcon style={{ width: '1em', height: '1em', margin: '0 auto' }} />
           </div>
@@ -212,7 +234,7 @@ function LandingDashboard() {
           <p className="card-description">
             Maintain synchronized copies of your Archidekt decks.
           </p>
-        </div>
+        </button>
       </div>
 
       <ProAdContainer id="homepage-bottom-banner" />
@@ -236,7 +258,6 @@ const TEST_USERS = [
 function TopNav({ user, showLogin, setShowLogin }) {
   const { login, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [tradeAlerts, setTradeAlerts] = useState(0);
   const [wishlistAlerts, setWishlistAlerts] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -335,52 +356,47 @@ function TopNav({ user, showLogin, setShowLogin }) {
   return (
     <>
       <nav className="top-nav">
-        {/* Left: Logo + Navigation Links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          {/* Logo Branding */}
-          <div className="logo-branding" onClick={() => navigate("/")} style={{ color: 'white', background: 'none', WebkitTextFillColor: 'white', cursor: 'pointer' }}>
-            <span style={{ fontSize: '1.5rem', marginRight: '4px' }}>⬢</span> Manabase
-          </div>
+          <button className="logo-branding" onClick={() => navigate("/")} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <CubeIcon style={{ width: '1.5rem', height: '1.5rem', marginRight: '4px' }} /> <span style={{ fontSize: '1.5rem' }}>Manabase</span>
+          </button>
 
-          {/* Desktop Navigation Links */}
           <div className="desktop-nav-links" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-            <span className="nav-link" onClick={() => navigate("/wishlist")}>Proxy</span>
-            <span className="nav-link" onClick={() => navigate("/trade")}>Trade</span>
-            <span className="nav-link" onClick={() => navigate("/collection")}>Collection</span>
-            <span className="nav-link" onClick={() => navigate("/decks")}>Decks</span>
-            <span className="nav-link" onClick={() => navigate("/updater")}>Updater</span>
-            
+            <Link className="nav-link" to="/wishlist">Proxy</Link>
+            <Link className="nav-link" to="/trade">Trade</Link>
+            <Link className="nav-link" to="/collection">Collection</Link>
+            <Link className="nav-link" to="/decks">Decks</Link>
+            <Link className="nav-link" to="/updater">Updater</Link>
+
             {(user?.email === "quantumaidan@gmail.com" || user?.email === "dev@manabase.com") && (
-              <span className="nav-link" style={{ color: '#fbbf24', fontWeight: 'bold' }} onClick={() => navigate("/admin")}>Admin</span>
+              <Link className="nav-link" style={{ color: '#fbbf24', fontWeight: 'bold' }} to="/admin">Admin</Link>
             )}
 
             <div className="nav-dropdown-container">
-              <span className="nav-link dropdown-trigger">
-                Build <span style={{ fontSize: '0.7em', marginLeft: '4px' }}>▼</span>
-              </span>
+              <button className="nav-link dropdown-trigger" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>
+                Build <ChevronDownIcon style={{ width: '0.8em', height: '0.8em', marginLeft: '4px' }} />
+              </button>
               <div className="nav-dropdown-menu">
-                <div className="nav-dropdown-item" onClick={() => navigate("/builder")}>
+                <Link className="nav-dropdown-item" to="/builder">
                   <CubeIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Deckbuilder
-                </div>
-                <div className="nav-dropdown-item" onClick={() => navigate("/presets")}>
+                </Link>
+                <Link className="nav-dropdown-item" to="/presets">
                   <MapPinIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Land Presets
-                </div>
-                <div className="nav-dropdown-item" onClick={() => navigate("/packages")}>
+                </Link>
+                <Link className="nav-dropdown-item" to="/packages">
                   <FolderIcon className="dropdown-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '6px' }} /> Custom Packages
-                </div>
+                </Link>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Icons and Profile */}
         <div className="nav-controls-right" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          {/* Desktop Icons */}
           <div className="desktop-icons" style={{ display: 'flex', gap: '1rem', color: '#cbd5e1', fontSize: '1.2rem', cursor: 'pointer', alignItems: 'center' }}>
             <MoonIcon title="Toggle Dark Mode" style={{ width: '1.2em', height: '1.2em' }} />
             <MapPinIcon title="Pins" style={{ width: '1.2em', height: '1.2em' }} />
             <div className="nav-dropdown-container">
-              <span className="nav-link dropdown-trigger" style={{ position: 'relative', display: 'flex', alignItems: 'center' }} title="Notifications">
+              <button className="nav-link dropdown-trigger" style={{ position: 'relative', display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }} title="Notifications">
                 <BellIcon style={{ width: '1.2em', height: '1.2em', color: '#cbd5e1' }} />
                 {(tradeAlerts + wishlistAlerts) > 0 && (
                   <div style={{
@@ -401,17 +417,17 @@ function TopNav({ user, showLogin, setShowLogin }) {
                     {tradeAlerts + wishlistAlerts}
                   </div>
                 )}
-              </span>
+              </button>
               <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '220px', top: '100%' }}>
                 {tradeAlerts > 0 && (
-                  <div className="nav-dropdown-item" onClick={() => navigate("/trade")}>
+                  <Link className="nav-dropdown-item" to="/trade">
                     You have {tradeAlerts} pending trade{tradeAlerts !== 1 ? 's' : ''}
-                  </div>
+                  </Link>
                 )}
                 {wishlistAlerts > 0 && (
-                  <div className="nav-dropdown-item" onClick={() => navigate("/alerts/wishlist-overlap")}>
+                  <Link className="nav-dropdown-item" to="/alerts/wishlist-overlap">
                     {wishlistAlerts} wishlist card{wishlistAlerts !== 1 ? 's' : ''} in your collection!
-                  </div>
+                  </Link>
                 )}
                 {(tradeAlerts + wishlistAlerts) === 0 && (
                   <div className="nav-dropdown-item" style={{ color: '#94a3b8', cursor: 'default' }}>
@@ -422,11 +438,12 @@ function TopNav({ user, showLogin, setShowLogin }) {
             </div>
           </div>
 
-          {/* Profile / Login (Desktop) */}
           <div className="nav-profile desktop-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {user ? (
               <>
-                <img src={avatar} alt="Profile" className="nav-avatar" title={displayName} style={{ cursor: 'pointer' }} onClick={logout} />
+                <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} onClick={logout} title="Log out">
+                  <img src={avatar} alt="Profile" className="nav-avatar" />
+                </button>
                 {isTestUser && (
                   <button
                     className="cycle-user-btn"
@@ -446,34 +463,32 @@ function TopNav({ user, showLogin, setShowLogin }) {
               </button>
             )}
           </div>
-          
-          {/* Mobile Hamburger Menu Toggle */}
-          <div className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ cursor: 'pointer', color: 'white', display: 'none' }}>
+
+          <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ cursor: 'pointer', color: 'white', background: 'none', border: 'none', display: 'none' }}>
             {mobileMenuOpen ? <XMarkIcon style={{ width: '2rem', height: '2rem' }} /> : <Bars3Icon style={{ width: '2rem', height: '2rem' }} />}
-          </div>
+          </button>
         </div>
       </nav>
 
-      {/* Mobile Fullscreen Overlay */}
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay">
           <div className="mobile-menu-content">
-            <span className="mobile-nav-link" onClick={() => { navigate("/"); setMobileMenuOpen(false); }}>Home</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/wishlist"); setMobileMenuOpen(false); }}>Proxy</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/trade"); setMobileMenuOpen(false); }}>Trade</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/collection"); setMobileMenuOpen(false); }}>Collection</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/decks"); setMobileMenuOpen(false); }}>Decks</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/updater"); setMobileMenuOpen(false); }}>Deck Updater</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/builder"); setMobileMenuOpen(false); }}>Deckbuilder</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/presets"); setMobileMenuOpen(false); }}>Land Presets</span>
-            <span className="mobile-nav-link" onClick={() => { navigate("/packages"); setMobileMenuOpen(false); }}>Custom Packages</span>
-            
+            <Link className="mobile-nav-link" to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <Link className="mobile-nav-link" to="/wishlist" onClick={() => setMobileMenuOpen(false)}>Proxy</Link>
+            <Link className="mobile-nav-link" to="/trade" onClick={() => setMobileMenuOpen(false)}>Trade</Link>
+            <Link className="mobile-nav-link" to="/collection" onClick={() => setMobileMenuOpen(false)}>Collection</Link>
+            <Link className="mobile-nav-link" to="/decks" onClick={() => setMobileMenuOpen(false)}>Decks</Link>
+            <Link className="mobile-nav-link" to="/updater" onClick={() => setMobileMenuOpen(false)}>Deck Updater</Link>
+            <Link className="mobile-nav-link" to="/builder" onClick={() => setMobileMenuOpen(false)}>Deckbuilder</Link>
+            <Link className="mobile-nav-link" to="/presets" onClick={() => setMobileMenuOpen(false)}>Land Presets</Link>
+            <Link className="mobile-nav-link" to="/packages" onClick={() => setMobileMenuOpen(false)}>Custom Packages</Link>
+
             {(user?.email === "quantumaidan@gmail.com" || user?.email === "dev@manabase.com") && (
-              <span className="mobile-nav-link" style={{ color: '#fbbf24' }} onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}>Admin Dashboard</span>
+              <Link className="mobile-nav-link" style={{ color: '#fbbf24' }} to="/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>
             )}
 
             <div className="mobile-nav-divider"></div>
-            
+
             {user ? (
               <>
                 <div className="mobile-profile-section">
