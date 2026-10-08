@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   XMarkIcon,
   AdjustmentsHorizontalIcon,
@@ -49,7 +49,44 @@ export default function LandSuggesterConfigModal({
   const [cycleCategoryFilter, setCycleCategoryFilter] = useState("all");
   const [cycleSearchQuery, setCycleSearchQuery] = useState("");
 
-  if (!isOpen) return null;
+  // Sync state whenever modal opens or initialPreferences update
+  useEffect(() => {
+    if (isOpen) {
+      setBudgetTier(initialPreferences?.budgetTier || "all");
+      setMaxPricePerLand(
+        initialPreferences?.maxPricePerLand !== null && initialPreferences?.maxPricePerLand !== undefined
+          ? initialPreferences.maxPricePerLand
+          : ""
+      );
+      setExcludeReservedList(
+        initialPreferences?.excludeReservedList !== undefined ? initialPreferences.excludeReservedList : true
+      );
+      setExcludeTapped(
+        initialPreferences?.excludeTapped !== undefined ? initialPreferences.excludeTapped : true
+      );
+      setLikedCycles(
+        new Set((initialPreferences?.likedCycles || []).map(c => c.toLowerCase()))
+      );
+      setDislikedCycles(
+        new Set((initialPreferences?.dislikedCycles || []).map(c => c.toLowerCase()))
+      );
+    }
+  }, [isOpen, initialPreferences]);
+
+  // Filter cycles list
+  const filteredCycles = useMemo(() => {
+    return LAND_CYCLES_CATALOG.filter(cycle => {
+      if (cycleCategoryFilter !== "all" && cycle.category !== cycleCategoryFilter) {
+        return false;
+      }
+      if (!cycleSearchQuery.trim()) return true;
+
+      const q = cycleSearchQuery.toLowerCase();
+      const matchName = cycle.name.toLowerCase().includes(q);
+      const matchCards = cycle.sampleCards.some(card => card.toLowerCase().includes(q));
+      return matchName || matchCards;
+    });
+  }, [cycleCategoryFilter, cycleSearchQuery]);
 
   // Toggle cycle preference between Liked, Disliked, and Neutral
   const setCycleState = (cycleId, targetState) => {
@@ -101,21 +138,6 @@ export default function LandSuggesterConfigModal({
     }
   };
 
-  // Filter cycles list
-  const filteredCycles = useMemo(() => {
-    return LAND_CYCLES_CATALOG.filter(cycle => {
-      if (cycleCategoryFilter !== "all" && cycle.category !== cycleCategoryFilter) {
-        return false;
-      }
-      if (!cycleSearchQuery.trim()) return true;
-
-      const q = cycleSearchQuery.toLowerCase();
-      const matchName = cycle.name.toLowerCase().includes(q);
-      const matchCards = cycle.sampleCards.some(card => card.toLowerCase().includes(q));
-      return matchName || matchCards;
-    });
-  }, [cycleCategoryFilter, cycleSearchQuery]);
-
   const handleSave = () => {
     const preferences = {
       budgetTier,
@@ -136,6 +158,8 @@ export default function LandSuggesterConfigModal({
     setLikedCycles(new Set());
     setDislikedCycles(new Set());
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
