@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon, XMarkIcon, ArrowUpTrayIcon } from "@heroicons/react/24/solid";
 import { parseImportInput } from "../utils/csvImporter";
 import "../styles/onboarding.css";
 
 const SLIDES = [
-  { img: "/onboarding/step1.png", text: "1. Click on Collection on the bottom middle." },
-  { img: "/onboarding/step2.png", text: "2. Click on the 3 dots on the top right." },
-  { img: "/onboarding/step3.png", text: "3. Click export." },
-  { img: "/onboarding/step4.png", text: "4. Wait for export preparation." },
-  { img: "/onboarding/step5.png", text: "5. Hit Export to CSV and copy it!" }
+  { img: "/onboarding/step1.png", text: "1. Tap on Collection in the bottom menu." },
+  { img: "/onboarding/step2.png", text: "2. Tap the 3 dots in the top right." },
+  { img: "/onboarding/step3.png", text: "3. Tap Export." },
+  { img: "/onboarding/step4.png", text: "4. Tap Export to save your CSV file." }
 ];
 
 export default function OnboardingModal({ user, onClose }) {
   const [step, setStep] = useState("ask"); // "ask", "tutorial", "importing"
   const [currentSlide, setCurrentSlide] = useState(0);
   const [importText, setImportText] = useState("");
+  const [fileName, setFileName] = useState("");
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState("");
 
@@ -38,6 +38,25 @@ export default function OnboardingModal({ user, onClose }) {
     setStep("tutorial");
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result || "";
+      setImportText(text);
+      try {
+        const parsedCards = parseImportInput(text);
+        setImportStatus(`Loaded "${file.name}" (${(file.size / 1024).toFixed(1)} KB) — ${parsedCards.length} cards detected.`);
+      } catch (err) {
+        setImportStatus(`Loaded "${file.name}" (${(file.size / 1024).toFixed(1)} KB).`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleImport = async () => {
     if (!importText.trim()) return;
 
@@ -48,7 +67,7 @@ export default function OnboardingModal({ user, onClose }) {
     }
 
     setImporting(true);
-    setImportStatus("Parsing Manabox export...");
+    setImportStatus("Parsing ManaBox export...");
 
     try {
       const parsedCards = parseImportInput(importText);
@@ -118,7 +137,7 @@ export default function OnboardingModal({ user, onClose }) {
         {step === "ask" && (
           <>
             <h1 className="onboarding-title">Welcome to Manabase</h1>
-            <p style={{ fontSize: "1.2rem", color: "#cbd5e1" }}>Do you currently use Manabox?</p>
+            <p style={{ fontSize: "1.2rem", color: "#cbd5e1" }}>Do you currently use ManaBox?</p>
             <div className="onboarding-buttons">
               <button className="onboarding-btn primary" onClick={handleYes}>
                 Yes, I do!
@@ -141,15 +160,49 @@ export default function OnboardingModal({ user, onClose }) {
                   <div className="onboarding-caption">{slide.text}</div>
                 </div>
               ))}
+              <div className="onboarding-slide-dots">
+                {SLIDES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={`onboarding-dot ${idx === currentSlide ? "active" : ""}`}
+                    onClick={() => setCurrentSlide(idx)}
+                    aria-label={`Go to step ${idx + 1}`}
+                  />
+                ))}
+              </div>
             </div>
 
             <div className="onboarding-import-zone">
-              <label>Paste your exported CSV text here:</label>
+              <div className="onboarding-file-upload-row">
+                <label htmlFor="onboarding-file-input" className="onboarding-file-btn">
+                  <ArrowUpTrayIcon style={{ width: "1.25rem", height: "1.25rem", marginRight: "0.5rem" }} />
+                  {fileName ? `Selected: ${fileName}` : "Upload ManaBox CSV File"}
+                </label>
+                <input
+                  id="onboarding-file-input"
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                  disabled={importing}
+                />
+              </div>
+
+              <div className="onboarding-divider">
+                <span>or paste CSV text</span>
+              </div>
+
               <textarea
+                id="onboarding-csv-text"
+                aria-label="Paste exported CSV text"
                 className="onboarding-textarea"
                 placeholder="Name,Set code,Collector number,Foil,Quantity,Condition,Language..."
                 value={importText}
-                onChange={(e) => setImportText(e.target.value)}
+                onChange={(e) => {
+                  setImportText(e.target.value);
+                  if (fileName) setFileName("");
+                }}
                 disabled={importing}
               ></textarea>
 

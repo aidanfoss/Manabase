@@ -8,6 +8,7 @@ export default function LoginForm({ onSuccess }) {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [consentGiven, setConsentGiven] = useState(false);
   const [error, setError] = useState(ssoError || null);
   const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState({ google: false, discord: false, devMode: true });
@@ -31,6 +32,12 @@ export default function LoginForm({ onSuccess }) {
     e.preventDefault();
     setError(null);
     if (setSsoError) setSsoError(null);
+
+    if (mode === "signup" && !consentGiven) {
+      setError("You must agree to the Privacy Policy and Terms of Service to create an account.");
+      return;
+    }
+
     setLoading(true);
     try {
       let res;
@@ -137,8 +144,9 @@ export default function LoginForm({ onSuccess }) {
           <span>or</span>
         </div>
 
-        <label>{mode === "signup" ? "Email" : "Email or Username"}</label>
+        <label htmlFor="emailField">{mode === "signup" ? "Email" : "Email or Username"}</label>
         <input
+          id="emailField"
           type={mode === "signup" ? "email" : "text"}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -147,8 +155,9 @@ export default function LoginForm({ onSuccess }) {
 
         {mode === "signup" && (
           <>
-            <label>Username</label>
+            <label htmlFor="usernameField">Username</label>
             <input
+              id="usernameField"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -157,15 +166,33 @@ export default function LoginForm({ onSuccess }) {
           </>
         )}
 
-        <label>Password</label>
+        <label htmlFor="passwordField">Password</label>
         <input
+          id="passwordField"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          aria-label="Password"
         />
 
-        <button type="submit" disabled={loading}>
+        {mode === "signup" && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>
+            <input
+              type="checkbox"
+              id="consent-checkbox"
+              checked={consentGiven}
+              onChange={(e) => setConsentGiven(e.target.checked)}
+              required
+              style={{ marginTop: '0.25rem', cursor: 'pointer' }}
+            />
+            <label htmlFor="consent-checkbox" style={{ margin: 0, fontWeight: 'normal', lineHeight: '1.4' }}>
+              I agree to the <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: '#60a5fa' }}>Privacy Policy</a> and <a href="/terms" target="_blank" rel="noreferrer" style={{ color: '#60a5fa' }}>Terms of Service</a>, and consent to the minimal data collection required to operate this service.
+            </label>
+          </div>
+        )}
+
+        <button type="submit" disabled={loading} aria-label={mode === "signup" ? "Sign Up" : "Log In"}>
           {loading
             ? "Loading..."
             : mode === "signup"
@@ -177,12 +204,24 @@ export default function LoginForm({ onSuccess }) {
           {mode === "signup" ? (
             <>
               Already have an account?{" "}
-              <span onClick={() => setMode("login")}>Log in</span>
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', padding: 0, fontSize: 'inherit', fontWeight: 'bold' }}
+              >
+                Log in
+              </button>
             </>
           ) : (
             <>
               Need an account?{" "}
-              <span onClick={() => setMode("signup")}>Sign up</span>
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', padding: 0, fontSize: 'inherit', fontWeight: 'bold' }}
+              >
+                Sign up
+              </button>
             </>
           )}
         </div>

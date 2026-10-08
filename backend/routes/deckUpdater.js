@@ -496,9 +496,15 @@ router.get("/analyze-lands", requireAuth, async (req, res) => {
 
 // GET /api/deck-updater/:deckId
 // Returns strictly better upgrades and EDHRec suggestions for the deck
-router.get("/:deckId", requireAuth, async (req, res) => {
+router.get("/:deckId", requireAuth, async (req, res, next) => {
   try {
     const { deckId } = req.params;
+
+    // Prevent accidental matching of other potential subroutes in case of route ordering issues
+    if (["land-preferences", "decks", "analyze-all", "dismissals", "analyze-lands", "sync", "dismiss", "undismiss"].includes(deckId)) {
+      return next();
+    }
+
     const userId = req.user.id;
 
     const deck = await db("user_archidekt_decks")
