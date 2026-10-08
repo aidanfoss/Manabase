@@ -23,7 +23,6 @@ import { api } from "./api/client";
 import "./styles/nav-auth.css";
 import "./styles/tabs.css";
 import "./styles/new-landing.css";
-import ProAdContainer from "./components/ProAdContainer";
 import CommanderShowcase from "./components/CommanderShowcase";
 import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
 
