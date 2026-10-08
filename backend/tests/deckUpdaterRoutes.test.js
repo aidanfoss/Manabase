@@ -195,5 +195,35 @@ describe('Deck Updater Routes & Dismissals', () => {
       expect(res.body.colorIdentity).toBeDefined();
       expect(res.body.preferencesApplied).toBeDefined();
     });
+
+    it('should analyze all decks with custom preferences via POST /analyze-all', async () => {
+      await db('user_archidekt_decks').insert({
+        user_id: userId,
+        deck_id: '88888',
+        deck_name: 'Test Radha Deck',
+        commander: 'Grand Warlord Radha',
+        cards: JSON.stringify(['Forest', 'Mountain', 'Gruul Turf', 'Gruul Guildgate']),
+        source: 'archidekt'
+      });
+
+      const res = await request(app)
+        .post('/api/deck-updater/analyze-all')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          preferences: {
+            budgetTier: 'ultra_budget',
+            maxPricePerLand: 1.0,
+            excludeReservedList: true,
+            excludeTapped: true
+          }
+        });
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].deck_id).toBe('88888');
+      expect(res.body[0].landUpgrades).toBeDefined();
+      expect(res.body[0].landUpgrades.preferencesApplied.budgetTier).toBe('ultra_budget');
+    });
   });
 });

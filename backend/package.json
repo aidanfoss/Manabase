@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "dev": "node --watch server.js",
     "test": "vitest",
     "seed:10": "node seed-10-users.js",
     "update-cycles": "node scripts/updateLandCycles.js"
