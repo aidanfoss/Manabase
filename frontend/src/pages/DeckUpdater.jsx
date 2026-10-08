@@ -581,35 +581,6 @@ export default function DeckUpdater() {
                                 ) : (
                                   <div className="triage-placeholder">{card.name}</div>
                                 )}
-                {activeTab === "lands" && deck.landUpgrades && (
-                  <div className="land-upgrades-container animate-in" style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-                    <div className="land-cuts" style={{ flex: 1 }}>
-                      <h4 style={{ color: '#f87171', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Suggested Cuts</h4>
-                      {deck.landUpgrades.cuts.length === 0 ? (
-                        <div className="empty-state">No suggested cuts. Your land base is solid!</div>
-                      ) : (
-                        <div className="card-grid">
-                          {deck.landUpgrades.cuts.map((card) =>
-                            renderSuggestionCard({...card, price: card.reason || "Cut"}, deck.deck_id, "land_cut")
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="land-adds" style={{ flex: 1 }}>
-                      <h4 style={{ color: '#4ade80', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Better Alternatives</h4>
-                      {deck.landUpgrades.adds.length === 0 ? (
-                        <div className="empty-state">No adds suggested.</div>
-                      ) : (
-                        <div className="card-grid">
-                          {deck.landUpgrades.adds.map((card) =>
-                            renderSuggestionCard({...card, price: `${card.cycle} (${card.tier})`}, deck.deck_id, "land_add")
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                                 <div className="triage-floating-meta">
                                   <span className="price-tag">
@@ -778,35 +749,6 @@ export default function DeckUpdater() {
                                 ) : (
                                   <div className="triage-placeholder">{card.name}</div>
                                 )}
-                {activeTab === "lands" && deck.landUpgrades && (
-                  <div className="land-upgrades-container animate-in" style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-                    <div className="land-cuts" style={{ flex: 1 }}>
-                      <h4 style={{ color: '#f87171', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Suggested Cuts</h4>
-                      {deck.landUpgrades.cuts.length === 0 ? (
-                        <div className="empty-state">No suggested cuts. Your land base is solid!</div>
-                      ) : (
-                        <div className="card-grid">
-                          {deck.landUpgrades.cuts.map((card) =>
-                            renderSuggestionCard({...card, price: card.reason || "Cut"}, deck.deck_id, "land_cut")
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="land-adds" style={{ flex: 1 }}>
-                      <h4 style={{ color: '#4ade80', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Better Alternatives</h4>
-                      {deck.landUpgrades.adds.length === 0 ? (
-                        <div className="empty-state">No adds suggested.</div>
-                      ) : (
-                        <div className="card-grid">
-                          {deck.landUpgrades.adds.map((card) =>
-                            renderSuggestionCard({...card, price: `${card.cycle} (${card.tier})`}, deck.deck_id, "land_add")
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                                 <div className="triage-floating-meta">
                                   <span className="price-tag">
@@ -851,6 +793,55 @@ export default function DeckUpdater() {
                       </div>
                     )}
                   </>
+                )}
+                {/* Land Base Tab */}
+                {activeTab === "lands" && deck.landUpgrades && (
+                  <div className="land-analyzer">
+                    <div className="land-section">
+                      <h3><ExclamationTriangleIcon className="icon-sm text-rose" /> Suggested Cuts</h3>
+                      {deck.landUpgrades.cuts.length === 0 ? <p className="empty-state">No cuts suggested.</p> : (
+                        <div className="triage-grid">
+                          {deck.landUpgrades.cuts.map((card, idx) => (
+                             <div key={idx} className="triage-card">
+                               <div className="triage-visual-wrap">
+                                  {card.image_uri ? (
+                                    <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
+                                        <img src={card.image_uri} alt={card.name} className="triage-card-img" />
+                                    </CardMagnifier>
+                                  ) : (
+                                    <div className="triage-placeholder">{card.name}</div>
+                                  )}
+                               </div>
+                               <h3 className="triage-card-name" title={card.name}>{card.name}</h3>
+                               <p className="triage-description">{card.reason}</p>
+                             </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="land-section">
+                       <h3><CheckCircleIcon className="icon-sm text-emerald" /> Better Alternatives</h3>
+                       {deck.landUpgrades.adds.length === 0 ? <p className="empty-state">No adds suggested.</p> : (
+                         <div className="triage-grid">
+                           {deck.landUpgrades.adds.map((card, idx) => (
+                             <div key={idx} className="triage-card">
+                               <div className="triage-visual-wrap">
+                                  {card.image_uri ? (
+                                    <CardMagnifier cardImageUrl={card.image_uri} cardName={card.name}>
+                                        <img src={card.image_uri} alt={card.name} className="triage-card-img" />
+                                    </CardMagnifier>
+                                  ) : (
+                                    <div className="triage-placeholder">{card.name}</div>
+                                  )}
+                               </div>
+                               <h3 className="triage-card-name" title={card.name}>{card.name}</h3>
+                               <p className="triage-description">{card.cycle} ({card.tier})</p>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                    </div>
+                  </div>
                 )}
               </article>
             );
