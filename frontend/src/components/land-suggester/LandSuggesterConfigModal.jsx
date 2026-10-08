@@ -52,6 +52,21 @@ export default function LandSuggesterConfigModal({
   // Sync state whenever modal opens or initialPreferences update
   useEffect(() => {
     if (isOpen) {
+      console.log("[LandSuggesterConfigModal] Modal opened with initial preferences:", initialPreferences);
+      const incomingLiked = (initialPreferences?.likedCycles || []).map(c => c.toLowerCase());
+      const incomingDisliked = (initialPreferences?.dislikedCycles || []).map(c => c.toLowerCase());
+
+      console.log("[LandSuggesterConfigModal] Synced cycle sets:", {
+        likedCount: incomingLiked.length,
+        likedCycles: incomingLiked,
+        dislikedCount: incomingDisliked.length,
+        dislikedCycles: incomingDisliked,
+        budgetTier: initialPreferences?.budgetTier || "all",
+        maxPricePerLand: initialPreferences?.maxPricePerLand,
+        excludeReservedList: initialPreferences?.excludeReservedList,
+        excludeTapped: initialPreferences?.excludeTapped
+      });
+
       setBudgetTier(initialPreferences?.budgetTier || "all");
       setMaxPricePerLand(
         initialPreferences?.maxPricePerLand !== null && initialPreferences?.maxPricePerLand !== undefined
@@ -64,18 +79,14 @@ export default function LandSuggesterConfigModal({
       setExcludeTapped(
         initialPreferences?.excludeTapped !== undefined ? initialPreferences.excludeTapped : true
       );
-      setLikedCycles(
-        new Set((initialPreferences?.likedCycles || []).map(c => c.toLowerCase()))
-      );
-      setDislikedCycles(
-        new Set((initialPreferences?.dislikedCycles || []).map(c => c.toLowerCase()))
-      );
+      setLikedCycles(new Set(incomingLiked));
+      setDislikedCycles(new Set(incomingDisliked));
     }
   }, [isOpen, initialPreferences]);
 
   // Filter cycles list
   const filteredCycles = useMemo(() => {
-    return LAND_CYCLES_CATALOG.filter(cycle => {
+    const result = LAND_CYCLES_CATALOG.filter(cycle => {
       if (cycleCategoryFilter !== "all" && cycle.category !== cycleCategoryFilter) {
         return false;
       }
@@ -86,6 +97,7 @@ export default function LandSuggesterConfigModal({
       const matchCards = cycle.sampleCards.some(card => card.toLowerCase().includes(q));
       return matchName || matchCards;
     });
+    return result;
   }, [cycleCategoryFilter, cycleSearchQuery]);
 
   // Toggle cycle preference between Liked, Disliked, and Neutral
@@ -93,6 +105,7 @@ export default function LandSuggesterConfigModal({
     const key = cycleId.toLowerCase();
     const newLiked = new Set(likedCycles);
     const newDisliked = new Set(dislikedCycles);
+    const prevState = newLiked.has(key) ? "liked" : newDisliked.has(key) ? "disliked" : "neutral";
 
     if (targetState === "liked") {
       newDisliked.delete(key);
@@ -106,33 +119,52 @@ export default function LandSuggesterConfigModal({
       newDisliked.delete(key);
     }
 
+    const nextState = newLiked.has(key) ? "liked" : newDisliked.has(key) ? "disliked" : "neutral";
+    console.log(`[LandSuggesterConfigModal] Changed cycle state for '${cycleId}':`, {
+      cycleId,
+      previousState: prevState,
+      nextState,
+      totalLiked: newLiked.size,
+      totalDisliked: newDisliked.size,
+      likedCycles: Array.from(newLiked),
+      dislikedCycles: Array.from(newDisliked)
+    });
+
     setLikedCycles(newLiked);
     setDislikedCycles(newDisliked);
   };
 
   // Batch cycle quick actions
   const handleBatchAction = (action) => {
+    console.log(`[LandSuggesterConfigModal] Running batch preset action: '${action}'`);
     if (action === "like_fast") {
       const newLiked = new Set(likedCycles);
       const newDisliked = new Set(dislikedCycles);
+      const affected = [];
       LAND_CYCLES_CATALOG.filter(c => c.category === "fast_duals" && c.id !== "cycle-abu-dual-land").forEach(c => {
         const key = c.id.toLowerCase();
         newLiked.add(key);
         newDisliked.delete(key);
+        affected.push(key);
       });
+      console.log(`[LandSuggesterConfigModal] 'like_fast' applied to ${affected.length} cycles:`, affected);
       setLikedCycles(newLiked);
       setDislikedCycles(newDisliked);
     } else if (action === "dislike_tapped") {
       const newLiked = new Set(likedCycles);
       const newDisliked = new Set(dislikedCycles);
+      const affected = [];
       LAND_CYCLES_CATALOG.filter(c => c.tier === "bottom" || c.speed === "tapped").forEach(c => {
         const key = c.id.toLowerCase();
         newDisliked.add(key);
         newLiked.delete(key);
+        affected.push(key);
       });
+      console.log(`[LandSuggesterConfigModal] 'dislike_tapped' applied to ${affected.length} cycles:`, affected);
       setLikedCycles(newLiked);
       setDislikedCycles(newDisliked);
     } else if (action === "reset_cycles") {
+      console.log("[LandSuggesterConfigModal] 'reset_cycles' cleared all liked and disliked sets");
       setLikedCycles(new Set());
       setDislikedCycles(new Set());
     }
@@ -147,10 +179,21 @@ export default function LandSuggesterConfigModal({
       likedCycles: Array.from(likedCycles),
       dislikedCycles: Array.from(dislikedCycles)
     };
+    console.log("[LandSuggesterConfigModal] Save triggered with preferences payload:", {
+      budgetTier: preferences.budgetTier,
+      maxPricePerLand: preferences.maxPricePerLand,
+      excludeReservedList: preferences.excludeReservedList,
+      excludeTapped: preferences.excludeTapped,
+      likedCount: preferences.likedCycles.length,
+      likedCycles: preferences.likedCycles,
+      dislikedCount: preferences.dislikedCycles.length,
+      dislikedCycles: preferences.dislikedCycles
+    });
     onSavePreferences(preferences);
   };
 
   const handleResetDefaults = () => {
+    console.log("[LandSuggesterConfigModal] Reset to defaults triggered");
     setBudgetTier("budget");
     setMaxPricePerLand("");
     setExcludeReservedList(true);

@@ -20,6 +20,25 @@ export default function LandPreferencesBar({
   const likedCount = preferences?.likedCycles?.length || 0;
   const dislikedCount = preferences?.dislikedCycles?.length || 0;
 
+  const handleQuickBudgetClick = (tierId, maxPrice) => {
+    console.log(`[LandPreferencesBar] Quick budget pill clicked: tier='${tierId}', maxPrice=${maxPrice}`);
+    onQuickChangeBudget(tierId, maxPrice);
+  };
+
+  const handleOpenTuneModal = () => {
+    console.log("[LandPreferencesBar] 'Tune Preferences' clicked, opening config modal with current preferences:", {
+      budgetTier: currentTierId,
+      maxPricePerLand: preferences?.maxPricePerLand,
+      likedCount,
+      likedCycles: preferences?.likedCycles,
+      dislikedCount,
+      dislikedCycles: preferences?.dislikedCycles,
+      excludeReservedList: preferences?.excludeReservedList,
+      excludeTapped: preferences?.excludeTapped
+    });
+    onOpenConfigModal();
+  };
+
   return (
     <div className="land-preferences-bar">
       <div className="pref-bar-left">
@@ -36,7 +55,7 @@ export default function LandPreferencesBar({
               <button
                 key={tier.id}
                 className={`quick-budget-pill ${isActive ? "active" : ""}`}
-                onClick={() => onQuickChangeBudget(tier.id, tier.maxPrice)}
+                onClick={() => handleQuickBudgetClick(tier.id, tier.maxPrice)}
                 disabled={isLoading}
                 title={tier.description}
               >
@@ -72,7 +91,7 @@ export default function LandPreferencesBar({
 
         <button
           className="btn-tune-preferences"
-          onClick={onOpenConfigModal}
+          onClick={handleOpenTuneModal}
           disabled={isLoading}
           title="Open full land base preferences & cycle customization"
         >

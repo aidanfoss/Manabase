@@ -58,6 +58,22 @@ describe('deckUpdater EDHRec Integration', () => {
     expect(result.highSynergy[0].synergy).toBe(0.5);
   });
 
+  it('should return empty suggestions without making network requests when commander is missing or unknown', async () => {
+    const nullRes = await getEDHRecSuggestions(null, ["Forest", "Mountain"]);
+    expect(nullRes).toEqual({ newCards: [], highSynergy: [] });
+
+    const undefinedRes = await getEDHRecSuggestions(undefined, ["Forest"]);
+    expect(undefinedRes).toEqual({ newCards: [], highSynergy: [] });
+
+    const noneRes = await getEDHRecSuggestions("None", ["Forest"]);
+    expect(noneRes).toEqual({ newCards: [], highSynergy: [] });
+
+    const unknownRes = await getEDHRecSuggestions("Unknown", ["Forest"]);
+    expect(unknownRes).toEqual({ newCards: [], highSynergy: [] });
+
+    expect(axios.get).not.toHaveBeenCalled();
+  });
+
   it('should correctly parse "High Lift Cards" and "High Synergy Cards" if present', async () => {
     const mockEDHRecResponse = {
       data: {
