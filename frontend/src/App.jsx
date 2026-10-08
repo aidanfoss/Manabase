@@ -25,6 +25,11 @@ import CommanderShowcase from "./components/CommanderShowcase";
 import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
 import { WishlistProvider } from "./context/WishlistProvider";
 import OnboardingModal from "./components/OnboardingModal";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsPage from "./pages/TermsPage";
+import FAQ from "./pages/FAQ";
+import NotFound from "./pages/NotFound";
+import { initAnalytics } from "./utils/analytics";
 
 export default function App() {
   return (
@@ -49,6 +54,10 @@ function AppContent() {
   const [builderData, setBuilderData] = useState({ lands: [], nonlands: [] });
   const [userCollection, setUserCollection] = useState([]);
   const packageRef = useRef();
+
+  useEffect(() => {
+    initAnalytics();
+  }, []);
 
   const [selected, setSelected] = useState({
     packages: new Set(),
@@ -170,7 +179,10 @@ function AppContent() {
           <Route path="/presets" element={<Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />} />
           <Route path="/packages" element={<PackageManager ref={packageRef} />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="*" element={<LandingDashboard />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </>
@@ -228,6 +240,68 @@ function LandingDashboard() {
           </p>
         </button>
       </div>
+
+      {/* Clear CTA Banner */}
+      <div style={{
+        margin: '4rem auto 2rem auto',
+        maxWidth: '1000px',
+        padding: '3rem 2rem',
+        background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+        borderRadius: '16px',
+        border: '1px solid #4338ca',
+        textAlign: 'center',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+      }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
+          Ready to Build Your Ultimate Mana Base?
+        </h2>
+        <p style={{ color: '#c7d2fe', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto 2rem auto' }}>
+          Stop guessing your color ratios. Generate mathematically optimal land bases in seconds and sync seamlessly with Archidekt & Moxfield.
+        </p>
+        <button
+          onClick={() => navigate("/builder")}
+          style={{
+            background: '#6366f1',
+            color: 'white',
+            border: 'none',
+            padding: '1rem 2.5rem',
+            fontSize: '1.1rem',
+            fontWeight: 'bold',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+            transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => e.target.style.background = '#4f46e5'}
+          onMouseOut={(e) => e.target.style.background = '#6366f1'}
+        >
+          Launch Deckbuilder Now &rarr;
+        </button>
+      </div>
+
+      {/* Footer */}
+      <footer style={{
+        marginTop: '5rem',
+        borderTop: '1px solid #334155',
+        padding: '2.5rem 2rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem',
+        color: '#94a3b8',
+        fontSize: '0.9rem',
+        textAlign: 'center'
+      }}>
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link to="/faq" style={{ color: '#cbd5e1', textDecoration: 'none' }}>FAQ</Link>
+          <Link to="/privacy" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Privacy Policy</Link>
+          <Link to="/terms" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Terms of Service</Link>
+          <a href="/sitemap.xml" target="_blank" rel="noreferrer" style={{ color: '#cbd5e1', textDecoration: 'none' }}>Sitemap</a>
+        </div>
+        <p style={{ margin: 0 }}>
+          &copy; {new Date().getFullYear()} Manabase. Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
+        </p>
+      </footer>
     </div>
   );
 }
