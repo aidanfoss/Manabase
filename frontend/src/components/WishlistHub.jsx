@@ -2183,7 +2183,7 @@ export default function WishlistHub() {
                             <td>{c.quantity}x</td>
                             <td className="font-bold">{c.card_name}</td>
                             <td>{c.is_foil ? "Foil" : "Normal"}</td>
-                            <td className="cheap-price-tag">${c.price.toFixed(2)}</td>
+                            <td className="cheap-price-tag">${c.price !== null && c.price !== undefined && !isNaN(Number(c.price)) ? Number(c.price).toFixed(2) : "0.00"}</td>
                             <td><span className="purge-badge">Purge</span></td>
                           </tr>
                         ))}
@@ -2410,7 +2410,7 @@ export default function WishlistHub() {
                           <div style={{ background: "rgba(15,23,42,0.6)", padding: "0.6rem 0.8rem", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
                             <div style={{ fontSize: "0.75rem", color: "#f472b6" }}>LotusVault (Local)</div>
                             <div style={{ fontSize: "1rem", fontWeight: "700", color: rData?.lotusInStock ? "#34d399" : "#f87171" }}>
-                              {rData?.lotusInStock ? `$${rData.lotusPrice?.toFixed(2)}` : "Out of Stock"}
+                              {rData?.lotusInStock && rData.lotusPrice !== null && rData.lotusPrice !== undefined && !isNaN(Number(rData.lotusPrice)) ? `$${Number(rData.lotusPrice).toFixed(2)}` : "Out of Stock"}
                             </div>
                           </div>
                         </div>

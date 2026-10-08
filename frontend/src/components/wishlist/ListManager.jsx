@@ -341,7 +341,7 @@ export default function ListManager({...props}) {
                             <td className="col-lotus" style={{ textAlign: "center" }}>
                               {rData?.lotusInStock ? (
                                 <span style={{ color: "#34d399", fontWeight: "700" }}>
-                                  ${rData.lotusPrice?.toFixed(2)}
+                                  ${rData.lotusPrice !== null && rData.lotusPrice !== undefined && !isNaN(Number(rData.lotusPrice)) ? Number(rData.lotusPrice).toFixed(2) : "0.00"}
                                 </span>
                               ) : rData ? (
                                 <span style={{ color: "#f87171", fontSize: "0.75rem" }}>Out of Stock</span>
@@ -355,7 +355,7 @@ export default function ListManager({...props}) {
                             <td className="col-manapool" style={{ textAlign: "center" }}>
                               {rData?.manaPrice !== null && rData?.manaPrice !== undefined ? (
                                 <span style={{ color: "#818cf8", fontWeight: "700" }}>
-                                  ${rData.manaPrice?.toFixed(2)}
+                                  ${!isNaN(Number(rData.manaPrice)) ? Number(rData.manaPrice).toFixed(2) : "0.00"}
                                 </span>
                               ) : (
                                 <span style={{ color: "#64748b", fontSize: "0.75rem" }}>{props.loadingRetail ? "..." : "--"}</span>
