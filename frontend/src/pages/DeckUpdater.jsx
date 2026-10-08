@@ -1030,7 +1030,7 @@ export default function DeckUpdater() {
                                     )}
                                     <div className="triage-floating-meta">
                                       <span className="price-tag">
-                                        {card.price !== null && card.price !== undefined ? `$${card.price.toFixed(2)}` : "--"}
+                                        {card.price !== null && card.price !== undefined && !isNaN(Number(card.price)) ? `$${Number(card.price).toFixed(2)}` : "--"}
                                       </span>
                                       {card.tier && (
                                         <span className="tier-badge">{card.tier.toUpperCase()}</span>
