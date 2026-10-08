@@ -25,6 +25,7 @@ import "./styles/tabs.css";
 import "./styles/new-landing.css";
 import ProAdContainer from "./components/ProAdContainer";
 import CommanderShowcase from "./components/CommanderShowcase";
+import BuilderAnimationShowcase from "./components/BuilderAnimationShowcase";
 
 import { WishlistProvider } from "./context/WishlistProvider";
 
@@ -173,14 +174,9 @@ function LandingDashboard() {
 
   return (
     <div className="landing-container">
-      <div className="landing-hero">
-        <h1 className="hero-title">Forge Your Manabase</h1>
-        <p className="hero-subtitle">
-          Advanced tools for Commander deckbuilding, collection management, and trade orchestration.
-        </p>
-      </div>
-
       {showcaseData && <CommanderShowcase commander={showcaseData.commander} cards={showcaseData.cards} />}
+
+      <BuilderAnimationShowcase />
 
       <ProAdContainer id="homepage-top-banner" />
 
