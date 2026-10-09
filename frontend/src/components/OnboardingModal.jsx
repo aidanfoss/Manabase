@@ -80,11 +80,11 @@ export default function OnboardingModal({ user, onClose }) {
 
       setImportStatus(`Found ${parsedCards.length} cards. Starting batch import...`);
 
-      // Mark all as going to "owned" collection
+      // Route according to proxy status
       const processedCards = parsedCards.map(c => ({
         ...c,
-        list_type: "owned",
-        is_proxy: false
+        list_type: c.is_proxy ? "proxy" : "owned",
+        is_proxy: !!c.is_proxy
       }));
 
       const CHUNK_SIZE = 500;

@@ -52,6 +52,16 @@ export function normalizeFoil(foilVal) {
 }
 
 /**
+ * Normalizes proxy status from string or boolean.
+ */
+export function normalizeProxy(proxyVal) {
+  if (typeof proxyVal === "boolean") return proxyVal;
+  if (!proxyVal) return false;
+  const s = String(proxyVal).toLowerCase().trim();
+  return s === "true" || s === "yes" || s === "1" || s === "proxy";
+}
+
+/**
  * Parses raw text input which could be CSV format (e.g. ManaBox export, Scryfall CSV)
  * or plain decklist format ("4 Brainstorm").
  * Returns an array of normalized card objects ready for API import.
@@ -83,8 +93,7 @@ export function parseImportInput(rawText) {
       else if (t === "condition" || t === "cardcondition") headerMap.card_condition = idx;
       else if (t === "language" || t === "cardlanguage" || t === "lang") headerMap.card_language = idx;
       else if (t === "bindertype") headerMap.binder_type = idx;
-      else if (t === "altered") headerMap.altered = idx;
-      else if (t === "misprint") headerMap.misprint = idx;
+      else if (t === "proxy" || t === "isproxy") headerMap.is_proxy = idx;
     });
 
     const parsedCards = [];
@@ -105,8 +114,7 @@ export function parseImportInput(rawText) {
       const condVal = headerMap.card_condition !== undefined ? row[headerMap.card_condition] : "NM";
       const langVal = headerMap.card_language !== undefined ? (row[headerMap.card_language] || "EN").trim().toUpperCase() : "EN";
       const binderType = headerMap.binder_type !== undefined ? (row[headerMap.binder_type] || "").trim().toLowerCase() : "";
-      const altered = headerMap.altered !== undefined ? (row[headerMap.altered] || "").trim().toLowerCase() === "true" : false;
-      const misprint = headerMap.misprint !== undefined ? (row[headerMap.misprint] || "").trim().toLowerCase() === "true" : false;
+      const proxyVal = headerMap.is_proxy !== undefined ? row[headerMap.is_proxy] : false;
 
       parsedCards.push({
         card_name: cardName,
@@ -114,11 +122,10 @@ export function parseImportInput(rawText) {
         set_code: setCode,
         collector_number: collectorNumber,
         is_foil: normalizeFoil(foilVal),
+        is_proxy: normalizeProxy(proxyVal),
         card_condition: normalizeCondition(condVal),
         card_language: langVal || "EN",
-        binder_type: binderType,
-        altered: altered,
-        misprint: misprint
+        binder_type: binderType
       });
     }
     return parsedCards;
@@ -155,6 +162,7 @@ export function parseImportInput(rawText) {
           set_code: setCode,
           collector_number: collectorNumber,
           is_foil: isFoil,
+          is_proxy: false,
           card_condition: "NM",
           card_language: "EN"
         });
@@ -176,6 +184,7 @@ export function parseImportInput(rawText) {
               set_code: (row[2] || "").trim().toUpperCase(),
               collector_number: (row[3] || "").trim(),
               is_foil: normalizeFoil(row[4]),
+              is_proxy: false,
               card_condition: normalizeCondition(row[5]),
               card_language: (row[6] || "EN").trim().toUpperCase()
             });
@@ -192,6 +201,7 @@ export function parseImportInput(rawText) {
               set_code: (row[2] || "").trim().toUpperCase(),
               collector_number: (row[3] || "").trim(),
               is_foil: normalizeFoil(row[4]),
+              is_proxy: false,
               card_condition: normalizeCondition(row[5]),
               card_language: (row[6] || "EN").trim().toUpperCase()
             });
@@ -208,6 +218,7 @@ export function parseImportInput(rawText) {
               set_code: (row[3] || "").trim().toUpperCase(),
               collector_number: (row[4] || "").trim(),
               is_foil: normalizeFoil(row[5]),
+              is_proxy: false,
               card_condition: normalizeCondition(row[6]),
               card_language: (row[7] || "EN").trim().toUpperCase()
             });
@@ -225,6 +236,7 @@ export function parseImportInput(rawText) {
               set_code: (row[2] || "").trim().toUpperCase(),
               collector_number: (row[3] || "").trim(),
               is_foil: normalizeFoil(row[4]),
+              is_proxy: false,
               card_condition: normalizeCondition(row[5]),
               card_language: (row[6] || "EN").trim().toUpperCase()
             });
@@ -256,6 +268,7 @@ export function parseImportInput(rawText) {
         set_code: setCode,
         collector_number: collectorNumber,
         is_foil: isFoil,
+        is_proxy: false,
         card_condition: "NM",
         card_language: "EN"
       });
