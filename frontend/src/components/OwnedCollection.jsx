@@ -656,6 +656,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   const prevTabRef = useRef(activeTab);
   const debounceRef = useRef(null);
+  const importPanelRef = useRef(null);
 
   // Load collection when parameters change
   useEffect(() => {
@@ -674,16 +675,11 @@ export default function OwnedCollection({ onCollectionChanged }) {
     return () => clearTimeout(debounceRef.current);
   }, [activeTab, currentPage, pageSize, sortField, sortOrder, filterName, filterSet, filterCondition, filterLanguage, filterFinish]);
 
-  // Prevent background scrolling when import modal is open
+  // Smoothly scroll import panel into view when opened
   useEffect(() => {
-    if (showImport) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+    if (showImport && importPanelRef.current) {
+      importPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [showImport]);
 
   const triggerFetchPrintsBatch = async (cardNames) => {
@@ -1237,7 +1233,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
       )}
 
       {showImport && (
-        <div className="bulk-import-panel">
+        <div ref={importPanelRef} className="bulk-import-panel">
           {/* Header Row */}
           <div className="import-header">
             <div className="import-title-group">
