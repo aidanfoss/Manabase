@@ -1,12 +1,74 @@
 // src/components/OwnedCollection.jsx
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { ExclamationTriangleIcon, RectangleGroupIcon, SparklesIcon, XMarkIcon, ChevronUpIcon, ChevronDownIcon, ArchiveBoxIcon, InboxIcon, ArrowUpTrayIcon, TrashIcon, FolderIcon, MagnifyingGlassIcon, PhotoIcon, ChartBarIcon } from "@heroicons/react/24/solid";
-
-
+import {
+  ExclamationTriangleIcon,
+  RectangleGroupIcon,
+  SparklesIcon,
+  XMarkIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ArchiveBoxIcon,
+  InboxIcon,
+  ArrowUpTrayIcon,
+  TrashIcon,
+  FolderIcon,
+  MagnifyingGlassIcon,
+  PhotoIcon,
+  ChartBarIcon,
+  DocumentArrowUpIcon,
+  DocumentTextIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  ArrowPathIcon,
+  InformationCircleIcon,
+  ShieldCheckIcon
+} from "@heroicons/react/24/solid";
 
 import { api } from "../api/client";
 import { parseImportInput } from "../utils/csvImporter";
 import "../styles/owned.css";
+
+const SAMPLE_MANABOX_CSV = `Name,Set code,Collector number,Foil,Quantity,Condition,Language,Proxy,Binder type
+Demonic Tutor,STA,27,normal,1,near_mint,en,false,binder
+Rhystic Study,WOT,25,normal,1,near_mint,en,false,binder
+Mana Vault,2X2,308,normal,1,near_mint,en,true,binder
+The One Ring,LTR,246,foil,1,near_mint,en,true,binder
+Sol Ring,LTC,284,normal,1,near_mint,en,false,deck`;
+
+const DESTINATION_OPTIONS = [
+  {
+    id: "auto",
+    title: "Auto-sort",
+    badge: "Smart",
+    badgeType: "smart",
+    description: "Routes cards with Proxy = true to Extra Proxies, deck binders to In Decks, and physical cards to Collection.",
+    hint: "Smart Routing: Native ManaBox Proxy column (true/false) is read directly. Cards with Proxy: true bypass physical inventory and go to Extra Proxies."
+  },
+  {
+    id: "owned",
+    title: "Collection",
+    badge: "Owned",
+    badgeType: "owned",
+    description: "Forces all cards into your physical Owned collection, regardless of proxy flag.",
+    hint: "Force Owned: All imported cards will be added to your physical collection."
+  },
+  {
+    id: "proxy",
+    title: "Extra Proxies",
+    badge: "Proxies",
+    badgeType: "proxy",
+    description: "Forces all cards to be tagged as Proxies in your Extra Proxies inventory.",
+    hint: "Force Proxies: All imported cards will be added as Proxies (is_proxy = true)."
+  },
+  {
+    id: "deck",
+    title: "In Decks",
+    badge: "Decks",
+    badgeType: "deck",
+    description: "Adds all cards into your Decks inventory for deck building.",
+    hint: "Deck Inventory: Cards will be placed under your In Decks inventory."
+  }
+];
 
 const LANGUAGES = [
   { code: "EN", name: "English" },
@@ -167,7 +229,7 @@ const CollectionRow = React.memo(({
           <span>{card.card_name}</span>
           {isUnresolved && (
             <span className="unresolved-badge" title="Card printing not found in database. Token or malformed import.">
-              <ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Token / Unresolved
+              <ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Token / Unresolved
             </span>
           )}
           {!!card.is_proxy && (
@@ -340,13 +402,13 @@ const CollectionCardTile = React.memo(({
           <div className="tile-art-placeholder">
             <span className="placeholder-icon"><RectangleGroupIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
             <span className="placeholder-name">{card.card_name}</span>
-            {isUnresolved && <span className="unresolved-badge"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Token / Unresolved</span>}
+            {isUnresolved && <span className="unresolved-badge"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Token / Unresolved</span>}
           </div>
         )}
-        
+
         {!!card.is_foil && <div className="tile-foil-badge"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> FOIL</div>}
         {!!card.is_proxy && <div className="tile-proxy-badge" style={{ position: 'absolute', top: '8px', left: '8px', background: '#ff9800', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', zIndex: 2 }}>PROXY</div>}
-        
+
         <div className="tile-price-tag">
           {rowPrice > 0 ? `$${rowPrice.toFixed(2)}` : "Price N/A"}
         </div>
@@ -360,7 +422,7 @@ const CollectionCardTile = React.memo(({
         </div>
 
         {isUnresolved && (
-          <div className="tile-unresolved-alert"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Unresolved / Token</div>
+          <div className="tile-unresolved-alert"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Unresolved / Token</div>
         )}
 
         <div className="tile-controls-grid">
@@ -477,6 +539,8 @@ export default function OwnedCollection({ onCollectionChanged }) {
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   const [globalStats, setGlobalStats] = useState({
     totalCollectionValue: 0,
@@ -488,12 +552,39 @@ export default function OwnedCollection({ onCollectionChanged }) {
 
   const [activeTab, setActiveTab] = useState("owned"); // "owned", "proxy", "deck"
   const [importDestination, setImportDestination] = useState("auto");
-  const [proxyRuleAltered, setProxyRuleAltered] = useState(false);
-  const [proxyRuleMisprint, setProxyRuleMisprint] = useState(false);
-  const [proxyRulePoor, setProxyRulePoor] = useState(false);
-  const [proxyRuleHP, setProxyRuleHP] = useState(false);
-  const [proxyRuleMatchAll, setProxyRuleMatchAll] = useState(false);
-  
+
+  // Live detection of parsed cards and routing breakdown from importText
+  const detectedCards = useMemo(() => {
+    if (!importText || !importText.trim()) return [];
+    try {
+      return parseImportInput(importText);
+    } catch {
+      return [];
+    }
+  }, [importText]);
+
+  const detectedBreakdown = useMemo(() => {
+    if (!detectedCards.length) return { total: 0, owned: 0, proxies: 0, decks: 0 };
+    let proxies = 0;
+    let decks = 0;
+    let owned = 0;
+    for (const c of detectedCards) {
+      if (c.binder_type === "deck") {
+        decks++;
+      } else if (c.is_proxy) {
+        proxies++;
+      } else {
+        owned++;
+      }
+    }
+    return { total: detectedCards.length, owned, proxies, decks };
+  }, [detectedCards]);
+
+  const lineCount = useMemo(() => {
+    if (!importText || !importText.trim()) return 0;
+    return importText.split(/\r?\n/).filter(l => l.trim().length > 0).length;
+  }, [importText]);
+
   // Cache for card prints: cardName -> Scryfall details or { missing: true, prints: [] }
   const [printsCache, setPrintsCache] = useState({});
   const searchTimeoutRef = useRef(null);
@@ -790,7 +881,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
     const unresolvedCards = collection.filter(c => isCardUnresolved(c, printsCache));
     if (unresolvedCards.length === 0) return;
 
-    if (!window.confirm(`️ Are you sure you want to delete all ${unresolvedCards.length} unresolved token/malformed cards?`)) return;
+    if (!window.confirm(`Are you sure you want to delete all ${unresolvedCards.length} unresolved token/malformed cards?`)) return;
 
     setLoading(true);
     try {
@@ -818,8 +909,8 @@ export default function OwnedCollection({ onCollectionChanged }) {
     const isProxyTab = activeTab === "proxy";
 
     const confirmMsg = isProxyTab
-      ? "🗑️ Are you sure you want to clear your Proxy list?\n\nThis will also disable all deck-imported cards (from your Archidekt syncs). Your decks will remain saved — just resync them to re-add their cards."
-      : "️ Are you sure you want to clear your ENTIRE collection across ALL tabs (Owned, Proxies, Decks)? This cannot be undone.";
+      ? "Are you sure you want to clear your Proxy list?\n\nThis will also disable all deck-imported cards (from your Archidekt syncs). Your decks will remain saved — just resync them to re-add their cards."
+      : "Are you sure you want to clear your ENTIRE collection across ALL tabs (Owned, Proxies, Decks)? This cannot be undone.";
 
     if (!window.confirm(confirmMsg)) return;
 
@@ -851,7 +942,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
   // Price helper for single card
   const getRowPrice = useCallback((card) => {
     if (card.is_proxy) return 0;
-    
+
     const cached = printsCache[card.card_name];
     if (!cached || cached === "loading" || cached.missing || !cached.prints || cached.prints.length === 0) return 0;
 
@@ -889,18 +980,59 @@ export default function OwnedCollection({ onCollectionChanged }) {
     document.body.removeChild(link);
   };
 
-  // CSV/TXT Upload
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
+  // CSV/TXT Upload & Drag-and-Drop Processing
+  const processFile = (file) => {
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result || "";
       setImportText(text);
-      setImportStatus(`Loaded file "${file.name}" (${(file.size / 1024).toFixed(1)} KB)`);
+      setUploadedFile({
+        name: file.name,
+        size: `${(file.size / 1024).toFixed(1)} KB`
+      });
+      setImportStatus("");
     };
     reader.readAsText(file);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleClearUploadedFile = () => {
+    setUploadedFile(null);
+    setImportText("");
+    setImportStatus("");
+    const fileInput = document.getElementById("csv-file-input");
+    if (fileInput) fileInput.value = "";
+  };
+
+  const handleCloseImport = () => {
+    setShowImport(false);
+    setImportStatus("");
   };
 
   // Import handler
@@ -930,41 +1062,22 @@ export default function OwnedCollection({ onCollectionChanged }) {
       const processedCards = parsedCards
         .filter(c => c.binder_type !== "list")
         .map(c => {
-        const rulesActive = proxyRuleAltered || proxyRuleMisprint || proxyRulePoor || proxyRuleHP;
-        let isProxy = false;
-        
-        if (rulesActive) {
-          const activeRules = [];
-          if (proxyRuleAltered) activeRules.push('altered');
-          if (proxyRuleMisprint) activeRules.push('misprint');
-          if (proxyRulePoor) activeRules.push('poor');
-          if (proxyRuleHP) activeRules.push('hp');
+          const isProxy = !!c.is_proxy;
 
-          const checkRule = (rule) => {
-            if (rule === 'altered') return !!c.altered;
-            if (rule === 'misprint') return !!c.misprint;
-            if (rule === 'poor') return c.card_condition === "PO";
-            if (rule === 'hp') return c.card_condition === "HP";
-            return false;
-          };
-
-          if (proxyRuleMatchAll) {
-            isProxy = activeRules.every(checkRule);
-          } else {
-            isProxy = activeRules.some(checkRule);
+          if (importDestination !== "auto") {
+            return {
+              ...c,
+              list_type: importDestination,
+              is_proxy: importDestination === "proxy" ? true : isProxy
+            };
           }
-        }
 
-        if (importDestination !== "auto") {
-          return { ...c, list_type: importDestination, is_proxy: importDestination === "proxy" ? true : isProxy };
-        }
-        
-        if (c.binder_type === "deck") {
-          return { ...c, list_type: "deck", is_proxy: isProxy };
-        }
-        
-        return { ...c, list_type: isProxy ? "proxy" : "owned", is_proxy: isProxy };
-      });
+          if (c.binder_type === "deck") {
+            return { ...c, list_type: "deck", is_proxy: isProxy };
+          }
+
+          return { ...c, list_type: isProxy ? "proxy" : "owned", is_proxy: isProxy };
+        });
 
       const CHUNK_SIZE = 500;
       let totalAdded = 0;
@@ -992,10 +1105,11 @@ export default function OwnedCollection({ onCollectionChanged }) {
       }
 
       setImportText("");
+      setUploadedFile(null);
       setShowImport(false);
       setImportStatus("");
       await loadCollection();
-      alert(` Successfully imported ${totalAdded} cards into your collection!`);
+      alert(`Successfully imported ${totalAdded} cards into your collection!`);
     } catch (err) {
       console.error("Failed importing cards:", err);
       alert("An error occurred during import. Please try again.");
@@ -1044,10 +1158,10 @@ export default function OwnedCollection({ onCollectionChanged }) {
       {/* Header Area */}
       <div className="collection-header">
         <div>
-          <h1 className="collection-title"><ArchiveBoxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Card Inventory Manager</h1>
+          <h1 className="collection-title"><ArchiveBoxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Card Inventory Manager</h1>
           <p className="collection-subtitle">Cardsphere-style tracking of condition, language, sets, and real-time market value.</p>
         </div>
-        
+
         <div className="collection-actions">
           <button className="csv-btn export" onClick={handleExportCSV} disabled={collection.length === 0}>
             <InboxIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Export CSV
@@ -1056,7 +1170,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
             <ArrowUpTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Import
           </button>
           <button className="csv-btn delete-all-btn" onClick={handleClearCollection} disabled={collection.length === 0}>
-            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Clear Collection
+            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Clear Collection
           </button>
         </div>
       </div>
@@ -1110,98 +1224,317 @@ export default function OwnedCollection({ onCollectionChanged }) {
       {unresolvedCount > 0 && (
         <div className="unresolved-warning-banner">
           <div className="banner-left">
-            <span className="banner-icon"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️</span>
+            <span className="banner-icon"><ExclamationTriangleIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /></span>
             <div>
               <strong>{unresolvedCount} unresolved token/malformed cards found in your collection</strong>
               <p>These items could not be matched to official Scryfall prints. They are floating at the top of your list.</p>
             </div>
           </div>
           <button className="delete-unresolved-btn" onClick={handleDeleteAllUnresolved}>
-            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Delete All {unresolvedCount} Unresolved Cards
+            <TrashIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Delete All {unresolvedCount} Unresolved Cards
           </button>
         </div>
       )}
 
       {showImport && (
         <div className="bulk-import-panel">
-          <h3><ArrowUpTrayIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Bulk Collection Importer</h3>
-          <p className="import-help">
-            Supports <strong>ManaBox CSV files</strong> (e.g., <code>Giga Boxes.csv</code>), Scryfall/Cardsphere CSVs, or standard decklists (<code>4 Hallowed Fountain</code>).
-          </p>
-          
-          <div className="import-file-section">
-            <label htmlFor="csv-file-input" className="file-upload-btn">
-              <FolderIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Choose CSV or Text File
-            </label>
-            <input
-              id="csv-file-input"
-              type="file"
-              accept=".csv,.txt"
-              onChange={handleFileUpload}
-              style={{ display: "none" }}
-            />
-            {importStatus && <span className="import-status-text">{importStatus}</span>}
+          {/* Header Row */}
+          <div className="import-header">
+            <div className="import-title-group">
+              <div className="import-header-icon-wrap">
+                <ArrowUpTrayIcon className="import-header-icon" />
+              </div>
+              <div>
+                <h3 className="import-title">Bulk Collection Importer</h3>
+                <p className="import-subtitle">
+                  Import ManaBox CSVs (with native Proxy flag support), Scryfall/Cardsphere exports, or standard decklists.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="import-close-btn"
+              onClick={handleCloseImport}
+              title="Close importer"
+              aria-label="Close bulk importer"
+              disabled={importing}
+            >
+              <XMarkIcon className="import-close-icon" />
+            </button>
           </div>
 
-          <div className="import-settings" style={{ margin: '1rem 0', padding: '1rem', background: '#222', borderRadius: '8px' }}>
-            <h4>Import Settings</h4>
-            <div style={{ marginBottom: '1rem', marginTop: '0.5rem' }}>
-              <label style={{ marginRight: '1rem' }}>Destination:</label>
-              <select value={importDestination} onChange={e => setImportDestination(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', background: '#333', color: 'white', border: '1px solid #444' }}>
-                <option value="auto">Auto-sort</option>
-                <option value="owned">Collection</option>
-                <option value="proxy">Extra Proxies</option>
-                <option value="deck">In decks</option>
-              </select>
-            </div>
-            
-            {importDestination === 'auto' && (
-              <div>
-                <label>
-                  <strong>Proxy Rules:</strong> Mark as proxy if 
-                  <select 
-                    className="proxy-match-select" 
-                    value={proxyRuleMatchAll ? "all" : "any"} 
-                    onChange={e => setProxyRuleMatchAll(e.target.value === "all")}
-                  >
-                    <option value="any">ANY</option>
-                    <option value="all">ALL</option>
-                  </select> 
-                  match:
-                </label>
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-                  <div className={`proxy-rule-pill ${proxyRuleAltered ? 'active' : ''}`} onClick={() => setProxyRuleAltered(!proxyRuleAltered)}>
-                    Altered
-                  </div>
-                  <div className={`proxy-rule-pill ${proxyRuleMisprint ? 'active' : ''}`} onClick={() => setProxyRuleMisprint(!proxyRuleMisprint)}>
-                    Misprint
-                  </div>
-                  <div className={`proxy-rule-pill ${proxyRulePoor ? 'active' : ''}`} onClick={() => setProxyRulePoor(!proxyRulePoor)}>
-                    Condition: Poor (PO)
-                  </div>
-                  <div className={`proxy-rule-pill ${proxyRuleHP ? 'active' : ''}`} onClick={() => setProxyRuleHP(!proxyRuleHP)}>
-                    Condition: Heavily Played (HP)
-                  </div>
+          {/* Drag & Drop File Upload Area */}
+          {!uploadedFile ? (
+            <div
+              className={`import-dropzone ${isDragging ? "is-dragging" : ""}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById("csv-file-input")?.click()}
+            >
+              <input
+                id="csv-file-input"
+                type="file"
+                accept=".csv,.txt"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+              <div className="dropzone-content">
+                <div className="dropzone-icon-wrap">
+                  <DocumentArrowUpIcon className="dropzone-icon" />
+                </div>
+                <div className="dropzone-text">
+                  <span className="dropzone-primary-text">Drag & drop your CSV or TXT file here</span>
+                  <span className="dropzone-secondary-text">or click to browse files from your device</span>
+                </div>
+                <div className="dropzone-format-tags">
+                  <span className="format-tag highlight">
+                    <SparklesIcon className="format-tag-icon" /> ManaBox (.csv)
+                  </span>
+                  <span className="format-tag">Scryfall (.csv)</span>
+                  <span className="format-tag">Cardsphere (.csv)</span>
+                  <span className="format-tag">Decklists (.txt)</span>
                 </div>
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="loaded-file-card">
+              <div className="file-info-group">
+                <div className="file-icon-wrap">
+                  <DocumentTextIcon className="file-icon" />
+                </div>
+                <div className="file-details">
+                  <span className="file-name">{uploadedFile.name}</span>
+                  <span className="file-meta">
+                    {uploadedFile.size}
+                    {detectedCards.length > 0 && (
+                      <span className="file-count-badge">
+                        <CheckCircleIcon className="badge-icon" /> {detectedCards.length} cards detected
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+              <div className="file-actions">
+                <button
+                  type="button"
+                  className="file-action-btn replace"
+                  onClick={() => document.getElementById("csv-file-input")?.click()}
+                  disabled={importing}
+                >
+                  <FolderIcon className="btn-icon" /> Replace
+                </button>
+                <input
+                  id="csv-file-input"
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
+                <button
+                  type="button"
+                  className="file-action-btn remove"
+                  onClick={handleClearUploadedFile}
+                  title="Remove file"
+                  disabled={importing}
+                >
+                  <TrashIcon className="btn-icon" /> Remove
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Destination & Routing Options */}
+          <div className="import-destination-section">
+            <div className="destination-section-header">
+              <span className="destination-section-title">Destination & Routing</span>
+              <span className="destination-section-desc">Choose how cards and proxies in this file are routed:</span>
+            </div>
+
+            <div className="destination-cards-grid">
+              {DESTINATION_OPTIONS.map((opt) => {
+                const isSelected = importDestination === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`destination-card ${isSelected ? "active" : ""}`}
+                    onClick={() => setImportDestination(opt.id)}
+                    disabled={importing}
+                  >
+                    <div className="destination-card-top">
+                      <div className="destination-radio-indicator">
+                        {isSelected && <div className="radio-inner-dot" />}
+                      </div>
+                      <span className={`destination-badge ${opt.badgeType}`}>{opt.badge}</span>
+                    </div>
+                    <div className="destination-card-title">{opt.title}</div>
+                    <div className="destination-card-desc">{opt.description}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="destination-hint-banner">
+              <InformationCircleIcon className="hint-icon" />
+              <span>
+                {DESTINATION_OPTIONS.find(o => o.id === importDestination)?.hint}
+              </span>
+            </div>
           </div>
 
-          <textarea
-            value={importText}
-            onChange={(e) => setImportText(e.target.value)}
-            placeholder="Or paste CSV text / decklist lines here:&#10;Name,Set code,Collector number,Foil,Quantity,Condition,Language&#10;Brainstorm,TLE,155,foil,1,near_mint,en"
-            rows={7}
-            className="import-textarea"
-            disabled={importing}
-          />
-          <div className="import-actions">
-            <button className="import-confirm-btn" onClick={handleImport} disabled={importing || !importText.trim()}>
-              {importing ? "Importing..." : "Start Import"}
+          {/* Supported Format Hints & Sample Chip */}
+          <div className="format-reference-banner">
+            <div className="format-reference-left">
+              <span className="format-label">Supported ManaBox Columns:</span>
+              <div className="format-chips-wrap">
+                <span className="column-chip">Name</span>
+                <span className="column-chip">Set code</span>
+                <span className="column-chip">Collector number</span>
+                <span className="column-chip">Quantity</span>
+                <span className="column-chip">Foil</span>
+                <span className="column-chip">Condition</span>
+                <span className="column-chip">Language</span>
+                <span className="column-chip proxy-highlight">
+                  <ShieldCheckIcon className="chip-icon" /> Proxy (true/false)
+                </span>
+                <span className="column-chip">Binder type</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="sample-data-btn"
+              onClick={() => {
+                setImportText(SAMPLE_MANABOX_CSV);
+                setUploadedFile({ name: "manabox_sample.csv", size: "0.5 KB" });
+              }}
+              disabled={importing}
+            >
+              <SparklesIcon className="btn-icon" /> Load ManaBox Sample
             </button>
-            <button className="import-cancel-btn" onClick={() => { setShowImport(false); setImportStatus(""); }} disabled={importing}>
-              Cancel
-            </button>
+          </div>
+
+          {/* Textarea / Manual Input with Live Counters */}
+          <div className="import-editor-wrapper">
+            <div className="import-editor-header">
+              <label htmlFor="import-textarea" className="editor-label">
+                <DocumentTextIcon className="label-icon" /> Direct CSV or Decklist Input
+              </label>
+              <div className="editor-header-right">
+                {importText.trim() ? (
+                  <>
+                    <span className="editor-stat-pill">
+                      {lineCount} {lineCount === 1 ? "line" : "lines"}
+                    </span>
+                    <span className="editor-stat-pill highlight">
+                      <CheckCircleIcon className="pill-icon" /> {detectedCards.length} {detectedCards.length === 1 ? "card" : "cards"} detected
+                    </span>
+                    <button
+                      type="button"
+                      className="editor-clear-btn"
+                      onClick={() => {
+                        setImportText("");
+                        setUploadedFile(null);
+                        setImportStatus("");
+                      }}
+                      disabled={importing}
+                      title="Clear editor"
+                    >
+                      <XMarkIcon className="clear-icon" /> Clear
+                    </button>
+                  </>
+                ) : (
+                  <span className="editor-hint">Paste CSV rows or decklist lines below</span>
+                )}
+              </div>
+            </div>
+
+            <textarea
+              id="import-textarea"
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder={"Name,Set code,Collector number,Foil,Quantity,Condition,Language,Proxy\nDemonic Tutor,STA,27,normal,1,near_mint,en,false\nRhystic Study,WOT,25,normal,1,near_mint,en,false\nMana Vault,2X2,308,normal,1,near_mint,en,true\n\nOr standard decklist format:\n4 Hallowed Fountain\n1 Sol Ring [C21]"}
+              rows={6}
+              className="import-textarea"
+              disabled={importing}
+            />
+          </div>
+
+          {/* Live Detected Routing Breakdown Summary */}
+          {detectedCards.length > 0 && (
+            <div className="import-breakdown-summary">
+              <div className="breakdown-total">
+                Ready to Import: <strong>{detectedCards.length} Cards</strong>
+              </div>
+              <div className="breakdown-pills">
+                {importDestination === "auto" ? (
+                  <>
+                    <span className="breakdown-pill owned">
+                      Owned: <strong>{detectedBreakdown.owned}</strong>
+                    </span>
+                    <span className="breakdown-pill proxy">
+                      Extra Proxies: <strong>{detectedBreakdown.proxies}</strong>
+                    </span>
+                    {detectedBreakdown.decks > 0 && (
+                      <span className="breakdown-pill deck">
+                        In Decks: <strong>{detectedBreakdown.decks}</strong>
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="breakdown-pill destination-override">
+                    Destination: <strong>{DESTINATION_OPTIONS.find(o => o.id === importDestination)?.title}</strong> ({detectedCards.length} cards)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons & Status */}
+          <div className="import-actions-bar">
+            <div className="import-status-container">
+              {importing ? (
+                <div className="import-loading-indicator">
+                  <ArrowPathIcon className="import-spinner-icon" />
+                  <span className="import-status-text">{importStatus || "Importing cards..."}</span>
+                </div>
+              ) : importStatus ? (
+                <span className="import-status-text">{importStatus}</span>
+              ) : null}
+            </div>
+
+            <div className="import-buttons-group">
+              <button
+                type="button"
+                className="import-cancel-btn"
+                onClick={handleCloseImport}
+                disabled={importing}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="import-confirm-btn"
+                onClick={handleImport}
+                disabled={importing || !importText.trim() || detectedCards.length === 0}
+              >
+                {importing ? (
+                  <>
+                    <ArrowPathIcon className="btn-spinner" />
+                    <span>Importing...</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpTrayIcon className="btn-icon" />
+                    <span>
+                      {detectedCards.length > 0
+                        ? `Import ${detectedCards.length} ${detectedCards.length === 1 ? "Card" : "Cards"}`
+                        : "Start Import"}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1318,7 +1651,7 @@ export default function OwnedCollection({ onCollectionChanged }) {
                 onClick={() => setViewMode("grid")}
                 title="Switch to Card Art Grid View (ideal for confirming visual artwork)"
               >
-                <PhotoIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} />️ Card Art
+                <PhotoIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Card Art
               </button>
               <button
                 className={`view-toggle-btn ${!isCardArtView ? "active" : ""}`}
