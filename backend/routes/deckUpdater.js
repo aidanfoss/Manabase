@@ -6,6 +6,7 @@ import { getLocalCardsBatch } from "./scryfallLocal.js";
 import { fetchMoxfieldDeck } from "../services/moxfieldSync.js";
 import axios from "axios";
 import { analyzeLands } from "../services/landAnalyzer.js";
+import { isCardCutOrExcluded } from "../services/archidektSync.js";
 
 const router = express.Router();
 
@@ -210,19 +211,46 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
         commanderName = null;
       }
 
-      // If the deck is missing the 'cards' JSON array (e.g. older sync), fetch directly to heal it
-      if (!deck.cards) {
+      const shouldExcludeSideboards = deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false;
+      const forceRefresh = req.query.refresh === "true";
+
+      // If the deck is missing the 'cards' JSON array (e.g. older sync) or refresh was requested, fetch directly to heal/update it
+      if (!deck.cards || forceRefresh) {
         try {
           if (deck.source === "moxfield") {
             const moxfieldData = await fetchMoxfieldDeck(deck.deck_id);
-            deckCardNames = moxfieldData.cards.map(c => c.cardName);
+            deckCardNames = moxfieldData.cards
+              .filter(c => {
+                if (!shouldExcludeSideboards) return true;
+                const board = (c.boardName || "").toLowerCase();
+                if (board === "sideboard" || board === "maybeboard" || board === "considering") return false;
+                if (Array.isArray(c.categories) && c.categories.some(cat => {
+                  const lower = String(cat).toLowerCase();
+                  return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+                })) return false;
+                return true;
+              })
+              .map(c => c.cardName);
             if (!commanderName && moxfieldData.commander) commanderName = moxfieldData.commander;
           } else {
             const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deck.deck_id}/`);
             const archidektDeck = archidektRes.data;
             if (archidektDeck.cards) {
+              const excludedCategoryNames = new Set();
+              if (Array.isArray(archidektDeck.categories)) {
+                for (const cat of archidektDeck.categories) {
+                  if (cat && cat.name && cat.includedInDeck === false) {
+                    excludedCategoryNames.add(cat.name.toLowerCase());
+                  }
+                }
+              }
+
               deckCardNames = archidektDeck.cards
-                .filter(item => item.card && item.card.oracleCard)
+                .filter(item => {
+                  if (!item.card || !item.card.oracleCard) return false;
+                  if (shouldExcludeSideboards && isCardCutOrExcluded(item, excludedCategoryNames)) return false;
+                  return true;
+                })
                 .map(item => item.card.oracleCard.name);
 
               if (!commanderName) {
@@ -236,7 +264,7 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
             }
           }
 
-          // Heal the DB cache
+          // Heal/update the DB cache
           await db("user_archidekt_decks")
             .where({ id: deck.id })
             .update({
@@ -244,10 +272,18 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
               commander: commanderName
             });
         } catch (e) {
-          console.warn(`[DeckUpdater:AnalyzeAll] Could not heal missing cache for deck ${deck.deck_id}: ${e.message}`);
-          // Fallback to deck items just in case
-          const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: deck.deck_id });
-          deckCardNames = items.map(i => i.card_name);
+          console.warn(`[DeckUpdater:AnalyzeAll] Could not heal/refresh cache for deck ${deck.deck_id}: ${e.message}`);
+          if (deck.cards) {
+            try {
+              deckCardNames = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
+            } catch {
+              deckCardNames = [];
+            }
+          } else {
+            // Fallback to deck items just in case
+            const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: deck.deck_id });
+            deckCardNames = items.map(i => i.card_name);
+          }
         }
       } else {
         try {
@@ -518,23 +554,49 @@ router.get("/:deckId", requireAuth, async (req, res, next) => {
     let deckCardNames = [];
     let commanderName = deck.commander;
 
+    const shouldExcludeSideboards = deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false;
+
     try {
       if (deck.source === "moxfield") {
         const moxfieldData = await fetchMoxfieldDeck(deckId);
-        deckCardNames = moxfieldData.cards.map(c => c.cardName);
+        deckCardNames = moxfieldData.cards
+          .filter(c => {
+            if (!shouldExcludeSideboards) return true;
+            const board = (c.boardName || "").toLowerCase();
+            if (board === "sideboard" || board === "maybeboard" || board === "considering") return false;
+            if (Array.isArray(c.categories) && c.categories.some(cat => {
+              const lower = String(cat).toLowerCase();
+              return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+            })) return false;
+            return true;
+          })
+          .map(c => c.cardName);
         if (!commanderName) commanderName = moxfieldData.commander;
       } else {
         const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
         const archidektDeck = archidektRes.data;
 
         if (archidektDeck.cards) {
+          const excludedCategoryNames = new Set();
+          if (Array.isArray(archidektDeck.categories)) {
+            for (const cat of archidektDeck.categories) {
+              if (cat && cat.name && cat.includedInDeck === false) {
+                excludedCategoryNames.add(cat.name.toLowerCase());
+              }
+            }
+          }
+
           deckCardNames = archidektDeck.cards
-            .filter(item => item.card && item.card.oracleCard)
+            .filter(item => {
+              if (!item.card || !item.card.oracleCard) return false;
+              if (shouldExcludeSideboards && isCardCutOrExcluded(item, excludedCategoryNames)) return false;
+              return true;
+            })
             .map(item => item.card.oracleCard.name);
 
           if (!commanderName) {
             for (const item of archidektDeck.cards) {
-              if (item.categories && item.categories.includes("Commander") && item.card && item.card.oracleCard) {
+              if (item.categories && item.categories.some(cat => typeof cat === "string" && (cat.toLowerCase().includes("commander") || cat.toLowerCase().includes("general"))) && item.card && item.card.oracleCard) {
                 commanderName = item.card.oracleCard.name;
                 break;
               }
@@ -543,9 +605,17 @@ router.get("/:deckId", requireAuth, async (req, res, next) => {
         }
       }
     } catch (e) {
-      console.warn(`Could not fetch live deck ${deckId} (${deck.source || "archidekt"}), falling back to DB items.`);
-      const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
-      deckCardNames = items.map(i => i.card_name);
+      console.warn(`Could not fetch live deck ${deckId} (${deck.source || "archidekt"}), falling back to DB cache/items.`);
+      if (deck.cards) {
+        try {
+          deckCardNames = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
+        } catch {
+          deckCardNames = [];
+        }
+      } else {
+        const items = await db("user_archidekt_deck_items").where({ user_id: userId, deck_id: String(deckId) });
+        deckCardNames = items.map(i => i.card_name);
+      }
     }
 
     const strictlyBetter = getStrictlyBetterUpgrades(deckCardNames);

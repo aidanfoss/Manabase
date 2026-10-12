@@ -42,7 +42,7 @@ router.get("/deck/:id", requireAuth, async (req, res) => {
 // Syncs a specific deck based on the user's saved tag mappings
 router.post("/sync/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { mappings } = req.body; // allows overriding saved mappings for this specific sync
+  const { mappings, exclude_side_and_maybeboards } = req.body; // allows overriding saved mappings for this specific sync
 
   try {
     if (mappings !== undefined) {
@@ -53,7 +53,12 @@ router.post("/sync/:id", requireAuth, async (req, res) => {
         });
     }
 
-    const result = await syncDeckInternal(id, req.user.id, mappings);
+    const options = {};
+    if (exclude_side_and_maybeboards !== undefined) {
+      options.excludeSideAndMaybeboards = !!exclude_side_and_maybeboards;
+    }
+
+    const result = await syncDeckInternal(id, req.user.id, mappings, options);
     res.json({ message: "Sync successful", stats: result.stats });
   } catch (err) {
     console.error(" Failed to sync archidekt deck:", err.message);
@@ -102,14 +107,31 @@ router.get("/decks", requireAuth, async (req, res) => {
 // Update deck options without syncing cards
 router.put("/decks/:deckId", requireAuth, async (req, res) => {
   try {
-    const { is_public, status } = req.body;
+    const { is_public, status, exclude_side_and_maybeboards } = req.body;
+    const updateData = {
+      updated_at: db.fn.now()
+    };
+    if (is_public !== undefined) updateData.is_public = is_public;
+    if (status !== undefined) updateData.status = status;
+    if (exclude_side_and_maybeboards !== undefined) {
+      updateData.exclude_side_and_maybeboards = !!exclude_side_and_maybeboards;
+    }
+
     await db("user_archidekt_decks")
       .where({ user_id: req.user.id, deck_id: req.params.deckId })
-      .update({
-        is_public: is_public,
-        status: status,
-        updated_at: db.fn.now()
-      });
+      .update(updateData);
+
+    // If exclude_side_and_maybeboards was explicitly updated, resync cards so Deck Updater reflects it immediately
+    if (exclude_side_and_maybeboards !== undefined) {
+      try {
+        await syncDeckInternal(req.params.deckId, req.user.id, null, {
+          excludeSideAndMaybeboards: !!exclude_side_and_maybeboards
+        });
+      } catch (syncErr) {
+        console.warn("Could not resync cards on options update:", syncErr.message);
+      }
+    }
+
     res.json({ message: "Deck options updated" });
   } catch (error) {
     console.error("Archidekt update deck error:", error.message);
