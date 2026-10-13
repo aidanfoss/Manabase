@@ -6,7 +6,8 @@ import { getLocalCardsBatch } from "./scryfallLocal.js";
 import { fetchMoxfieldDeck } from "../services/moxfieldSync.js";
 import axios from "axios";
 import { analyzeLands } from "../services/landAnalyzer.js";
-import { isCardCutOrExcluded } from "../services/archidektSync.js";
+import { isCardInSideboard, isCardInMaybeboard } from "../services/archidektSync.js";
+import { isMoxfieldCardInSideboard, isMoxfieldCardInMaybeboard } from "../services/moxfieldSync.js";
 
 const router = express.Router();
 
@@ -211,7 +212,14 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
         commanderName = null;
       }
 
-      const shouldExcludeSideboards = deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false;
+      const shouldExcludeSideboard = deck.exclude_sideboard !== undefined && deck.exclude_sideboard !== null
+        ? (deck.exclude_sideboard !== 0 && deck.exclude_sideboard !== false)
+        : (deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false);
+
+      const shouldExcludeMaybeboard = deck.exclude_maybeboard !== undefined && deck.exclude_maybeboard !== null
+        ? (deck.exclude_maybeboard !== 0 && deck.exclude_maybeboard !== false)
+        : (deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false);
+
       const forceRefresh = req.query.refresh === "true";
 
       // If the deck is missing the 'cards' JSON array (e.g. older sync) or refresh was requested, fetch directly to heal/update it
@@ -221,13 +229,8 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
             const moxfieldData = await fetchMoxfieldDeck(deck.deck_id);
             deckCardNames = moxfieldData.cards
               .filter(c => {
-                if (!shouldExcludeSideboards) return true;
-                const board = (c.boardName || "").toLowerCase();
-                if (board === "sideboard" || board === "maybeboard" || board === "considering") return false;
-                if (Array.isArray(c.categories) && c.categories.some(cat => {
-                  const lower = String(cat).toLowerCase();
-                  return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
-                })) return false;
+                if (shouldExcludeSideboard && isMoxfieldCardInSideboard(c)) return false;
+                if (shouldExcludeMaybeboard && isMoxfieldCardInMaybeboard(c)) return false;
                 return true;
               })
               .map(c => c.cardName);
@@ -236,11 +239,14 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
             const archidektRes = await axios.get(`https://archidekt.com/api/decks/${deck.deck_id}/`);
             const archidektDeck = archidektRes.data;
             if (archidektDeck.cards) {
-              const excludedCategoryNames = new Set();
+              const maybeboardExcludedCategoryNames = new Set();
               if (Array.isArray(archidektDeck.categories)) {
                 for (const cat of archidektDeck.categories) {
                   if (cat && cat.name && cat.includedInDeck === false) {
-                    excludedCategoryNames.add(cat.name.toLowerCase());
+                    const lower = cat.name.toLowerCase();
+                    if (lower !== "sideboard") {
+                      maybeboardExcludedCategoryNames.add(lower);
+                    }
                   }
                 }
               }
@@ -248,7 +254,8 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
               deckCardNames = archidektDeck.cards
                 .filter(item => {
                   if (!item.card || !item.card.oracleCard) return false;
-                  if (shouldExcludeSideboards && isCardCutOrExcluded(item, excludedCategoryNames)) return false;
+                  if (shouldExcludeSideboard && isCardInSideboard(item)) return false;
+                  if (shouldExcludeMaybeboard && isCardInMaybeboard(item, maybeboardExcludedCategoryNames)) return false;
                   return true;
                 })
                 .map(item => item.card.oracleCard.name);
@@ -554,20 +561,21 @@ router.get("/:deckId", requireAuth, async (req, res, next) => {
     let deckCardNames = [];
     let commanderName = deck.commander;
 
-    const shouldExcludeSideboards = deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false;
+    const shouldExcludeSideboard = deck.exclude_sideboard !== undefined && deck.exclude_sideboard !== null
+      ? (deck.exclude_sideboard !== 0 && deck.exclude_sideboard !== false)
+      : (deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false);
+
+    const shouldExcludeMaybeboard = deck.exclude_maybeboard !== undefined && deck.exclude_maybeboard !== null
+      ? (deck.exclude_maybeboard !== 0 && deck.exclude_maybeboard !== false)
+      : (deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false);
 
     try {
       if (deck.source === "moxfield") {
         const moxfieldData = await fetchMoxfieldDeck(deckId);
         deckCardNames = moxfieldData.cards
           .filter(c => {
-            if (!shouldExcludeSideboards) return true;
-            const board = (c.boardName || "").toLowerCase();
-            if (board === "sideboard" || board === "maybeboard" || board === "considering") return false;
-            if (Array.isArray(c.categories) && c.categories.some(cat => {
-              const lower = String(cat).toLowerCase();
-              return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
-            })) return false;
+            if (shouldExcludeSideboard && isMoxfieldCardInSideboard(c)) return false;
+            if (shouldExcludeMaybeboard && isMoxfieldCardInMaybeboard(c)) return false;
             return true;
           })
           .map(c => c.cardName);
@@ -577,11 +585,14 @@ router.get("/:deckId", requireAuth, async (req, res, next) => {
         const archidektDeck = archidektRes.data;
 
         if (archidektDeck.cards) {
-          const excludedCategoryNames = new Set();
+          const maybeboardExcludedCategoryNames = new Set();
           if (Array.isArray(archidektDeck.categories)) {
             for (const cat of archidektDeck.categories) {
               if (cat && cat.name && cat.includedInDeck === false) {
-                excludedCategoryNames.add(cat.name.toLowerCase());
+                const lower = cat.name.toLowerCase();
+                if (lower !== "sideboard") {
+                  maybeboardExcludedCategoryNames.add(lower);
+                }
               }
             }
           }
@@ -589,7 +600,8 @@ router.get("/:deckId", requireAuth, async (req, res, next) => {
           deckCardNames = archidektDeck.cards
             .filter(item => {
               if (!item.card || !item.card.oracleCard) return false;
-              if (shouldExcludeSideboards && isCardCutOrExcluded(item, excludedCategoryNames)) return false;
+              if (shouldExcludeSideboard && isCardInSideboard(item)) return false;
+              if (shouldExcludeMaybeboard && isCardInMaybeboard(item, maybeboardExcludedCategoryNames)) return false;
               return true;
             })
             .map(item => item.card.oracleCard.name);

@@ -39,19 +39,36 @@ export async function fetchMoxfieldDeckRaw(deckIdOrUrl) {
 }
 
 /**
- * Check if a Moxfield card item is in a cut or excluded board/category.
+ * Check if a Moxfield card item is in the sideboard.
  */
-export function isMoxfieldCardCutOrExcluded(item) {
+export function isMoxfieldCardInSideboard(item) {
   if (!item) return false;
   const board = (item.boardName || "").toLowerCase();
-  if (board === "sideboard" || board === "maybeboard" || board === "considering") return true;
+  return board === "sideboard";
+}
+
+/**
+ * Check if a Moxfield card item is in the maybeboard, considering, or cut cards.
+ */
+export function isMoxfieldCardInMaybeboard(item) {
+  if (!item) return false;
+  const board = (item.boardName || "").toLowerCase();
+  if (board === "maybeboard" || board === "considering") return true;
   if (Array.isArray(item.categories) && item.categories.some(cat => {
     const lower = String(cat).toLowerCase();
-    return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+    return lower.includes("cut") || lower === "maybeboard" || lower === "considering";
   })) {
     return true;
   }
   return false;
+}
+
+/**
+ * Check if a Moxfield card item is in a cut or excluded board/category.
+ * Kept for backwards compatibility.
+ */
+export function isMoxfieldCardCutOrExcluded(item) {
+  return isMoxfieldCardInSideboard(item) || isMoxfieldCardInMaybeboard(item);
 }
 
 /**
@@ -133,17 +150,42 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
 
   const tagMappings = customMappings || dbMappings;
 
-  // Determine exclude_side_and_maybeboards preference
+  // Determine exclude_sideboard and exclude_maybeboard preferences
   const existingDeckRow = await db("user_archidekt_decks")
     .where({ user_id: userId, deck_id: String(cleanId), source: "moxfield" })
     .first();
 
-  let excludeSideAndMaybeboards = true;
-  if (options && options.excludeSideAndMaybeboards !== undefined) {
-    excludeSideAndMaybeboards = !!options.excludeSideAndMaybeboards;
+  let excludeSideboard = true;
+  if (options && options.excludeSideboard !== undefined) {
+    excludeSideboard = !!options.excludeSideboard;
+  } else if (options && options.exclude_sideboard !== undefined) {
+    excludeSideboard = !!options.exclude_sideboard;
+  } else if (options && options.excludeSideAndMaybeboards !== undefined) {
+    excludeSideboard = !!options.excludeSideAndMaybeboards;
+  } else if (options && options.exclude_side_and_maybeboards !== undefined) {
+    excludeSideboard = !!options.exclude_side_and_maybeboards;
+  } else if (existingDeckRow && existingDeckRow.exclude_sideboard !== null && existingDeckRow.exclude_sideboard !== undefined) {
+    excludeSideboard = !!existingDeckRow.exclude_sideboard;
   } else if (existingDeckRow && existingDeckRow.exclude_side_and_maybeboards !== null && existingDeckRow.exclude_side_and_maybeboards !== undefined) {
-    excludeSideAndMaybeboards = !!existingDeckRow.exclude_side_and_maybeboards;
+    excludeSideboard = !!existingDeckRow.exclude_side_and_maybeboards;
   }
+
+  let excludeMaybeboard = true;
+  if (options && options.excludeMaybeboard !== undefined) {
+    excludeMaybeboard = !!options.excludeMaybeboard;
+  } else if (options && options.exclude_maybeboard !== undefined) {
+    excludeMaybeboard = !!options.exclude_maybeboard;
+  } else if (options && options.excludeSideAndMaybeboards !== undefined) {
+    excludeMaybeboard = !!options.excludeSideAndMaybeboards;
+  } else if (options && options.exclude_side_and_maybeboards !== undefined) {
+    excludeMaybeboard = !!options.exclude_side_and_maybeboards;
+  } else if (existingDeckRow && existingDeckRow.exclude_maybeboard !== null && existingDeckRow.exclude_maybeboard !== undefined) {
+    excludeMaybeboard = !!existingDeckRow.exclude_maybeboard;
+  } else if (existingDeckRow && existingDeckRow.exclude_side_and_maybeboards !== null && existingDeckRow.exclude_side_and_maybeboards !== undefined) {
+    excludeMaybeboard = !!existingDeckRow.exclude_side_and_maybeboards;
+  }
+
+  const excludeSideAndMaybeboards = excludeSideboard && excludeMaybeboard;
 
   // 2. Fetch deck from Moxfield
   const deck = await fetchMoxfieldDeck(cleanId);
@@ -160,23 +202,13 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
       const setCode = item.setCode;
       const quantity = item.quantity;
       const isFoil = item.isFoil;
-      const isCutCard = excludeSideAndMaybeboards && isMoxfieldCardCutOrExcluded(item);
 
       // Determine destination list based on tags
       let destination = "ignore";
       for (const tag of item.categories) {
         if (tagMappings[tag]) {
-          if (isCutCard) {
-            const lower = String(tag).toLowerCase();
-            const isCutTag = lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
-            if (isCutTag && tagMappings[tag] !== "ignore" && tagMappings[tag] !== "Ignore") {
-              destination = tagMappings[tag];
-              break;
-            }
-          } else {
-            destination = tagMappings[tag];
-            break;
-          }
+          destination = tagMappings[tag];
+          break;
         }
       }
 
@@ -302,15 +334,8 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
 
   const allCardNames = deck.cards
     .filter(c => {
-      if (!excludeSideAndMaybeboards) return true;
-      const board = (c.boardName || "").toLowerCase();
-      if (board === "sideboard" || board === "maybeboard" || board === "considering") return false;
-      if (Array.isArray(c.categories) && c.categories.some(cat => {
-        const lower = String(cat).toLowerCase();
-        return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
-      })) {
-        return false;
-      }
+      if (excludeSideboard && isMoxfieldCardInSideboard(c)) return false;
+      if (excludeMaybeboard && isMoxfieldCardInMaybeboard(c)) return false;
       return true;
     })
     .map(c => c.cardName);
@@ -325,6 +350,8 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
       cards: JSON.stringify(allCardNames),
       status: "active",
       source: "moxfield",
+      exclude_sideboard: excludeSideboard,
+      exclude_maybeboard: excludeMaybeboard,
       exclude_side_and_maybeboards: excludeSideAndMaybeboards,
       updated_at: db.fn.now()
     })
@@ -335,6 +362,8 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
       cards: JSON.stringify(allCardNames),
       status: "active",
       source: "moxfield",
+      exclude_sideboard: excludeSideboard,
+      exclude_maybeboard: excludeMaybeboard,
       exclude_side_and_maybeboards: excludeSideAndMaybeboards,
       updated_at: db.fn.now()
     });
