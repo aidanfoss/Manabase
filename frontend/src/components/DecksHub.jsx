@@ -136,9 +136,12 @@ export default function DecksHub() {
     setPopupStats(null);
     try {
       const isMoxfield = deck.source === "moxfield";
+      const syncOpts = {
+        exclude_side_and_maybeboards: deck.exclude_side_and_maybeboards !== undefined ? !!deck.exclude_side_and_maybeboards : true
+      };
       const res = isMoxfield
-        ? await api.syncMoxfieldDeck(deck.deck_id, undefined)
-        : await api.syncArchidektDeck(deck.deck_id, undefined);
+        ? await api.syncMoxfieldDeck(deck.deck_id, undefined, syncOpts)
+        : await api.syncArchidektDeck(deck.deck_id, undefined, syncOpts);
 
       setPopupStats({
         title: "Sync Complete",
@@ -189,9 +192,12 @@ export default function DecksHub() {
     try {
       for (const deck of decksToSync) {
         setSyncingId(deck.deck_id);
+        const syncOpts = {
+          exclude_side_and_maybeboards: deck.exclude_side_and_maybeboards !== undefined ? !!deck.exclude_side_and_maybeboards : true
+        };
         const res = deck.source === "moxfield"
-          ? await api.syncMoxfieldDeck(deck.deck_id, undefined)
-          : await api.syncArchidektDeck(deck.deck_id, undefined);
+          ? await api.syncMoxfieldDeck(deck.deck_id, undefined, syncOpts)
+          : await api.syncArchidektDeck(deck.deck_id, undefined, syncOpts);
 
         if (res.stats) {
           totalStats.added += (res.stats.added || 0);
@@ -754,8 +760,11 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
 
         {/* Meta Grid */}
         <div className="deck-meta-grid">
-          <div className="deck-meta-item">
+          <div className="deck-meta-item" title={deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false ? "Mainboard only (side/maybeboards excluded)" : "All boards included"}>
             Cards: <strong>{cardCount}</strong>
+            {deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false ? (
+              <span style={{ fontSize: '0.75rem', color: '#60a5fa', marginLeft: '4px', fontWeight: 600 }}> (Main)</span>
+            ) : null}
           </div>
           <div className="deck-meta-item">
             Synced: <strong>{formatRelativeTime(deck.updated_at)}</strong>

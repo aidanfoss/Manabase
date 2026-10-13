@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import app from '../server.js';
 import { db } from '../db/connection.js';
-import { isCutOrExcludedCategory, isCardCutOrExcluded } from '../services/archidektSync.js';
+import { isCutOrExcludedCategory, isCardCutOrExcluded, syncDeckInternal } from '../services/archidektSync.js';
 
 describe('Archidekt Cut Cards & Category Filter', () => {
   describe('isCutOrExcludedCategory', () => {
@@ -156,5 +156,34 @@ describe('Archidekt Cut Cards & Category Filter', () => {
       const upgradedCards = (deckResult.strictlyBetter || []).map(u => u.currentCard);
       expect(upgradedCards).not.toContain('Cancel');
     });
+  });
+
+  describe('Archidekt Deck 25052111 Live Verification', () => {
+    it('should exclude cut cards and sideboards when excludeSideAndMaybeboards is true', async () => {
+      const regRes = await request(app)
+        .post('/api/auth/register')
+        .send({ email: 'live25052111@example.com', username: 'LiveUser', password: 'password123' });
+      expect(regRes.status).toBe(200);
+      const userId = regRes.body.user.id;
+
+      const tagMappings = {
+        'Have': 'owned',
+        'Proxied': 'wishlist',
+        'Getting': 'wishlist'
+      };
+
+      const result = await syncDeckInternal('25052111', userId, tagMappings, { excludeSideAndMaybeboards: true });
+      expect(result.stats.ignored).toBe(70);
+
+      const deckRow = await db('user_archidekt_decks')
+        .where({ user_id: userId, deck_id: '25052111' })
+        .first();
+      expect(deckRow).toBeDefined();
+      const parsedCards = JSON.parse(deckRow.cards || '[]');
+      expect(parsedCards.length).toBe(97);
+      expect(parsedCards).not.toContain('Cut a Deal');
+      expect(parsedCards).not.toContain('Authority of the Consuls');
+      expect(parsedCards).toContain('Ghostly Prison');
+    }, 30000);
   });
 });
