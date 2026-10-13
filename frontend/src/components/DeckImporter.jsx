@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ArrowPathIcon, DocumentArrowDownIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 
 import { useAuth } from "../context/AuthContext";
@@ -12,6 +12,48 @@ const MAPPING_OPTIONS = [
   { value: "ignore", label: "Ignore" },
   { value: "owned", label: "Add to Collection (Others can trade for)" }
 ];
+
+export function isCutOrExcludedCategory(categoryName, excludedCategoryNames = null) {
+  if (!categoryName || typeof categoryName !== "string") return false;
+  const lower = categoryName.trim().toLowerCase();
+  if (excludedCategoryNames) {
+    if (excludedCategoryNames instanceof Set && excludedCategoryNames.has(lower)) return true;
+    if (Array.isArray(excludedCategoryNames) && excludedCategoryNames.some(c => String(c).toLowerCase() === lower)) return true;
+  }
+  return (
+    lower === "cut cards" || lower === "cut" || lower === "cuts" ||
+    lower.startsWith("cut ") || lower.endsWith(" cut") ||
+    lower.includes("cut cards") || lower.includes("cuts") ||
+    lower === "sideboard" || lower === "maybeboard" || lower === "considering"
+  );
+}
+
+export function isCardCutOrExcluded(item, platform, excludedCategoryNames = null) {
+  if (!item) return false;
+  if (platform === "moxfield") {
+    const board = (item.boardName || "").toLowerCase();
+    if (board === "sideboard" || board === "maybeboard" || board === "considering") return true;
+    if (Array.isArray(item.categories) && item.categories.some(cat => {
+      const lower = String(cat).toLowerCase();
+      return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+    })) return true;
+    return false;
+  }
+
+  // Archidekt
+  const categories = Array.isArray(item.categories)
+    ? item.categories.map(c => typeof c === 'string' ? c : c?.name).filter(Boolean)
+    : [];
+
+  for (const cat of categories) {
+    if (isCutOrExcludedCategory(cat, excludedCategoryNames)) return true;
+  }
+
+  let labelName = (item.label || "").split(',')[0].trim();
+  if (labelName && isCutOrExcludedCategory(labelName, excludedCategoryNames)) return true;
+
+  return false;
+}
 
 export default function DeckImporter({ initialDeck = null, onBack }) {
   const { user } = useAuth();
@@ -31,6 +73,33 @@ export default function DeckImporter({ initialDeck = null, onBack }) {
   const [optionsSaving, setOptionsSaving] = useState(false);
 
   const [syncStatus, setSyncStatus] = useState(null);
+
+  // Compute excluded categories from deck metadata (categories marked includedInDeck: false)
+  const excludedCategoryNames = useMemo(() => {
+    const set = new Set();
+    if (Array.isArray(deckInfo?.categories)) {
+      deckInfo.categories.forEach(cat => {
+        if (cat && cat.name && cat.includedInDeck === false) {
+          set.add(cat.name.toLowerCase());
+        }
+      });
+    }
+    return set;
+  }, [deckInfo]);
+
+  // Dynamically calculate active vs excluded cards based on toggle state
+  const cardStats = useMemo(() => {
+    if (!deckInfo || !deckInfo.cards) return { total: 0, active: 0, excluded: 0 };
+    const total = deckInfo.cards.length;
+    let excluded = 0;
+    for (const item of deckInfo.cards) {
+      if (isCardCutOrExcluded(item, platform, excludedCategoryNames)) {
+        excluded++;
+      }
+    }
+    const active = excludeSideboards ? total - excluded : total;
+    return { total, active, excluded };
+  }, [deckInfo, platform, excludedCategoryNames, excludeSideboards]);
 
   // Load saved config when platform or user changes
   useEffect(() => {
@@ -237,9 +306,25 @@ export default function DeckImporter({ initialDeck = null, onBack }) {
                   {platform === 'moxfield' ? 'Moxfield' : 'Archidekt'}
                 </span>
               </div>
-              <p style={{ fontSize: '0.9rem', color: '#aaa', margin: 0 }}>
+              <p style={{ fontSize: '0.9rem', color: '#aaa', margin: 0, lineHeight: 1.6 }}>
                 {deckInfo.commander && <>Commander: <strong>{deckInfo.commander}</strong><br/></>}
-                Found <strong>{deckInfo.cards?.length || 0}</strong> card entries.
+                {excludeSideboards && cardStats.excluded > 0 ? (
+                  <>
+                    Found <strong style={{ color: '#f8fafc' }}>{cardStats.active}</strong> active deck cards
+                    <span style={{ color: '#60a5fa', marginLeft: '6px', fontSize: '0.85rem', fontWeight: 600 }}>
+                      ({cardStats.excluded} cut / sideboard excluded)
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Found <strong style={{ color: '#f8fafc' }}>{cardStats.total}</strong> card entries
+                    {cardStats.excluded > 0 && !excludeSideboards && (
+                      <span style={{ color: '#9ca3af', marginLeft: '6px', fontSize: '0.85rem' }}>
+                        (including {cardStats.excluded} cut / sideboard cards)
+                      </span>
+                    )}
+                  </>
+                )}
                 <br/>
                 Found <strong>{uniqueTags.length}</strong> unique tags/categories.
               </p>
@@ -273,33 +358,50 @@ export default function DeckImporter({ initialDeck = null, onBack }) {
                     <option value="archived">Archived (Hidden)</option>
                   </select>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.25rem' }}>
-                  <div>
-                    <label style={{ color: '#e5e5e5', display: 'block', fontWeight: '500' }}>Board Filtering</label>
-                    <span style={{ color: '#888', fontSize: '0.8rem' }}>
-                      Ignore cut cards and non-mainboard cards
-                    </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', paddingTop: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <label style={{ color: '#e5e5e5', display: 'block', fontWeight: '500' }}>Board Filtering</label>
+                      <span style={{ color: '#888', fontSize: '0.8rem' }}>
+                        Ignore cut cards and non-mainboard cards
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExcludeSideboards(!excludeSideboards)}
+                      style={{
+                        padding: '0.45rem 0.9rem',
+                        background: excludeSideboards ? 'rgba(59, 130, 246, 0.2)' : '#1f1f1f',
+                        color: excludeSideboards ? '#60a5fa' : '#888',
+                        border: `1px solid ${excludeSideboards ? '#3b82f6' : '#444'}`,
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        fontSize: '0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', opacity: excludeSideboards ? 1 : 0.3 }} />
+                      Exclude side and maybeboards
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setExcludeSideboards(!excludeSideboards)}
-                    style={{
-                      padding: '0.45rem 0.9rem',
-                      background: excludeSideboards ? 'rgba(59, 130, 246, 0.2)' : '#1f1f1f',
-                      color: excludeSideboards ? '#60a5fa' : '#888',
-                      border: `1px solid ${excludeSideboards ? '#3b82f6' : '#444'}`,
+                  {cardStats.excluded > 0 && (
+                    <div style={{
+                      marginTop: '0.25rem',
+                      padding: '0.45rem 0.75rem',
                       borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: '600',
-                      fontSize: '0.85rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', opacity: excludeSideboards ? 1 : 0.3 }} />
-                    Exclude side and maybeboards
-                  </button>
+                      fontSize: '0.8rem',
+                      background: excludeSideboards ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                      border: `1px solid ${excludeSideboards ? 'rgba(59, 130, 246, 0.3)' : '#333'}`,
+                      color: excludeSideboards ? '#93c5fd' : '#9ca3af'
+                    }}>
+                      {excludeSideboards
+                        ? `Filtering active: ${cardStats.excluded} cards in cut cards / sideboard / maybeboard categories will be omitted from active deck sync and recommendations.`
+                        : `Filtering off: All ${cardStats.total} cards (including ${cardStats.excluded} cut/sideboard cards) will be imported into the active deck.`}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={handleSaveOptions}
@@ -338,20 +440,42 @@ export default function DeckImporter({ initialDeck = null, onBack }) {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
-              {uniqueTags.map(tag => (
-                <div key={tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#252525', padding: '0.75rem', borderRadius: '4px' }}>
-                  <span style={{ fontWeight: 'bold', color: '#e5e5e5' }}>{tag}</span>
-                  <select
-                    value={tagMappings[tag] || "ignore"}
-                    onChange={(e) => setTagMappings(prev => ({ ...prev, [tag]: e.target.value }))}
-                    style={{ padding: '0.4rem', background: '#111', color: 'white', border: '1px solid #444', borderRadius: '4px', minWidth: '150px' }}
-                  >
-                    {MAPPING_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-              ))}
+              {uniqueTags.map(tag => {
+                const isExcluded = isCutOrExcludedCategory(tag, excludedCategoryNames);
+                return (
+                  <div key={tag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#252525', padding: '0.75rem', borderRadius: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 'bold', color: isExcluded && excludeSideboards ? '#94a3b8' : '#e5e5e5' }}>{tag}</span>
+                      {isExcluded && (
+                        <span style={{
+                          fontSize: '0.7rem',
+                          padding: '0.15rem 0.45rem',
+                          borderRadius: '4px',
+                          background: excludeSideboards ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                          color: excludeSideboards ? '#fca5a5' : '#888',
+                          border: `1px solid ${excludeSideboards ? 'rgba(239, 68, 68, 0.4)' : '#444'}`,
+                          fontWeight: 500
+                        }}>
+                          {excludeSideboards ? 'Auto-Excluded Board' : 'Side/Cut Board'}
+                        </span>
+                      )}
+                    </div>
+                    <select
+                      value={tagMappings[tag] || "ignore"}
+                      onChange={(e) => setTagMappings(prev => ({ ...prev, [tag]: e.target.value }))}
+                      style={{ padding: '0.4rem', background: '#111', color: 'white', border: '1px solid #444', borderRadius: '4px', minWidth: '150px' }}
+                    >
+                      {MAPPING_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>
+                          {isExcluded && excludeSideboards && opt.value === "ignore"
+                            ? "Ignore (Auto-Excluded)"
+                            : opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
             </div>
           )}
 

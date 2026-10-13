@@ -39,6 +39,22 @@ export async function fetchMoxfieldDeckRaw(deckIdOrUrl) {
 }
 
 /**
+ * Check if a Moxfield card item is in a cut or excluded board/category.
+ */
+export function isMoxfieldCardCutOrExcluded(item) {
+  if (!item) return false;
+  const board = (item.boardName || "").toLowerCase();
+  if (board === "sideboard" || board === "maybeboard" || board === "considering") return true;
+  if (Array.isArray(item.categories) && item.categories.some(cat => {
+    const lower = String(cat).toLowerCase();
+    return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+  })) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Normalize a raw Moxfield deck into standard structure
  */
 export async function fetchMoxfieldDeck(deckIdOrUrl) {
@@ -144,13 +160,23 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
       const setCode = item.setCode;
       const quantity = item.quantity;
       const isFoil = item.isFoil;
+      const isCutCard = excludeSideAndMaybeboards && isMoxfieldCardCutOrExcluded(item);
 
       // Determine destination list based on tags
       let destination = "ignore";
       for (const tag of item.categories) {
         if (tagMappings[tag]) {
-          destination = tagMappings[tag];
-          break;
+          if (isCutCard) {
+            const lower = String(tag).toLowerCase();
+            const isCutTag = lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+            if (isCutTag && tagMappings[tag] !== "ignore" && tagMappings[tag] !== "Ignore") {
+              destination = tagMappings[tag];
+              break;
+            }
+          } else {
+            destination = tagMappings[tag];
+            break;
+          }
         }
       }
 
