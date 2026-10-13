@@ -188,7 +188,7 @@ export const api = {
   // ---------------------------------------
   updateArchidektConfig: (config) => api.json("/archidekt/config", { method: "PUT", body: JSON.stringify(config) }),
   getArchidektDeckInfo: (deckId) => api.json(`/archidekt/deck/${deckId}`),
-  syncArchidektDeck: (deckId, mappings) => api.json(`/archidekt/sync/${deckId}`, { method: "POST", body: JSON.stringify({ mappings }) }),
+  syncArchidektDeck: (deckId, mappings, options = {}) => api.json(`/archidekt/sync/${deckId}`, { method: "POST", body: JSON.stringify({ mappings, ...options }) }),
   getSavedArchidektDecks: () => api.json("/archidekt/decks"),
   updateArchidektDeckOptions: (deckId, options) => api.json(`/archidekt/decks/${deckId}`, { method: "PUT", body: JSON.stringify(options) }),
   refreshArchidektLists: () => api.json("/archidekt/refresh-lists", { method: "POST", body: JSON.stringify({}) }),
@@ -198,7 +198,7 @@ export const api = {
   // ---------------------------------------
   updateMoxfieldConfig: (config) => api.json("/moxfield/config", { method: "PUT", body: JSON.stringify(config) }),
   getMoxfieldDeckInfo: (deckId) => api.json(`/moxfield/deck/${encodeURIComponent(deckId)}`),
-  syncMoxfieldDeck: (deckId, mappings) => api.json(`/moxfield/sync/${encodeURIComponent(deckId)}`, { method: "POST", body: JSON.stringify({ mappings }) }),
+  syncMoxfieldDeck: (deckId, mappings, options = {}) => api.json(`/moxfield/sync/${encodeURIComponent(deckId)}`, { method: "POST", body: JSON.stringify({ mappings, ...options }) }),
   getSavedMoxfieldDecks: () => api.json("/moxfield/decks"),
   updateMoxfieldDeckOptions: (deckId, options) => api.json(`/moxfield/decks/${encodeURIComponent(deckId)}`, { method: "PUT", body: JSON.stringify(options) }),
   refreshMoxfieldLists: () => api.json("/moxfield/refresh-lists", { method: "POST", body: JSON.stringify({}) }),

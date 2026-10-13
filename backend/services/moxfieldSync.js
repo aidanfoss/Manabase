@@ -101,9 +101,10 @@ export async function fetchMoxfieldDeck(deckIdOrUrl) {
  * @param {string} deckId The Moxfield Deck ID or URL
  * @param {string} userId The owner's user ID
  * @param {object} customMappings Optional override for mappings (default uses owner's saved config)
+ * @param {object} options Optional sync options (e.g. excludeSideAndMaybeboards)
  * @returns {object} { stats: { added, removed, ignored }, deckName }
  */
-export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = null) {
+export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = null, options = {}) {
   const cleanId = parseMoxfieldDeckId(deckId);
 
   // 1. Get user config
@@ -115,6 +116,18 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
     : {};
 
   const tagMappings = customMappings || dbMappings;
+
+  // Determine exclude_side_and_maybeboards preference
+  const existingDeckRow = await db("user_archidekt_decks")
+    .where({ user_id: userId, deck_id: String(cleanId), source: "moxfield" })
+    .first();
+
+  let excludeSideAndMaybeboards = true;
+  if (options && options.excludeSideAndMaybeboards !== undefined) {
+    excludeSideAndMaybeboards = !!options.excludeSideAndMaybeboards;
+  } else if (existingDeckRow && existingDeckRow.exclude_side_and_maybeboards !== null && existingDeckRow.exclude_side_and_maybeboards !== undefined) {
+    excludeSideAndMaybeboards = !!existingDeckRow.exclude_side_and_maybeboards;
+  }
 
   // 2. Fetch deck from Moxfield
   const deck = await fetchMoxfieldDeck(cleanId);
@@ -261,7 +274,20 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
     }
   });
 
-  const allCardNames = deck.cards.map(c => c.cardName);
+  const allCardNames = deck.cards
+    .filter(c => {
+      if (!excludeSideAndMaybeboards) return true;
+      const board = (c.boardName || "").toLowerCase();
+      if (board === "sideboard" || board === "maybeboard" || board === "considering") return false;
+      if (Array.isArray(c.categories) && c.categories.some(cat => {
+        const lower = String(cat).toLowerCase();
+        return lower.includes("cut") || lower === "sideboard" || lower === "maybeboard" || lower === "considering";
+      })) {
+        return false;
+      }
+      return true;
+    })
+    .map(c => c.cardName);
 
   // Save/merge into user_archidekt_decks
   await db("user_archidekt_decks")
@@ -273,6 +299,7 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
       cards: JSON.stringify(allCardNames),
       status: "active",
       source: "moxfield",
+      exclude_side_and_maybeboards: excludeSideAndMaybeboards,
       updated_at: db.fn.now()
     })
     .onConflict(["user_id", "deck_id"])
@@ -282,6 +309,7 @@ export async function syncMoxfieldDeckInternal(deckId, userId, customMappings = 
       cards: JSON.stringify(allCardNames),
       status: "active",
       source: "moxfield",
+      exclude_side_and_maybeboards: excludeSideAndMaybeboards,
       updated_at: db.fn.now()
     });
 

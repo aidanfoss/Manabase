@@ -41,7 +41,7 @@ router.get("/deck/:id", requireAuth, async (req, res) => {
 // Syncs a specific Moxfield deck based on tag mappings
 router.post("/sync/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { mappings } = req.body;
+  const { mappings, exclude_side_and_maybeboards } = req.body;
 
   try {
     if (mappings !== undefined) {
@@ -52,7 +52,12 @@ router.post("/sync/:id", requireAuth, async (req, res) => {
         });
     }
 
-    const result = await syncMoxfieldDeckInternal(id, req.user.id, mappings);
+    const options = {};
+    if (exclude_side_and_maybeboards !== undefined) {
+      options.excludeSideAndMaybeboards = !!exclude_side_and_maybeboards;
+    }
+
+    const result = await syncMoxfieldDeckInternal(id, req.user.id, mappings, options);
     res.json({ message: "Sync successful", stats: result.stats });
   } catch (err) {
     console.error("Failed to sync Moxfield deck:", err.message);
@@ -97,16 +102,32 @@ router.get("/decks", requireAuth, async (req, res) => {
 // Update deck options without syncing cards
 router.put("/decks/:deckId", requireAuth, async (req, res) => {
   try {
-    const { is_public, status } = req.body;
+    const { is_public, status, exclude_side_and_maybeboards } = req.body;
     const cleanId = parseMoxfieldDeckId(req.params.deckId);
+
+    const updateData = {
+      updated_at: db.fn.now()
+    };
+    if (is_public !== undefined) updateData.is_public = is_public;
+    if (status !== undefined) updateData.status = status;
+    if (exclude_side_and_maybeboards !== undefined) {
+      updateData.exclude_side_and_maybeboards = !!exclude_side_and_maybeboards;
+    }
 
     await db("user_archidekt_decks")
       .where({ user_id: req.user.id, deck_id: cleanId, source: "moxfield" })
-      .update({
-        is_public: is_public,
-        status: status,
-        updated_at: db.fn.now()
-      });
+      .update(updateData);
+
+    if (exclude_side_and_maybeboards !== undefined) {
+      try {
+        await syncMoxfieldDeckInternal(cleanId, req.user.id, null, {
+          excludeSideAndMaybeboards: !!exclude_side_and_maybeboards
+        });
+      } catch (syncErr) {
+        console.warn("Could not resync Moxfield cards on options update:", syncErr.message);
+      }
+    }
+
     res.json({ message: "Deck options updated" });
   } catch (error) {
     console.error("Moxfield update deck error:", error.message);

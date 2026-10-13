@@ -132,7 +132,8 @@ export default function DeckUpdater() {
         likedCycles: landPreferences.likedCycles,
         dislikedCycles: landPreferences.dislikedCycles
       });
-      const res = await fetch("/api/deck-updater/analyze-all", {
+      const url = isManualRefresh ? "/api/deck-updater/analyze-all?refresh=true" : "/api/deck-updater/analyze-all";
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const elapsed = Math.round(performance.now() - startTime);

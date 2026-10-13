@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowPathIcon, DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, DocumentArrowDownIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
@@ -19,7 +19,8 @@ export default function DecksManager() {
   const [deckInfo, setDeckInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [excludeSideboards, setExcludeSideboards] = useState(true);
+
   const [tagMappings, setTagMappings] = useState({});
   const [uniqueTags, setUniqueTags] = useState([]);
   
@@ -67,13 +68,24 @@ export default function DecksManager() {
         }
         const info = await api.getArchidektDeckInfo(parsedId);
         setDeckInfo(info);
-        
+
         const tags = new Set();
+        if (Array.isArray(info.categories)) {
+          info.categories.forEach(cat => {
+            if (cat && cat.name) tags.add(cat.name);
+          });
+        }
         info.cards?.forEach(item => {
           let labelName = (item.label || "").split(',')[0].trim();
-          if (!labelName) labelName = "Default color tag";
-          tags.add(labelName);
+          if (labelName) tags.add(labelName);
+          if (Array.isArray(item.categories)) {
+            item.categories.forEach(cat => {
+              const name = typeof cat === 'string' ? cat : cat?.name;
+              if (name) tags.add(name);
+            });
+          }
         });
+        if (tags.size === 0) tags.add("Default color tag");
         setUniqueTags(Array.from(tags).sort());
       }
     } catch (err) {
@@ -102,8 +114,8 @@ export default function DecksManager() {
     setSyncStatus(null);
     try {
       const res = platform === "moxfield"
-        ? await api.syncMoxfieldDeck(deckInfo.id, tagMappings)
-        : await api.syncArchidektDeck(deckInfo.id, tagMappings);
+        ? await api.syncMoxfieldDeck(deckInfo.id, tagMappings, { exclude_side_and_maybeboards: excludeSideboards })
+        : await api.syncArchidektDeck(deckInfo.id, tagMappings, { exclude_side_and_maybeboards: excludeSideboards });
 
       setSyncStatus({
         success: true,
@@ -246,8 +258,37 @@ export default function DecksManager() {
           )}
 
           {deckInfo && (
-            <div style={{ marginTop: '1.5rem', borderTop: '1px solid #333', paddingTop: '1.5rem' }}>
-              <button 
+            <div style={{ marginTop: '1.5rem', borderTop: '1px solid #333', paddingTop: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div>
+                  <span style={{ color: '#e5e5e5', fontSize: '0.9rem', fontWeight: '500' }}>Board Filtering</span>
+                  <p style={{ color: '#888', fontSize: '0.8rem', margin: '2px 0 0 0' }}>
+                    Ignore cut cards, sideboard, and maybeboard
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setExcludeSideboards(!excludeSideboards)}
+                  style={{
+                    padding: '0.45rem 0.9rem',
+                    background: excludeSideboards ? 'rgba(59, 130, 246, 0.2)' : '#1f1f1f',
+                    color: excludeSideboards ? '#60a5fa' : '#888',
+                    border: `1px solid ${excludeSideboards ? '#3b82f6' : '#444'}`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', opacity: excludeSideboards ? 1 : 0.3 }} />
+                  Exclude side and maybeboards
+                </button>
+              </div>
+
+              <button
                 onClick={handleSync}
                 disabled={loading}
                 style={{ width: '100%', padding: '0.75rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
