@@ -639,4 +639,68 @@ export async function initDB() {
 // console.log(" Added price column to trade_items table");
     }
   }
+
+  // Analytics & Feature Usage Tracking tables
+  const hasAnalyticsEvents = await db.schema.hasTable("analytics_events");
+  if (!hasAnalyticsEvents) {
+    await db.schema.createTable("analytics_events", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").nullable().references("id").inTable("users").onDelete("SET NULL");
+      t.boolean("is_guest").defaultTo(false);
+      t.string("feature_name", 64).notNullable();
+      t.string("action", 64).notNullable();
+      t.json("metadata").nullable();
+      t.timestamp("created_at").defaultTo(db.fn.now());
+    });
+  }
+
+  try {
+    await db.raw('CREATE INDEX IF NOT EXISTS idx_analytics_events_created ON analytics_events (created_at);');
+    await db.raw('CREATE INDEX IF NOT EXISTS idx_analytics_events_feature_created ON analytics_events (feature_name, created_at);');
+  } catch (e) {
+    console.warn("Could not create analytics_events indexes:", e.message);
+  }
+
+  const hasUserFeatureMonthly = await db.schema.hasTable("user_feature_monthly");
+  if (!hasUserFeatureMonthly) {
+    await db.schema.createTable("user_feature_monthly", (t) => {
+      t.increments("id").primary();
+      t.uuid("user_id").nullable().references("id").inTable("users").onDelete("CASCADE");
+      t.boolean("is_guest").defaultTo(false);
+      t.string("feature_name", 64).notNullable();
+      t.string("year_month", 7).notNullable(); // 'YYYY-MM'
+      t.integer("usage_count").defaultTo(1);
+      t.timestamp("first_used_at").defaultTo(db.fn.now());
+      t.timestamp("last_used_at").defaultTo(db.fn.now());
+    });
+  }
+
+  try {
+    await db.raw('CREATE UNIQUE INDEX IF NOT EXISTS idx_ufm_user_feature_month ON user_feature_monthly (user_id, feature_name, year_month) WHERE user_id IS NOT NULL;');
+    await db.raw('CREATE UNIQUE INDEX IF NOT EXISTS idx_ufm_guest_feature_month ON user_feature_monthly (feature_name, year_month) WHERE user_id IS NULL;');
+    await db.raw('CREATE INDEX IF NOT EXISTS idx_ufm_feature_month ON user_feature_monthly (feature_name, year_month);');
+    await db.raw('CREATE INDEX IF NOT EXISTS idx_ufm_user ON user_feature_monthly (user_id);');
+  } catch (e) {
+    console.warn("Could not create user_feature_monthly indexes:", e.message);
+  }
+
+  // Automatic 90-day retention pruning of raw clickstream events
+  try {
+    await db("analytics_events")
+      .where("created_at", "<", db.raw("datetime('now', '-90 days')"))
+      .del();
+  } catch (e) {
+    // Ignore in tests or if empty
+  }
+}
+
+export async function pruneOldAnalyticsEvents() {
+  try {
+    return await db("analytics_events")
+      .where("created_at", "<", db.raw("datetime('now', '-90 days')"))
+      .del();
+  } catch (e) {
+    console.warn("Failed to prune old analytics events:", e.message);
+    return 0;
+  }
 }

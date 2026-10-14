@@ -2,6 +2,7 @@
 import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { recordFeatureUsage } from "../services/analyticsService.js";
 
 const router = express.Router();
 
@@ -178,6 +179,12 @@ router.post("/confirm", requireAuth, async (req, res) => {
         created_at: new Date().toISOString(),
       };
     });
+
+    recordFeatureUsage(req.user.id, "proxy_orders", "confirm_order", {
+      orderId: createdOrder.id,
+      totalCards: createdOrder.total_cards,
+      totalCost: createdOrder.total_cost
+    }).catch(() => {});
 
     res.json({ success: true, order: createdOrder });
   } catch (err) {

@@ -32,7 +32,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsPage from "./pages/TermsPage";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
-import { initAnalytics } from "./utils/analytics";
+import { initAnalytics, useRouteAnalytics } from "./utils/analytics";
 
 export default function App() {
   return (
@@ -57,6 +57,8 @@ function AppContent() {
   const [builderData, setBuilderData] = useState({ lands: [], nonlands: [] });
   const [userCollection, setUserCollection] = useState([]);
   const packageRef = useRef();
+
+  useRouteAnalytics();
 
   useEffect(() => {
     initAnalytics();

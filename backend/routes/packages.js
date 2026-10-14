@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
+import { recordFeatureUsage } from "../services/analyticsService.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
@@ -24,6 +25,8 @@ router.post("/", requireAuth, async (req, res) => {
       visibility: actualVisibility
     })
     .returning("*");
+
+  recordFeatureUsage(req.user.id, "custom_packages", "create_package", { packageId: pkg?.id, name }).catch(() => {});
 
   res.json(parseCards(pkg));
 });

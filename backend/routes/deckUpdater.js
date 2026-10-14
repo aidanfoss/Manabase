@@ -7,6 +7,7 @@ import { fetchMoxfieldDeck } from "../services/moxfieldSync.js";
 import axios from "axios";
 import { analyzeLands } from "../services/landAnalyzer.js";
 import { isCardCutOrExcluded } from "../services/archidektSync.js";
+import { recordFeatureUsage } from "../services/analyticsService.js";
 
 const router = express.Router();
 
@@ -407,6 +408,8 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
         adds: res.landUpgrades.adds.map(a => ({ ...a, ...enrichCardObj(a.name) }))
       };
     }
+
+    recordFeatureUsage(req.user.id, "deck_updater", "analyze_all", { deckCount: results.length }).catch(() => {});
 
     res.json(results);
   } catch (error) {

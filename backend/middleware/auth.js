@@ -18,6 +18,30 @@ export function requireAuth(req, res, next) {
   }
 }
 
+export function optionalAuth(req, _res, next) {
+  let token = null;
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    token = header.slice(7);
+  } else if (req.query?.token) {
+    token = req.query.token;
+  } else if (req.body?.token) {
+    token = req.body.token;
+  }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = decoded;
+    } catch {
+      req.user = null;
+    }
+  } else {
+    req.user = null;
+  }
+  next();
+}
+
 export function requireAdmin(req, res, next) {
   requireAuth(req, res, () => {
     const email = req.user.email;
