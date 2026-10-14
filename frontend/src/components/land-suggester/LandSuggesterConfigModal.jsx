@@ -33,6 +33,16 @@ export default function LandSuggesterConfigModal({
       ? initialPreferences.maxPricePerLand
       : ""
   );
+  const [suggestCheapestLikedAlternative, setSuggestCheapestLikedAlternative] = useState(
+    initialPreferences?.suggestCheapestLikedAlternative !== undefined
+      ? !!initialPreferences.suggestCheapestLikedAlternative
+      : false
+  );
+  const [preferHighestTierLiked, setPreferHighestTierLiked] = useState(
+    initialPreferences?.preferHighestTierLiked !== undefined
+      ? !!initialPreferences.preferHighestTierLiked
+      : true
+  );
   const [excludeReservedList, setExcludeReservedList] = useState(
     initialPreferences?.excludeReservedList !== undefined ? initialPreferences.excludeReservedList : true
   );
@@ -67,6 +77,8 @@ export default function LandSuggesterConfigModal({
         dislikedCycles: incomingDisliked,
         budgetTier: initialPreferences?.budgetTier || "all",
         maxPricePerLand: initialPreferences?.maxPricePerLand,
+        suggestCheapestLikedAlternative: initialPreferences?.suggestCheapestLikedAlternative,
+        preferHighestTierLiked: initialPreferences?.preferHighestTierLiked,
         excludeReservedList: initialPreferences?.excludeReservedList,
         excludeTapped: initialPreferences?.excludeTapped
       });
@@ -76,6 +88,16 @@ export default function LandSuggesterConfigModal({
         initialPreferences?.maxPricePerLand !== null && initialPreferences?.maxPricePerLand !== undefined
           ? initialPreferences.maxPricePerLand
           : ""
+      );
+      setSuggestCheapestLikedAlternative(
+        initialPreferences?.suggestCheapestLikedAlternative !== undefined
+          ? !!initialPreferences.suggestCheapestLikedAlternative
+          : false
+      );
+      setPreferHighestTierLiked(
+        initialPreferences?.preferHighestTierLiked !== undefined
+          ? !!initialPreferences.preferHighestTierLiked
+          : true
       );
       setExcludeReservedList(
         initialPreferences?.excludeReservedList !== undefined ? initialPreferences.excludeReservedList : true
@@ -178,6 +200,8 @@ export default function LandSuggesterConfigModal({
     const preferences = {
       budgetTier,
       maxPricePerLand: maxPricePerLand !== "" && !isNaN(Number(maxPricePerLand)) ? Number(maxPricePerLand) : null,
+      suggestCheapestLikedAlternative,
+      preferHighestTierLiked,
       excludeReservedList,
       excludeTapped,
       likedCycles: Array.from(likedCycles),
@@ -186,6 +210,8 @@ export default function LandSuggesterConfigModal({
     console.log("[LandSuggesterConfigModal] Save triggered with preferences payload:", {
       budgetTier: preferences.budgetTier,
       maxPricePerLand: preferences.maxPricePerLand,
+      suggestCheapestLikedAlternative: preferences.suggestCheapestLikedAlternative,
+      preferHighestTierLiked: preferences.preferHighestTierLiked,
       excludeReservedList: preferences.excludeReservedList,
       excludeTapped: preferences.excludeTapped,
       likedCount: preferences.likedCycles.length,
@@ -200,6 +226,8 @@ export default function LandSuggesterConfigModal({
     console.log("[LandSuggesterConfigModal] Reset to defaults triggered");
     setBudgetTier("budget");
     setMaxPricePerLand("");
+    setSuggestCheapestLikedAlternative(false);
+    setPreferHighestTierLiked(true);
     setExcludeReservedList(true);
     setExcludeTapped(true);
     setLikedCycles(new Set());
@@ -234,7 +262,7 @@ export default function LandSuggesterConfigModal({
             onClick={() => setActiveTab("budget")}
           >
             <CurrencyDollarIcon className="icon-sm" />
-            <span>Budget & Safeguards</span>
+            <span>Budget & Priorities</span>
           </button>
           <button
             className={`config-nav-tab ${activeTab === "cycles" ? "active" : ""}`}
@@ -314,19 +342,19 @@ export default function LandSuggesterConfigModal({
 
               <div className="section-block safeguard-toggles-block">
                 <label className="section-heading-label">
-                  <ShieldCheckIcon className="icon-xs text-emerald" /> Safeguards & Filtering
+                  <SparklesIcon className="icon-xs text-cyan" /> Liked Cycle Upgrade Priorities
                 </label>
 
                 <div className="safeguard-toggle-row">
                   <div className="safeguard-info">
-                    <strong>Exclude Reserved List Lands ($500+ ABU Duals)</strong>
-                    <p>Prevents suggesting original Alpha/Beta/Unlimited duals like Underground Sea, Badlands, and Taiga unless explicitly enabled.</p>
+                    <strong>Suggest cheapest liked alternative</strong>
+                    <p>When multiple lands from your liked cycles match a cut card's colors, suggests the option with the lowest market price first.</p>
                   </div>
                   <label className="switch">
                     <input
                       type="checkbox"
-                      checked={excludeReservedList}
-                      onChange={e => setExcludeReservedList(e.target.checked)}
+                      checked={suggestCheapestLikedAlternative}
+                      onChange={e => setSuggestCheapestLikedAlternative(e.target.checked)}
                     />
                     <span className="slider round"></span>
                   </label>
@@ -334,14 +362,17 @@ export default function LandSuggesterConfigModal({
 
                 <div className="safeguard-toggle-row">
                   <div className="safeguard-info">
-                    <strong>Exclude Generic Tapped Lands & Suggest Cutting Them</strong>
-                    <p>Automatically flags slow taplands, gainlands, and guildgates for removal while prioritizing untapped alternatives.</p>
+                    <strong>Prefer highest tier in liked cycles</strong>
+                    <p>Prioritizes land speed tiers when selecting additions from your liked cycles.</p>
+                    <div className="tier-note">
+                      <span className="tier-note-badge">Note</span> There are 3 tiers, always untapped, conditionally untapped, and always tapped.
+                    </div>
                   </div>
                   <label className="switch">
                     <input
                       type="checkbox"
-                      checked={excludeTapped}
-                      onChange={e => setExcludeTapped(e.target.checked)}
+                      checked={preferHighestTierLiked}
+                      onChange={e => setPreferHighestTierLiked(e.target.checked)}
                     />
                     <span className="slider round"></span>
                   </label>

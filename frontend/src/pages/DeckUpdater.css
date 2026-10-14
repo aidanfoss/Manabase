@@ -1421,7 +1421,8 @@
   color: #fda4af;
 }
 
-.pref-badge.warning {
+.pref-badge.warning,
+.pref-badge.amber {
   background: rgba(245, 158, 11, 0.15);
   border-color: rgba(245, 158, 11, 0.4);
   color: #fbbf24;
@@ -1792,6 +1793,28 @@
   color: var(--radar-text-muted);
   margin: 0;
   line-height: 1.35;
+}
+
+.tier-note {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  line-height: 1.35;
+}
+
+.tier-note-badge {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-weight: 600;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* Switch Toggle Component */

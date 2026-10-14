@@ -129,6 +129,7 @@ export const LAND_COLOR_REQUIREMENTS = {
   "haunted ridge": ["B", "R"],
   "rockfall vale": ["R", "G"],
   "overgrown farmland": ["W", "G"],
+  "shattered sanctum": ["W", "B"],
   "shattered sanctuary": ["W", "B"],
   "stormcarved coast": ["U", "R"],
   "deathcap glade": ["B", "G"],
@@ -803,6 +804,53 @@ export function isLandColorCompatible(cardName, card, deckColors) {
 }
 
 /**
+ * Checks if a candidate land's colors match the color requirement of at least one cut land.
+ * Supports exact dual color matches, mono-color inclusions, multi-color subsets, and rainbow lands.
+ */
+export function doesLandMatchAnyCut(cardColors, cutColorProfiles, deckColors = []) {
+  if (!cutColorProfiles || cutColorProfiles.length === 0) {
+    return true; // No cuts to match against; any on-color candidate is eligible
+  }
+
+  const sortedCard = [...(cardColors || [])].sort();
+
+  for (const cutColors of cutColorProfiles) {
+    const sortedCut = [...(cutColors || [])].sort();
+
+    // 1. Cut land is rainbow/any-color (0 required colors or covers full deck colors)
+    if (sortedCut.length === 0) {
+      return true;
+    }
+
+    // 2. Candidate land is rainbow (0 required colors, e.g. Command Tower, Mana Confluence)
+    if (sortedCard.length === 0) {
+      return true;
+    }
+
+    // 3. Exact color match (e.g. dual land ["G", "R"] matches cut ["G", "R"])
+    if (sortedCard.length === sortedCut.length) {
+      if (sortedCard.every((c, i) => c === sortedCut[i])) {
+        return true;
+      }
+    }
+
+    // 4. Cut is mono-color (1 color), candidate produces that color
+    if (sortedCut.length === 1 && sortedCard.includes(sortedCut[0])) {
+      return true;
+    }
+
+    // 5. Cut is 3+ colors (tri-land), candidate produces a non-empty subset
+    if (sortedCut.length >= 3 && sortedCard.length > 0 && sortedCard.length <= sortedCut.length) {
+      if (sortedCard.every(c => sortedCut.includes(c))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Core land analyzer function supporting user preferences, budget tiers, and deduplicated recommendations.
  *
  * @param {string} commanderName - Commander name (or combined partner names)
@@ -810,6 +858,8 @@ export function isLandColorCompatible(cardName, card, deckColors) {
  * @param {object} [options={}] - Custom configuration/preferences
  * @param {string} [options.budgetTier='all'] - 'all' | 'high' | 'mid' | 'budget' | 'ultra_budget'
  * @param {number|null} [options.maxPricePerLand=null] - Maximum USD price per land
+ * @param {boolean} [options.suggestCheapestLikedAlternative=false] - Prioritize lowest price among alternatives in liked cycles
+ * @param {boolean} [options.preferHighestTierLiked=true] - Prioritize higher tier cycles (top > mid > bottom)
  * @param {boolean} [options.excludeReservedList=true] - Exclude ABU Duals and Reserved List lands
  * @param {boolean} [options.excludeTapped=true] - Exclude generic tapped lands from adds, suggest cutting them
  * @param {string[]} [options.likedCycles=[]] - Explicitly included cycle IDs or names
@@ -845,6 +895,16 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
 
   const excludeTapped = options.excludeTapped !== undefined ? !!options.excludeTapped : true;
 
+  const suggestCheapestLikedAlternative =
+    options.suggestCheapestLikedAlternative !== undefined
+      ? !!options.suggestCheapestLikedAlternative
+      : false;
+
+  const preferHighestTierLiked =
+    options.preferHighestTierLiked !== undefined
+      ? !!options.preferHighestTierLiked
+      : true;
+
   const likedCyclesSet = new Set(
     (options.likedCycles || []).map(c => (typeof c === "string" ? c.toLowerCase() : ""))
   );
@@ -857,6 +917,8 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
   console.log(`[LandAnalyzer] analyzeLands started for commander='${commanderName || "unknown"}' (deck cards: ${deckCardNames?.length || 0})`, {
     budgetTier,
     budgetThreshold: isFinite(budgetThreshold) ? budgetThreshold : null,
+    suggestCheapestLikedAlternative,
+    preferHighestTierLiked,
     excludeReservedList,
     excludeTapped,
     likedCycles: Array.from(likedCyclesSet),
@@ -964,15 +1026,24 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
 
     if (cutReason) {
       seenCutNames.add(lower);
+      const reqColors = getLandRequiredColors(card ? card.name : name, card);
       cuts.push({
         name: card ? card.name : name,
         reason: cutReason,
         cycle: cycleData ? cycleData.cycleName : null,
         tier: cycleData ? cycleData.tier : "bottom",
-        image_uri: card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.normal || null
+        image_uri: card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.normal || null,
+        colors: reqColors
       });
     }
   }
+
+  // Extract cut color profiles for color-matched recommendations
+  const cutColorProfiles = cuts.map(cut => {
+    const cutCard = cardMap.get(cut.name.toLowerCase());
+    const colors = getLandRequiredColors(cut.name, cutCard);
+    return [...colors].sort();
+  });
 
   // 5. Identify Suggested Adds (Deduplicated, Color-Matching, Budget-Conscious)
   const candidateAdds = [];
@@ -1033,8 +1104,14 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
 
       const card = cardMap.get(lower);
 
-      // Color compatibility check (strict on-color)
+      // Color compatibility check (strict on-color with deck)
       if (!isLandColorCompatible(cardName, card, deckColors)) {
+        continue;
+      }
+
+      // If cuts exist, suggest the land in each cycle that matches the cut land's color
+      const cardColors = getLandRequiredColors(cardName, card);
+      if (cuts.length > 0 && !doesLandMatchAnyCut(cardColors, cutColorProfiles, deckColors)) {
         continue;
       }
 
@@ -1061,13 +1138,51 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
         image_uri: card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.normal || null,
         priority: basePriority,
         price: priceNum,
-        isLikedCycle: isExplicitlyLiked
+        isLikedCycle: isExplicitlyLiked,
+        colors: cardColors
       });
     }
   }
 
-  // Sort candidate adds by priority score descending
-  candidateAdds.sort((a, b) => b.priority - a.priority);
+  // Sort candidate adds based on user preferences:
+  // 1. preferHighestTierLiked: prioritize top tier (always untapped) > mid tier (conditionally untapped) > bottom tier (always tapped)
+  // 2. suggestCheapestLikedAlternative: prioritize lowest market price
+  // 3. Cycle priority score & price tie-breaker
+  const TIER_RANKS = {
+    top: 3,     // always untapped
+    mid: 2,     // conditionally untapped
+    bottom: 1   // always tapped
+  };
+
+  candidateAdds.sort((a, b) => {
+    // 1. Tier preference (always untapped > conditionally untapped > always tapped)
+    if (preferHighestTierLiked) {
+      const rankA = TIER_RANKS[a.tier] || 2;
+      const rankB = TIER_RANKS[b.tier] || 2;
+      if (rankA !== rankB) {
+        return rankB - rankA;
+      }
+    }
+
+    // 2. Cheapest alternative preference
+    if (suggestCheapestLikedAlternative) {
+      const priceA = a.price !== null && a.price !== undefined && !isNaN(a.price) ? a.price : Infinity;
+      const priceB = b.price !== null && b.price !== undefined && !isNaN(b.price) ? b.price : Infinity;
+      if (priceA !== priceB) {
+        return priceA - priceB;
+      }
+    }
+
+    // 3. Fall back to priority score descending
+    if (b.priority !== a.priority) {
+      return b.priority - a.priority;
+    }
+
+    // 4. Fall back to price if priority is equal
+    const priceA = a.price !== null && a.price !== undefined && !isNaN(a.price) ? a.price : Infinity;
+    const priceB = b.price !== null && b.price !== undefined && !isNaN(b.price) ? b.price : Infinity;
+    return priceA - priceB;
+  });
 
   const adds = candidateAdds.slice(0, maxSuggestions);
 
@@ -1080,6 +1195,8 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
     preferencesApplied: {
       budgetTier,
       budgetThreshold: isFinite(budgetThreshold) ? budgetThreshold : null,
+      suggestCheapestLikedAlternative,
+      preferHighestTierLiked,
       excludeReservedList,
       excludeTapped,
       likedCyclesCount: likedCyclesSet.size,

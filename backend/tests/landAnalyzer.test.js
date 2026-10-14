@@ -197,4 +197,94 @@ describe("landAnalyzer - Deduplication & Suggestions", () => {
       expect(getLandRequiredColors(add.name, null)).toEqual([]);
     }
   });
+
+  it("should only suggest the land in each liked cycle that matches the color of the cut land", () => {
+    // Jund commander (B, R, G) with Gruul Guildgate (R, G)
+    const commander = "Korvold, Fae-Cursed King";
+    const deckCards = [
+      "Gruul Guildgate",
+      "Command Tower",
+      "Forest",
+      "Mountain",
+      "Swamp"
+    ];
+
+    // User likes Painlands and Slowlands
+    const result = analyzeLands(commander, deckCards, {
+      likedCycles: ["cycle-painland", "cycle-slowland"]
+    });
+
+    // Gruul Guildgate must be cut
+    const cut = result.cuts.find(c => c.name.toLowerCase() === "gruul guildgate");
+    expect(cut).toBeDefined();
+
+    const addNames = result.adds.map(a => a.name.toLowerCase());
+
+    // Should include Karplusan Forest (Painland R/G) and Rockfall Vale (Slowland R/G)
+    expect(addNames).toContain("karplusan forest");
+    expect(addNames).toContain("rockfall vale");
+
+    // Must NOT suggest off-color lands from the same cycle:
+    // Llanowar Wastes is B/G (does not match Gruul Guildgate R/G)
+    expect(addNames).not.toContain("llanowar wastes");
+    // Sulfurous Springs is B/R (does not match Gruul Guildgate R/G)
+    expect(addNames).not.toContain("sulfurous springs");
+    // Deathcap Glade is B/G
+    expect(addNames).not.toContain("deathcap glade");
+    // Haunted Ridge is B/R
+    expect(addNames).not.toContain("haunted ridge");
+  });
+
+  it("should support multiple cuts with distinct color combinations", () => {
+    // Jund commander (B, R, G) with Gruul Guildgate (R, G) and Rakdos Guildgate (B, R)
+    const commander = "Korvold, Fae-Cursed King";
+    const deckCards = [
+      "Gruul Guildgate",
+      "Rakdos Guildgate",
+      "Command Tower",
+      "Forest",
+      "Mountain",
+      "Swamp"
+    ];
+
+    const result = analyzeLands(commander, deckCards, {
+      likedCycles: ["cycle-painland", "cycle-slowland"]
+    });
+
+    const addNames = result.adds.map(a => a.name.toLowerCase());
+
+    // Both R/G and B/R lands from liked cycles should be present
+    expect(addNames).toContain("karplusan forest"); // Painland R/G
+    expect(addNames).toContain("sulfurous springs"); // Painland B/R
+    expect(addNames).toContain("rockfall vale"); // Slowland R/G
+    expect(addNames).toContain("haunted ridge"); // Slowland B/R
+
+    // B/G land (Llanowar Wastes / Deathcap Glade) should NOT be present since no B/G land was cut
+    expect(addNames).not.toContain("llanowar wastes");
+    expect(addNames).not.toContain("deathcap glade");
+  });
+
+  it("should respect preferHighestTierLiked and suggestCheapestLikedAlternative preferences", () => {
+    // Jund commander with Gruul Guildgate (R, G) cut
+    const commander = "Korvold, Fae-Cursed King";
+    const deckCards = ["Gruul Guildgate", "Command Tower", "Forest", "Mountain", "Swamp"];
+
+    // 1. preferHighestTierLiked: true -> Top tier (Painland: Karplusan Forest) comes before Mid tier (Slowland: Rockfall Vale)
+    const tierResult = analyzeLands(commander, deckCards, {
+      likedCycles: ["cycle-painland", "cycle-slowland"],
+      preferHighestTierLiked: true,
+      suggestCheapestLikedAlternative: false
+    });
+
+    const tierAddNames = tierResult.adds.map(a => a.name.toLowerCase());
+    const painIdx = tierAddNames.indexOf("karplusan forest");
+    const slowIdx = tierAddNames.indexOf("rockfall vale");
+    expect(painIdx).toBeGreaterThanOrEqual(0);
+    expect(slowIdx).toBeGreaterThanOrEqual(0);
+    expect(painIdx).toBeLessThan(slowIdx); // Karplusan Forest (top tier) before Rockfall Vale (mid tier)
+
+    // 2. preferencesApplied should accurately reflect the active flags
+    expect(tierResult.preferencesApplied.preferHighestTierLiked).toBe(true);
+    expect(tierResult.preferencesApplied.suggestCheapestLikedAlternative).toBe(false);
+  });
 });
