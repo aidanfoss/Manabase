@@ -41,6 +41,7 @@ import listsRouter from "./routes/lists.js";
 import cardbacksRouter from "./routes/cardbacks.js";
 import pricingRouter from "./routes/pricingRoutes.js";
 import adminRouter from "./routes/admin.js";
+import analyticsRouter from "./routes/analytics.js";
 import proxyArtsRouter from "./routes/proxyArts.js";
 import proxyOrdersRouter from "./routes/proxyOrders.js";
 
@@ -111,6 +112,7 @@ app.use("/api/lists", listsRouter);
 app.use("/api/trade", tradeRouter);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/analytics", analyticsRouter);
 app.use("/api/user/proxy-arts", proxyArtsRouter);
 app.use("/api/proxy-orders", proxyOrdersRouter);
 

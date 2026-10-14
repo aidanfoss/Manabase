@@ -2,6 +2,7 @@ import express from "express";
 import { db } from "../db/connection.js";
 import { requireAuth } from "../middleware/auth.js";
 import { fetchMoxfieldDeck, syncMoxfieldDeckInternal, parseMoxfieldDeckId } from "../services/moxfieldSync.js";
+import { recordFeatureUsage } from "../services/analyticsService.js";
 
 const router = express.Router();
 
@@ -58,6 +59,7 @@ router.post("/sync/:id", requireAuth, async (req, res) => {
     if (exclude_side_and_maybeboards !== undefined) options.excludeSideAndMaybeboards = !!exclude_side_and_maybeboards;
 
     const result = await syncMoxfieldDeckInternal(id, req.user.id, mappings, options);
+    recordFeatureUsage(req.user.id, "moxfield_sync", "sync_deck", { deckId: id }).catch(() => {});
     res.json({ message: "Sync successful", stats: result.stats });
   } catch (err) {
     console.error("Failed to sync Moxfield deck:", err.message);
