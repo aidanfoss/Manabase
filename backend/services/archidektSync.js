@@ -2,68 +2,99 @@ import axios from "axios";
 import { db } from "../db/connection.js";
 
 /**
- * Check if a category name represents a cut, sideboard, or otherwise excluded board.
+ * Check if a category name represents a sideboard.
  * @param {string} categoryName The category name
- * @param {Set|Array} excludedCategoryNames Optional set of category names explicitly marked includedInDeck: false by Archidekt
  */
-export function isCutOrExcludedCategory(categoryName, excludedCategoryNames = null) {
+export function isSideboardCategory(categoryName) {
+  if (!categoryName || typeof categoryName !== "string") return false;
+  return categoryName.trim().toLowerCase() === "sideboard";
+}
+
+/**
+ * Check if a category name represents a maybeboard, cut cards, or considering board.
+ * @param {string} categoryName The category name
+ * @param {Set|Array} customExcludedCategoryNames Optional set of category names explicitly marked includedInDeck: false by Archidekt (excluding sideboard)
+ */
+export function isMaybeboardCategory(categoryName, customExcludedCategoryNames = null) {
   if (!categoryName || typeof categoryName !== "string") return false;
   const lower = categoryName.trim().toLowerCase();
+  if (lower === "sideboard") return false;
 
-  // If Archidekt explicitly flagged this category as includedInDeck === false
-  if (excludedCategoryNames) {
-    if (excludedCategoryNames instanceof Set && excludedCategoryNames.has(lower)) {
+  if (customExcludedCategoryNames) {
+    if (customExcludedCategoryNames instanceof Set && customExcludedCategoryNames.has(lower)) {
       return true;
     }
-    if (Array.isArray(excludedCategoryNames) && excludedCategoryNames.some(c => String(c).toLowerCase() === lower)) {
+    if (Array.isArray(customExcludedCategoryNames) && customExcludedCategoryNames.some(c => String(c).toLowerCase() === lower)) {
       return true;
     }
   }
 
-  // Common cut, sideboard, maybeboard, considering patterns
-  if (
+  return (
+    lower === "maybeboard" ||
+    lower === "considering" ||
     lower === "cut cards" ||
     lower === "cut" ||
     lower === "cuts" ||
     lower.startsWith("cut ") ||
     lower.endsWith(" cut") ||
     lower.includes("cut cards") ||
-    lower.includes("cuts") ||
-    lower === "sideboard" ||
-    lower === "maybeboard" ||
-    lower === "considering"
-  ) {
-    return true;
-  }
+    lower.includes("cuts")
+  );
+}
 
+/**
+ * Check if a category name represents a cut, sideboard, or otherwise excluded board.
+ * Kept for backwards compatibility.
+ * @param {string} categoryName The category name
+ * @param {Set|Array} excludedCategoryNames Optional set of category names explicitly marked includedInDeck: false by Archidekt
+ */
+export function isCutOrExcludedCategory(categoryName, excludedCategoryNames = null) {
+  return isSideboardCategory(categoryName) || isMaybeboardCategory(categoryName, excludedCategoryNames);
+}
+
+/**
+ * Check if a card item belongs to the sideboard.
+ * @param {object} item The card item from Archidekt deck.cards
+ */
+export function isCardInSideboard(item) {
+  if (!item) return false;
+  const categories = Array.isArray(item.categories)
+    ? item.categories.map(c => typeof c === 'string' ? c : c?.name).filter(Boolean)
+    : [];
+  for (const cat of categories) {
+    if (isSideboardCategory(cat)) return true;
+  }
+  const labelName = (item.label || "").split(',')[0].trim();
+  if (labelName && isSideboardCategory(labelName)) return true;
+  return false;
+}
+
+/**
+ * Check if a card item belongs to a maybeboard, cut cards, or considering board.
+ * @param {object} item The card item from Archidekt deck.cards
+ * @param {Set|Array} customExcludedCategoryNames Optional set of category names marked includedInDeck: false (excluding sideboard)
+ */
+export function isCardInMaybeboard(item, customExcludedCategoryNames = null) {
+  if (!item) return false;
+  const categories = Array.isArray(item.categories)
+    ? item.categories.map(c => typeof c === 'string' ? c : c?.name).filter(Boolean)
+    : [];
+  for (const cat of categories) {
+    if (isMaybeboardCategory(cat, customExcludedCategoryNames)) return true;
+  }
+  const labelName = (item.label || "").split(',')[0].trim();
+  if (labelName && isMaybeboardCategory(labelName, customExcludedCategoryNames)) return true;
   return false;
 }
 
 /**
  * Check if a card item from an Archidekt deck is cut or belongs to an excluded category.
+ * Kept for backwards compatibility.
  * @param {object} item The card item from Archidekt deck.cards
  * @param {Set|Array} excludedCategoryNames Optional set of category names marked includedInDeck: false
  */
 export function isCardCutOrExcluded(item, excludedCategoryNames = null) {
-  if (!item) return false;
-
-  const categories = Array.isArray(item.categories)
-    ? item.categories.map(c => typeof c === 'string' ? c : c?.name).filter(Boolean)
-    : [];
-
-  for (const cat of categories) {
-    if (isCutOrExcludedCategory(cat, excludedCategoryNames)) {
-      return true;
-    }
-  }
-
-  // Check if the label itself is a cut tag
-  let labelName = (item.label || "").split(',')[0].trim();
-  if (labelName && isCutOrExcludedCategory(labelName, excludedCategoryNames)) {
-    return true;
-  }
-
-  return false;
+  return isCardInSideboard(item) || isCardInMaybeboard(item, excludedCategoryNames);
 }
 
 /**
@@ -85,28 +116,58 @@ export async function syncDeckInternal(deckId, userId, customMappings = null, op
 
   const tagMappings = customMappings || dbMappings;
 
-  // Determine exclude_side_and_maybeboards preference
+  // Determine exclude_sideboard and exclude_maybeboard preferences
   const existingDeckRow = await db("user_archidekt_decks")
     .where({ user_id: userId, deck_id: String(deckId) })
     .first();
 
-  let excludeSideAndMaybeboards = true;
-  if (options && options.excludeSideAndMaybeboards !== undefined) {
-    excludeSideAndMaybeboards = !!options.excludeSideAndMaybeboards;
+  let excludeSideboard = true;
+  if (options && options.excludeSideboard !== undefined) {
+    excludeSideboard = !!options.excludeSideboard;
+  } else if (options && options.exclude_sideboard !== undefined) {
+    excludeSideboard = !!options.exclude_sideboard;
+  } else if (options && options.excludeSideAndMaybeboards !== undefined) {
+    excludeSideboard = !!options.excludeSideAndMaybeboards;
+  } else if (options && options.exclude_side_and_maybeboards !== undefined) {
+    excludeSideboard = !!options.exclude_side_and_maybeboards;
+  } else if (existingDeckRow && existingDeckRow.exclude_sideboard !== null && existingDeckRow.exclude_sideboard !== undefined) {
+    excludeSideboard = !!existingDeckRow.exclude_sideboard;
   } else if (existingDeckRow && existingDeckRow.exclude_side_and_maybeboards !== null && existingDeckRow.exclude_side_and_maybeboards !== undefined) {
-    excludeSideAndMaybeboards = !!existingDeckRow.exclude_side_and_maybeboards;
+    excludeSideboard = !!existingDeckRow.exclude_side_and_maybeboards;
   }
+
+  let excludeMaybeboard = true;
+  if (options && options.excludeMaybeboard !== undefined) {
+    excludeMaybeboard = !!options.excludeMaybeboard;
+  } else if (options && options.exclude_maybeboard !== undefined) {
+    excludeMaybeboard = !!options.exclude_maybeboard;
+  } else if (options && options.excludeSideAndMaybeboards !== undefined) {
+    excludeMaybeboard = !!options.excludeSideAndMaybeboards;
+  } else if (options && options.exclude_side_and_maybeboards !== undefined) {
+    excludeMaybeboard = !!options.exclude_side_and_maybeboards;
+  } else if (existingDeckRow && existingDeckRow.exclude_maybeboard !== null && existingDeckRow.exclude_maybeboard !== undefined) {
+    excludeMaybeboard = !!existingDeckRow.exclude_maybeboard;
+  } else if (existingDeckRow && existingDeckRow.exclude_side_and_maybeboards !== null && existingDeckRow.exclude_side_and_maybeboards !== undefined) {
+    excludeMaybeboard = !!existingDeckRow.exclude_side_and_maybeboards;
+  }
+
+  const excludeSideAndMaybeboards = excludeSideboard && excludeMaybeboard;
 
   // 2. Fetch deck from Archidekt
   const response = await axios.get(`https://archidekt.com/api/decks/${deckId}/`);
   const deck = response.data;
 
-  // Build set of categories marked includedInDeck: false by Archidekt
-  const excludedCategoryNames = new Set();
+  // Build set of categories marked includedInDeck: false by Archidekt (excluding sideboard)
+  const maybeboardExcludedCategoryNames = new Set();
+  const allExcludedCategoryNames = new Set();
   if (Array.isArray(deck.categories)) {
     for (const cat of deck.categories) {
       if (cat && cat.name && cat.includedInDeck === false) {
-        excludedCategoryNames.add(cat.name.toLowerCase());
+        const lower = cat.name.toLowerCase();
+        allExcludedCategoryNames.add(lower);
+        if (lower !== "sideboard") {
+          maybeboardExcludedCategoryNames.add(lower);
+        }
       }
     }
   }
@@ -126,55 +187,25 @@ export async function syncDeckInternal(deckId, userId, customMappings = null, op
       const quantity = item.quantity || 1;
       const isFoil = item.modifier === "Foil";
 
+      // Extract corner color tag name (item.label e.g. "Have,#37d67a", "Proxied,#00ffb8", ",#656565")
       let labelName = (item.label || "").split(',')[0].trim();
       if (!labelName) labelName = "Default color tag";
 
-      const itemCategories = Array.isArray(item.categories)
-        ? item.categories.map(c => typeof c === 'string' ? c : c?.name).filter(Boolean)
-        : [];
-
-      // Check categories first, then color tag
-      const cardTags = [...itemCategories, labelName];
-      const isCutCard = excludeSideAndMaybeboards && isCardCutOrExcluded(item, excludedCategoryNames);
-
-      // Determine destination list based on tags
+      // The corner color tag determines destination list in collection/wishlist/tradelist.
+      // Cards in maybeboard/sideboard can still be proxied or owned if tagged as such.
       let destination = "ignore";
-
-      // 1. If any tag on this card is explicitly mapped to "ignore", honor that immediately
-      const explicitlyIgnored = cardTags.some(tag => tagMappings[tag] === "ignore" || tagMappings[tag] === "Ignore");
-
-      if (explicitlyIgnored) {
-        destination = "ignore";
+      if (tagMappings[labelName]) {
+        destination = tagMappings[labelName];
       } else {
-        // 2. Look for an explicit tag mapping (category mappings take priority over color tag)
-        let foundTag = null;
-        for (const tag of cardTags) {
-          if (tagMappings[tag]) {
-            foundTag = tag;
+        // Fallback for legacy setups where categories were mapped
+        const itemCategories = Array.isArray(item.categories)
+          ? item.categories.map(c => typeof c === 'string' ? c : c?.name).filter(Boolean)
+          : [];
+        for (const cat of itemCategories) {
+          if (tagMappings[cat]) {
+            destination = tagMappings[cat];
             break;
           }
-        }
-
-        if (foundTag) {
-          // If the card is in a Cut/Excluded category, only use the mapping if the cut category itself was explicitly mapped
-          // (i.e. do not accidentally import a cut card into owned/wishlist just because the color tag is mapped)
-          if (isCutCard) {
-            const cutCategoryMapped = itemCategories.some(cat =>
-              isCutOrExcludedCategory(cat, excludedCategoryNames) &&
-              tagMappings[cat] &&
-              tagMappings[cat] !== "ignore" &&
-              tagMappings[cat] !== "Ignore"
-            );
-            if (cutCategoryMapped) {
-              destination = tagMappings[foundTag];
-            } else {
-              destination = "ignore";
-            }
-          } else {
-            destination = tagMappings[foundTag];
-          }
-        } else {
-          destination = "ignore";
         }
       }
 
@@ -311,8 +342,13 @@ export async function syncDeckInternal(deckId, userId, customMappings = null, op
           }
         }
 
-        // If excludeSideAndMaybeboards is enabled, skip cut, sideboard, and excluded cards
-        if (excludeSideAndMaybeboards && isCardCutOrExcluded(item, excludedCategoryNames)) {
+        // Exclude sideboard cards if excludeSideboard is enabled
+        if (excludeSideboard && isCardInSideboard(item)) {
+          continue;
+        }
+
+        // Exclude maybeboard/cut cards if excludeMaybeboard is enabled
+        if (excludeMaybeboard && isCardInMaybeboard(item, maybeboardExcludedCategoryNames)) {
           continue;
         }
 
@@ -332,6 +368,8 @@ export async function syncDeckInternal(deckId, userId, customMappings = null, op
       commander: commanderName,
       cards: JSON.stringify(allCardNames),
       status: "active",
+      exclude_sideboard: excludeSideboard,
+      exclude_maybeboard: excludeMaybeboard,
       exclude_side_and_maybeboards: excludeSideAndMaybeboards,
       updated_at: db.fn.now()
     })
@@ -341,6 +379,8 @@ export async function syncDeckInternal(deckId, userId, customMappings = null, op
       commander: commanderName,
       cards: JSON.stringify(allCardNames),
       status: "active",
+      exclude_sideboard: excludeSideboard,
+      exclude_maybeboard: excludeMaybeboard,
       exclude_side_and_maybeboards: excludeSideAndMaybeboards,
       updated_at: db.fn.now()
     });

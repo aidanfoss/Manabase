@@ -19,7 +19,8 @@ export default function DecksManager() {
   const [deckInfo, setDeckInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [excludeSideboards, setExcludeSideboards] = useState(true);
+  const [excludeSideboard, setExcludeSideboard] = useState(true);
+  const [excludeMaybeboard, setExcludeMaybeboard] = useState(true);
 
   const [tagMappings, setTagMappings] = useState({});
   const [uniqueTags, setUniqueTags] = useState([]);
@@ -70,19 +71,12 @@ export default function DecksManager() {
         setDeckInfo(info);
 
         const tags = new Set();
-        if (Array.isArray(info.categories)) {
-          info.categories.forEach(cat => {
-            if (cat && cat.name) tags.add(cat.name);
-          });
-        }
         info.cards?.forEach(item => {
           let labelName = (item.label || "").split(',')[0].trim();
-          if (labelName) tags.add(labelName);
-          if (Array.isArray(item.categories)) {
-            item.categories.forEach(cat => {
-              const name = typeof cat === 'string' ? cat : cat?.name;
-              if (name) tags.add(name);
-            });
+          if (labelName) {
+            tags.add(labelName);
+          } else {
+            tags.add("Default color tag");
           }
         });
         if (tags.size === 0) tags.add("Default color tag");
@@ -113,9 +107,14 @@ export default function DecksManager() {
     setLoading(true);
     setSyncStatus(null);
     try {
+      const syncOptions = {
+        exclude_sideboard: excludeSideboard,
+        exclude_maybeboard: excludeMaybeboard,
+        exclude_side_and_maybeboards: excludeSideboard && excludeMaybeboard
+      };
       const res = platform === "moxfield"
-        ? await api.syncMoxfieldDeck(deckInfo.id, tagMappings, { exclude_side_and_maybeboards: excludeSideboards })
-        : await api.syncArchidektDeck(deckInfo.id, tagMappings, { exclude_side_and_maybeboards: excludeSideboards });
+        ? await api.syncMoxfieldDeck(deckInfo.id, tagMappings, syncOptions)
+        : await api.syncArchidektDeck(deckInfo.id, tagMappings, syncOptions);
 
       setSyncStatus({
         success: true,
@@ -259,33 +258,56 @@ export default function DecksManager() {
 
           {deckInfo && (
             <div style={{ marginTop: '1.5rem', borderTop: '1px solid #333', paddingTop: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
                 <div>
-                  <span style={{ color: '#e5e5e5', fontSize: '0.9rem', fontWeight: '500' }}>Board Filtering</span>
+                  <span style={{ color: '#e5e5e5', fontSize: '0.9rem', fontWeight: '500' }}>Active Deck Membership</span>
                   <p style={{ color: '#888', fontSize: '0.8rem', margin: '2px 0 0 0' }}>
-                    Ignore cut cards, sideboard, and maybeboard
+                    Control which boards are included in the active deck for Deck Updater and Land Suggester analysis. Tagged cards will still route to your collection/wishlist.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setExcludeSideboards(!excludeSideboards)}
-                  style={{
-                    padding: '0.45rem 0.9rem',
-                    background: excludeSideboards ? 'rgba(59, 130, 246, 0.2)' : '#1f1f1f',
-                    color: excludeSideboards ? '#60a5fa' : '#888',
-                    border: `1px solid ${excludeSideboards ? '#3b82f6' : '#444'}`,
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: '600',
-                    fontSize: '0.85rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', opacity: excludeSideboards ? 1 : 0.3 }} />
-                  Exclude side and maybeboards
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setExcludeSideboard(!excludeSideboard)}
+                    style={{
+                      padding: '0.45rem 0.9rem',
+                      background: excludeSideboard ? 'rgba(59, 130, 246, 0.2)' : '#1f1f1f',
+                      color: excludeSideboard ? '#60a5fa' : '#888',
+                      border: `1px solid ${excludeSideboard ? '#3b82f6' : '#444'}`,
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', opacity: excludeSideboard ? 1 : 0.3 }} />
+                    Exclude Sideboard
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setExcludeMaybeboard(!excludeMaybeboard)}
+                    style={{
+                      padding: '0.45rem 0.9rem',
+                      background: excludeMaybeboard ? 'rgba(59, 130, 246, 0.2)' : '#1f1f1f',
+                      color: excludeMaybeboard ? '#60a5fa' : '#888',
+                      border: `1px solid ${excludeMaybeboard ? '#3b82f6' : '#444'}`,
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <CheckCircleIcon style={{ width: '1.1em', height: '1.1em', opacity: excludeMaybeboard ? 1 : 0.3 }} />
+                    Exclude Maybeboard (Cut Cards)
+                  </button>
+                </div>
               </div>
 
               <button

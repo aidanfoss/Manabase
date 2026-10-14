@@ -127,6 +127,8 @@ export async function initDB() {
       t.string("status").defaultTo("active"); // active, disabled, archived
       t.string("source").defaultTo("archidekt"); // archidekt, moxfield
       t.boolean("exclude_side_and_maybeboards").defaultTo(true);
+      t.boolean("exclude_sideboard").defaultTo(true);
+      t.boolean("exclude_maybeboard").defaultTo(true);
       t.timestamps(true, true);
       t.unique(["user_id", "deck_id"]); // One entry per deck per user
     });
@@ -167,6 +169,20 @@ export async function initDB() {
     if (!hasExcludeSideboards) {
       await db.schema.alterTable("user_archidekt_decks", (t) => {
         t.boolean("exclude_side_and_maybeboards").defaultTo(true);
+      });
+    }
+
+    const hasExcludeSideboard = await db.schema.hasColumn("user_archidekt_decks", "exclude_sideboard");
+    if (!hasExcludeSideboard) {
+      await db.schema.alterTable("user_archidekt_decks", (t) => {
+        t.boolean("exclude_sideboard").defaultTo(true);
+      });
+    }
+
+    const hasExcludeMaybeboard = await db.schema.hasColumn("user_archidekt_decks", "exclude_maybeboard");
+    if (!hasExcludeMaybeboard) {
+      await db.schema.alterTable("user_archidekt_decks", (t) => {
+        t.boolean("exclude_maybeboard").defaultTo(true);
       });
     }
   }
