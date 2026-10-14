@@ -105,6 +105,72 @@ describe("landAnalyzer - Deduplication & Suggestions", () => {
     expect(shockAdd).toBeUndefined();
   });
 
+  it("should strictly restrict recommended additions to liked land cycles when likedCycles are provided", () => {
+    // Dimir commander (Wilhelt, the Rotcleaver: U, B)
+    const commander = "Wilhelt, the Rotcleaver";
+    const deckCards = ["Island", "Swamp", "Drowned Catacomb"];
+
+    // User only likes Painlands and Slowlands
+    const result = analyzeLands(commander, deckCards, {
+      likedCycles: ["cycle-painland", "cycle-slowland"]
+    });
+
+    // Every suggested addition must belong to Painlands or Slowlands
+    expect(result.adds.length).toBeGreaterThan(0);
+    for (const add of result.adds) {
+      const cycleLower = (add.cycle || "").toLowerCase();
+      const isPainOrSlow = cycleLower.includes("pain") || cycleLower.includes("slow");
+      expect(isPainOrSlow).toBe(true);
+    }
+
+    // Should include Underground River and Shipwreck Marsh
+    const addNames = result.adds.map(a => a.name);
+    expect(addNames).toContain("Underground River");
+    expect(addNames).toContain("Shipwreck Marsh");
+
+    // Must NOT include Shocklands (Watery Grave), Fetchlands (Polluted Delta), or Bondlands (Morphic Pool)
+    expect(addNames).not.toContain("Watery Grave");
+    expect(addNames).not.toContain("Polluted Delta");
+    expect(addNames).not.toContain("Morphic Pool");
+  });
+
+  it("should correctly resolve cycle aliases such as 'painlands', 'slowland', and 'shocks'", () => {
+    const commander = "Wilhelt, the Rotcleaver";
+    const deckCards = ["Island", "Swamp"];
+
+    const result = analyzeLands(commander, deckCards, {
+      likedCycles: ["painlands", "shocks"]
+    });
+
+    const addNames = result.adds.map(a => a.name);
+    expect(addNames).toContain("Underground River");
+    expect(addNames).toContain("Watery Grave");
+    expect(addNames).not.toContain("Shipwreck Marsh");
+  });
+
+  it("should return 0 adds if user explicitly sets likedCycles to an empty array", () => {
+    const commander = "Wilhelt, the Rotcleaver";
+    const deckCards = ["Island", "Swamp"];
+
+    const result = analyzeLands(commander, deckCards, {
+      likedCycles: []
+    });
+
+    expect(result.adds).toEqual([]);
+  });
+
+  it("should return 0 adds if deck already contains all on-color lands from liked cycles", () => {
+    const commander = "Wilhelt, the Rotcleaver";
+    // Dimir deck that already has the Dimir painland and slowland
+    const deckCards = ["Island", "Swamp", "Underground River", "Shipwreck Marsh"];
+
+    const result = analyzeLands(commander, deckCards, {
+      likedCycles: ["cycle-painland", "cycle-slowland"]
+    });
+
+    expect(result.adds).toEqual([]);
+  });
+
   it("should gracefully handle decks without a defined commander by inferring colors from cards", () => {
     // Deck with no commander, but Dimir basic lands (Island + Swamp)
     const deckCards = ["Island", "Swamp", "Dismal Backwater", "Sol Ring"];
