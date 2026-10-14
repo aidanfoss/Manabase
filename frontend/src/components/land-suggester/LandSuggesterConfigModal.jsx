@@ -23,9 +23,10 @@ export default function LandSuggesterConfigModal({
   onClose,
   initialPreferences,
   onSavePreferences,
-  isSaving
+  isSaving,
+  initialTab = "budget"
 }) {
-  const [activeTab, setActiveTab] = useState("budget"); // "budget" | "cycles"
+  const [activeTab, setActiveTab] = useState(initialTab || "budget");
   const [budgetTier, setBudgetTier] = useState(initialPreferences?.budgetTier || "all");
   const [maxPricePerLand, setMaxPricePerLand] = useState(
     initialPreferences?.maxPricePerLand !== null && initialPreferences?.maxPricePerLand !== undefined
@@ -52,6 +53,9 @@ export default function LandSuggesterConfigModal({
   // Sync state whenever modal opens or initialPreferences update
   useEffect(() => {
     if (isOpen) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
       console.log("[LandSuggesterConfigModal] Modal opened with initial preferences:", initialPreferences);
       const incomingLiked = (initialPreferences?.likedCycles || []).map(c => c.toLowerCase());
       const incomingDisliked = (initialPreferences?.dislikedCycles || []).map(c => c.toLowerCase());

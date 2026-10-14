@@ -423,8 +423,10 @@ export const FALLBACK_LAND_CYCLES = [
     tier: "mid",
     speed: "conditional",
     cards: [
-      { name: "Rockfall Vale" }, { name: "Shipwreck Marsh" }, { name: "Haunted Ridge" },
-      { name: "Overgrown Farmland" }, { name: "Deserted Beach" }, { name: "Deathcap Glade" }
+      { name: "Deserted Beach" }, { name: "Shipwreck Marsh" }, { name: "Haunted Ridge" },
+      { name: "Rockfall Vale" }, { name: "Overgrown Farmland" }, { name: "Shattered Sanctuary" },
+      { name: "Stormcarved Coast" }, { name: "Deathcap Glade" }, { name: "Sundown Pass" },
+      { name: "Dreamroot Cascade" }
     ]
   },
   {
@@ -433,8 +435,10 @@ export const FALLBACK_LAND_CYCLES = [
     tier: "mid",
     speed: "conditional",
     cards: [
-      { name: "Copperline Gorge" }, { name: "Blackcleave Cliffs" }, { name: "Darkslick Shores" },
-      { name: "Seachrome Coast" }, { name: "Razorverge Thicket" }, { name: "Blooming Marsh" }
+      { name: "Seachrome Coast" }, { name: "Darkslick Shores" }, { name: "Blackcleave Cliffs" },
+      { name: "Copperline Gorge" }, { name: "Razorverge Thicket" }, { name: "Concealed Courtyard" },
+      { name: "Spirebluff Canal" }, { name: "Blooming Marsh" }, { name: "Inspiring Vantage" },
+      { name: "Botanical Sanctum" }
     ]
   },
   {
@@ -443,8 +447,10 @@ export const FALLBACK_LAND_CYCLES = [
     tier: "mid",
     speed: "conditional",
     cards: [
-      { name: "Rootbound Crag" }, { name: "Dragonskull Summit" }, { name: "Drowned Catacomb" },
-      { name: "Glacial Fortress" }, { name: "Sunpetal Grove" }, { name: "Sulfur Falls" }
+      { name: "Glacial Fortress" }, { name: "Drowned Catacomb" }, { name: "Dragonskull Summit" },
+      { name: "Rootbound Crag" }, { name: "Sunpetal Grove" }, { name: "Isolated Chapel" },
+      { name: "Sulfur Falls" }, { name: "Woodland Cemetery" }, { name: "Clifftop Retreat" },
+      { name: "Hinterland Harbor" }
     ]
   }
 ];
@@ -525,6 +531,109 @@ export const CYCLE_PRIORITY_SCORES = {
   "cycle-ala-panorama": 35,
   "cycle-mrd-artifact-land": 30
 };
+
+// Common aliases and display names for MTG land cycles
+export const CYCLE_ALIASES = {
+  "shocklands": "cycle-rav-shockland",
+  "shockland": "cycle-rav-shockland",
+  "shocks": "cycle-rav-shockland",
+  "fetchlands": "cycle-fetchland",
+  "fetchland": "cycle-fetchland",
+  "fetches": "cycle-fetchland",
+  "bondlands": "cycle-bondland",
+  "bondland": "cycle-bondland",
+  "crowd lands": "cycle-bondland",
+  "crowd / bondlands": "cycle-bondland",
+  "painlands": "cycle-painland",
+  "painland": "cycle-painland",
+  "slowlands": "cycle-slowland",
+  "slowland": "cycle-slowland",
+  "fastlands": "cycle-fastland",
+  "fastland": "cycle-fastland",
+  "surveil lands": "cycle-dual-surveil-land",
+  "surveil land": "cycle-dual-surveil-land",
+  "dual surveil lands": "cycle-dual-surveil-land",
+  "checklands": "cycle-checkland",
+  "checkland": "cycle-checkland",
+  "filterlands": "cycle-hybrid-filterland",
+  "hybrid filterlands": "cycle-hybrid-filterland",
+  "pathways": "cycle-pathway",
+  "pathway": "cycle-pathway",
+  "verges": "cycle-verge",
+  "verge": "cycle-verge",
+  "horizon lands": "cycle-horizon-land",
+  "horizon canopy lands": "cycle-horizon-land",
+  "triomes": "tricycle-land",
+  "tangolands": "cycle-tangoland",
+  "battle lands": "cycle-tangoland",
+  "tango / battle lands": "cycle-tangoland",
+  "landscapes": "cycle-mh3-landscape",
+  "mh3 landscapes": "cycle-mh3-landscape",
+  "bouncelands": "cycle-rav-bounceland",
+  "ravnica bouncelands": "cycle-rav-bounceland",
+  "scry lands": "cycle-block-ths-scry-land",
+  "temple lands": "cycle-block-ths-scry-land",
+  "scry / temple lands": "cycle-block-ths-scry-land",
+  "gainlands": "cycle-ktk-gainland",
+  "gainlands / refuges": "cycle-ktk-gainland",
+  "campuses": "cycle-stx-campus",
+  "strixhaven campuses": "cycle-stx-campus",
+  "guildgates": "cycle-guildgate",
+  "abu duals": "cycle-abu-dual-land",
+  "og duals": "cycle-abu-dual-land",
+  "original abu dual lands": "cycle-abu-dual-land"
+};
+
+/**
+ * Robustly checks if a cycle object or ID matches any entry in a cycle Set.
+ * Supports exact IDs, exact names, aliases, singular/plural, and trimmed forms.
+ */
+export function isCycleInSet(cycleDataOrId, cycleSet) {
+  if (!cycleDataOrId || !cycleSet || cycleSet.size === 0) return false;
+  const cycleId = typeof cycleDataOrId === "string"
+    ? cycleDataOrId.toLowerCase().trim()
+    : (cycleDataOrId.id || cycleDataOrId.cycleId || "").toLowerCase().trim();
+  const cycleName = typeof cycleDataOrId === "object"
+    ? (cycleDataOrId.name || cycleDataOrId.cycleName || "").toLowerCase().trim()
+    : "";
+
+  if (cycleId && cycleSet.has(cycleId)) return true;
+  if (cycleName && cycleSet.has(cycleName)) return true;
+
+  // Check alias lookup
+  for (const [alias, canonicalId] of Object.entries(CYCLE_ALIASES)) {
+    if (cycleSet.has(alias) && (cycleId === canonicalId || cycleName.includes(alias))) {
+      return true;
+    }
+    if ((cycleId === alias || cycleName === alias) && cycleSet.has(canonicalId)) {
+      return true;
+    }
+  }
+
+  // Singular/plural checks (e.g. "painlands" vs "painland")
+  const stripS = s => (s.endsWith("s") ? s.slice(0, -1) : s);
+  const addS = s => (s.endsWith("s") ? s : s + "s");
+
+  if (cycleName && (cycleSet.has(stripS(cycleName)) || cycleSet.has(addS(cycleName)))) return true;
+  if (cycleId && (cycleSet.has(stripS(cycleId)) || cycleSet.has(addS(cycleId)))) return true;
+
+  // Match without "cycle-" prefix (e.g. "fetchland" matches "cycle-fetchland")
+  const idWithoutPrefix = cycleId.replace(/^cycle-/, "");
+  if (
+    idWithoutPrefix &&
+    (cycleSet.has(idWithoutPrefix) || cycleSet.has(stripS(idWithoutPrefix)) || cycleSet.has(addS(idWithoutPrefix)))
+  ) {
+    return true;
+  }
+
+  for (const item of cycleSet) {
+    const itemWithoutPrefix = item.replace(/^cycle-/, "");
+    if (cycleId === item || (idWithoutPrefix && idWithoutPrefix === itemWithoutPrefix)) return true;
+    if (cycleName && (cycleName.includes(item) || item.includes(cycleName))) return true;
+  }
+
+  return false;
+}
 
 // Budget tier price thresholds (USD)
 export const BUDGET_TIER_THRESHOLDS = {
@@ -819,18 +928,13 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
     if (seenCutNames.has(lower)) continue;
 
     const cycleData = cycleLookup.get(lower);
-    const cycleIdLower = cycleData ? cycleData.cycleId.toLowerCase() : "";
-    const cycleNameLower = cycleData ? cycleData.cycleName.toLowerCase() : "";
-
-    const isDislikedCycle =
-      dislikedCyclesSet.has(cycleIdLower) || dislikedCyclesSet.has(cycleNameLower);
-    const isLikedCycle =
-      likedCyclesSet.has(cycleIdLower) || likedCyclesSet.has(cycleNameLower);
+    const isDislikedCycle = isCycleInSet(cycleData, dislikedCyclesSet);
+    const isLikedCycle = isCycleInSet(cycleData, likedCyclesSet);
 
     let cutReason = null;
 
     if (isDislikedCycle) {
-      cutReason = `Disliked cycle (${cycleData.cycleName})`;
+      cutReason = `Disliked cycle (${cycleData ? cycleData.cycleName : "Unknown"})`;
     } else if (isLikedCycle) {
       // User explicitly likes this cycle, do not suggest cutting it
       continue;
@@ -850,10 +954,10 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
     } else if (
       excludeTapped &&
       cycleData &&
-      (cycleNameLower.includes("gainland") ||
-        cycleNameLower.includes("tapland") ||
-        cycleNameLower.includes("campus") ||
-        cycleNameLower.includes("refugeland"))
+      (cycleData.cycleName.toLowerCase().includes("gainland") ||
+        cycleData.cycleName.toLowerCase().includes("tapland") ||
+        cycleData.cycleName.toLowerCase().includes("campus") ||
+        cycleData.cycleName.toLowerCase().includes("refugeland"))
     ) {
       cutReason = `Enters tapped (${cycleData.cycleName})`;
     }
@@ -873,18 +977,31 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
   // 5. Identify Suggested Adds (Deduplicated, Color-Matching, Budget-Conscious)
   const candidateAdds = [];
   const seenAddNames = new Set();
+  const isLikedCyclesSpecified = Array.isArray(options.likedCycles);
+  const hasLikedCycles = likedCyclesSet.size > 0;
 
   for (const cycle of landCycles) {
-    const cycleIdLower = (cycle.id || "").toLowerCase();
-    const cycleNameLower = (cycle.name || "").toLowerCase();
-
     // Check if this cycle is disliked / excluded
-    if (dislikedCyclesSet.has(cycleIdLower) || dislikedCyclesSet.has(cycleNameLower)) {
+    if (isCycleInSet(cycle, dislikedCyclesSet)) {
       continue;
     }
 
     // Check Reserved List exclusion
+    const cycleIdLower = (cycle.id || "").toLowerCase();
     if (excludeReservedList && cycleIdLower.includes("abu-dual")) {
+      continue;
+    }
+
+    const isExplicitlyLiked = isCycleInSet(cycle, likedCyclesSet);
+
+    // If liked cycles are specified:
+    // When the user has liked cycles (hasLikedCycles), ONLY recommend lands from those liked cycles!
+    // When the user explicitly specified an empty liked cycles list (isLikedCyclesSpecified && !hasLikedCycles),
+    // no lands are recommended as upgrades since the user has no liked cycles selected.
+    if (hasLikedCycles && !isExplicitlyLiked) {
+      continue;
+    }
+    if (isLikedCyclesSpecified && !hasLikedCycles) {
       continue;
     }
 
@@ -892,15 +1009,12 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
     if (
       excludeTapped &&
       cycle.tier === "bottom" &&
-      !likedCyclesSet.has(cycleIdLower) &&
-      !likedCyclesSet.has(cycleNameLower)
+      !isExplicitlyLiked
     ) {
       continue;
     }
 
     const cards = Array.isArray(cycle.cards) ? cycle.cards : [];
-    const isExplicitlyLiked =
-      likedCyclesSet.has(cycleIdLower) || likedCyclesSet.has(cycleNameLower);
 
     for (const cardItem of cards) {
       const cardName = typeof cardItem === "string" ? cardItem : cardItem?.name;
@@ -946,7 +1060,8 @@ export function analyzeLands(commanderName, deckCardNames = [], options = {}) {
         tier: cycle.tier || "mid",
         image_uri: card?.image_uris?.normal || card?.card_faces?.[0]?.image_uris?.normal || null,
         priority: basePriority,
-        price: priceNum
+        price: priceNum,
+        isLikedCycle: isExplicitlyLiked
       });
     }
   }
