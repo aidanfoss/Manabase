@@ -137,6 +137,8 @@ export default function DecksHub() {
     try {
       const isMoxfield = deck.source === "moxfield";
       const syncOpts = {
+        exclude_sideboard: deck.exclude_sideboard !== undefined ? !!deck.exclude_sideboard : true,
+        exclude_maybeboard: deck.exclude_maybeboard !== undefined ? !!deck.exclude_maybeboard : true,
         exclude_side_and_maybeboards: deck.exclude_side_and_maybeboards !== undefined ? !!deck.exclude_side_and_maybeboards : true
       };
       const res = isMoxfield
@@ -193,6 +195,8 @@ export default function DecksHub() {
       for (const deck of decksToSync) {
         setSyncingId(deck.deck_id);
         const syncOpts = {
+          exclude_sideboard: deck.exclude_sideboard !== undefined ? !!deck.exclude_sideboard : true,
+          exclude_maybeboard: deck.exclude_maybeboard !== undefined ? !!deck.exclude_maybeboard : true,
           exclude_side_and_maybeboards: deck.exclude_side_and_maybeboards !== undefined ? !!deck.exclude_side_and_maybeboards : true
         };
         const res = deck.source === "moxfield"
@@ -675,6 +679,23 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
     ? JSON.parse(deck.cards || "[]").length
     : (deck.cards?.length || 100);
 
+  const isExcludingSide = deck.exclude_sideboard !== 0 && deck.exclude_sideboard !== false && deck.exclude_sideboard !== null && deck.exclude_sideboard !== undefined;
+  const isExcludingMaybe = deck.exclude_maybeboard !== 0 && deck.exclude_maybeboard !== false && deck.exclude_maybeboard !== null && deck.exclude_maybeboard !== undefined;
+  const isExcludingBoth = (isExcludingSide && isExcludingMaybe) || (deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false && deck.exclude_side_and_maybeboards !== null && deck.exclude_side_and_maybeboards !== undefined);
+
+  let boardLabel = null;
+  let boardTitle = "All boards included in active deck";
+  if (isExcludingBoth) {
+    boardLabel = " (Main)";
+    boardTitle = "Mainboard only (sideboard and maybeboard/cut cards excluded)";
+  } else if (isExcludingSide) {
+    boardLabel = " (No Side)";
+    boardTitle = "Sideboard excluded, maybeboard included";
+  } else if (isExcludingMaybe) {
+    boardLabel = " (No Maybe)";
+    boardTitle = "Maybeboard/cut cards excluded, sideboard included";
+  }
+
   return (
     <div className={`deck-card-frame ${deck.status === 'disabled' ? 'disabled' : ''}`}>
       {/* Blurred Commander Art Backdrop */}
@@ -760,11 +781,11 @@ function DeckCardItem({ deck, commanderMeta, syncing, onQuickSync, onOpenImporte
 
         {/* Meta Grid */}
         <div className="deck-meta-grid">
-          <div className="deck-meta-item" title={deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false ? "Mainboard only (side/maybeboards excluded)" : "All boards included"}>
+          <div className="deck-meta-item" title={boardTitle}>
             Cards: <strong>{cardCount}</strong>
-            {deck.exclude_side_and_maybeboards !== 0 && deck.exclude_side_and_maybeboards !== false ? (
-              <span style={{ fontSize: '0.75rem', color: '#60a5fa', marginLeft: '4px', fontWeight: 600 }}> (Main)</span>
-            ) : null}
+            {boardLabel && (
+              <span style={{ fontSize: '0.75rem', color: '#60a5fa', marginLeft: '4px', fontWeight: 600 }}>{boardLabel}</span>
+            )}
           </div>
           <div className="deck-meta-item">
             Synced: <strong>{formatRelativeTime(deck.updated_at)}</strong>

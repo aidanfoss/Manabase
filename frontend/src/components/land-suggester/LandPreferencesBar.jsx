@@ -25,8 +25,8 @@ export default function LandPreferencesBar({
     onQuickChangeBudget(tierId, maxPrice);
   };
 
-  const handleOpenTuneModal = () => {
-    console.log("[LandPreferencesBar] 'Tune Preferences' clicked, opening config modal with current preferences:", {
+  const handleOpenTuneModal = (tab = "budget") => {
+    console.log("[LandPreferencesBar] Opening config modal with tab:", tab, {
       budgetTier: currentTierId,
       maxPricePerLand: preferences?.maxPricePerLand,
       likedCount,
@@ -36,7 +36,7 @@ export default function LandPreferencesBar({
       excludeReservedList: preferences?.excludeReservedList,
       excludeTapped: preferences?.excludeTapped
     });
-    onOpenConfigModal();
+    onOpenConfigModal(tab);
   };
 
   return (
@@ -76,22 +76,44 @@ export default function LandPreferencesBar({
             </span>
           )}
 
-          {likedCount > 0 && (
-            <span className="pref-badge cyan" title={`${likedCount} cycles explicitly favored`}>
-              <HeartIcon className="icon-xs" /> +{likedCount} Liked
-            </span>
+          {likedCount > 0 ? (
+            <button
+              type="button"
+              className="pref-badge cyan clickable"
+              onClick={() => handleOpenTuneModal("cycles")}
+              title={`${likedCount} cycles favored for upgrades. Click to manage liked cycles.`}
+            >
+              <HeartIcon className="icon-xs" />
+              <span>+{likedCount} Liked Cycles</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="pref-badge warning clickable"
+              onClick={() => handleOpenTuneModal("cycles")}
+              title="Click to select your preferred land cycles to base upgrades on"
+            >
+              <HeartIcon className="icon-xs text-rose" />
+              <span>Pick Liked Cycles</span>
+            </button>
           )}
 
           {dislikedCount > 0 && (
-            <span className="pref-badge rose" title={`${dislikedCount} cycles explicitly excluded`}>
-              <NoSymbolIcon className="icon-xs" /> -{dislikedCount} Excluded
-            </span>
+            <button
+              type="button"
+              className="pref-badge rose clickable"
+              onClick={() => handleOpenTuneModal("cycles")}
+              title={`${dislikedCount} cycles explicitly excluded. Click to manage.`}
+            >
+              <NoSymbolIcon className="icon-xs" />
+              <span>-{dislikedCount} Excluded</span>
+            </button>
           )}
         </div>
 
         <button
           className="btn-tune-preferences"
-          onClick={handleOpenTuneModal}
+          onClick={() => handleOpenTuneModal("budget")}
           disabled={isLoading}
           title="Open full land base preferences & cycle customization"
         >

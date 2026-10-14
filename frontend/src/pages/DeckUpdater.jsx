@@ -11,7 +11,8 @@ import {
   MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
   ChevronRightIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  HeartIcon
 } from "@heroicons/react/24/solid";
 import CardMagnifier from "../components/CardMagnifier";
 import LandPreferencesBar from "../components/land-suggester/LandPreferencesBar";
@@ -40,7 +41,14 @@ export default function DeckUpdater() {
     dislikedCycles: []
   });
   const [isLandConfigOpen, setIsLandConfigOpen] = useState(false);
+  const [landConfigInitialTab, setLandConfigInitialTab] = useState("budget");
   const [isSavingLandPrefs, setIsSavingLandPrefs] = useState(false);
+
+  const handleOpenLandConfig = (tab = "budget") => {
+    console.log(`[DeckUpdater] Opening land config modal on tab: '${tab}'`);
+    setLandConfigInitialTab(tab);
+    setIsLandConfigOpen(true);
+  };
 
   // Dismissals & Undo states
   const [showOptions, setShowOptions] = useState(false);
@@ -743,7 +751,7 @@ export default function DeckUpdater() {
       {(activeFilter === "all" || activeFilter === "lands") && (
         <LandPreferencesBar
           preferences={landPreferences}
-          onOpenConfigModal={() => setIsLandConfigOpen(true)}
+          onOpenConfigModal={handleOpenLandConfig}
           onQuickChangeBudget={handleQuickChangeBudget}
           isLoading={refreshing}
         />
@@ -787,7 +795,7 @@ export default function DeckUpdater() {
               newCards.length + upgrades.length + landCuts.length + landAdds.length + synergyCards.length;
 
             const shouldShowUpgrades = (activeFilter === "all" || activeFilter === "upgrades") && upgrades.length > 0;
-            const shouldShowLands = (activeFilter === "all" || activeFilter === "lands") && (landCuts.length > 0 || landAdds.length > 0);
+            const shouldShowLands = (activeFilter === "all" || activeFilter === "lands") && (landCuts.length > 0 || landAdds.length > 0 || activeFilter === "lands");
             const shouldShowNew = (activeFilter === "all" || activeFilter === "new") && newCards.length > 0;
             const shouldShowSynergy = (activeFilter === "all" || activeFilter === "synergy") && synergyCards.length > 0;
 
@@ -1051,11 +1059,16 @@ export default function DeckUpdater() {
                       )}
 
                       {/* Sub-section: Better Alternatives */}
-                      {landAdds.length > 0 && (
+                      {landAdds.length > 0 ? (
                         <div className="land-subgroup adds-subgroup">
-                          <div className="land-subgroup-title">
-                            <CheckCircleIcon className="icon-xs text-emerald" />
-                            <h4>Recommended Land Upgrades ({landAdds.length})</h4>
+                          <div className="land-subgroup-title-row">
+                            <div className="land-subgroup-title">
+                              <CheckCircleIcon className="icon-xs text-emerald" />
+                              <h4>Recommended Land Upgrades ({landAdds.length})</h4>
+                            </div>
+                            <span className="land-source-badge" title="Suggested from your liked land cycles">
+                              <HeartIcon className="icon-xs" /> Liked Cycles Only
+                            </span>
                           </div>
 
                           <div className="triage-grid">
@@ -1086,8 +1099,9 @@ export default function DeckUpdater() {
                                       {card.name}
                                     </h3>
                                     {card.cycle && (
-                                      <p className="triage-reason text-emerald" title={card.cycle}>
-                                        {card.cycle}
+                                      <p className="triage-reason text-emerald" title={`Liked cycle: ${card.cycle}`}>
+                                        <HeartIcon className="icon-xs inline-heart text-rose" />
+                                        <span>{card.cycle}</span>
                                       </p>
                                     )}
                                   </div>
@@ -1115,6 +1129,42 @@ export default function DeckUpdater() {
                               );
                             })}
                           </div>
+                        </div>
+                      ) : (
+                        <div className="land-subgroup adds-subgroup adds-status-wrap">
+                          {(landPreferences?.likedCycles || []).length > 0 ? (
+                            <div className="land-status-box success">
+                              <CheckCircleIcon className="icon-sm text-emerald" />
+                              <div className="status-box-content">
+                                <h4>All Liked Land Cycles Included</h4>
+                                <p>This deck already includes all on-color lands from your currently liked cycles.</p>
+                              </div>
+                              <button
+                                type="button"
+                                className="btn-configure-cycles-mini"
+                                onClick={() => handleOpenLandConfig("cycles")}
+                              >
+                                <AdjustmentsHorizontalIcon className="icon-xs" />
+                                <span>Manage Cycles</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="land-status-box warning">
+                              <HeartIcon className="icon-sm text-rose" />
+                              <div className="status-box-content">
+                                <h4>No Liked Land Cycles Selected</h4>
+                                <p>Pick your favorite land cycles (e.g. Painlands, Slowlands, Shocklands, Bondlands) to see recommendations.</p>
+                              </div>
+                              <button
+                                type="button"
+                                className="btn-configure-cycles-mini primary"
+                                onClick={() => handleOpenLandConfig("cycles")}
+                              >
+                                <HeartIcon className="icon-xs" />
+                                <span>Pick Liked Cycles</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1291,6 +1341,7 @@ export default function DeckUpdater() {
         initialPreferences={landPreferences}
         onSavePreferences={handleSaveLandPreferences}
         isSaving={isSavingLandPrefs}
+        initialTab={landConfigInitialTab}
       />
 
       {/* Review History / Passed Cards Modal */}

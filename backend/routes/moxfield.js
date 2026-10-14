@@ -42,7 +42,7 @@ router.get("/deck/:id", requireAuth, async (req, res) => {
 // Syncs a specific Moxfield deck based on tag mappings
 router.post("/sync/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { mappings, exclude_side_and_maybeboards } = req.body;
+  const { mappings, exclude_sideboard, exclude_maybeboard, exclude_side_and_maybeboards } = req.body;
 
   try {
     if (mappings !== undefined) {
@@ -54,9 +54,9 @@ router.post("/sync/:id", requireAuth, async (req, res) => {
     }
 
     const options = {};
-    if (exclude_side_and_maybeboards !== undefined) {
-      options.excludeSideAndMaybeboards = !!exclude_side_and_maybeboards;
-    }
+    if (exclude_sideboard !== undefined) options.excludeSideboard = !!exclude_sideboard;
+    if (exclude_maybeboard !== undefined) options.excludeMaybeboard = !!exclude_maybeboard;
+    if (exclude_side_and_maybeboards !== undefined) options.excludeSideAndMaybeboards = !!exclude_side_and_maybeboards;
 
     const result = await syncMoxfieldDeckInternal(id, req.user.id, mappings, options);
     recordFeatureUsage(req.user.id, "moxfield_sync", "sync_deck", { deckId: id }).catch(() => {});
@@ -104,7 +104,7 @@ router.get("/decks", requireAuth, async (req, res) => {
 // Update deck options without syncing cards
 router.put("/decks/:deckId", requireAuth, async (req, res) => {
   try {
-    const { is_public, status, exclude_side_and_maybeboards } = req.body;
+    const { is_public, status, exclude_sideboard, exclude_maybeboard, exclude_side_and_maybeboards } = req.body;
     const cleanId = parseMoxfieldDeckId(req.params.deckId);
 
     const updateData = {
@@ -112,19 +112,28 @@ router.put("/decks/:deckId", requireAuth, async (req, res) => {
     };
     if (is_public !== undefined) updateData.is_public = is_public;
     if (status !== undefined) updateData.status = status;
+    if (exclude_sideboard !== undefined) updateData.exclude_sideboard = !!exclude_sideboard;
+    if (exclude_maybeboard !== undefined) updateData.exclude_maybeboard = !!exclude_maybeboard;
     if (exclude_side_and_maybeboards !== undefined) {
       updateData.exclude_side_and_maybeboards = !!exclude_side_and_maybeboards;
+      if (exclude_sideboard === undefined) updateData.exclude_sideboard = !!exclude_side_and_maybeboards;
+      if (exclude_maybeboard === undefined) updateData.exclude_maybeboard = !!exclude_side_and_maybeboards;
+    } else if (exclude_sideboard !== undefined && exclude_maybeboard !== undefined) {
+      updateData.exclude_side_and_maybeboards = !!(exclude_sideboard && exclude_maybeboard);
     }
 
     await db("user_archidekt_decks")
       .where({ user_id: req.user.id, deck_id: cleanId, source: "moxfield" })
       .update(updateData);
 
-    if (exclude_side_and_maybeboards !== undefined) {
+    if (exclude_sideboard !== undefined || exclude_maybeboard !== undefined || exclude_side_and_maybeboards !== undefined) {
       try {
-        await syncMoxfieldDeckInternal(cleanId, req.user.id, null, {
-          excludeSideAndMaybeboards: !!exclude_side_and_maybeboards
-        });
+        const syncOptions = {};
+        if (exclude_sideboard !== undefined) syncOptions.excludeSideboard = !!exclude_sideboard;
+        if (exclude_maybeboard !== undefined) syncOptions.excludeMaybeboard = !!exclude_maybeboard;
+        if (exclude_side_and_maybeboards !== undefined) syncOptions.excludeSideAndMaybeboards = !!exclude_side_and_maybeboards;
+
+        await syncMoxfieldDeckInternal(cleanId, req.user.id, null, syncOptions);
       } catch (syncErr) {
         console.warn("Could not resync Moxfield cards on options update:", syncErr.message);
       }
