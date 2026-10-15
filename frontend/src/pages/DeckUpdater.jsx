@@ -35,6 +35,8 @@ export default function DeckUpdater() {
   const [landPreferences, setLandPreferences] = useState({
     budgetTier: "budget",
     maxPricePerLand: null,
+    suggestCheapestLikedAlternative: false,
+    preferHighestTierLiked: true,
     excludeReservedList: true,
     excludeTapped: true,
     likedCycles: [],
@@ -86,6 +88,8 @@ export default function DeckUpdater() {
           console.log("[DeckUpdater:LandPreferences] Updating local state with preferences:", {
             budgetTier: data.preferences.budgetTier,
             maxPricePerLand: data.preferences.maxPricePerLand,
+            suggestCheapestLikedAlternative: data.preferences.suggestCheapestLikedAlternative,
+            preferHighestTierLiked: data.preferences.preferHighestTierLiked,
             excludeReservedList: data.preferences.excludeReservedList,
             excludeTapped: data.preferences.excludeTapped,
             likedCyclesCount: (data.preferences.likedCycles || []).length,
@@ -190,6 +194,8 @@ export default function DeckUpdater() {
     console.log("[DeckUpdater:LandPreferences] handleSaveLandPreferences called with payload:", {
       budgetTier: newPreferences?.budgetTier,
       maxPricePerLand: newPreferences?.maxPricePerLand,
+      suggestCheapestLikedAlternative: newPreferences?.suggestCheapestLikedAlternative,
+      preferHighestTierLiked: newPreferences?.preferHighestTierLiked,
       excludeReservedList: newPreferences?.excludeReservedList,
       excludeTapped: newPreferences?.excludeTapped,
       likedCount: newPreferences?.likedCycles?.length || 0,

@@ -29,6 +29,8 @@ export default function LandPreferencesBar({
     console.log("[LandPreferencesBar] Opening config modal with tab:", tab, {
       budgetTier: currentTierId,
       maxPricePerLand: preferences?.maxPricePerLand,
+      suggestCheapestLikedAlternative: preferences?.suggestCheapestLikedAlternative,
+      preferHighestTierLiked: preferences?.preferHighestTierLiked,
       likedCount,
       likedCycles: preferences?.likedCycles,
       dislikedCount,
@@ -70,10 +72,28 @@ export default function LandPreferencesBar({
       <div className="pref-bar-right">
         {/* Status badges */}
         <div className="pref-status-tags">
-          {preferences?.excludeReservedList && (
-            <span className="pref-badge emerald" title="Reserved List lands ($500+ ABU Duals) excluded">
-              <ShieldCheckIcon className="icon-xs" /> No Reserved List
-            </span>
+          {preferences?.preferHighestTierLiked && (
+            <button
+              type="button"
+              className="pref-badge emerald clickable"
+              onClick={() => handleOpenTuneModal("budget")}
+              title="Prioritizes highest tier in liked cycles (always untapped > conditionally untapped > always tapped)"
+            >
+              <SparklesIcon className="icon-xs" />
+              <span>Highest Tier Liked</span>
+            </button>
+          )}
+
+          {preferences?.suggestCheapestLikedAlternative && (
+            <button
+              type="button"
+              className="pref-badge amber clickable"
+              onClick={() => handleOpenTuneModal("budget")}
+              title="Suggests cheapest liked alternative when multiple cycles match"
+            >
+              <CurrencyDollarIcon className="icon-xs" />
+              <span>Cheapest Liked</span>
+            </button>
           )}
 
           {likedCount > 0 ? (

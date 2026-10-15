@@ -15,6 +15,8 @@ const router = express.Router();
 const DEFAULT_LAND_PREFERENCES = {
   budgetTier: "all",
   maxPricePerLand: null,
+  suggestCheapestLikedAlternative: false,
+  preferHighestTierLiked: true,
   excludeReservedList: true,
   excludeTapped: true,
   likedCycles: [],
@@ -32,6 +34,8 @@ async function getUserLandPreferences(userId) {
       console.log(`[LandPreferences:Backend] Found existing preferences for user_id='${userId}' (${Date.now() - startTime}ms):`, {
         budgetTier: merged.budgetTier,
         maxPricePerLand: merged.maxPricePerLand,
+        suggestCheapestLikedAlternative: merged.suggestCheapestLikedAlternative,
+        preferHighestTierLiked: merged.preferHighestTierLiked,
         excludeReservedList: merged.excludeReservedList,
         excludeTapped: merged.excludeTapped,
         likedCyclesCount: (merged.likedCycles || []).length,
@@ -80,6 +84,12 @@ const saveLandPreferences = async (req, res) => {
     const preferences = {
       ...DEFAULT_LAND_PREFERENCES,
       ...rawPreferences,
+      suggestCheapestLikedAlternative: rawPreferences.suggestCheapestLikedAlternative !== undefined
+        ? !!rawPreferences.suggestCheapestLikedAlternative
+        : false,
+      preferHighestTierLiked: rawPreferences.preferHighestTierLiked !== undefined
+        ? !!rawPreferences.preferHighestTierLiked
+        : true,
       likedCycles: Array.isArray(rawPreferences.likedCycles) ? rawPreferences.likedCycles.map(c => String(c).toLowerCase()) : [],
       dislikedCycles: Array.isArray(rawPreferences.dislikedCycles) ? rawPreferences.dislikedCycles.map(c => String(c).toLowerCase()) : []
     };
@@ -87,6 +97,8 @@ const saveLandPreferences = async (req, res) => {
     console.log(`[LandPreferences:Backend] Normalized preferences to persist for user_id='${userId}':`, {
       budgetTier: preferences.budgetTier,
       maxPricePerLand: preferences.maxPricePerLand,
+      suggestCheapestLikedAlternative: preferences.suggestCheapestLikedAlternative,
+      preferHighestTierLiked: preferences.preferHighestTierLiked,
       excludeReservedList: preferences.excludeReservedList,
       excludeTapped: preferences.excludeTapped,
       likedCyclesCount: preferences.likedCycles.length,
@@ -191,10 +203,20 @@ async function runAnalyzeAll(req, res, customPreferences = null) {
     if (req.query.maxPricePerLand !== undefined) {
       resolvedLandPreferences.maxPricePerLand = req.query.maxPricePerLand;
     }
+    if (req.query.suggestCheapestLikedAlternative !== undefined) {
+      resolvedLandPreferences.suggestCheapestLikedAlternative =
+        req.query.suggestCheapestLikedAlternative === "true" || req.query.suggestCheapestLikedAlternative === true;
+    }
+    if (req.query.preferHighestTierLiked !== undefined) {
+      resolvedLandPreferences.preferHighestTierLiked =
+        req.query.preferHighestTierLiked === "true" || req.query.preferHighestTierLiked === true;
+    }
 
     console.log("[DeckUpdater:AnalyzeAll] Final resolved land preferences used for all decks:", {
       budgetTier: resolvedLandPreferences.budgetTier,
       maxPricePerLand: resolvedLandPreferences.maxPricePerLand,
+      suggestCheapestLikedAlternative: resolvedLandPreferences.suggestCheapestLikedAlternative,
+      preferHighestTierLiked: resolvedLandPreferences.preferHighestTierLiked,
       excludeReservedList: resolvedLandPreferences.excludeReservedList,
       excludeTapped: resolvedLandPreferences.excludeTapped,
       likedCyclesCount: (resolvedLandPreferences.likedCycles || []).length,

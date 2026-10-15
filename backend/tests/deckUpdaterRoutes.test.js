@@ -84,6 +84,8 @@ describe('Deck Updater Routes & Dismissals', () => {
       expect(res.status).toBe(200);
       expect(res.body.preferences).toBeDefined();
       expect(res.body.preferences.budgetTier).toBe('all');
+      expect(res.body.preferences.suggestCheapestLikedAlternative).toBe(false);
+      expect(res.body.preferences.preferHighestTierLiked).toBe(true);
       expect(res.body.preferences.excludeReservedList).toBe(true);
       expect(res.body.preferences.excludeTapped).toBe(true);
       expect(res.body.preferences.likedCycles).toEqual([]);
@@ -94,6 +96,8 @@ describe('Deck Updater Routes & Dismissals', () => {
       const newPrefs = {
         budgetTier: 'budget',
         maxPricePerLand: 3.5,
+        suggestCheapestLikedAlternative: true,
+        preferHighestTierLiked: false,
         excludeReservedList: true,
         excludeTapped: true,
         likedCycles: ['cycle-fetchland', 'cycle-rav-shockland'],
@@ -110,6 +114,8 @@ describe('Deck Updater Routes & Dismissals', () => {
       expect(putRes.body.success).toBe(true);
       expect(putRes.body.preferences.budgetTier).toBe('budget');
       expect(putRes.body.preferences.maxPricePerLand).toBe(3.5);
+      expect(putRes.body.preferences.suggestCheapestLikedAlternative).toBe(true);
+      expect(putRes.body.preferences.preferHighestTierLiked).toBe(false);
       expect(putRes.body.preferences.likedCycles).toEqual(['cycle-fetchland', 'cycle-rav-shockland']);
       expect(putRes.body.preferences.dislikedCycles).toEqual(['cycle-guildgate']);
 
@@ -121,6 +127,8 @@ describe('Deck Updater Routes & Dismissals', () => {
       expect(getRes.status).toBe(200);
       expect(getRes.body.preferences.budgetTier).toBe('budget');
       expect(getRes.body.preferences.maxPricePerLand).toBe(3.5);
+      expect(getRes.body.preferences.suggestCheapestLikedAlternative).toBe(true);
+      expect(getRes.body.preferences.preferHighestTierLiked).toBe(false);
       expect(getRes.body.preferences.likedCycles).toEqual(['cycle-fetchland', 'cycle-rav-shockland']);
       expect(getRes.body.preferences.dislikedCycles).toEqual(['cycle-guildgate']);
 
