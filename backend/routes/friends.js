@@ -163,18 +163,8 @@ router.post("/request", requireAuth, async (req, res) => {
     if (existingIn) {
       await db.transaction(async (trx) => {
         await trx("friends").insert([
-          {
-            user_id: me,
-            friend_id: targetUser.id,
-            allow_trading: true,
-            allow_proxy_orders: false,
-          },
-          {
-            user_id: targetUser.id,
-            friend_id: me,
-            allow_trading: true,
-            allow_proxy_orders: false,
-          },
+          { user_id: me, friend_id: targetUser.id, allow_trading: true, allow_proxy_orders: false },
+          { user_id: targetUser.id, friend_id: me, allow_trading: true, allow_proxy_orders: false },
         ]);
         await trx("friend_requests").where({ id: existingIn.id }).del();
       });
@@ -227,18 +217,8 @@ router.post("/requests/:id/accept", requireAuth, async (req, res) => {
     await db.transaction(async (trx) => {
       // Create dual rows
       await trx("friends").insert([
-        {
-          user_id: me,
-          friend_id: request.sender_id,
-          allow_trading: true,
-          allow_proxy_orders: false,
-        },
-        {
-          user_id: request.sender_id,
-          friend_id: me,
-          allow_trading: true,
-          allow_proxy_orders: false,
-        },
+        { user_id: me, friend_id: request.sender_id, allow_trading: true, allow_proxy_orders: false },
+        { user_id: request.sender_id, friend_id: me, allow_trading: true, allow_proxy_orders: false },
       ]);
 
       await trx("friend_requests").where({ id }).del();
@@ -414,18 +394,121 @@ router.get("/search", requireAuth, async (req, res) => {
         status = "pending_incoming";
         requestId = inRequestMap[u.id];
       }
-
-      return {
-        ...u,
-        relationship: status,
-        request_id: requestId,
-      };
+      return { ...u, relationship: status, request_id: requestId };
     });
 
     res.json(results);
   } catch (err) {
     console.error("Error searching users:", err);
     res.status(500).json({ error: "Failed to search users." });
+  }
+});
+
+// GET /api/friends/code - Retrieve current user's friend code (generate if missing)
+router.get("/code", requireAuth, async (req, res) => {
+  try {
+    const me = req.user.id;
+    // Ensure user has a friend_code
+    let user = await db("users").where({ id: me }).first();
+    if (!user.friend_code) {
+      let newCode;
+      do {
+        newCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+        const exists = await db("users").where({ friend_code: newCode }).first();
+        if (!exists) break;
+      } while (true);
+      await db("users").where({ id: me }).update({ friend_code: newCode });
+      user.friend_code = newCode;
+    }
+    res.json({ friend_code: user.friend_code });
+  } catch (err) {
+    console.error("Error fetching friend code:", err);
+    res.status(500).json({ error: "Failed to fetch friend code." });
+  }
+});
+
+// POST /api/friends/code - Regenerate the user's friend code
+router.post("/code", requireAuth, async (req, res) => {
+  try {
+    const me = req.user.id;
+    let newCode;
+    do {
+      newCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+      const exists = await db("users").where({ friend_code: newCode }).first();
+      if (!exists) break;
+    } while (true);
+    await db("users").where({ id: me }).update({ friend_code: newCode });
+    res.json({ friend_code: newCode });
+  } catch (err) {
+    console.error("Error regenerating friend code:", err);
+    res.status(500).json({ error: "Failed to regenerate friend code." });
+  }
+});
+
+// POST /api/friends/code/:code - Send a friend request using a friend code
+router.post("/code/:code", requireAuth, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const { code } = req.params;
+
+    // Look up target user by friend_code
+    const targetUser = await db("users").where({ friend_code: code }).first();
+
+    if (!targetUser) {
+      return res.status(404).json({ error: "User with that friend code not found." });
+    }
+    if (targetUser.id === me) {
+      return res.status(400).json({ error: "You cannot send a friend request to yourself." });
+    }
+
+    // Check blocks
+    const iBlocked = await db("blocked_users").where({ user_id: me, blocked_id: targetUser.id }).first();
+    if (iBlocked) {
+      return res.status(400).json({ error: "You have blocked this user. Unblock them first to send a friend request." });
+    }
+    const theyBlocked = await db("blocked_users").where({ user_id: targetUser.id, blocked_id: me }).first();
+    if (theyBlocked) {
+      return res.status(403).json({ error: "Unable to send friend request; you are blocked by this user." });
+    }
+
+    // Already friends?
+    const alreadyFriends = await db("friends").where({ user_id: me, friend_id: targetUser.id }).first();
+    if (alreadyFriends) {
+      return res.status(400).json({ error: "You are already friends with this user." });
+    }
+
+    // Existing outgoing request?
+    const existingOut = await db("friend_requests").where({ sender_id: me, receiver_id: targetUser.id, status: "pending" }).first();
+    if (existingOut) {
+      return res.status(400).json({ error: "Friend request already sent." });
+    }
+
+    // Auto-accept if there is an incoming request
+    const existingIn = await db("friend_requests").where({ sender_id: targetUser.id, receiver_id: me, status: "pending" }).first();
+    if (existingIn) {
+      await db.transaction(async (trx) => {
+        await trx("friends").insert([
+          { user_id: me, friend_id: targetUser.id, allow_trading: true, allow_proxy_orders: false },
+          { user_id: targetUser.id, friend_id: me, allow_trading: true, allow_proxy_orders: false },
+        ]);
+        await trx("friend_requests").where({ id: existingIn.id }).del();
+      });
+      return res.json({
+        success: true,
+        accepted: true,
+        message: `Accepted friend request from ${targetUser.username}!`,
+      });
+    }
+
+    // Create pending request
+    const [inserted] = await db("friend_requests").insert({ sender_id: me, receiver_id: targetUser.id, status: "pending" }).returning("*");
+    const newReq = typeof inserted === "object" && inserted !== null
+      ? inserted
+      : await db("friend_requests").where({ sender_id: me, receiver_id: targetUser.id, status: "pending" }).orderBy("created_at", "desc").first();
+    res.status(201).json({ success: true, request: newReq, message: `Friend request sent to ${targetUser.username}.` });
+  } catch (err) {
+    console.error("Error sending friend request by code:", err);
+    res.status(500).json({ error: "Failed to send friend request." });
   }
 });
 
