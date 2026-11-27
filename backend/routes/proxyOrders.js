@@ -6,38 +6,115 @@ import { recordFeatureUsage } from "../services/analyticsService.js";
 
 const router = express.Router();
 
-// POST /api/proxy-orders/confirm - Confirm an order (playgroup or personal)
+// GET /api/proxy-orders/friends-queue - Fetch combined proxy queue of user + authorized friends
+router.get("/friends-queue", requireAuth, async (req, res) => {
+  try {
+    const me = req.user.id;
+
+    // Blocked users
+    const blockedRows = await db("blocked_users")
+      .where("user_id", me)
+      .orWhere("blocked_id", me)
+      .select("user_id", "blocked_id");
+    const blockedIds = new Set();
+    blockedRows.forEach(r => {
+      blockedIds.add(r.user_id === me ? r.blocked_id : r.user_id);
+    });
+
+    // Friends who granted allow_proxy_orders = true to me
+    // friends table: user_id is the granter (friend), friend_id is the grantee (me)
+    const allowedFriends = await db("friends as f")
+      .join("users as u", "f.user_id", "u.id")
+      .where("f.friend_id", me)
+      .where("f.allow_proxy_orders", true)
+      .select("u.id", "u.username", "u.avatar_url");
+
+    const validFriends = allowedFriends.filter(f => !blockedIds.has(f.id));
+    const allowedUserIds = [me, ...validFriends.map(f => f.id)];
+
+    const cards = await db("user_cards")
+      .join("users", "user_cards.user_id", "users.id")
+      .whereIn("user_cards.user_id", allowedUserIds)
+      .whereIn("user_cards.list_type", ["wishlist", "optional_proxies"])
+      .select(
+        "user_cards.id",
+        "user_cards.user_id",
+        "user_cards.list_type",
+        "user_cards.card_name",
+        "user_cards.set_code",
+        "user_cards.collector_number",
+        "user_cards.is_foil",
+        "user_cards.quantity",
+        "user_cards.market_price",
+        "users.username"
+      )
+      .orderBy("user_cards.list_type", "desc")
+      .orderBy("user_cards.created_at", "asc");
+
+    const proxyArts = await db("user_proxy_arts").whereIn("user_id", allowedUserIds);
+    const artsMap = new Map();
+    proxyArts.forEach((a) => {
+      artsMap.set(`${a.user_id}:${a.card_name.toLowerCase()}`, a);
+    });
+
+    const enrichedCards = cards.map((c) => {
+      const art = artsMap.get(`${c.user_id}:${c.card_name.toLowerCase()}`);
+      return {
+        ...c,
+        mpcfill_id: art?.mpcfill_id || null,
+        mpcfill_name: art?.mpcfill_name || null,
+        mpcfill_query: art?.mpcfill_query || null,
+      };
+    });
+
+    res.json({
+      friends: validFriends,
+      cards: enrichedCards,
+    });
+  } catch (err) {
+    console.error("Error fetching friends proxy queue:", err);
+    res.status(500).json({ error: "Failed to fetch proxy queue." });
+  }
+});
+
+// POST /api/proxy-orders/confirm - Confirm a proxy order
 router.post("/confirm", requireAuth, async (req, res) => {
-  const { playgroup_id, cards: clientCards, unit_cost = 0.25, title: customTitle } = req.body;
+  const { cards: clientCards, unit_cost = 0.25, title: customTitle, include_friends = true } = req.body;
+  const me = req.user.id;
 
   try {
     let orderItems = [];
-    let playgroupName = null;
-    let pgId = playgroup_id ? parseInt(playgroup_id) : null;
-
-    if (pgId) {
-      // Verify membership
-      const membership = await db("playgroup_members")
-        .where({ playgroup_id: pgId, user_id: req.user.id })
-        .first();
-      if (!membership) return res.status(403).json({ error: "Not a member of this playgroup" });
-
-      const group = await db("playgroups").where({ id: pgId }).first();
-      if (group) playgroupName = group.name;
-    }
 
     if (Array.isArray(clientCards) && clientCards.length > 0) {
+      // Validate that any card for another user is authorized
+      const otherUserIds = [...new Set(clientCards.map(c => c.user_id).filter(id => id && id !== me))];
+      if (otherUserIds.length > 0) {
+        // Verify allow_proxy_orders = true
+        const authorizations = await db("friends")
+          .whereIn("user_id", otherUserIds)
+          .where("friend_id", me)
+          .where("allow_proxy_orders", true);
+        const authorizedSet = new Set(authorizations.map(a => a.user_id));
+
+        const unauthorized = otherUserIds.filter(id => !authorizedSet.has(id));
+        if (unauthorized.length > 0) {
+          return res.status(403).json({ error: "One or more users have not authorized proxy orders." });
+        }
+      }
       orderItems = clientCards;
-    } else if (pgId) {
-      // Fetch active playgroup queue (first 612 cards) excluding opted-out members
+    } else {
+      let allowedUserIds = [me];
+      if (include_friends) {
+        const allowedFriends = await db("friends as f")
+          .where("f.friend_id", me)
+          .where("f.allow_proxy_orders", true)
+          .select("f.user_id");
+        allowedUserIds = [me, ...allowedFriends.map(f => f.user_id)];
+      }
+
       const items = await db("user_cards")
         .join("users", "user_cards.user_id", "users.id")
-        .whereIn("user_cards.user_id", function () {
-          this.select("user_id")
-            .from("playgroup_members")
-            .where("playgroup_id", pgId)
-            .where("opted_out_of_manifest", false);
-        })
+        .whereIn("user_cards.user_id", allowedUserIds)
         .whereIn("user_cards.list_type", ["wishlist", "optional_proxies"])
         .select(
           "user_cards.id",
@@ -56,7 +133,7 @@ router.post("/confirm", requireAuth, async (req, res) => {
 
       const flatQueue = [];
       items.forEach((item) => {
-        for (let i = 0; i < item.quantity; i++) {
+        for (let i = 0; i < (item.quantity || 1); i++) {
           flatQueue.push({
             id: item.id,
             user_id: item.user_id,
@@ -71,26 +148,8 @@ router.post("/confirm", requireAuth, async (req, res) => {
         }
       });
 
-      // Active manifest cap of 612 cards (overflow is excluded)
+      // Active manifest cap of 612 cards (MPC standard sheet max)
       orderItems = flatQueue.slice(0, 612);
-    } else {
-      // Fetch personal wishlist / optional proxies
-      const items = await db("user_cards")
-        .where({ user_id: req.user.id })
-        .whereIn("list_type", ["wishlist", "optional_proxies"])
-        .select("*");
-
-      orderItems = items.map((i) => ({
-        id: i.id,
-        user_id: i.user_id,
-        username: req.user.username,
-        card_name: i.card_name,
-        set_code: i.set_code,
-        collector_number: i.collector_number,
-        is_foil: !!i.is_foil,
-        list_type: i.list_type,
-        quantity: i.quantity || 1,
-      }));
     }
 
     if (orderItems.length === 0) {
@@ -101,14 +160,13 @@ router.post("/confirm", requireAuth, async (req, res) => {
     const totalCards = orderItems.reduce((s, c) => s + (c.quantity || 1), 0);
     const totalCost = Number((totalCards * (parseFloat(unit_cost) || 0.25)).toFixed(2));
     const nowStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    const orderTitle = customTitle || (playgroupName ? `${playgroupName} Order - ${nowStr}` : `Personal Order - ${nowStr}`);
+    const orderTitle = customTitle || `Proxy Order - ${nowStr}`;
 
     // Begin database transaction to create order record and clear confirmed items
     const createdOrder = await db.transaction(async (trx) => {
       const [inserted] = await trx("proxy_orders")
         .insert({
-          user_id: req.user.id,
-          playgroup_id: pgId,
+          user_id: me,
           title: orderTitle,
           status: "confirmed",
           total_cards: totalCards,
@@ -149,7 +207,7 @@ router.post("/confirm", requireAuth, async (req, res) => {
       for (const item of fallbackDeletions) {
         const existing = await trx("user_cards")
           .where({
-            user_id: item.user_id || req.user.id,
+            user_id: item.user_id || me,
             card_name: item.card_name,
           })
           .whereIn("list_type", ["wishlist", "optional_proxies"])
@@ -169,8 +227,7 @@ router.post("/confirm", requireAuth, async (req, res) => {
 
       return {
         id: orderId,
-        user_id: req.user.id,
-        playgroup_id: pgId,
+        user_id: me,
         title: orderTitle,
         status: "confirmed",
         total_cards: totalCards,
@@ -193,39 +250,17 @@ router.post("/confirm", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/proxy-orders/history - Fetch order history for user / active playgroup
+// GET /api/proxy-orders/history - Fetch order history for user
 router.get("/history", requireAuth, async (req, res) => {
-  const { playgroup_id } = req.query;
-
   try {
-    // Get all playgroups user is a member of
-    const userGroups = await db("playgroup_members")
-      .where({ user_id: req.user.id })
-      .select("playgroup_id");
-
-    const groupIds = userGroups.map((g) => g.playgroup_id);
-
-    let query = db("proxy_orders")
+    const orders = await db("proxy_orders")
       .leftJoin("users", "proxy_orders.user_id", "users.id")
-      .leftJoin("playgroups", "proxy_orders.playgroup_id", "playgroups.id")
+      .where("proxy_orders.user_id", req.user.id)
       .select(
         "proxy_orders.*",
-        "users.username as creator_username",
-        "playgroups.name as playgroup_name"
-      );
-
-    if (playgroup_id) {
-      query = query.where("proxy_orders.playgroup_id", playgroup_id);
-    } else {
-      query = query.where(function () {
-        this.where("proxy_orders.user_id", req.user.id);
-        if (groupIds.length > 0) {
-          this.orWhereIn("proxy_orders.playgroup_id", groupIds);
-        }
-      });
-    }
-
-    const orders = await query.orderBy("proxy_orders.created_at", "desc");
+        "users.username as creator_username"
+      )
+      .orderBy("proxy_orders.created_at", "desc");
 
     const formatted = orders.map((o) => {
       let cardList = [];

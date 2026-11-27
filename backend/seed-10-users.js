@@ -33,18 +33,24 @@ async function seed() {
     dbUsers.push(user);
   }
 
-  // Ensure they are in a playgroup together
-  let playgroup = await db("playgroups").where({ name: "Mega Testing Playgroup" }).first();
-  if (!playgroup) {
-    const ids = await db("playgroups").insert({
-      name: "Mega Testing Playgroup"
-    }).returning("id");
-    playgroup = { id: ids[0].id || ids[0] };
-  }
-  
-  // Add members
-  for (const u of dbUsers) {
-    await db("playgroup_members").insert({ playgroup_id: playgroup.id, user_id: u.id }).onConflict(["playgroup_id", "user_id"]).ignore();
+  // Ensure friendships between DevUser and test users
+  const devUser = dbUsers[0];
+  for (let i = 1; i < dbUsers.length; i++) {
+    const friend = dbUsers[i];
+    await db("friends").insert([
+      {
+        user_id: devUser.id,
+        friend_id: friend.id,
+        allow_trading: true,
+        allow_proxy_orders: true,
+      },
+      {
+        user_id: friend.id,
+        friend_id: devUser.id,
+        allow_trading: true,
+        allow_proxy_orders: true,
+      }
+    ]).onConflict(["user_id", "friend_id"]).ignore();
   }
 
 // console.log("Cleaning old seeded cards for test users...");

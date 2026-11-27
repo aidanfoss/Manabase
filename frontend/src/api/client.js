@@ -204,10 +204,44 @@ export const api = {
   refreshMoxfieldLists: () => api.json("/moxfield/refresh-lists", { method: "POST", body: JSON.stringify({}) }),
 
   // ---------------------------------------
-  // === Playgroups ===
+  // === Friends & Social ===
   // ---------------------------------------
-  resyncPlaygroupDecks: (playgroupId) => api.json(`/playgroups/${playgroupId}/resync-decks`, { method: "POST" }),
-  toggleManifestOptOut: (playgroupId, optedOut) => api.json(`/playgroups/${playgroupId}/manifest-opt-out`, { method: "PATCH", body: JSON.stringify({ opted_out: optedOut }) }),
+  getFriends: () => api.json("/friends"),
+  getFriendRequests: () => api.json("/friends/requests"),
+  sendFriendRequest: (target) => api.post("/friends/request", { target }),
+  acceptFriendRequest: (requestId) => api.post(`/friends/requests/${requestId}/accept`, {}),
+  declineFriendRequest: (requestId) => api.post(`/friends/requests/${requestId}/decline`, {}),
+  cancelFriendRequest: (requestId) => api.json(`/friends/requests/${requestId}`, { method: "DELETE" }),
+  removeFriend: (friendId) => api.json(`/friends/${friendId}`, { method: "DELETE" }),
+  updateFriendSettings: (friendId, settings) => api.json(`/friends/${friendId}/settings`, { method: "PUT", body: JSON.stringify(settings) }),
+  searchUsers: (query) => api.json(`/friends/search?q=${encodeURIComponent(query)}`),
+
+  // ---------------------------------------
+  // === Blocking ===
+  // ---------------------------------------
+  getBlockedUsers: () => api.json("/blocks"),
+  blockUser: (userId) => api.post(`/blocks/${userId}`, {}),
+  unblockUser: (userId) => api.json(`/blocks/${userId}`, { method: "DELETE" }),
+
+  // ---------------------------------------
+  // === Direct Messages ===
+  // ---------------------------------------
+  getUnreadMessagesCount: () => api.json("/messages/unread-count"),
+  getConversations: () => api.json("/messages/conversations"),
+  getMessages: (friendId, limit = 50, before = null) => {
+    const params = new URLSearchParams({ limit });
+    if (before) params.append("before", before);
+    return api.json(`/messages/${friendId}?${params.toString()}`);
+  },
+  sendMessage: (friendId, content) => api.post(`/messages/${friendId}`, { content }),
+  markMessagesRead: (friendId) => api.post(`/messages/${friendId}/read`, {}),
+
+  // ---------------------------------------
+  // === Proxy Orders ===
+  // ---------------------------------------
+  getFriendsProxyQueue: () => api.json("/proxy-orders/friends-queue"),
+  confirmProxyOrder: (payload) => api.post("/proxy-orders/confirm", payload),
+  getProxyOrderHistory: () => api.json("/proxy-orders/history"),
 
   // ---------------------------------------
   // === Marketplace & Retail Pricing ===

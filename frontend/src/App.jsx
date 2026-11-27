@@ -15,8 +15,10 @@ import TradelistManager from "./components/TradelistManager";
 import DecksHub from "./components/DecksHub";
 import DeckUpdater from "./pages/DeckUpdater";
 import AdminDashboard from "./pages/AdminDashboard";
-import InviteLanding from "./components/InviteLanding";
+import FriendsPage from "./pages/FriendsPage";
 import { ToastProvider } from "./context/ToastContext";
+import { ChatProvider, useChat } from "./context/ChatContext";
+import ChatDrawer from "./components/chat/ChatDrawer";
 import { api } from "./api/client";
 import "./styles/nav-auth.css";
 import "./styles/tabs.css";
@@ -38,11 +40,13 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <WishlistProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </WishlistProvider>
+        <ChatProvider>
+          <WishlistProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </WishlistProvider>
+        </ChatProvider>
       </ToastProvider>
     </AuthProvider>
   );
@@ -69,31 +73,6 @@ function AppContent() {
     landcycles: new Set(),
     colors: new Set(),
   });
-
-  // Check for pending invite token upon login
-  React.useEffect(() => {
-    const pendingToken = localStorage.getItem("pending_invite_token");
-    if (user && pendingToken) {
-      const token = localStorage.getItem("token");
-      fetch("/api/playgroups/join", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ invite_token: pendingToken })
-      })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data && data.success) {
-            localStorage.removeItem("pending_invite_token");
-            alert(`Success! You joined playgroup "${data.name}"`);
-            navigate("/wishlist");
-          }
-        })
-        .catch(err => console.error("Error redeeming pending invite:", err));
-    }
-  }, [user, navigate]);
 
   // Load landcycles for presets
   React.useEffect(() => {
@@ -178,9 +157,9 @@ function AppContent() {
           <Route path="/wishlist" element={<WishlistHub />} />
           <Route path="/alerts/wishlist-overlap" element={<WishlistOverlap />} />
           <Route path="/trade" element={<TradelistManager />} />
+          <Route path="/friends" element={<FriendsPage />} />
           <Route path="/decks" element={<DecksHub />} />
           <Route path="/updater" element={<DeckUpdater />} />
-          <Route path="/invite/:token" element={<InviteLanding onOpenLoginModal={() => setShowLogin(true)} />} />
           <Route path="/presets" element={<Presets currentSelection={selected} onApplyPreset={applyPreset} landcycles={landcycles} />} />
           <Route path="/packages" element={<PackageManager ref={packageRef} />} />
           <Route path="/admin" element={<AdminDashboard />} />
@@ -193,6 +172,7 @@ function AppContent() {
         </Routes>
       </div>
 
+      <ChatDrawer />
       <CookieConsentBanner />
     </>
   );
@@ -341,10 +321,14 @@ const TEST_USERS = [
 
 function TopNav({ user, showLogin, setShowLogin }) {
   const { login, logout } = useAuth();
+  const { unreadMessagesCount, pendingRequestsCount } = useChat();
   const navigate = useNavigate();
   const [tradeAlerts, setTradeAlerts] = useState(0);
   const [wishlistAlerts, setWishlistAlerts] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const totalSocialAlerts = (unreadMessagesCount || 0) + (pendingRequestsCount || 0);
+  const totalNotifications = tradeAlerts + wishlistAlerts + totalSocialAlerts;
 
   const isTestUser = user && /^(DevUser|TestUser\d*)$/i.test(user.username);
 
@@ -448,6 +432,23 @@ function TopNav({ user, showLogin, setShowLogin }) {
           <div className="desktop-nav-links" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <Link className="nav-link" to="/wishlist">Proxy</Link>
             <Link className="nav-link" to="/trade">Trade</Link>
+            <Link className="nav-link" to="/friends" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              Friends
+              {totalSocialAlerts > 0 && (
+                <span
+                  style={{
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    borderRadius: '10px',
+                    padding: '1px 6px',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {totalSocialAlerts}
+                </span>
+              )}
+            </Link>
             <Link className="nav-link" to="/collection">Collection</Link>
             <Link className="nav-link" to="/decks">Decks</Link>
             <Link className="nav-link" to="/updater">Updater</Link>
@@ -482,7 +483,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
             <div className="nav-dropdown-container">
               <button className="nav-link dropdown-trigger" style={{ position: 'relative', display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }} title="Notifications">
                 <BellIcon style={{ width: '1.2em', height: '1.2em', color: '#cbd5e1' }} />
-                {(tradeAlerts + wishlistAlerts) > 0 && (
+                {totalNotifications > 0 && (
                   <div style={{
                     position: 'absolute',
                     top: '-8px',
@@ -498,11 +499,21 @@ function TopNav({ user, showLogin, setShowLogin }) {
                     fontSize: '0.7rem',
                     fontWeight: 'bold'
                   }}>
-                    {tradeAlerts + wishlistAlerts}
+                    {totalNotifications}
                   </div>
                 )}
               </button>
               <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '220px', top: '100%' }}>
+                {unreadMessagesCount > 0 && (
+                  <Link className="nav-dropdown-item" to="/friends">
+                    {unreadMessagesCount} unread message{unreadMessagesCount !== 1 ? 's' : ''}
+                  </Link>
+                )}
+                {pendingRequestsCount > 0 && (
+                  <Link className="nav-dropdown-item" to="/friends">
+                    {pendingRequestsCount} friend request{pendingRequestsCount !== 1 ? 's' : ''}
+                  </Link>
+                )}
                 {tradeAlerts > 0 && (
                   <Link className="nav-dropdown-item" to="/trade">
                     You have {tradeAlerts} pending trade{tradeAlerts !== 1 ? 's' : ''}
@@ -513,7 +524,7 @@ function TopNav({ user, showLogin, setShowLogin }) {
                     {wishlistAlerts} wishlist card{wishlistAlerts !== 1 ? 's' : ''} in your collection!
                   </Link>
                 )}
-                {(tradeAlerts + wishlistAlerts) === 0 && (
+                {totalNotifications === 0 && (
                   <div className="nav-dropdown-item" style={{ color: '#94a3b8', cursor: 'default' }}>
                     No new notifications
                   </div>
@@ -560,6 +571,9 @@ function TopNav({ user, showLogin, setShowLogin }) {
             <Link className="mobile-nav-link" to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
             <Link className="mobile-nav-link" to="/wishlist" onClick={() => setMobileMenuOpen(false)}>Proxy</Link>
             <Link className="mobile-nav-link" to="/trade" onClick={() => setMobileMenuOpen(false)}>Trade</Link>
+            <Link className="mobile-nav-link" to="/friends" onClick={() => setMobileMenuOpen(false)}>
+              Friends {totalSocialAlerts > 0 ? `(${totalSocialAlerts})` : ""}
+            </Link>
             <Link className="mobile-nav-link" to="/collection" onClick={() => setMobileMenuOpen(false)}>Collection</Link>
             <Link className="mobile-nav-link" to="/decks" onClick={() => setMobileMenuOpen(false)}>Decks</Link>
             <Link className="mobile-nav-link" to="/updater" onClick={() => setMobileMenuOpen(false)}>Deck Updater</Link>

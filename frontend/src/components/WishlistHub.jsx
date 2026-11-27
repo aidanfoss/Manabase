@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import PlaygroupNexus from "./wishlist/PlaygroupNexus";
+import FriendsProxyManifest from "./wishlist/FriendsProxyManifest";
 import ListManager from "./wishlist/ListManager";
 import OrderHistory from "./wishlist/OrderHistory";
 import ProxySettings from "./wishlist/ProxySettings";
@@ -95,15 +95,6 @@ export default function WishlistHub() {
   const [searching, setSearching] = useState(false);
   const searchTimeoutRef = useRef(null);
 
-  // Playgroups states
-  const {
-    playgroups, setPlaygroups,
-    activeGroup, setActiveGroup,
-    groupMembers, setGroupMembers,
-    groupWishlist, setGroupWishlist
-  } = useWishlist();
-  const [newGroupName, setNewGroupName] = useState("");
-
   // Print view state
   const [showPrintMode, setShowPrintMode] = useState(false);
 
@@ -118,20 +109,12 @@ export default function WishlistHub() {
   // MPC print cost config (default $0.25)
   const [mpcUnitCost, setMpcUnitCost] = useState(0.25);
 
-  // Playgroup Decks Resync Lock
-  const [hasResyncedGroupDecks, setHasResyncedGroupDecks] = useState(false);
-  const [resyncingGroupDecks, setResyncingGroupDecks] = useState(false);
-
-  // Manifest opt-out state (off by default  user must explicitly opt IN)
-  const [manifestOptedOut, setManifestOptedOut] = useState(true);
-  const [togglingOptOut, setTogglingOptOut] = useState(false);
-
   // Order History & Order Confirmation States
   const { orderHistory, setOrderHistory, loadingHistory, setLoadingHistory } = useWishlist();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmingOrder, setConfirmingOrder] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
-  const [confirmTargetScope, setConfirmTargetScope] = useState("playgroup"); // "playgroup" or "personal"
+  const [confirmTargetScope, setConfirmTargetScope] = useState("personal"); // "personal"
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   const loadOrderHistory = async () => {
@@ -171,8 +154,9 @@ export default function WishlistHub() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          playgroup_id: confirmTargetScope === "playgroup" ? activeGroup?.id : null,
-          unit_cost: mpcUnitCost
+          cards: (selectedList === "optional_proxies" ? optionalProxies : wishlist),
+          unit_cost: mpcUnitCost,
+          include_friends: false
         })
       });
 
@@ -182,7 +166,6 @@ export default function WishlistHub() {
         setShowConfirmModal(false);
         setConfirmChecked(false);
         await loadLists();
-        if (activeGroup) await loadPlaygroupDetails(activeGroup.id);
         await loadOrderHistory();
       } else {
         const errData = await res.json();
@@ -208,7 +191,6 @@ export default function WishlistHub() {
         const data = await res.json();
         showToast(data.message || "Order restored to wishlist!", "success");
         await loadLists();
-        if (activeGroup) await loadPlaygroupDetails(activeGroup.id);
       } else {
         const errData = await res.json();
         alert(errData.error || "Failed to restore order.");
@@ -334,7 +316,6 @@ export default function WishlistHub() {
 
   useEffect(() => {
     loadLists();
-    loadPlaygroups();
 
     // Fetch prebuilt cardbacks from backend
     fetch("/api/cardbacks")
@@ -432,15 +413,6 @@ export default function WishlistHub() {
       console.error("Failed to save default card back:", e);
     }
   };
-
-  useEffect(() => {
-    if (activeGroup) {
-      loadPlaygroupDetails(activeGroup.id);
-    } else {
-      setGroupMembers([]);
-      setGroupWishlist([]);
-    }
-  }, [activeGroup]);
 
   // Load lists
   const loadLists = async () => {
@@ -889,517 +861,12 @@ export default function WishlistHub() {
     }
   };
 
-  // Playgroup service methods
-  const loadPlaygroups = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await fetch("/api/playgroups", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPlaygroups(data || []);
-        if (data.length > 0 && !activeGroup) {
-          setActiveGroup(data[0]);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load playgroups:", e);
-    }
-  };
-
-  const loadPlaygroupDetails = async (groupId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      // Fetch group members
-      const membersRes = await fetch(`/api/playgroups/${groupId}/members`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (membersRes.ok) {
-        const membersData = await membersRes.json();
-        setGroupMembers(membersData);
-        // Sync the local opted-out state from the server response for the current user
-        const token2 = localStorage.getItem("token");
-        try {
-          // Decode user id from JWT payload
-          const payload = JSON.parse(atob(token2.split(".")[1]));
-          const myMembership = membersData.find(m => m.id === payload.id || m.id === payload.userId || m.id === payload.sub);
-          if (myMembership) {
-            setManifestOptedOut(!!myMembership.opted_out_of_manifest);
-          }
-        } catch (_) { /* ignore decode errors */ }
-      }
-
-      // Fetch group bundled wishlists
-      const wishlistRes = await fetch(`/api/playgroups/${groupId}/wishlist`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (wishlistRes.ok) setGroupWishlist(await wishlistRes.json());
-
-    } catch (e) {
-      console.error("Failed to fetch playgroup info:", e);
-    }
-  };
-
-
-  const loadActiveTrades = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      const res = await fetch("/api/trade/active", { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) {
-        setActiveTrades(await res.json());
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleProposeTrade = async (partnerId, offer, demand) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/trade/propose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ partnerId, offer, demand })
-      });
-      if (res.ok) {
-        alert("Trade proposed successfully!");
-        loadActiveTrades();
-        loadPlaygroups();
-        if (activeGroup) loadPlaygroupDetails(activeGroup.id);
-      } else {
-        const data = await res.json();
-        alert(`Error: ${data.error}`);
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Failed to propose trade.");
-    }
-  };
-
-  const handleTradeAction = async (tradeId, action, offer = null, demand = null) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/trade/${tradeId}/action`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ action, offer, demand })
-      });
-      if (res.ok) {
-        alert(`Trade ${action} successful!`);
-        setCounterTrade(null);
-        loadActiveTrades();
-        loadLists();
-        if (activeGroup) loadPlaygroupDetails(activeGroup.id);
-      } else {
-        const data = await res.json();
-        alert(`Error: ${data.error}`);
-      }
-    } catch (e) {
-      console.error(e);
-      alert(`Failed to ${action} trade.`);
-    }
-  };
-
-  const handleToggleManifestOptOut = async () => {
-    if (!activeGroup) return;
-    const newOptedOut = !manifestOptedOut;
-    setTogglingOptOut(true);
-    try {
-      await api.toggleManifestOptOut(activeGroup.id, newOptedOut);
-      setManifestOptedOut(newOptedOut);
-      // Re-fetch group wishlist so the manifest card count updates immediately
-      await loadPlaygroupDetails(activeGroup.id);
-      showToast(
-        newOptedOut
-          ? "You've opted OUT of the proxy manifest. Your cards won't be included in the next print order."
-          : "You've opted IN to the proxy manifest. Your cards will be included in the next print order.",
-        newOptedOut ? "warning" : "success"
-      );
-    } catch (e) {
-      showToast("Failed to update manifest opt-out setting.", "error");
-    } finally {
-      setTogglingOptOut(false);
-    }
-  };
-
-  const handleCreateGroup = async () => {
-    if (!newGroupName.trim()) return;
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/playgroups", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ name: newGroupName.trim() })
-      });
-      if (res.ok) {
-        const newGroup = await res.json();
-        setNewGroupName("");
-        loadPlaygroups();
-        setActiveGroup(newGroup);
-        alert(`Success! Created playgroup "${newGroup.name}"`);
-      }
-    } catch (e) {
-      console.error("Failed to create playgroup:", e);
-    }
-  };
-
-  const handleGenerateInviteLink = async () => {
-    if (!activeGroup) return;
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/playgroups/${activeGroup.id}/invite`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const url = `${window.location.origin}/invite/${data.token}`;
-        await navigator.clipboard.writeText(url);
-        showToast(`Playgroup invite link copied to clipboard!`, "success");
-      } else {
-        const err = await res.json();
-        showToast(`Failed to generate invite link: ${err.error}`, "error");
-      }
-    } catch (e) {
-      console.error("Failed to generate invite link:", e);
-      showToast("Failed to generate invite link.", "error");
-    }
-  };
-
-  const handleResyncGroupDecks = async () => {
-    if (!activeGroup) return;
-    setResyncingGroupDecks(true);
-    try {
-      const res = await api.resyncPlaygroupDecks(activeGroup.id);
-      alert(`${res.message}\nAdded: ${res.stats.added}, Removed: ${res.stats.removed}, Ignored: ${res.stats.ignored}`);
-      setHasResyncedGroupDecks(true);
-      // Reload wishlist to reflect any changes from synced decks
-      loadPlaygroupDetails(activeGroup.id);
-    } catch (err) {
-      alert("Failed to resync playgroup decks: " + err.message);
-    } finally {
-      setResyncingGroupDecks(false);
-    }
-  };
-
-  const handleLeaveGroup = async () => {
-    if (!activeGroup) return;
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/playgroups/${activeGroup.id}/leave`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        showToast(data.message || `Left playgroup "${activeGroup.name}"`, "info");
-        const remaining = playgroups.filter(g => g.id !== activeGroup.id);
-        setPlaygroups(remaining);
-        setActiveGroup(remaining.length > 0 ? remaining[0] : null);
-        loadPlaygroups();
-      } else {
-        const err = await res.json();
-        showToast(`Failed to leave playgroup: ${err.error}`, "error");
-      }
-    } catch (e) {
-      console.error("Failed to leave playgroup:", e);
-      showToast("Failed to leave playgroup.", "error");
-    }
-  };
-
-  const verifyAndGetManifest = async () => {
-    let latestQueue = groupWishlist;
-
-    // 1. Fetch latest wishlist data from server if in an active group
-    if (activeGroup?.id) {
-      try {
-        const token = localStorage.getItem("token");
-        if (token) {
-          const res = await fetch(`/api/playgroups/${activeGroup.id}/wishlist`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            latestQueue = data;
-            setGroupWishlist(data);
-          }
-        }
-      } catch (e) {
-        console.warn(" [WishlistHub] Could not fetch latest group wishlist prior to XML export:", e);
-      }
-    }
-
-    const printQueue = latestQueue.slice(0, 612);
-
-    // 2. Fetch/verify printsCache metadata for all cards in the manifest
-    if (printQueue.length > 0) {
-      const cardNames = Array.from(new Set(printQueue.map((c) => c.card_name)));
-      try {
-        await fetchPrintsBatch(cardNames, latestQueue);
-      } catch (e) {
-        console.warn(" [WishlistHub] Could not refresh prints cache prior to XML export:", e);
-      }
-    }
-
-    return printQueue;
-  };
-
-  const handleCopyMpcTextList = async () => {
-    if (groupWishlist.length === 0) return;
-    showToast("Verifying latest manifest data...", "info");
-
-    const printQueue = await verifyAndGetManifest();
-    if (printQueue.length === 0) {
-      showToast("No cards in print queue.", "warning");
-      return;
-    }
-
-    const textList = formatMpcTextList(printQueue, printsCache, defaultCardBack);
-    await navigator.clipboard.writeText(textList);
-    showToast("Copied MPCfill formatted card list to clipboard!", "success");
-  };
-
-  const handleDownloadMpcXml = async () => {
-    if (groupWishlist.length === 0) return;
-    showToast("Verifying latest manifest data...", "info");
-
-    const printQueue = await verifyAndGetManifest();
-    if (printQueue.length === 0) {
-      showToast("No cards in print queue to generate XML.", "warning");
-      return;
-    }
-
-    // Group cards by card_name + set_code + collector_number + mpcfill_id to combine slot indices
-    const cardGroups = new Map();
-
-    printQueue.forEach((c, slotIndex) => {
-      const meta = printsCache[c.card_name];
-      const isDfc = isDoubleFacedCard(c, meta);
-      const name = isDfc ? getCardFrontName(c, meta) : (c.card_name || c.name || "Unknown Card");
-      
-      const mpcfillId = c.mpcfill_id || "";
-      const mpcfileName = c.mpcfill_name || (name.match(/\.(png|jpg|jpeg)$/i) ? name : `${name}.png`);
-      const mpcfillQuery = c.mpcfill_query || name;
-      
-      const key = `${name}__${c.set_code || ""}__${c.collector_number || ""}__${mpcfillId}`;
-      if (!cardGroups.has(key)) {
-        cardGroups.set(key, {
-          name: name,
-          set_code: c.set_code || "",
-          collector_number: c.collector_number || "",
-          mpcfillId,
-          mpcfileName,
-          mpcfillQuery,
-          slots: [slotIndex]
-        });
-      } else {
-        cardGroups.get(key).slots.push(slotIndex);
-      }
-      
-      console.log(`[WishlistHub Export] Card: "${name}", User: "${c.username}", MPCFill ID: "${mpcfillId}", MPCFill Name: "${mpcfileName}"`);
-    });
-
-    const escapeXml = (str) => {
-      if (!str) return "";
-      return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&apos;");
-    };
-
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<order>\n`;
-    xml += `    <details>\n`;
-    xml += `        <quantity>${printQueue.length}</quantity>\n`;
-    xml += `        <stock>(S30) Standard Smooth</stock>\n`;
-    xml += `        <foil>false</foil>\n`;
-    xml += `    </details>\n`;
-    xml += `    <fronts>\n`;
-
-    for (const group of cardGroups.values()) {
-      xml += `        <card>\n`;
-      xml += `            <id>${escapeXml(group.mpcfillId)}</id>\n`;
-      xml += `            <slots>${group.slots.join(",")}</slots>\n`;
-      xml += `            <name>${escapeXml(group.mpcfileName)}</name>\n`;
-      xml += `            <query>${escapeXml(group.mpcfillQuery)}</query>\n`;
-      xml += `        </card>\n`;
-    }
-
-    // Helper to resolve cardback details canonically
-    const resolveCardbackDetails = (rawVal, username) => {
-      const val = (rawVal || "").trim();
-      if (!val) return null;
-
-      const match = prebuiltCardbacks.find(
-        (pb) => pb.driveId === val || pb.query === val || pb.id === val || pb.name === val
-      );
-
-      let cardId = "";
-      let queryVal = "";
-      let fileName = `${username || "User"} Card Back.png`;
-
-      if (match) {
-        cardId = match.driveId || "";
-        queryVal = match.query || match.name || "";
-        fileName = match.name.match(/\.(png|jpg|jpeg)$/i) ? match.name : `${match.name}.png`;
-      } else if (/^[1-9a-zA-Z_-]{20,}$/.test(val)) {
-        cardId = val;
-        queryVal = ""; // Leave query empty when exact Drive ID is provided to prevent search failure
-        fileName = "Card Back.png";
-      } else {
-        cardId = "";
-        queryVal = val;
-        fileName = "Card Back.png";
-      }
-
-      const canonicalKey = cardId ? `id:${cardId}` : `query:${queryVal.toLowerCase()}`;
-      return { rawVal, canonicalKey, cardId, queryVal, fileName, matchName: match ? match.name : null, username };
-    };
-
-    // 1. Resolve cardback or DFC status for every slot in the print queue
-    const slotCardbacks = printQueue.map((c) => {
-      const meta = printsCache[c.card_name];
-      if (isDoubleFacedCard(c, meta)) {
-        const backName = getCardBackName(c, meta) || getCardFrontName(c, meta) || "Unknown Card";
-        return {
-          isDfc: true,
-          rawVal: backName,
-          canonicalKey: `dfc:${backName.toLowerCase()}`,
-          cardId: c.mpcfill_back_id || "",
-          queryVal: c.mpcfill_back_query || backName,
-          fileName: c.mpcfill_back_name || `${backName}.png`,
-          matchName: "DFC Back Face",
-          username: c.username
-        };
-      }
-      const raw = (c.user_card_back || defaultCardBack || "b:black lotus").trim();
-      const resolved = resolveCardbackDetails(raw, c.username);
-      return {
-        isDfc: false,
-        ...resolved
-      };
-    });
-
-    // 2. Count frequency of non-DFC canonical cardbacks to determine primary default <cardback>
-    const frequencyMap = new Map(); // canonicalKey -> { count, details }
-    slotCardbacks.forEach((cb) => {
-      if (cb && !cb.isDfc) {
-        if (!frequencyMap.has(cb.canonicalKey)) {
-          frequencyMap.set(cb.canonicalKey, { count: 1, details: cb });
-        } else {
-          frequencyMap.get(cb.canonicalKey).count++;
-        }
-      }
-    });
-
-    let primaryCardbackDetails = null;
-    let maxCount = 0;
-    for (const entry of frequencyMap.values()) {
-      if (entry.count > maxCount) {
-        maxCount = entry.count;
-        primaryCardbackDetails = entry.details;
-      }
-    }
-
-    const globalCardbackVal = primaryCardbackDetails
-      ? (primaryCardbackDetails.cardId || primaryCardbackDetails.queryVal || primaryCardbackDetails.rawVal)
-      : (defaultCardBack || "b:black lotus").trim();
-
-    // 3. Group slots by canonical key for any DFC backs OR cardbacks that OVERRIDE the primary <cardback>
-    const overrideBacksMap = new Map(); // canonicalKey -> { ...details, slots: [] }
-
-    slotCardbacks.forEach((cb, slotIndex) => {
-      if (cb) {
-        if (cb.isDfc) {
-          if (!overrideBacksMap.has(cb.canonicalKey)) {
-            overrideBacksMap.set(cb.canonicalKey, {
-              ...cb,
-              slots: [slotIndex]
-            });
-          } else {
-            overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
-          }
-        } else {
-          const matchesPrimary = primaryCardbackDetails && cb.canonicalKey === primaryCardbackDetails.canonicalKey;
-          if (!matchesPrimary) {
-            if (!overrideBacksMap.has(cb.canonicalKey)) {
-              overrideBacksMap.set(cb.canonicalKey, {
-                ...cb,
-                slots: [slotIndex]
-              });
-            } else {
-              overrideBacksMap.get(cb.canonicalKey).slots.push(slotIndex);
-            }
-          }
-        }
-      }
-    });
-
-    // Verbose debug logging for user cardbacks & DFCs
-    console.group(" [MPCfill XML Generator] Verbose Debug Log");
-    console.log(` Active Group: "${activeGroup?.name || "group"}"`);
-    console.log(`Total Cards in Print Queue: ${printQueue.length}`);
-    printQueue.forEach((c, idx) => {
-      const isDfc = isDoubleFacedCard(c);
-      console.log(
-        `  Slot [${idx}]: "${c.card_name}" | DFC=${isDfc} | Owner="${c.username}" | Cardback="${c.user_card_back || "(none)"}"`
-      );
-    });
-    console.log(`Primary Default <cardback>: "${globalCardbackVal}" (used by ${maxCount} cards)`);
-    console.log(`Override Cardbacks / DFC Backs Count: ${overrideBacksMap.size}`);
-
-    xml += `    </fronts>\n`;
-    xml += `    <backs>\n`;
-
-    for (const backGroup of overrideBacksMap.values()) {
-      console.log(`Exporting <backs> entry (DFC / Override):`, {
-        canonicalKey: backGroup.canonicalKey,
-        isDfc: backGroup.isDfc,
-        resolvedDriveId: backGroup.cardId,
-        resolvedQuery: backGroup.queryVal,
-        fileName: backGroup.fileName,
-        assignedSlots: backGroup.slots.join(",")
-      });
-
-      xml += `        <card>\n`;
-      xml += `            <id>${escapeXml(backGroup.cardId)}</id>\n`;
-      xml += `            <slots>${backGroup.slots.join(",")}</slots>\n`;
-      xml += `            <name>${escapeXml(backGroup.fileName)}</name>\n`;
-      xml += `            <query>${escapeXml(backGroup.queryVal)}</query>\n`;
-      xml += `        </card>\n`;
-    }
-
-    xml += `    </backs>\n`;
-    xml += `    <cardback>${escapeXml(globalCardbackVal)}</cardback>\n`;
-    xml += `</order>\n`;
-
-    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${activeGroup?.name || "group"}_mpcfill_manifest.xml`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast("Verified manifest data & downloaded XML!", "success");
-  };
-
   const verifyAndGetMyManifest = async () => {
     // 1. Flatten wishlist and attach mpcfill fields from userProxyArts
     const flatQueue = [];
     const proxyArts = userProxyArts || [];
 
-    // Combine wishlist and optionalProxies (just like playgroup does)
+    // Combine wishlist and optionalProxies
     const currentList = [...wishlist, ...optionalProxies].sort((a, b) => {
       return new Date(a.created_at) - new Date(b.created_at);
     });
@@ -1787,52 +1254,6 @@ export default function WishlistHub() {
     alert("Decklist copied to clipboard!");
   };
 
-  // Trade Fulfill Handler
-  const handleFulfillTrade = async (cardName, ownerId, buyerId) => {
-    if (!activeGroup) return;
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/playgroups/${activeGroup.id}/trade-fulfill`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ card_name: cardName, owner_id: ownerId, buyer_id: buyerId })
-      });
-
-      if (res.ok) {
-        alert("Physical trade verified! Ownership updated, buyer's wishlist updated, and manifest updated!");
-        loadLists();
-        loadPlaygroupDetails(activeGroup.id);
-      } else {
-        const data = await res.json();
-        alert(`Error: ${data.error}`);
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Failed to fulfill trade.");
-    }
-  };
-
-
-
-  // Math metrics for MPC Order Engine
-  const mpcListCount = groupWishlist.length;
-  const isFloorMet = mpcListCount >= 108;
-  const progressPercent = Math.min((mpcListCount / 612) * 100, 100);
-
-  // Group wishlists by user for Venmo calculation
-  const mpcActiveCards = groupWishlist.slice(0, 612);
-  const venmoUserCounts = {};
-  mpcActiveCards.forEach(c => {
-    venmoUserCounts[c.username] = (venmoUserCounts[c.username] || 0) + 1;
-  });
-
-  const totalEstimateCost = mpcActiveCards.length * mpcUnitCost;
-
-
-
   // printable sheets mapping helper
   const printItemsList = [];
   wishlist.forEach(c => {
@@ -1873,7 +1294,7 @@ export default function WishlistHub() {
       <div className="wishlist-header">
         <div>
           <h1 className="wishlist-title"><SparklesIcon className="inline-icon" style={{ width: '1.2em', height: '1.2em', verticalAlign: 'middle', marginRight: '4px' }} /> Wishlist & Proxy Hub</h1>
-          <p className="wishlist-subtitle">Manage proxy lists, chronological MakePlayingCards queues, and local playgroup trades.</p>
+          <p className="wishlist-subtitle">Manage proxy lists, MakePlayingCards queues, and friends proxy manifests.</p>
         </div>
       </div>
 
@@ -1886,10 +1307,10 @@ export default function WishlistHub() {
           <ClipboardDocumentListIcon className="inline-icon" /> My Lists
         </button>
         <button
-          className={`tab-btn ${activeTab === "nexus" ? "active" : ""}`}
-          onClick={() => setActiveTab("nexus")}
+          className={`tab-btn ${activeTab === "manifest" ? "active" : ""}`}
+          onClick={() => setActiveTab("manifest")}
         >
-          <UserGroupIcon className="inline-icon" /> Playgroup Nexus
+          <PrinterIcon className="inline-icon" /> Friends Manifest
         </button>
         <button
           className={`tab-btn ${activeTab === "history" ? "active" : ""}`}
@@ -1959,18 +1380,13 @@ export default function WishlistHub() {
         />
       )}
 
-      {/* VIEW 2: PLAYGROUP NEXUS */}
-      {activeTab === "nexus" && (
-        <PlaygroupNexus
-          activeGroup={activeGroup}
-          setActiveGroup={setActiveGroup}
-          playgroups={playgroups}
-          loadPlaygroups={loadPlaygroups}
-          printQueue={groupWishlist}
-          mpcUnitCost={mpcUnitCost}
-          setMpcUnitCost={setMpcUnitCost}
-          defaultCardBack={defaultCardBack}
-          handleSaveCardBack={handleSaveCardBack}
+      {/* VIEW 2: FRIENDS PROXY MANIFEST */}
+      {activeTab === "manifest" && (
+        <FriendsProxyManifest
+          onOrderConfirmed={() => {
+            loadOrderHistory();
+            loadLists();
+          }}
         />
       )}
 
@@ -2257,19 +1673,19 @@ export default function WishlistHub() {
               <div style={{ background: "rgba(15,23,42,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "8px", padding: "0.85rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
                   <span style={{ color: "#94a3b8" }}>Order Scope:</span>
-                  <strong style={{ color: "#f8fafc" }}>{confirmTargetScope === "playgroup" && activeGroup ? `Playgroup (${activeGroup.name})` : "Personal Wishlist"}</strong>
+                  <strong style={{ color: "#f8fafc" }}>Personal Wishlist</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
                   <span style={{ color: "#94a3b8" }}>Active Cards to Clear:</span>
                   <strong style={{ color: "#34d399" }}>
-                    {confirmTargetScope === "playgroup" ? Math.min(612, groupWishlist.length) : (selectedList === "optional_proxies" ? optionalProxies : wishlist).reduce((s, c) => s + c.quantity, 0)} cards
+                    {(selectedList === "optional_proxies" ? optionalProxies : wishlist).reduce((s, c) => s + c.quantity, 0)} cards
                   </strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
                   <span style={{ color: "#94a3b8" }}>Est. Total Cost:</span>
                   <strong style={{ color: "#f8fafc" }}>
                     ${(
-                      (confirmTargetScope === "playgroup" ? Math.min(612, groupWishlist.length) : (selectedList === "optional_proxies" ? optionalProxies : wishlist).reduce((s, c) => s + c.quantity, 0)) * mpcUnitCost
+                      (selectedList === "optional_proxies" ? optionalProxies : wishlist).reduce((s, c) => s + c.quantity, 0) * mpcUnitCost
                     ).toFixed(2)}
                   </strong>
                 </div>

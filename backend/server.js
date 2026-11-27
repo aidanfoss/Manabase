@@ -13,6 +13,7 @@ if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
     process.exit(1);
 }
 
+import http from "http";
 import express from "express";
 import cors from "cors";
 import fs from "fs";
@@ -36,7 +37,9 @@ import ownedRouter from "./routes/owned.js";
 import wishlistRouter from "./routes/wishlist.js";
 import tradelistRouter from "./routes/tradelist.js";
 import tradeRouter from "./routes/trade.js";
-import playgroupsRouter from "./routes/playgroups.js";
+import friendsRouter from "./routes/friends.js";
+import blocksRouter from "./routes/blocks.js";
+import messagesRouter from "./routes/messages.js";
 import listsRouter from "./routes/lists.js";
 import cardbacksRouter from "./routes/cardbacks.js";
 import pricingRouter from "./routes/pricingRoutes.js";
@@ -44,6 +47,9 @@ import adminRouter from "./routes/admin.js";
 import analyticsRouter from "./routes/analytics.js";
 import proxyArtsRouter from "./routes/proxyArts.js";
 import proxyOrdersRouter from "./routes/proxyOrders.js";
+
+// --- WebSocket ---
+import { initWebSocketServer } from "./services/websocket.js";
 
 // --- DB ---
 import { initDB } from "./db/connection.js";
@@ -107,7 +113,9 @@ app.use("/api/users", usersRouter);
 app.use("/api/collection/owned", ownedRouter);
 app.use("/api/collection/wishlist", wishlistRouter);
 app.use("/api/collection/tradelist", tradelistRouter);
-app.use("/api/playgroups", playgroupsRouter);
+app.use("/api/friends", friendsRouter);
+app.use("/api/blocks", blocksRouter);
+app.use("/api/messages", messagesRouter);
 app.use("/api/lists", listsRouter);
 app.use("/api/trade", tradeRouter);
 app.use("/api/pricing", pricingRouter);
@@ -232,19 +240,24 @@ app.get(/.*/, (req, res) => {
 // ---------------------------------
 // Start Server + Init Database
 // ---------------------------------
+const server = http.createServer(app);
+const wss = initWebSocketServer(server);
+
 if (process.env.NODE_ENV !== "test") {
     await initDB();
 
-    //  Start Express server first (non-blocking)
-    app.listen(PORT, () => {
+    //  Start HTTP & WebSocket server first (non-blocking)
+    server.listen(PORT, () => {
 // console.log(` Server running on port ${PORT}`);
 // console.log(` Routes available:`);
 // console.log(`   → /api/health`);
 // console.log(`   → /api/auth`);
 // console.log(`   → /api/users`);
 // console.log(`   → /api/packages`);
-
-
+// console.log(`   → /api/friends`);
+// console.log(`   → /api/blocks`);
+// console.log(`   → /api/messages`);
+// console.log(`   → /ws (WebSocket)`);
 // console.log(`   → /api/landcycles`);
 // console.log(`   → /api/cards`);
 // console.log(`   → /api/scryfall (bulk data search)`);
@@ -290,4 +303,5 @@ if (process.env.NODE_ENV !== "test") {
     })();
 }
 
+export { server, wss };
 export default app;

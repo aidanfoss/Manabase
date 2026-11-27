@@ -411,12 +411,12 @@ router.get("/code", requireAuth, async (req, res) => {
     // Ensure user has a friend_code
     let user = await db("users").where({ id: me }).first();
     if (!user.friend_code) {
-      // generate unique code
       let newCode;
       do {
         newCode = Math.random().toString(36).substr(2, 8).toUpperCase();
         const exists = await db("users").where({ friend_code: newCode }).first();
-      } while (exists);
+        if (!exists) break;
+      } while (true);
       await db("users").where({ id: me }).update({ friend_code: newCode });
       user.friend_code = newCode;
     }
@@ -435,7 +435,8 @@ router.post("/code", requireAuth, async (req, res) => {
     do {
       newCode = Math.random().toString(36).substr(2, 8).toUpperCase();
       const exists = await db("users").where({ friend_code: newCode }).first();
-    } while (exists);
+      if (!exists) break;
+    } while (true);
     await db("users").where({ id: me }).update({ friend_code: newCode });
     res.json({ friend_code: newCode });
   } catch (err) {
@@ -482,7 +483,7 @@ router.post("/code/:code", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Friend request already sent." });
     }
 
-    // Auto‑accept if there is an incoming request
+    // Auto-accept if there is an incoming request
     const existingIn = await db("friend_requests").where({ sender_id: targetUser.id, receiver_id: me, status: "pending" }).first();
     if (existingIn) {
       await db.transaction(async (trx) => {

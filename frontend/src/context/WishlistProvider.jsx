@@ -11,10 +11,6 @@ export function WishlistProvider({ children }) {
   const [selectedPrints, setSelectedPrints] = useState({});
   const [retailPrices, setRetailPrices] = useState({});
   const [loadingRetail, setLoadingRetail] = useState(false);
-  const [playgroups, setPlaygroups] = useState([]);
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [groupMembers, setGroupMembers] = useState([]);
-  const [groupWishlist, setGroupWishlist] = useState([]);
   const [mpcUnitCost, setMpcUnitCost] = useState(0.25);
   const [defaultCardBack, setDefaultCardBack] = useState(() => {
     return localStorage.getItem("manabase_default_card_back") || "b:black lotus";
@@ -74,14 +70,6 @@ export function WishlistProvider({ children }) {
         setRetailPrices,
         loadingRetail,
         setLoadingRetail,
-        playgroups,
-        setPlaygroups,
-        activeGroup,
-        setActiveGroup,
-        groupMembers,
-        setGroupMembers,
-        groupWishlist,
-        setGroupWishlist,
         mpcUnitCost,
         setMpcUnitCost,
         defaultCardBack,
