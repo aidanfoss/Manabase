@@ -30,20 +30,6 @@ async function seed() {
     dbUsers.push(user);
   }
 
-  // Ensure they are in a playgroup together
-  let playgroup = await db("playgroups").where({ name: "Trade Testing Playgroup" }).first();
-  if (!playgroup) {
-    const ids = await db("playgroups").insert({
-      name: "Trade Testing Playgroup"
-    }).returning("id");
-    playgroup = { id: ids[0].id || ids[0] };
-  }
-  
-  // Add members
-  for (const u of dbUsers) {
-    await db("playgroup_members").insert({ playgroup_id: playgroup.id, user_id: u.id }).onConflict(["playgroup_id", "user_id"]).ignore();
-  }
-
   // Get or Create DevUser for testing
   let devUser = await db("users").where({ username: "DevUser" }).first();
   if (!devUser) {
@@ -54,8 +40,28 @@ async function seed() {
     }).returning("id");
     devUser = { id: ids[0].id || ids[0], username: "DevUser" };
   }
-  // Add DevUser to playgroup
-  await db("playgroup_members").insert({ playgroup_id: playgroup.id, user_id: devUser.id }).onConflict(["playgroup_id", "user_id"]).ignore();
+
+  // Establish friendships between all users with trading & proxy permissions enabled
+  const allUsers = [...dbUsers, devUser];
+  for (let i = 0; i < allUsers.length; i++) {
+    for (let j = i + 1; j < allUsers.length; j++) {
+      await db("friends").insert([
+        {
+          user_id: allUsers[i].id,
+          friend_id: allUsers[j].id,
+          allow_trading: true,
+          allow_proxy_orders: true,
+        },
+        {
+          user_id: allUsers[j].id,
+          friend_id: allUsers[i].id,
+          allow_trading: true,
+          allow_proxy_orders: true,
+        }
+      ]).onConflict(["user_id", "friend_id"]).ignore();
+    }
+  }
+
   // Include DevUser in staples loop later
   dbUsers.push(devUser);
 

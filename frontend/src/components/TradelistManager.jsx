@@ -1,6 +1,7 @@
 // src/components/TradelistManager.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { MagnifyingGlassIcon, ExclamationTriangleIcon, XMarkIcon, HandRaisedIcon, BoltIcon, PrinterIcon, ArrowUpTrayIcon, InboxIcon, PencilIcon, BriefcaseIcon, StarIcon, GiftIcon, RocketLaunchIcon, CheckCircleIcon, NoSymbolIcon, ArrowPathIcon, ChartBarIcon, XCircleIcon, MinusCircleIcon, UserIcon, SparklesIcon, ChevronDownIcon, TagIcon, Cog6ToothIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon, ExclamationTriangleIcon, XMarkIcon, HandRaisedIcon, BoltIcon, PrinterIcon, ArrowUpTrayIcon, InboxIcon, PencilIcon, BriefcaseIcon, StarIcon, GiftIcon, RocketLaunchIcon, CheckCircleIcon, NoSymbolIcon, ArrowPathIcon, ChartBarIcon, XCircleIcon, MinusCircleIcon, UserIcon, SparklesIcon, ChevronDownIcon, TagIcon, Cog6ToothIcon, ClockIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
+import { useChat } from "../context/ChatContext";
 
 
 
@@ -91,6 +92,7 @@ const getCardImageUrl = (card, cardMeta) => {
 };
 
 export default function TradelistManager() {
+  const { openChatWithFriend } = useChat();
   const [activeTab, setActiveTab] = useState("trading"); // "trading" or "manage"
   
   // State for Manage My Tradelist
@@ -1538,9 +1540,29 @@ export default function TradelistManager() {
                       {/* Trade Header */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
                         <div>
-                          <h3 style={{ margin: 0, fontSize: "1.15rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <span>Trade with <strong style={{ color: "#38bdf8" }}>@{trade.partner_username}</strong></span>
-                          </h3>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                            <h3 style={{ margin: 0, fontSize: "1.15rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span>Trade with <strong style={{ color: "#38bdf8" }}>@{trade.partner_username}</strong></span>
+                            </h3>
+                            <button
+                              onClick={() => openChatWithFriend({ id: trade.partner_id, username: trade.partner_username })}
+                              style={{
+                                background: "#1e293b",
+                                border: "1px solid #475569",
+                                borderRadius: "6px",
+                                color: "#38bdf8",
+                                padding: "2px 7px",
+                                fontSize: "0.75rem",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                              title="Direct message trade partner"
+                            >
+                              <ChatBubbleLeftRightIcon style={{ width: "12px", height: "12px" }} /> DM
+                            </button>
+                          </div>
                           <span style={{ fontSize: "0.78rem", color: "#64748b" }}>
                             Last updated: {new Date(trade.updated_at).toLocaleString()}
                           </span>
@@ -1998,15 +2020,37 @@ export default function TradelistManager() {
                               </span>
                             )}
                           </div>
-                          <button 
-                            className="trade-initiate-btn"
-                            onClick={() => {
-                              const p = partners.find(usr => usr.id === user.id);
-                              if (p) setActivePartner(p);
-                            }}
-                          >
-                            Start Trade
-                          </button>
+                          <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <button
+                              onClick={() => openChatWithFriend(user)}
+                              style={{
+                                backgroundColor: "#1e293b",
+                                color: "#f8fafc",
+                                border: "1px solid #475569",
+                                borderRadius: "8px",
+                                padding: "0.45rem 0.75rem",
+                                fontSize: "0.82rem",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.4rem",
+                              }}
+                              title={`Direct message ${user.username} to negotiate trade`}
+                            >
+                              <ChatBubbleLeftRightIcon style={{ width: "16px", height: "16px", color: "#38bdf8" }} />
+                              Chat / DM
+                            </button>
+                            <button
+                              className="trade-initiate-btn"
+                              onClick={() => {
+                                const p = partners.find(usr => usr.id === user.id);
+                                if (p) setActivePartner(p);
+                              }}
+                            >
+                              Start Trade
+                            </button>
+                          </div>
                         </div>
                         <div className="user-match-body">
                           {/* Left side: They want */}

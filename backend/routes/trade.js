@@ -6,17 +6,39 @@ import { fetchBatchPricesFromScryfall } from "../services/scryfall.js";
 
 const router = express.Router();
 
-// GET /api/trade/users - Get all other users in the playgroup
+// GET /api/trade/users - Get friends eligible for trading
 router.get("/users", requireAuth, async (req, res) => {
   try {
-    const users = await db("users")
-      .select("id", "username", "email")
-      .whereNot({ id: req.user.id })
-      .orderBy("username", "asc");
-    res.json(users);
+    const me = req.user.id;
+
+    // Get blocked users in both directions
+    const blockedRows = await db("blocked_users")
+      .where("user_id", me)
+      .orWhere("blocked_id", me)
+      .select("user_id", "blocked_id");
+    const blockedIds = new Set();
+    blockedRows.forEach(r => {
+      blockedIds.add(r.user_id === me ? r.blocked_id : r.user_id);
+    });
+
+    // Get mutual friends where both have allow_trading = true
+    const eligibleFriends = await db("friends as f1")
+      .join("friends as f2", function () {
+        this.on("f1.user_id", "=", "f2.friend_id")
+          .andOn("f1.friend_id", "=", "f2.user_id");
+      })
+      .join("users as u", "f1.friend_id", "u.id")
+      .where("f1.user_id", me)
+      .where("f1.allow_trading", true)
+      .where("f2.allow_trading", true)
+      .select("u.id", "u.username", "u.email", "u.avatar_url")
+      .orderBy("u.username", "asc");
+
+    const filtered = eligibleFriends.filter(f => !blockedIds.has(f.id));
+    res.json(filtered);
   } catch (err) {
-    console.error(" Failed to fetch playgroup users:", err);
-    res.status(500).json({ error: "Failed to fetch playgroup users" });
+    console.error(" Failed to fetch trading friends:", err);
+    res.status(500).json({ error: "Failed to fetch trading friends" });
   }
 });
 
@@ -302,8 +324,32 @@ router.get("/matches", requireAuth, async (req, res) => {
     const myWants = myCards.filter(c => c.list_type === "wishlist" || c.list_type === "tradelist");
     const myCollection = myCards.filter(c => c.list_type === "owned" || c.list_type === "proxy");
 
-    // 2. Fetch peers
-    const peers = await db("users").whereNot("id", me).select("id", "username", "email");
+    // 2. Fetch peers: only mutual friends where both allow_trading = true and neither is blocked
+    const blockedRows = await db("blocked_users")
+      .where("user_id", me)
+      .orWhere("blocked_id", me)
+      .select("user_id", "blocked_id");
+    const blockedIds = new Set();
+    blockedRows.forEach(r => {
+      blockedIds.add(r.user_id === me ? r.blocked_id : r.user_id);
+    });
+
+    const eligibleFriends = await db("friends as f1")
+      .join("friends as f2", function () {
+        this.on("f1.user_id", "=", "f2.friend_id")
+          .andOn("f1.friend_id", "=", "f2.user_id");
+      })
+      .join("users as u", "f1.friend_id", "u.id")
+      .where("f1.user_id", me)
+      .where("f1.allow_trading", true)
+      .where("f2.allow_trading", true)
+      .select("u.id", "u.username", "u.email")
+      .orderBy("u.username", "asc");
+
+    const peers = eligibleFriends.filter(f => !blockedIds.has(f.id));
+    if (peers.length === 0) {
+      return res.json([]);
+    }
 
     // 3. Fetch peer cards (wishlist, tradelist, and owned collection)
     const peerCards = await db("user_cards")
@@ -405,6 +451,31 @@ router.get("/matches", requireAuth, async (req, res) => {
 router.get("/inventory/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
+    const me = req.user.id;
+
+    // Verify neither user is blocked
+    const isBlocked = await db("blocked_users")
+      .where(function() {
+        this.where({ user_id: me, blocked_id: userId })
+            .orWhere({ user_id: userId, blocked_id: me });
+      })
+      .first();
+    if (isBlocked) {
+      return res.status(403).json({ error: "Communication blocked." });
+    }
+
+    // Verify mutual friendship & allow_trading
+    const friendship = await db("friends")
+      .where({ user_id: me, friend_id: userId, allow_trading: true })
+      .first();
+    const reverseFriendship = await db("friends")
+      .where({ user_id: userId, friend_id: me, allow_trading: true })
+      .first();
+
+    if (!friendship || !reverseFriendship) {
+      return res.status(403).json({ error: "Mutual trading permission required with friends." });
+    }
+
     const cards = await db("user_cards")
       .where({ user_id: userId })
       .whereIn("list_type", ["owned", "tradelist", "wishlist"])
@@ -419,13 +490,37 @@ router.get("/inventory/:userId", requireAuth, async (req, res) => {
 // POST /api/trade/propose - Propose a new trade
 router.post("/propose", requireAuth, async (req, res) => {
   const { partnerId, offer, demand } = req.body;
+  const me = req.user.id;
 
   if (!partnerId) return res.status(400).json({ error: "Partner ID is required" });
+  if (partnerId === me) return res.status(400).json({ error: "Cannot trade with yourself" });
   if ((!offer || offer.length === 0) && (!demand || demand.length === 0)) {
     return res.status(400).json({ error: "Offer or demand is required" });
   }
 
   try {
+    // Check block
+    const isBlocked = await db("blocked_users")
+      .where(function() {
+        this.where({ user_id: me, blocked_id: partnerId })
+            .orWhere({ user_id: partnerId, blocked_id: me });
+      })
+      .first();
+    if (isBlocked) {
+      return res.status(403).json({ error: "Cannot trade with a blocked user." });
+    }
+
+    // Check friendship & trading allowed
+    const friendship = await db("friends")
+      .where({ user_id: me, friend_id: partnerId, allow_trading: true })
+      .first();
+    const reverseFriendship = await db("friends")
+      .where({ user_id: partnerId, friend_id: me, allow_trading: true })
+      .first();
+
+    if (!friendship || !reverseFriendship) {
+      return res.status(403).json({ error: "Trading is not permitted between you and this user." });
+    }
     const rawOffer = (offer || []).map(i => ({ ...i, user_id: req.user.id }));
     const rawDemand = (demand || []).map(i => ({ ...i, user_id: partnerId }));
     const allRawItems = [...rawOffer, ...rawDemand];

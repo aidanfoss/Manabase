@@ -19,15 +19,7 @@ describe('Gluntch Test', () => {
     const token = regRes.body.token;
     const userId = regRes.body.user.id;
 
-    // 2. Make a new playgroup called GluntchSolo
-    const pgRes = await request(app)
-      .post('/api/playgroups')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'GluntchSolo' });
-    expect(pgRes.status).toBe(200);
-    const playgroupId = pgRes.body.id;
-
-    // 3. Have the user add the 4 cards to their proxy order.
+    // 2. Have the user add the 4 cards to their proxy order.
     // Proxy orders draw from wishlist.
     await db('user_cards').insert([
       {
@@ -77,12 +69,12 @@ describe('Gluntch Test', () => {
       .send({ xml: chosenArtXml });
     expect(importRes.status).toBe(200);
 
-    // Now let's fetch the group wishlist
+    // Now let's fetch the friends proxy queue
     const wlRes = await request(app)
-      .get(`/api/playgroups/${playgroupId}/wishlist`)
+      .get('/api/proxy-orders/friends-queue')
       .set('Authorization', `Bearer ${token}`);
     expect(wlRes.status).toBe(200);
-    const printQueue = wlRes.body;
+    const printQueue = wlRes.body.cards;
     
     // We expect 4 items
     expect(printQueue.length).toBe(4);

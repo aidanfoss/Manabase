@@ -534,46 +534,68 @@ export async function initDB() {
     console.warn("️ Could not create user_cards indexes:", e.message);
   }
 
-  // Create playgroups tables
-  const hasPlaygroups = await db.schema.hasTable("playgroups");
-  if (!hasPlaygroups) {
-    await db.schema.createTable("playgroups", (t) => {
-      t.increments("id").primary();
-      t.string("name").notNullable();
-      t.timestamps(true, true);
-    });
-// console.log(" Created playgroups table");
+  // Drop legacy playgroups tables if they exist
+  try {
+    await db.schema.dropTableIfExists("playgroup_invites");
+    await db.schema.dropTableIfExists("playgroup_members");
+    await db.schema.dropTableIfExists("playgroups");
+  } catch (e) {
+    console.warn("Could not drop legacy playgroup tables:", e.message);
   }
 
-  const hasPlaygroupMembers = await db.schema.hasTable("playgroup_members");
-  if (!hasPlaygroupMembers) {
-    await db.schema.createTable("playgroup_members", (t) => {
-      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups").onDelete("CASCADE");
-      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
-      t.primary(["playgroup_id", "user_id"]);
-    });
-// console.log(" Created playgroup_members table");
-  }
-
-  // Migration: add opted_out_of_manifest to playgroup_members
-  const hasOptedOut = await db.schema.hasColumn("playgroup_members", "opted_out_of_manifest");
-  if (!hasOptedOut) {
-    await db.schema.alterTable("playgroup_members", (t) => {
-      t.boolean("opted_out_of_manifest").defaultTo(false);
-    });
-// console.log(" Added opted_out_of_manifest to playgroup_members");
-  }
-
-  const hasPlaygroupInvites = await db.schema.hasTable("playgroup_invites");
-  if (!hasPlaygroupInvites) {
-    await db.schema.createTable("playgroup_invites", (t) => {
+  // Create Friends system tables
+  const hasFriendRequests = await db.schema.hasTable("friend_requests");
+  if (!hasFriendRequests) {
+    await db.schema.createTable("friend_requests", (t) => {
       t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
-      t.integer("playgroup_id").notNullable().references("id").inTable("playgroups").onDelete("CASCADE");
-      t.string("token").notNullable().unique();
-      t.uuid("created_by").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.uuid("sender_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.uuid("receiver_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.string("status").defaultTo("pending"); // 'pending', 'declined'
       t.timestamps(true, true);
+      t.unique(["sender_id", "receiver_id"]);
     });
-// console.log(" Created playgroup_invites table");
+  }
+
+  const hasFriends = await db.schema.hasTable("friends");
+  if (!hasFriends) {
+    await db.schema.createTable("friends", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.uuid("friend_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.boolean("allow_trading").defaultTo(true);
+      t.boolean("allow_proxy_orders").defaultTo(false);
+      t.timestamps(true, true);
+      t.unique(["user_id", "friend_id"]);
+    });
+  }
+
+  const hasBlockedUsers = await db.schema.hasTable("blocked_users");
+  if (!hasBlockedUsers) {
+    await db.schema.createTable("blocked_users", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("user_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.uuid("blocked_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.timestamp("created_at").defaultTo(db.fn.now());
+      t.unique(["user_id", "blocked_id"]);
+    });
+  }
+
+  const hasDirectMessages = await db.schema.hasTable("direct_messages");
+  if (!hasDirectMessages) {
+    await db.schema.createTable("direct_messages", (t) => {
+      t.uuid("id").primary().defaultTo(db.raw("(lower(hex(randomblob(16))))"));
+      t.uuid("sender_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.uuid("recipient_id").notNullable().references("id").inTable("users").onDelete("CASCADE");
+      t.text("content").notNullable();
+      t.timestamp("read_at").nullable();
+      t.timestamp("created_at").defaultTo(db.fn.now());
+    });
+    try {
+      await db.raw("CREATE INDEX IF NOT EXISTS idx_dm_pair_created ON direct_messages (sender_id, recipient_id, created_at);");
+      await db.raw("CREATE INDEX IF NOT EXISTS idx_dm_recipient_unread ON direct_messages (recipient_id, read_at);");
+    } catch (e) {
+      console.warn("Could not create direct_messages indexes:", e.message);
+    }
   }
 
   const hasProxyOrders = await db.schema.hasTable("proxy_orders");
@@ -581,7 +603,6 @@ export async function initDB() {
     await db.schema.createTable("proxy_orders", (t) => {
       t.increments("id").primary();
       t.uuid("user_id").nullable().references("id").inTable("users").onDelete("SET NULL");
-      t.integer("playgroup_id").nullable().references("id").inTable("playgroups").onDelete("SET NULL");
       t.string("title").nullable();
       t.string("status").defaultTo("confirmed"); // 'open', 'locked', 'ordered', 'confirmed'
       t.integer("total_cards").defaultTo(0);
@@ -589,7 +610,6 @@ export async function initDB() {
       t.json("cards").nullable();
       t.timestamps(true, true);
     });
-// console.log(" Created proxy_orders table");
   } else {
     const hasUserId = await db.schema.hasColumn("proxy_orders", "user_id");
     if (!hasUserId) {

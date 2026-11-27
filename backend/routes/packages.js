@@ -51,10 +51,8 @@ router.get("/", async (req, res) => {
         .where({ "packages.user_id": userId })
         .orWhere({ "packages.visibility": 'everyone' })
         .orWhere(function() {
-          this.where({ "packages.visibility": 'playgroups' }).whereIn('packages.user_id', function() {
-            this.select('user_id').from('playgroup_members').whereIn('playgroup_id', function() {
-              this.select('playgroup_id').from('playgroup_members').where({ user_id: userId });
-            });
+          this.whereIn("packages.visibility", ['friends', 'playgroups']).whereIn('packages.user_id', function() {
+            this.select('friend_id').from('friends').where({ user_id: userId });
           });
         })
         .orderBy("packages.updated_at", "desc");

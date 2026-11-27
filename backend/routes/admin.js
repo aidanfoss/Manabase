@@ -9,7 +9,7 @@ router.get("/stats", requireAdmin, async (req, res) => {
   try {
     // Basic counts
     const userCount = await db("users").count("id as count").first();
-    const playgroupCount = await db("playgroups").count("id as count").first();
+    const friendshipCount = await db("friends").count("id as count").first();
     const proxyOrderCount = await db("proxy_orders").count("id as count").first();
     const tradeCount = await db("trades").count("id as count").first();
     const activeDecksCount = await db("user_archidekt_decks").count("id as count").first();
@@ -24,7 +24,7 @@ router.get("/stats", requireAdmin, async (req, res) => {
     res.json({
       metrics: {
         totalUsers: userCount.count || 0,
-        totalPlaygroups: playgroupCount.count || 0,
+        totalFriendships: Math.floor((friendshipCount?.count || 0) / 2),
         totalProxyOrders: proxyOrderCount.count || 0,
         totalTrades: tradeCount.count || 0,
         totalDecksSynced: activeDecksCount.count || 0,

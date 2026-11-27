@@ -4,6 +4,13 @@ import app from '../server.js';
 import { db } from '../db/connection.js';
 
 describe('Trade API History & Ledger', () => {
+  async function makeFriends(userAId, userBId) {
+    await db('friends').insert([
+      { user_id: userAId, friend_id: userBId, allow_trading: true, allow_proxy_orders: false },
+      { user_id: userBId, friend_id: userAId, allow_trading: true, allow_proxy_orders: false }
+    ]);
+  }
+
   it('should calculate ledger debt correctly when User A trades a card to User B for nothing', async () => {
     // 1. Register User A (Me) and User B (Zach)
     const userA = { email: 'me@example.com', username: 'me', password: 'password123' };
@@ -13,7 +20,9 @@ describe('Trade API History & Ledger', () => {
     const regB = await request(app).post('/api/auth/register').send(userB);
 
     const tokenA = regA.body.token;
+    const userAId = regA.body.user.id;
     const userBId = regB.body.user.id;
+    await makeFriends(userAId, userBId);
 
     // Add card with market price $5.00 to User A's tradelist
     await db('user_cards').insert({
@@ -79,6 +88,7 @@ describe('Trade API History & Ledger', () => {
     const tokenA = regA.body.token;
     const userAId = regA.body.user.id;
     const userBId = regB.body.user.id;
+    await makeFriends(userAId, userBId);
 
     // User A adds "Mox Diamond" to wishlist
     await db('user_cards').insert({
@@ -128,7 +138,9 @@ describe('Trade API History & Ledger', () => {
 
     const tokenA = regA.body.token;
     const tokenB = regB.body.token;
+    const userAId = regA.body.user.id;
     const userBId = regB.body.user.id;
+    await makeFriends(userAId, userBId);
 
     // User A proposes trade to User B
     const propRes = await request(app)
@@ -173,7 +185,9 @@ describe('Trade API History & Ledger', () => {
     const regB = await request(app).post('/api/auth/register').send(userB);
 
     const tokenA = regA.body.token;
+    const userAId = regA.body.user.id;
     const userBId = regB.body.user.id;
+    await makeFriends(userAId, userBId);
 
     const propRes = await request(app)
       .post('/api/trade/propose')
@@ -206,6 +220,8 @@ describe('Trade API History & Ledger', () => {
     const tokenDev = regDev.body.token;
     const tokenPartner = regPartner.body.token;
     const devUserId = regDev.body.user.id;
+    const partnerId = regPartner.body.user.id;
+    await makeFriends(devUserId, partnerId);
 
     // Partner proposes an inbound trade offer to DevUser
     const propRes = await request(app)
